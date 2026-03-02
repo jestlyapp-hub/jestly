@@ -19,27 +19,27 @@ export default function SiteDomainePage() {
       <div className="space-y-8">
         {/* Sous-domaine */}
         <motion.section
-          className="bg-white rounded-xl border border-[#E6E8F0] p-6"
+          className="bg-white rounded-xl border border-[#E6E6E4] p-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
           <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-4">Sous-domaine Jestly</h2>
           <div className="flex items-center gap-3">
-            <div className="flex-1 flex items-center bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg overflow-hidden">
-              <span className="px-3 text-[13px] text-[#999] border-r border-[#E6E8F0] py-2.5">https://</span>
+            <div className="flex-1 flex items-center bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg overflow-hidden">
+              <span className="px-3 text-[13px] text-[#999] border-r border-[#E6E6E4] py-2.5">https://</span>
               <input
                 type="text"
                 defaultValue={mockSite.domain.subdomain}
                 className="flex-1 bg-transparent px-3 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none"
               />
-              <span className="px-3 text-[13px] text-[#999] border-l border-[#E6E8F0] py-2.5">.jestly.site</span>
+              <span className="px-3 text-[13px] text-[#999] border-l border-[#E6E6E4] py-2.5">.jestly.site</span>
             </div>
           </div>
           <div className="flex items-center gap-2 mt-3">
             <button
               onClick={handleCopy}
-              className="text-[12px] font-medium text-[#6a18f1] border border-[#6a18f1]/20 px-3 py-1.5 rounded-lg hover:bg-[#F0EBFF] transition-colors"
+              className="text-[12px] font-medium text-[#4F46E5] border border-[#4F46E5]/20 px-3 py-1.5 rounded-lg hover:bg-[#EEF2FF] transition-colors"
             >
               {copied ? "Copié !" : "Copier le lien"}
             </button>
@@ -47,7 +47,7 @@ export default function SiteDomainePage() {
               href={`https://${siteUrl}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[12px] font-medium text-[#666] border border-[#E6E8F0] px-3 py-1.5 rounded-lg hover:bg-[#F8F9FC] transition-colors flex items-center gap-1"
+              className="text-[12px] font-medium text-[#666] border border-[#E6E6E4] px-3 py-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors flex items-center gap-1"
             >
               Ouvrir
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -68,7 +68,7 @@ export default function SiteDomainePage() {
 
         {/* Domaine personnalisé */}
         <motion.section
-          className="bg-white rounded-xl border border-[#E6E8F0] p-6"
+          className="bg-white rounded-xl border border-[#E6E6E4] p-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.08 }}
@@ -86,7 +86,7 @@ export default function SiteDomainePage() {
             type="text"
             placeholder="www.monsite.fr"
             disabled
-            className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-4 py-2.5 text-[13px] text-[#BBB] cursor-not-allowed"
+            className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#BBB] cursor-not-allowed"
           />
           <p className="text-[11px] text-[#BBB] mt-2">
             Cette fonctionnalité sera disponible avec le plan Pro.

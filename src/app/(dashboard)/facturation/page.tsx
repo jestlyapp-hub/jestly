@@ -15,7 +15,7 @@ export default function FacturationPage() {
         transition={{ duration: 0.4 }}
       >
         <h1 className="text-2xl font-bold text-[#1A1A1A]">Facturation</h1>
-        <button className="flex items-center gap-1.5 bg-[#6a18f1] text-white text-[13px] font-semibold px-4 py-2.5 rounded-lg hover:bg-[#5a12d9] transition-colors">
+        <button className="flex items-center gap-1.5 bg-[#4F46E5] text-white text-[13px] font-semibold px-4 py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
@@ -26,7 +26,7 @@ export default function FacturationPage() {
 
       {/* Table */}
       <motion.div
-        className="bg-white rounded-xl border border-[#E6E8F0] overflow-hidden"
+        className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
@@ -34,7 +34,7 @@ export default function FacturationPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#F0F0F5]">
+              <tr className="border-b border-[#EFEFEF]">
                 {["Numéro", "Client", "Montant", "Statut", "Date", ""].map((h) => (
                   <th key={h} className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
                     {h}
@@ -46,7 +46,7 @@ export default function FacturationPage() {
               {invoices.map((inv) => (
                 <tr
                   key={inv.id}
-                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FAFBFD] transition-colors"
+                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors"
                 >
                   <td className="px-5 py-3.5 text-[13px] font-mono text-[#666]">
                     {inv.number}
@@ -64,7 +64,7 @@ export default function FacturationPage() {
                     {inv.date}
                   </td>
                   <td className="px-5 py-3.5">
-                    <button className="text-[12px] text-[#6a18f1] font-medium hover:underline">
+                    <button className="text-[12px] text-[#4F46E5] font-medium hover:underline">
                       PDF
                     </button>
                   </td>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useBuilder, type Breakpoint } from "@/lib/site-builder-context";
 
 const breakpoints: { id: Breakpoint; label: string; icon: React.ReactNode }[] = [
@@ -35,30 +35,72 @@ const breakpoints: { id: Breakpoint; label: string; icon: React.ReactNode }[] = 
 
 export default function BuilderToolbar() {
   const { state, dispatch } = useBuilder();
+  const [publishStatus, setPublishStatus] = useState<"idle" | "publishing" | "published" | "error">("idle");
 
   const handleUndo = useCallback(() => dispatch({ type: "UNDO" }), [dispatch]);
   const handleRedo = useCallback(() => dispatch({ type: "REDO" }), [dispatch]);
 
+  const handlePublish = useCallback(async () => {
+    setPublishStatus("publishing");
+    try {
+      // For now, open the public site preview (API publish requires auth)
+      const slug = state.site.domain?.subdomain;
+      if (slug) {
+        window.open(`/s/${slug}`, "_blank");
+      }
+      setPublishStatus("published");
+      setTimeout(() => setPublishStatus("idle"), 3000);
+    } catch {
+      setPublishStatus("error");
+      setTimeout(() => setPublishStatus("idle"), 3000);
+    }
+  }, [state.site.domain]);
+
+  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Ignore when typing in inputs
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+      // Ctrl+Z / Cmd+Z → Undo
       if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
         handleUndo();
       }
+      // Ctrl+Y / Cmd+Shift+Z → Redo
       if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.key === "z" && e.shiftKey))) {
         e.preventDefault();
         handleRedo();
       }
+      // Delete / Backspace → Remove selected block
+      if ((e.key === "Delete" || e.key === "Backspace") && state.activeBlockId) {
+        e.preventDefault();
+        dispatch({ type: "REMOVE_BLOCK", blockId: state.activeBlockId });
+      }
+      // Ctrl+D / Cmd+D → Duplicate selected block
+      if ((e.ctrlKey || e.metaKey) && e.key === "d" && state.activeBlockId) {
+        e.preventDefault();
+        dispatch({ type: "DUPLICATE_BLOCK", blockId: state.activeBlockId });
+      }
+      // Escape → Deselect block or exit preview
+      if (e.key === "Escape") {
+        if (state.previewMode) {
+          dispatch({ type: "TOGGLE_PREVIEW_MODE" });
+        } else if (state.activeBlockId) {
+          dispatch({ type: "SET_ACTIVE_BLOCK", blockId: null });
+        }
+      }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [handleUndo, handleRedo]);
+  }, [handleUndo, handleRedo, state.activeBlockId, state.previewMode, dispatch]);
 
   const canUndo = state.historyIndex > 0;
   const canRedo = state.historyIndex < state.history.length - 1;
 
   return (
-    <div className="h-11 flex-shrink-0 bg-white border-b border-[#E6E8F0] flex items-center justify-between px-3 select-none">
+    <div className="h-11 flex-shrink-0 bg-white border-b border-[#E6E6E4] flex items-center justify-between px-3 select-none">
       {/* Left — Page name + dirty indicator */}
       <div className="flex items-center gap-2">
         <span className="text-[13px] font-semibold text-[#1A1A1A]">
@@ -70,14 +112,14 @@ export default function BuilderToolbar() {
       </div>
 
       {/* Center — Breakpoints */}
-      <div className="flex items-center gap-0.5 bg-[#F8F9FC] rounded-lg p-0.5">
+      <div className="flex items-center gap-0.5 bg-[#F7F7F5] rounded-lg p-0.5">
         {breakpoints.map((bp) => (
           <button
             key={bp.id}
             onClick={() => dispatch({ type: "SET_BREAKPOINT", breakpoint: bp.id })}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
               state.breakpoint === bp.id
-                ? "bg-white text-[#6a18f1] shadow-sm"
+                ? "bg-white text-[#4F46E5] shadow-sm"
                 : "text-[#999] hover:text-[#666]"
             }`}
             title={bp.label}
@@ -94,7 +136,7 @@ export default function BuilderToolbar() {
         <button
           onClick={handleUndo}
           disabled={!canUndo}
-          className={`p-1.5 rounded-md transition-all ${canUndo ? "text-[#666] hover:bg-[#F8F9FC] hover:text-[#1A1A1A]" : "text-[#D0D5E0] cursor-not-allowed"}`}
+          className={`p-1.5 rounded-md transition-all ${canUndo ? "text-[#666] hover:bg-[#F7F7F5] hover:text-[#1A1A1A]" : "text-[#D0D5E0] cursor-not-allowed"}`}
           title="Annuler (Ctrl+Z)"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -105,7 +147,7 @@ export default function BuilderToolbar() {
         <button
           onClick={handleRedo}
           disabled={!canRedo}
-          className={`p-1.5 rounded-md transition-all ${canRedo ? "text-[#666] hover:bg-[#F8F9FC] hover:text-[#1A1A1A]" : "text-[#D0D5E0] cursor-not-allowed"}`}
+          className={`p-1.5 rounded-md transition-all ${canRedo ? "text-[#666] hover:bg-[#F7F7F5] hover:text-[#1A1A1A]" : "text-[#D0D5E0] cursor-not-allowed"}`}
           title="Rétablir (Ctrl+Y)"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -113,7 +155,7 @@ export default function BuilderToolbar() {
           </svg>
         </button>
 
-        <div className="w-px h-5 bg-[#E6E8F0] mx-1" />
+        <div className="w-px h-5 bg-[#E6E6E4] mx-1" />
 
         {/* Preview toggle */}
         <button
@@ -121,7 +163,7 @@ export default function BuilderToolbar() {
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
             state.previewMode
               ? "bg-[#1A1A1A] text-white"
-              : "text-[#666] hover:bg-[#F8F9FC]"
+              : "text-[#666] hover:bg-[#F7F7F5]"
           }`}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -131,11 +173,39 @@ export default function BuilderToolbar() {
         </button>
 
         {/* Publish button */}
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#6a18f1] text-white text-[11px] font-semibold hover:bg-[#5a10d1] transition-colors shadow-sm">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          Publier
+        <button
+          onClick={handlePublish}
+          disabled={publishStatus === "publishing"}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-[11px] font-semibold transition-colors shadow-sm ${
+            publishStatus === "published"
+              ? "bg-green-500"
+              : publishStatus === "error"
+              ? "bg-red-500"
+              : "bg-[#4F46E5] hover:bg-[#4338CA]"
+          } ${publishStatus === "publishing" ? "opacity-70 cursor-wait" : ""}`}
+        >
+          {publishStatus === "publishing" ? (
+            <>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className="animate-spin">
+                <circle cx="12" cy="12" r="10" strokeDasharray="60" strokeDashoffset="20" />
+              </svg>
+              Publication...
+            </>
+          ) : publishStatus === "published" ? (
+            <>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Publié !
+            </>
+          ) : (
+            <>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              Publier
+            </>
+          )}
         </button>
       </div>
     </div>

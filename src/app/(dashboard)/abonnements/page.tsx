@@ -38,7 +38,7 @@ export default function AbonnementsPage() {
 
       {/* Table */}
       <motion.div
-        className="bg-white rounded-xl border border-[#E6E8F0] overflow-hidden"
+        className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
@@ -46,7 +46,7 @@ export default function AbonnementsPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#F0F0F5]">
+              <tr className="border-b border-[#EFEFEF]">
                 {["Client", "Plan", "Montant", "Statut", "Prochain paiement"].map((h) => (
                   <th key={h} className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
                     {h}
@@ -58,7 +58,7 @@ export default function AbonnementsPage() {
               {subscriptions.map((sub) => (
                 <tr
                   key={sub.id}
-                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FAFBFD] transition-colors"
+                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors"
                 >
                   <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">
                     {sub.client}

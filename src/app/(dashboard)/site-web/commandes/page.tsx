@@ -4,10 +4,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import BadgeStatus from "@/components/ui/BadgeStatus";
 import SlidePanel from "@/components/ui/SlidePanel";
-import { siteOrders } from "@/lib/mock-data";
-import type { SiteOrder, SiteOrderStatus } from "@/types";
+import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import { orderRecordToOrder } from "@/lib/adapters";
+import { orders as mockOrders } from "@/lib/mock-data";
+import type { Order, OrderStatus } from "@/types";
 
-const statusFilters: { label: string; value: SiteOrderStatus | "all" }[] = [
+const statusFilters: { label: string; value: OrderStatus | "all" }[] = [
   { label: "Toutes", value: "all" },
   { label: "En attente", value: "pending" },
   { label: "En cours", value: "in_progress" },
@@ -16,17 +18,48 @@ const statusFilters: { label: string; value: SiteOrderStatus | "all" }[] = [
 ];
 
 export default function SiteCommandesPage() {
-  const [filter, setFilter] = useState<SiteOrderStatus | "all">("all");
+  const [filter, setFilter] = useState<OrderStatus | "all">("all");
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<SiteOrder | null>(null);
+  const [selected, setSelected] = useState<Order | null>(null);
 
-  const filtered = siteOrders.filter((o) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rawOrders, loading, error, mutate } = useApi<any[]>("/api/orders?source=site");
+  const orders: Order[] = rawOrders ? rawOrders.map(orderRecordToOrder) : mockOrders;
+
+  const filtered = orders.filter((o) => {
     const matchStatus = filter === "all" || o.status === filter;
     const matchSearch =
       o.client.toLowerCase().includes(search.toLowerCase()) ||
-      o.service.toLowerCase().includes(search.toLowerCase());
+      o.product.toLowerCase().includes(search.toLowerCase());
     return matchStatus && matchSearch;
   });
+
+  const markDelivered = async (orderId: string) => {
+    await apiFetch(`/api/orders/${orderId}`, { method: "PATCH", body: { status: "delivered" } });
+    setSelected(null);
+    mutate();
+  };
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white rounded-xl border border-[#E6E6E4] p-4 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-12 bg-[#F7F7F5] rounded animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto py-12 text-center">
+        <p className="text-[14px] text-red-500 mb-2">Erreur : {error}</p>
+        <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline">Réessayer</button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -37,14 +70,14 @@ export default function SiteCommandesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="flex items-center gap-1 bg-white border border-[#E6E8F0] rounded-lg p-1">
+        <div className="flex items-center gap-1 bg-white border border-[#E6E6E4] rounded-lg p-1">
           {statusFilters.map((f) => (
             <button
               key={f.value}
               onClick={() => setFilter(f.value)}
               className={`px-3 py-1.5 rounded-md text-[12px] font-medium transition-all cursor-pointer ${
                 filter === f.value
-                  ? "bg-[#F0EBFF] text-[#6a18f1]"
+                  ? "bg-[#EEF2FF] text-[#4F46E5]"
                   : "text-[#999] hover:text-[#666]"
               }`}
             >
@@ -62,14 +95,14 @@ export default function SiteCommandesPage() {
             placeholder="Filtrer par client ou service..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-[#E6E8F0] rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+            className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
           />
         </div>
       </motion.div>
 
       {/* Table */}
       <motion.div
-        className="bg-white rounded-xl border border-[#E6E8F0] overflow-hidden"
+        className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.08 }}
@@ -77,7 +110,7 @@ export default function SiteCommandesPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#F0F0F5]">
+              <tr className="border-b border-[#EFEFEF]">
                 {["Ref", "Client", "Service", "Prix", "Statut", "Date"].map((h) => (
                   <th key={h} className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
                     {h}
@@ -90,11 +123,11 @@ export default function SiteCommandesPage() {
                 <tr
                   key={order.id}
                   onClick={() => setSelected(order)}
-                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FAFBFD] transition-colors cursor-pointer"
+                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors cursor-pointer"
                 >
-                  <td className="px-5 py-3.5 text-[12px] font-mono text-[#999]">{order.id}</td>
+                  <td className="px-5 py-3.5 text-[12px] font-mono text-[#999]">{order.id.slice(0, 8)}</td>
                   <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">{order.client}</td>
-                  <td className="px-5 py-3.5 text-[13px] text-[#666]">{order.service}</td>
+                  <td className="px-5 py-3.5 text-[13px] text-[#666]">{order.product}</td>
                   <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">{order.price} &euro;</td>
                   <td className="px-5 py-3.5"><BadgeStatus status={order.status} /></td>
                   <td className="px-5 py-3.5 text-[13px] text-[#999]">{order.date}</td>
@@ -113,7 +146,7 @@ export default function SiteCommandesPage() {
       </motion.div>
 
       {/* Slide Panel */}
-      <SlidePanel open={!!selected} onClose={() => setSelected(null)} title={selected ? `Commande ${selected.id}` : ""}>
+      <SlidePanel open={!!selected} onClose={() => setSelected(null)} title={selected ? `Commande ${selected.id.slice(0, 8)}` : ""}>
         {selected && (
           <div className="space-y-6">
             <div>
@@ -121,10 +154,10 @@ export default function SiteCommandesPage() {
               <div className="text-[15px] font-semibold text-[#1A1A1A]">{selected.client}</div>
               <div className="text-[13px] text-[#999]">{selected.clientEmail}</div>
             </div>
-            <div className="h-px bg-[#E6E8F0]" />
+            <div className="h-px bg-[#E6E6E4]" />
             <div>
               <div className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">Service</div>
-              <div className="text-[14px] text-[#1A1A1A]">{selected.service}</div>
+              <div className="text-[14px] text-[#1A1A1A]">{selected.product}</div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -136,25 +169,19 @@ export default function SiteCommandesPage() {
                 <BadgeStatus status={selected.status} />
               </div>
             </div>
-            {selected.message && (
-              <>
-                <div className="h-px bg-[#E6E8F0]" />
-                <div>
-                  <div className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">Message</div>
-                  <div className="text-[13px] text-[#666] bg-[#F8F9FC] rounded-lg p-3">{selected.message}</div>
-                </div>
-              </>
-            )}
-            <div className="h-px bg-[#E6E8F0]" />
+            <div className="h-px bg-[#E6E6E4]" />
             <div>
               <div className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">Date</div>
               <div className="text-[14px] text-[#1A1A1A]">{selected.date}</div>
             </div>
             <div className="flex gap-3 pt-4">
-              <button className="flex-1 bg-[#6a18f1] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#5a12d9] transition-colors">
+              <button
+                onClick={() => markDelivered(selected.id)}
+                className="flex-1 bg-[#4F46E5] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors"
+              >
                 Marquer livrée
               </button>
-              <button className="flex-1 border border-[#E6E8F0] text-[#666] text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#F8F9FC] transition-colors">
+              <button className="flex-1 border border-[#E6E6E4] text-[#666] text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#F7F7F5] transition-colors">
                 Modifier
               </button>
             </div>

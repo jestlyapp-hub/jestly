@@ -4,9 +4,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { mockSite } from "@/lib/mock-data";
 
-const inputClass = "w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
-const fonts = ["Plus Jakarta Sans", "Inter", "DM Sans", "Poppins", "Outfit", "Space Grotesk"];
+const fonts = ["Inter", "DM Sans", "Poppins", "Outfit", "Space Grotesk", "Plus Jakarta Sans"];
 
 const radiusOptions = [
   { value: "none", label: "Angulaire" },
@@ -22,7 +22,7 @@ const shadowOptions = [
 ] as const;
 
 const presets = [
-  { name: "Clean", primary: "#6a18f1", font: "Plus Jakarta Sans", radius: "rounded" as const, shadow: "sm" as const },
+  { name: "Clean", primary: "#4F46E5", font: "Inter", radius: "rounded" as const, shadow: "sm" as const },
   { name: "Bold", primary: "#e11d48", font: "Poppins", radius: "pill" as const, shadow: "lg" as const },
   { name: "Minimal", primary: "#1a1a1a", font: "Inter", radius: "none" as const, shadow: "none" as const },
   { name: "Creative", primary: "#7c3aed", font: "Space Grotesk", radius: "rounded" as const, shadow: "md" as const },
@@ -46,7 +46,7 @@ export default function SiteDesignPage() {
       <div className="space-y-8">
         {/* Presets */}
         <motion.section
-          className="bg-white rounded-xl border border-[#E6E8F0] p-6"
+          className="bg-white rounded-xl border border-[#E6E6E4] p-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
@@ -57,7 +57,7 @@ export default function SiteDesignPage() {
               <button
                 key={preset.name}
                 onClick={() => applyPreset(preset)}
-                className="p-4 rounded-xl border border-[#E6E8F0] hover:border-[#6a18f1] transition-all text-center"
+                className="p-4 rounded-xl border border-[#E6E6E4] hover:border-[#4F46E5] transition-all text-center"
               >
                 <div className="w-8 h-8 rounded-full mx-auto mb-2" style={{ backgroundColor: preset.primary }} />
                 <div className="text-[13px] font-medium text-[#1A1A1A]">{preset.name}</div>
@@ -69,7 +69,7 @@ export default function SiteDesignPage() {
 
         {/* Couleur primaire */}
         <motion.section
-          className="bg-white rounded-xl border border-[#E6E8F0] p-6"
+          className="bg-white rounded-xl border border-[#E6E6E4] p-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.06 }}
@@ -80,7 +80,7 @@ export default function SiteDesignPage() {
               type="color"
               value={primaryColor}
               onChange={(e) => setPrimaryColor(e.target.value)}
-              className="w-10 h-10 rounded-lg border border-[#E6E8F0] cursor-pointer"
+              className="w-10 h-10 rounded-lg border border-[#E6E6E4] cursor-pointer"
             />
             <input
               type="text"
@@ -94,7 +94,7 @@ export default function SiteDesignPage() {
 
         {/* Typographie */}
         <motion.section
-          className="bg-white rounded-xl border border-[#E6E8F0] p-6"
+          className="bg-white rounded-xl border border-[#E6E6E4] p-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.12 }}
@@ -105,7 +105,7 @@ export default function SiteDesignPage() {
               <option key={f} value={f}>{f}</option>
             ))}
           </select>
-          <div className="mt-3 p-4 bg-[#F8F9FC] rounded-lg" style={{ fontFamily }}>
+          <div className="mt-3 p-4 bg-[#F7F7F5] rounded-lg" style={{ fontFamily }}>
             <div className="text-xl font-bold text-[#1A1A1A] mb-1">Aperçu de la typographie</div>
             <div className="text-[13px] text-[#666]">Voici un exemple de texte avec la police sélectionnée.</div>
           </div>
@@ -113,7 +113,7 @@ export default function SiteDesignPage() {
 
         {/* Bords arrondis */}
         <motion.section
-          className="bg-white rounded-xl border border-[#E6E8F0] p-6"
+          className="bg-white rounded-xl border border-[#E6E6E4] p-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.18 }}
@@ -126,13 +126,13 @@ export default function SiteDesignPage() {
                 onClick={() => setBorderRadius(opt.value)}
                 className={`flex-1 p-4 border-2 transition-all text-center ${
                   borderRadius === opt.value
-                    ? "border-[#6a18f1] bg-[#F0EBFF]"
-                    : "border-[#E6E8F0]"
+                    ? "border-[#4F46E5] bg-[#EEF2FF]"
+                    : "border-[#E6E6E4]"
                 } ${
                   opt.value === "none" ? "rounded-none" : opt.value === "rounded" ? "rounded-xl" : "rounded-full"
                 }`}
               >
-                <div className={`w-10 h-10 mx-auto mb-2 bg-[#6a18f1]/10 ${
+                <div className={`w-10 h-10 mx-auto mb-2 bg-[#4F46E5]/10 ${
                   opt.value === "none" ? "rounded-none" : opt.value === "rounded" ? "rounded-lg" : "rounded-full"
                 }`} />
                 <div className="text-[12px] font-medium text-[#1A1A1A]">{opt.label}</div>
@@ -143,7 +143,7 @@ export default function SiteDesignPage() {
 
         {/* Ombres */}
         <motion.section
-          className="bg-white rounded-xl border border-[#E6E8F0] p-6"
+          className="bg-white rounded-xl border border-[#E6E6E4] p-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.24 }}
@@ -156,8 +156,8 @@ export default function SiteDesignPage() {
                 onClick={() => setShadow(opt.value)}
                 className={`flex-1 p-4 rounded-xl border-2 transition-all text-center ${
                   shadow === opt.value
-                    ? "border-[#6a18f1] bg-[#F0EBFF]"
-                    : "border-[#E6E8F0]"
+                    ? "border-[#4F46E5] bg-[#EEF2FF]"
+                    : "border-[#E6E6E4]"
                 }`}
               >
                 <div className={`w-10 h-10 mx-auto mb-2 bg-white rounded-lg ${
@@ -171,7 +171,7 @@ export default function SiteDesignPage() {
 
         {/* Save */}
         <div className="flex justify-end">
-          <button className="bg-[#6a18f1] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#5a12d9] transition-colors">
+          <button className="bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors">
             Sauvegarder le design
           </button>
         </div>

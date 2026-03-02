@@ -5,6 +5,8 @@ import type {
   Invoice,
   Subscription,
   Activity,
+  Lead,
+  AnalyticsEvent,
 } from "@/types";
 
 export const orders: Order[] = [
@@ -32,7 +34,7 @@ export const products: Product[] = [
     id: "PRD-001", name: "Logo redesign", price: 450, active: true, sales: 12, category: "Design",
     type: "service", slug: "logo-redesign", shortDescription: "Refonte complète de votre logo avec 3 propositions et révisions illimitées.",
     features: ["3 propositions créatives", "Révisions illimitées", "Fichiers sources (AI, SVG, PNG)", "Déclinaisons couleur"],
-    deliveryTimeDays: 7,
+    deliveryTimeDays: 7, featured: true,
   },
   {
     id: "PRD-002", name: "Motion intro YouTube", price: 280, active: true, sales: 8, category: "Motion",
@@ -54,7 +56,7 @@ export const products: Product[] = [
   },
   {
     id: "PRD-005", name: "Identité visuelle", price: 890, active: true, sales: 4, category: "Design",
-    type: "pack", slug: "identite-visuelle", shortDescription: "Pack complet : logo, charte graphique, templates et guide de marque.",
+    type: "pack", slug: "identite-visuelle", shortDescription: "Pack complet : logo, charte graphique, templates et guide de marque.", featured: true,
     longDescription: "L'offre tout-en-un pour lancer ou refondre votre marque. Inclut le logo, la charte graphique complète, les templates réseaux sociaux, et un guide d'utilisation détaillé.",
     features: ["Logo + déclinaisons", "Charte graphique complète", "Templates réseaux sociaux", "Motion intro 15s", "Guide d'utilisation", "Support 30 jours"],
     deliveryTimeDays: 21,
@@ -126,9 +128,47 @@ export const activities: Activity[] = [
   { id: 5, type: "invoice", message: "Facture FAC-2025-047 payée", time: "hier" },
 ];
 
+/* ─── Leads ─── */
+
+export const mockLeads: Lead[] = [
+  { id: "LEAD-001", name: "Julien Roche", email: "julien@startup.io", source: "contact-form", date: "2025-03-15", fields: { message: "Intéressé par une refonte de logo" } },
+  { id: "LEAD-002", name: "Camille Duval", email: "camille@agence.fr", source: "newsletter", date: "2025-03-14", fields: {} },
+  { id: "LEAD-003", name: "Antoine Moreau", email: "antoine@brand.co", source: "lead-magnet", date: "2025-03-13", fields: { downloaded: "guide-branding.pdf" } },
+  { id: "LEAD-004", name: "Laura Petit", email: "laura@design.com", source: "contact-form", date: "2025-03-12", fields: { message: "Besoin d'un pack réseaux sociaux" } },
+];
+
+/* ─── Workspace FAQ ─── */
+
+export const workspaceFaq = [
+  { question: "Quels sont vos délais de livraison ?", answer: "En moyenne 2 à 4 semaines selon la complexité du projet." },
+  { question: "Proposez-vous des facilités de paiement ?", answer: "Oui, paiement en 2 ou 3 fois sans frais pour les prestations supérieures à 500 €." },
+  { question: "Comment se déroule un projet type ?", answer: "Brief → Moodboard → Propositions → Révisions → Livraison des fichiers sources." },
+  { question: "Travaillez-vous avec des entreprises à l'étranger ?", answer: "Oui, je travaille à distance avec des clients partout dans le monde." },
+  { question: "Puis-je demander des modifications après livraison ?", answer: "Bien sûr, des révisions mineures sont incluses pendant 15 jours après livraison." },
+];
+
+export function getWorkspaceFaq() {
+  return workspaceFaq;
+}
+
+/* ─── Analytics Events ─── */
+
+export const mockAnalyticsEvents: AnalyticsEvent[] = [
+  { id: "EVT-001", type: "page_view", page: "/", timestamp: "2025-03-15T10:23:00Z" },
+  { id: "EVT-002", type: "page_view", page: "/services", timestamp: "2025-03-15T10:25:00Z" },
+  { id: "EVT-003", type: "click_cta", page: "/services", data: { label: "Choisir ce pack" }, timestamp: "2025-03-15T10:26:00Z" },
+  { id: "EVT-004", type: "page_view", page: "/portfolio", timestamp: "2025-03-15T11:00:00Z" },
+  { id: "EVT-005", type: "form_submit", page: "/contact", data: { form: "contact" }, timestamp: "2025-03-15T11:05:00Z" },
+  { id: "EVT-006", type: "order_start", page: "/order/logo-redesign", data: { product: "PRD-001" }, timestamp: "2025-03-15T12:00:00Z" },
+  { id: "EVT-007", type: "order_complete", page: "/order/logo-redesign", data: { product: "PRD-001", amount: "450" }, timestamp: "2025-03-15T12:10:00Z" },
+  { id: "EVT-008", type: "page_view", page: "/", timestamp: "2025-03-15T14:00:00Z" },
+  { id: "EVT-009", type: "page_view", page: "/a-propos", timestamp: "2025-03-15T14:20:00Z" },
+  { id: "EVT-010", type: "click_cta", page: "/", data: { label: "Voir mes services" }, timestamp: "2025-03-15T14:22:00Z" },
+];
+
 /* ─── Site Builder Mock Data ─── */
 
-import type { Site, SiteOrder, SiteTemplate } from "@/types";
+import type { Site, SiteOrder, SiteTemplate, NavConfig, FooterConfig } from "@/types";
 
 export const mockSite: Site = {
   id: "SITE-001",
@@ -141,10 +181,37 @@ export const mockSite: Site = {
       twitter: "https://twitter.com/studionova",
       linkedin: "https://linkedin.com/company/studionova",
     },
+    i18n: { locales: ["fr"], defaultLocale: "fr" },
   },
+  nav: {
+    links: [
+      { label: "Accueil", pageId: "PAGE-001" },
+      { label: "Services", pageId: "PAGE-002" },
+      { label: "Portfolio", pageId: "PAGE-003" },
+      { label: "À propos", pageId: "PAGE-004" },
+      { label: "Contact", pageId: "PAGE-005" },
+    ],
+    showCta: true,
+    ctaLabel: "Demander un devis",
+    ctaLink: { type: "internal_page", value: "PAGE-005" },
+  },
+  footer: {
+    links: [
+      { label: "Accueil", pageId: "PAGE-001" },
+      { label: "Services", pageId: "PAGE-002" },
+      { label: "Portfolio", pageId: "PAGE-003" },
+      { label: "Mentions légales", pageId: "PAGE-006" },
+    ],
+    showSocials: true,
+    copyright: "© 2025 Studio Nova. Tous droits réservés.",
+  },
+  members: [
+    { userId: "USR-001", role: "owner", email: "alex@studionova.fr" },
+    { userId: "USR-002", role: "editor", email: "marie@studionova.fr" },
+  ],
   theme: {
-    primaryColor: "#6a18f1",
-    fontFamily: "Plus Jakarta Sans",
+    primaryColor: "#4F46E5",
+    fontFamily: "Inter",
     borderRadius: "rounded",
     shadow: "md",
   },
@@ -171,7 +238,7 @@ export const mockSite: Site = {
           type: "hero",
           visible: true,
           settings: {},
-          style: { backgroundColor: "#0a0a12", textColor: "#ffffff", paddingTop: 80, paddingBottom: 80 },
+          style: { backgroundColor: "#FFFFFF", textColor: "#ffffff", paddingTop: 80, paddingBottom: 80 },
           content: { title: "Créons ensemble votre identité visuelle", subtitle: "Studio créatif spécialisé en branding, motion design et direction artistique.", ctaLabel: "Voir mes services", ctaLink: "/services" },
         },
         {
@@ -182,13 +249,16 @@ export const mockSite: Site = {
           style: { paddingTop: 60, paddingBottom: 60 },
           content: {
             columns: 3,
+            categories: ["Branding", "Motion", "Design", "Print"],
+            showFilter: false,
+            showDetailLink: false,
             items: [
-              { title: "Rebranding Café Bloom", imageUrl: "/portfolio/cafe-bloom.jpg", category: "Branding" },
-              { title: "Motion Reel 2025", imageUrl: "/portfolio/motion-reel.jpg", category: "Motion" },
-              { title: "Identité Maison Dorée", imageUrl: "/portfolio/maison-doree.jpg", category: "Branding" },
-              { title: "UI Kit SaaS", imageUrl: "/portfolio/saas-ui.jpg", category: "Design" },
-              { title: "Packaging Bio Terre", imageUrl: "/portfolio/bio-terre.jpg", category: "Print" },
-              { title: "Animation Logo Tech", imageUrl: "/portfolio/logo-tech.jpg", category: "Motion" },
+              { title: "Rebranding Café Bloom", imageUrl: "/portfolio/cafe-bloom.jpg", category: "Branding", slug: "rebranding-cafe-bloom", featured: true },
+              { title: "Motion Reel 2025", imageUrl: "/portfolio/motion-reel.jpg", category: "Motion", slug: "motion-reel-2025" },
+              { title: "Identité Maison Dorée", imageUrl: "/portfolio/maison-doree.jpg", category: "Branding", slug: "identite-maison-doree" },
+              { title: "UI Kit SaaS", imageUrl: "/portfolio/saas-ui.jpg", category: "Design", slug: "ui-kit-saas" },
+              { title: "Packaging Bio Terre", imageUrl: "/portfolio/bio-terre.jpg", category: "Print", slug: "packaging-bio-terre" },
+              { title: "Animation Logo Tech", imageUrl: "/portfolio/logo-tech.jpg", category: "Motion", slug: "animation-logo-tech" },
             ],
           },
         },
@@ -210,7 +280,7 @@ export const mockSite: Site = {
           type: "centered-cta",
           visible: true,
           settings: {},
-          style: { backgroundColor: "#6a18f1", textColor: "#ffffff", paddingTop: 60, paddingBottom: 60 },
+          style: { backgroundColor: "#4F46E5", textColor: "#ffffff", paddingTop: 60, paddingBottom: 60 },
           content: { title: "Prêt à démarrer votre projet ?", description: "Réservez un appel découverte gratuit de 30 minutes.", ctaLabel: "Réserver un créneau", ctaLink: "/contact" },
         },
       ],
@@ -298,13 +368,17 @@ export const mockSite: Site = {
           style: { paddingTop: 20, paddingBottom: 60 },
           content: {
             columns: 3,
+            categories: ["Branding", "Motion", "Design", "Print"],
+            showFilter: true,
+            showDetailLink: true,
+            showSearch: true,
             items: [
-              { title: "Rebranding Café Bloom", imageUrl: "/portfolio/cafe-bloom.jpg", category: "Branding" },
-              { title: "Motion Reel 2025", imageUrl: "/portfolio/motion-reel.jpg", category: "Motion" },
-              { title: "Identité Maison Dorée", imageUrl: "/portfolio/maison-doree.jpg", category: "Branding" },
-              { title: "UI Kit SaaS", imageUrl: "/portfolio/saas-ui.jpg", category: "Design" },
-              { title: "Packaging Bio Terre", imageUrl: "/portfolio/bio-terre.jpg", category: "Print" },
-              { title: "Animation Logo Tech", imageUrl: "/portfolio/logo-tech.jpg", category: "Motion" },
+              { title: "Rebranding Café Bloom", imageUrl: "/portfolio/cafe-bloom.jpg", category: "Branding", slug: "rebranding-cafe-bloom", description: "Refonte complète de l'identité visuelle du Café Bloom.", featured: true },
+              { title: "Motion Reel 2025", imageUrl: "/portfolio/motion-reel.jpg", category: "Motion", slug: "motion-reel-2025", description: "Showreel animation et motion design 2025." },
+              { title: "Identité Maison Dorée", imageUrl: "/portfolio/maison-doree.jpg", category: "Branding", slug: "identite-maison-doree", description: "Création d'identité pour une marque de luxe." },
+              { title: "UI Kit SaaS", imageUrl: "/portfolio/saas-ui.jpg", category: "Design", slug: "ui-kit-saas", description: "Design system complet pour une application SaaS." },
+              { title: "Packaging Bio Terre", imageUrl: "/portfolio/bio-terre.jpg", category: "Print", slug: "packaging-bio-terre", description: "Packaging éco-responsable pour Bio Terre." },
+              { title: "Animation Logo Tech", imageUrl: "/portfolio/logo-tech.jpg", category: "Motion", slug: "animation-logo-tech", description: "Animation de logo pour une startup tech." },
             ],
           },
         },
@@ -359,7 +433,7 @@ export const mockSite: Site = {
           type: "stats-counter",
           visible: true,
           settings: {},
-          style: { backgroundColor: "#6a18f1", textColor: "#ffffff", paddingTop: 60, paddingBottom: 60 },
+          style: { backgroundColor: "#4F46E5", textColor: "#ffffff", paddingTop: 60, paddingBottom: 60 },
           content: {
             stats: [
               { value: "50+", label: "Projets réalisés" },
@@ -410,6 +484,10 @@ export const mockSite: Site = {
           content: {
             title: "Réserver un appel découverte",
             description: "30 minutes pour discuter de votre projet, sans engagement.",
+            provider: "calendly" as const,
+            embedUrl: "",
+            ctaLabel: "Réserver",
+            openModal: false,
             slots: ["Lundi 10h", "Mardi 14h", "Mercredi 10h", "Jeudi 16h", "Vendredi 10h"],
           },
         },

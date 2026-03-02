@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useReducer, type ReactNode } from "react";
+import { createContext, useContext, useReducer, useEffect, useState, type ReactNode } from "react";
 import type { Site, Block, BlockType, BlockContentMap, BlockSettings, SitePage } from "@/types";
 import { mockSite } from "@/lib/mock-data";
 
@@ -43,7 +43,7 @@ type BuilderAction =
 
 const defaultContent: { [K in BlockType]: BlockContentMap[K] } = {
   hero: { title: "Titre principal", subtitle: "Sous-titre de la section", ctaLabel: "En savoir plus", ctaLink: "#" },
-  "portfolio-grid": { columns: 3, items: [{ title: "Projet 1", imageUrl: "", category: "Design" }] },
+  "portfolio-grid": { columns: 3, items: [{ title: "Projet 1", imageUrl: "", category: "Design" }], categories: [], showFilter: false, showDetailLink: false, showSearch: false },
   "services-list": { productIds: [], showPrice: true, showCategory: true, ctaMode: "product_page" as const, layout: "list" as const },
   "pack-premium": { productId: "", highlight: true, showFeatures: true, showPrice: true, ctaLabel: "Choisir ce pack" },
   testimonials: { testimonials: [{ name: "Client", role: "CEO", text: "Super travail !" }] },
@@ -54,9 +54,31 @@ const defaultContent: { [K in BlockType]: BlockContentMap[K] } = {
   "why-me": { title: "Pourquoi me choisir ?", reasons: [{ title: "Raison 1", description: "Description" }] },
   "centered-cta": { title: "Passez à l'action", description: "Description de l'appel à l'action", ctaLabel: "Commencer", ctaLink: "#" },
   "custom-form": { fields: [{ label: "Nom", type: "text", required: true }], submitLabel: "Envoyer" },
-  "calendar-booking": { title: "Réserver un créneau", description: "Choisissez un horaire", slots: ["Lundi 10h", "Mardi 14h"] },
+  "calendar-booking": { title: "Réserver un créneau", description: "Choisissez un horaire", provider: "calendly" as const, embedUrl: "", ctaLabel: "Réserver", openModal: false, slots: ["Lundi 10h", "Mardi 14h"] },
   "stats-counter": { stats: [{ value: "100+", label: "Projets" }] },
   newsletter: { title: "Newsletter", description: "Restez informé", placeholder: "Votre email", buttonLabel: "S'abonner" },
+  "pricing-table": { title: "Nos offres", plans: [{ name: "Starter", price: 29, period: "monthly" as const, description: "Pour démarrer", features: ["Feature 1", "Feature 2"], isPopular: false, ctaLabel: "Choisir" }, { name: "Pro", price: 79, period: "monthly" as const, description: "Pour les pros", features: ["Feature 1", "Feature 2", "Feature 3"], isPopular: true, ctaLabel: "Choisir" }], showToggle: false, columns: 2 },
+  "feature-grid": { title: "Fonctionnalités", subtitle: "Tout ce dont vous avez besoin", features: [{ icon: "zap", title: "Rapide", description: "Performance optimale" }, { icon: "shield", title: "Sécurisé", description: "Protection maximale" }, { icon: "heart", title: "Simple", description: "Facile à utiliser" }], columns: 3 },
+  "testimonials-carousel": { testimonials: [{ name: "Client 1", role: "CEO", text: "Excellent travail !", rating: 5 }], autoplay: true, autoplayInterval: 5000 },
+  "faq-advanced": { title: "Questions fréquentes", items: [{ question: "Question ?", answer: "Réponse." }], allowMultiple: false, useGlobal: false },
+  "timeline-advanced": { title: "Notre processus", orientation: "vertical" as const, steps: [{ title: "Étape 1", description: "Description" }] },
+  "cta-premium": { title: "Prêt à commencer ?", description: "Lancez votre projet dès aujourd'hui.", primaryCtaLabel: "Commencer", secondaryCtaLabel: "En savoir plus" },
+  "logo-cloud": { title: "Ils nous font confiance", logos: [{ name: "Client 1", imageUrl: "" }], grayscale: true, columns: 4 },
+  "stats-animated": { stats: [{ value: 50, suffix: "+", label: "Projets" }, { value: 98, suffix: "%", label: "Satisfaction" }], animateOnScroll: true },
+  "masonry-gallery": { items: [{ imageUrl: "", title: "Image 1" }], columns: 3, lightbox: false, maxImages: 12 },
+  "comparison-table": { title: "Comparer les offres", plans: [{ name: "Basic", isHighlighted: false, ctaLabel: "Choisir" }, { name: "Premium", isHighlighted: true, ctaLabel: "Choisir" }], rows: [{ feature: "Feature 1", values: [true, true] }, { feature: "Feature 2", values: [false, true] }] },
+  "contact-form": { title: "Contactez-nous", description: "Remplissez le formulaire ci-dessous.", fields: [{ label: "Nom", type: "text" as const, required: true }, { label: "Email", type: "email" as const, required: true }, { label: "Message", type: "textarea" as const, required: false }], submitLabel: "Envoyer", successMessage: "Merci ! Nous reviendrons vers vous rapidement.", saveAsLead: false },
+  "blog-preview": { title: "Articles récents", posts: [{ title: "Article 1", excerpt: "Résumé de l'article...", date: "2025-03-15" }], columns: 3 },
+  "video-text-split": { videoUrl: "", videoPosition: "left" as const, title: "Découvrez notre approche", description: "Description de la vidéo.", ctaLabel: "En savoir plus" },
+  "before-after": { beforeImageUrl: "", afterImageUrl: "", beforeLabel: "Avant", afterLabel: "Après", initialPosition: 50 },
+  "service-cards": { title: "Nos services", services: [{ icon: "palette", name: "Service 1", description: "Description", features: ["Feature 1"], ctaLabel: "Commander" }], columns: 3 },
+  "lead-magnet": { title: "Téléchargez notre guide", description: "Un guide complet pour lancer votre marque.", fileUrl: "", buttonLabel: "Télécharger", successMessage: "Merci ! Vérifiez votre boîte mail." },
+  "availability-banner": { status: "open" as const, message: "Actuellement disponible pour de nouveaux projets" },
+  "product-hero-checkout": { productId: "", benefits: ["Résultat professionnel", "Livraison rapide", "Révisions incluses"], ctaLabel: "Commander", showFeatures: true, layout: "center" as const },
+  "product-cards-grid": { productIds: [], columns: 3 as const, showFilter: true, ctaLabel: "Voir le détail" },
+  "inline-checkout": { productId: "", layout: "detailed" as const, ctaLabel: "Commander maintenant" },
+  "bundle-builder": { productIds: [], title: "Créez votre pack sur-mesure", description: "Sélectionnez les services qui vous intéressent", ctaLabel: "Commander le pack", discountPercent: 10 },
+  "pricing-table-real": { productIds: [], columns: 3 as const, showFeatures: true, highlightIndex: 1, ctaLabel: "Choisir" },
 };
 
 let blockCounter = 100;
@@ -250,6 +272,93 @@ const BuilderContext = createContext<{
 
 export function BuilderProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(builderReducer, initialState);
+  const [loaded, setLoaded] = useState(false);
+
+  // Load site from Supabase on mount, fallback to mockSite
+  useEffect(() => {
+    if (loaded) return;
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const res = await fetch("/api/sites");
+        if (!res.ok) return;
+        const sites = await res.json();
+        if (cancelled) return;
+
+        if (sites.length > 0) {
+          const dbSite = sites[0];
+          // Fetch pages with blocks
+          const pagesRes = await fetch(`/api/sites/${dbSite.id}/pages`);
+          const dbPages = pagesRes.ok ? await pagesRes.json() : [];
+          if (cancelled) return;
+
+          // Transform to frontend Site type
+          const site: Site = {
+            id: dbSite.id,
+            settings: {
+              name: dbSite.name,
+              description: dbSite.settings?.description || "",
+              logoUrl: dbSite.settings?.logoUrl,
+              maintenanceMode: dbSite.settings?.maintenanceMode || false,
+              socials: dbSite.settings?.socials || {},
+              i18n: dbSite.settings?.i18n,
+            },
+            theme: {
+              primaryColor: dbSite.theme?.primaryColor || "#4F46E5",
+              fontFamily: dbSite.theme?.fontFamily || "Inter, sans-serif",
+              borderRadius: dbSite.theme?.borderRadius || "rounded",
+              shadow: dbSite.theme?.shadow || "sm",
+            },
+            pages: (dbPages || []).map((p: Record<string, unknown>) => ({
+              id: p.id as string,
+              name: (p.title as string) || "",
+              slug: p.is_home ? "/" : `/${p.slug}`,
+              status: (p.status as string) || "draft",
+              blocks: (Array.isArray(p.site_blocks) ? p.site_blocks : [])
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .map((b: any) => ({
+                  id: b.id,
+                  type: b.type,
+                  content: b.content || {},
+                  style: b.style || {},
+                  settings: b.settings || {},
+                  visible: b.visible ?? true,
+                })),
+              seoTitle: p.seo_title as string | undefined,
+              seoDescription: p.seo_description as string | undefined,
+            })),
+            domain: {
+              subdomain: dbSite.slug,
+              customDomain: dbSite.custom_domain || undefined,
+            },
+            seo: {
+              globalTitle: dbSite.seo?.globalTitle || dbSite.name,
+              globalDescription: dbSite.seo?.globalDescription || "",
+              ogImageUrl: dbSite.seo?.ogImageUrl,
+            },
+            nav: dbSite.nav || undefined,
+            footer: dbSite.footer || undefined,
+          };
+
+          dispatch({ type: "APPLY_TEMPLATE", pages: site.pages });
+          dispatch({ type: "UPDATE_SITE_SETTINGS", settings: site.settings });
+          dispatch({ type: "UPDATE_SITE_THEME", theme: site.theme });
+          dispatch({ type: "UPDATE_SITE_SEO", seo: site.seo });
+          dispatch({ type: "UPDATE_SITE_DOMAIN", domain: site.domain });
+        }
+      } catch {
+        // Fallback to mockSite (already loaded as initial state)
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, [loaded]);
+
   return (
     <BuilderContext.Provider value={{ state, dispatch }}>
       {children}

@@ -37,7 +37,7 @@ function ChevronIcon({ open }: { open: boolean }) {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="text-white/30 flex-shrink-0"
+      className="text-[#8A8A88] flex-shrink-0"
       animate={{ rotate: open ? 45 : 0 }}
       transition={{ duration: 0.25 }}
     >
@@ -51,10 +51,10 @@ export default function Faq() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section id="faq" className="relative py-32 px-6 bg-[#0a0a12]">
+    <section id="faq" className="relative py-32 px-6 bg-white">
       <div className="max-w-2xl mx-auto">
         <motion.h2
-          className="text-3xl sm:text-[2.6rem] font-extrabold text-center leading-tight mb-14"
+          className="text-3xl sm:text-[2.6rem] font-bold text-center leading-tight mb-14 text-[#191919]"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -69,7 +69,7 @@ export default function Faq() {
             return (
               <motion.div
                 key={i}
-                className="border-b border-white/[0.06]"
+                className="border-b border-[#E6E6E4]"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -79,7 +79,7 @@ export default function Faq() {
                   onClick={() => setOpenIndex(isOpen ? null : i)}
                   className="w-full flex items-center justify-between py-5 text-left cursor-pointer group"
                 >
-                  <span className="text-[15px] font-semibold pr-4 group-hover:text-white/90 transition-colors">
+                  <span className="text-[15px] font-semibold pr-4 text-[#191919] group-hover:text-[#4F46E5] transition-colors">
                     {item.q}
                   </span>
                   <ChevronIcon open={isOpen} />
@@ -94,7 +94,7 @@ export default function Faq() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                       className="overflow-hidden"
                     >
-                      <p className="text-sm text-white/40 pb-5 leading-relaxed">
+                      <p className="text-sm text-[#8A8A88] pb-5 leading-relaxed">
                         {item.a}
                       </p>
                     </motion.div>

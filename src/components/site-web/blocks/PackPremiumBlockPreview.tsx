@@ -1,9 +1,15 @@
+"use client";
+
 import { memo } from "react";
 import type { PackPremiumBlockContent } from "@/types";
-import { getProductById } from "@/lib/mock-data";
+import { useProductById } from "@/lib/product-context";
+import { getProductById as getMockProductById } from "@/lib/mock-data";
+import { getButtonInlineStyle } from "@/lib/block-style-engine";
 
 function PackPremiumBlockPreviewInner({ content }: { content: PackPremiumBlockContent }) {
-  const product = content.productId ? getProductById(content.productId) : undefined;
+  const contextProduct = useProductById(content.productId);
+  // Fallback to mock data if context is empty (builder mode)
+  const product = contextProduct || (content.productId ? getMockProductById(content.productId) : undefined);
 
   if (!product) {
     return (
@@ -17,25 +23,25 @@ function PackPremiumBlockPreviewInner({ content }: { content: PackPremiumBlockCo
   return (
     <div className={`text-center py-6 ${content.highlight ? "relative" : ""}`}>
       {content.highlight && (
-        <div className="absolute inset-0 rounded-xl bg-[#6a18f1]/5 border border-[#6a18f1]/20" />
+        <div className="absolute inset-0 rounded-xl bg-[var(--site-primary)]/5 border border-[var(--site-primary)]/20" />
       )}
       <div className="relative">
-        <h3 className="text-xl font-bold text-[#1A1A1A] mb-1">{product.name}</h3>
-        <p className="text-[13px] text-[#999] mb-2">{product.shortDescription}</p>
+        <h3 className="text-xl font-bold mb-1">{product.name}</h3>
+        <p className="text-[13px] opacity-60 mb-2">{product.shortDescription}</p>
         {content.showPrice && (
-          <div className="text-2xl font-bold text-[#6a18f1] mb-4">{product.price} €</div>
+          <div className="text-2xl font-bold text-[var(--site-primary)] mb-4">{product.price} €</div>
         )}
         {content.showFeatures && product.features && (
           <ul className="space-y-1.5 mb-4 max-w-xs mx-auto">
             {product.features.map((f, i) => (
-              <li key={i} className="text-[12px] text-[#666] flex items-center gap-2 justify-center">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6a18f1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+              <li key={i} className="text-[12px] opacity-70 flex items-center gap-2 justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--site-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                 {f}
               </li>
             ))}
           </ul>
         )}
-        <span className="inline-block bg-[#6a18f1] text-white text-[13px] font-semibold px-5 py-2 rounded-lg">
+        <span className="btn-styled inline-block text-[13px] font-semibold px-5 py-2 cursor-pointer" style={getButtonInlineStyle()}>
           {content.ctaLabel}
         </span>
       </div>

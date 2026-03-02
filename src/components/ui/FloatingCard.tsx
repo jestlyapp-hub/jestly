@@ -20,7 +20,7 @@ export default function FloatingCard({
 }: FloatingCardProps) {
   return (
     <motion.div
-      className={`absolute bg-white/[0.04] backdrop-blur-xl border border-white/[0.08] rounded-2xl p-4 shadow-[0_8px_40px_rgba(106,24,241,0.1)] pointer-events-none ${className}`}
+      className={`absolute bg-white border border-[#E6E6E4] rounded-lg p-4 shadow-sm pointer-events-none ${className}`}
       initial={{ opacity: 0, scale: 0.85, y: 20 }}
       animate={{
         opacity: 1,

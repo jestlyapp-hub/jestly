@@ -1,9 +1,10 @@
 "use client";
 
 import { useBuilder } from "@/lib/site-builder-context";
-import type { Block } from "@/types";
+import type { Block, Link } from "@/types";
+import LinkPicker from "./LinkPicker";
 
-const inputClass = "w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 export default function HeroBlockEditor({ block }: { block: Extract<Block, { type: "hero" }> }) {
   const { dispatch } = useBuilder();
@@ -23,10 +24,11 @@ export default function HeroBlockEditor({ block }: { block: Extract<Block, { typ
         <label className="block text-[11px] font-medium text-[#999] mb-1">Texte du bouton</label>
         <input type="text" value={block.content.ctaLabel} onChange={(e) => update({ ctaLabel: e.target.value })} className={inputClass} />
       </div>
-      <div>
-        <label className="block text-[11px] font-medium text-[#999] mb-1">Lien du bouton</label>
-        <input type="text" value={block.content.ctaLink} onChange={(e) => update({ ctaLink: e.target.value })} className={inputClass} />
-      </div>
+      <LinkPicker
+        label="Lien du bouton"
+        value={block.content.link}
+        onChange={(link: Link) => update({ link })}
+      />
     </div>
   );
 }

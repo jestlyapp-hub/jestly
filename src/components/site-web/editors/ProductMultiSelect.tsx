@@ -1,8 +1,11 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { products } from "@/lib/mock-data";
-import type { ProductType } from "@/types";
+import { useApi } from "@/lib/hooks/use-api";
+import { serviceToProduct } from "@/lib/adapters";
+import { products as mockProducts } from "@/lib/mock-data";
+import type { Product, ProductType } from "@/types";
+import type { Service } from "@/types/database";
 
 interface ProductMultiSelectProps {
   selectedIds: string[];
@@ -16,6 +19,9 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  const { data: rawServices } = useApi<Service[]>("/api/products");
+  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : mockProducts;
+
   const available = products.filter((p) => {
     if (filterType && p.type !== filterType) return false;
     if (selectedIds.includes(p.id)) return false;
@@ -25,7 +31,7 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
 
   const selectedProducts = selectedIds
     .map((id) => products.find((p) => p.id === id))
-    .filter((p): p is (typeof products)[number] => p !== undefined);
+    .filter((p): p is Product => p !== undefined);
 
   const remove = (id: string) => onChange(selectedIds.filter((sid) => sid !== id));
 
@@ -61,7 +67,7 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
               onDragStart={() => handleDragStart(i)}
               onDragOver={(e) => handleDragOver(e, i)}
               onDragEnd={handleDragEnd}
-              className={`flex items-center gap-1.5 bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-2.5 py-1.5 text-[12px] cursor-grab active:cursor-grabbing transition-opacity ${
+              className={`flex items-center gap-1.5 bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] cursor-grab active:cursor-grabbing transition-opacity ${
                 dragIdx === i ? "opacity-50" : ""
               }`}
             >
@@ -89,30 +95,30 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
           onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           placeholder="Rechercher un produit…"
-          className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+          className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
         />
         {open && available.length > 0 && (
-          <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6E8F0] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+          <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg max-h-48 overflow-y-auto">
             {available.map((p) => (
               <button
                 key={p.id}
                 onClick={() => add(p.id)}
-                className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#F8F9FC] transition-colors text-left"
+                className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#F7F7F5] transition-colors text-left"
               >
                 <div>
                   <div className="text-[13px] font-medium text-[#1A1A1A]">{p.name}</div>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span className="text-[10px] font-medium text-[#999] bg-[#F8F9FC] px-1.5 py-0.5 rounded">{p.category}</span>
+                    <span className="text-[10px] font-medium text-[#999] bg-[#F7F7F5] px-1.5 py-0.5 rounded">{p.category}</span>
                     {!p.active && <span className="text-[10px] text-red-400">Inactif</span>}
                   </div>
                 </div>
-                <span className="text-[12px] font-semibold text-[#6a18f1]">{p.price} €</span>
+                <span className="text-[12px] font-semibold text-[#4F46E5]">{p.price} €</span>
               </button>
             ))}
           </div>
         )}
         {open && available.length === 0 && search && (
-          <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6E8F0] rounded-lg shadow-lg p-3 text-[12px] text-[#999]">
+          <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg p-3 text-[12px] text-[#999]">
             Aucun produit trouvé
           </div>
         )}

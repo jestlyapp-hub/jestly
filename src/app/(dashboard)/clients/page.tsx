@@ -5,13 +5,23 @@ import { motion } from "framer-motion";
 import SlidePanel from "@/components/ui/SlidePanel";
 import Tabs from "@/components/ui/Tabs";
 import BadgeStatus from "@/components/ui/BadgeStatus";
-import { clients, orders } from "@/lib/mock-data";
+import { useApi } from "@/lib/hooks/use-api";
+import { clientRecordToClient, orderRecordToOrder } from "@/lib/adapters";
+import { clients as mockClients, orders as mockOrders } from "@/lib/mock-data";
 import type { Client } from "@/types";
 
 export default function ClientsPage() {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Client | null>(null);
   const [tab, setTab] = useState("Commandes");
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rawClients, loading, error, mutate } = useApi<any[]>("/api/clients");
+  const clients: Client[] = rawClients ? rawClients.map(clientRecordToClient) : mockClients;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rawOrders } = useApi<any[]>("/api/orders");
+  const orders = rawOrders ? rawOrders.map(orderRecordToOrder) : mockOrders;
 
   const filtered = clients.filter(
     (c) =>
@@ -23,6 +33,28 @@ export default function ClientsPage() {
   const clientOrders = selected
     ? orders.filter((o) => o.client === selected.name)
     : [];
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="h-8 w-32 bg-[#F7F7F5] rounded animate-pulse mb-6" />
+        <div className="bg-white rounded-xl border border-[#E6E6E4] p-4 space-y-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="h-12 bg-[#F7F7F5] rounded animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto py-12 text-center">
+        <p className="text-[14px] text-red-500 mb-2">Erreur : {error}</p>
+        <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline">Réessayer</button>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -44,14 +76,14 @@ export default function ClientsPage() {
             placeholder="Rechercher un client..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-[#E6E8F0] rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+            className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
           />
         </div>
       </motion.div>
 
       {/* Client list */}
       <motion.div
-        className="bg-white rounded-xl border border-[#E6E8F0] overflow-hidden"
+        className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
@@ -59,7 +91,7 @@ export default function ClientsPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#F0F0F5]">
+              <tr className="border-b border-[#EFEFEF]">
                 {["Client", "Email", "Commandes", "Revenu total", "Dernière commande"].map((h) => (
                   <th key={h} className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
                     {h}
@@ -72,11 +104,11 @@ export default function ClientsPage() {
                 <tr
                   key={client.id}
                   onClick={() => { setSelected(client); setTab("Commandes"); }}
-                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FAFBFD] transition-colors cursor-pointer"
+                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors cursor-pointer"
                 >
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-[#F0EBFF] flex items-center justify-center text-[11px] font-semibold text-[#6a18f1]">
+                      <div className="w-8 h-8 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[11px] font-semibold text-[#4F46E5]">
                         {client.avatar}
                       </div>
                       <span className="text-[13px] font-medium text-[#1A1A1A]">
@@ -90,6 +122,13 @@ export default function ClientsPage() {
                   <td className="px-5 py-3.5 text-[13px] text-[#999]">{client.lastOrder}</td>
                 </tr>
               ))}
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-5 py-12 text-center text-[14px] text-[#BBB]">
+                    Aucun client trouvé.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -105,7 +144,7 @@ export default function ClientsPage() {
           <div className="space-y-6">
             {/* Header client */}
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-[#F0EBFF] flex items-center justify-center text-sm font-bold text-[#6a18f1]">
+              <div className="w-12 h-12 rounded-full bg-[#EEF2FF] flex items-center justify-center text-sm font-bold text-[#4F46E5]">
                 {selected.avatar}
               </div>
               <div>
@@ -116,11 +155,11 @@ export default function ClientsPage() {
 
             {/* Stats rapides */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-[#F8F9FC] rounded-lg p-3">
+              <div className="bg-[#F7F7F5] rounded-lg p-3">
                 <div className="text-[11px] text-[#999] uppercase tracking-wider mb-1">Revenu total</div>
                 <div className="text-lg font-bold text-[#1A1A1A]">{selected.totalRevenue} &euro;</div>
               </div>
-              <div className="bg-[#F8F9FC] rounded-lg p-3">
+              <div className="bg-[#F7F7F5] rounded-lg p-3">
                 <div className="text-[11px] text-[#999] uppercase tracking-wider mb-1">Commandes</div>
                 <div className="text-lg font-bold text-[#1A1A1A]">{selected.ordersCount}</div>
               </div>
@@ -137,7 +176,7 @@ export default function ClientsPage() {
                 {clientOrders.map((o) => (
                   <div
                     key={o.id}
-                    className="flex items-center justify-between py-3 border-b border-[#F0F0F5] last:border-b-0"
+                    className="flex items-center justify-between py-3 border-b border-[#EFEFEF] last:border-b-0"
                   >
                     <div>
                       <div className="text-[13px] font-medium text-[#1A1A1A]">{o.product}</div>
@@ -156,7 +195,7 @@ export default function ClientsPage() {
               <div className="py-4">
                 <textarea
                   placeholder="Ajouter une note..."
-                  className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg p-3 text-[13px] text-[#1A1A1A] placeholder-[#BBB] min-h-[120px] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 resize-none"
+                  className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg p-3 text-[13px] text-[#1A1A1A] placeholder-[#BBB] min-h-[120px] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 resize-none"
                 />
               </div>
             )}

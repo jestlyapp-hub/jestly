@@ -12,9 +12,9 @@ interface ButtonProps {
 
 const styles = {
   primary:
-    "bg-gradient-to-r from-[#6a18f1] to-[#8f3dff] text-white hover:shadow-[0_0_32px_rgba(106,24,241,0.45)]",
+    "bg-[#4F46E5] text-white hover:bg-[#4338CA]",
   secondary:
-    "border border-white/10 bg-white/[0.04] backdrop-blur-md text-white hover:bg-white/[0.08] hover:border-white/20",
+    "border border-[#E6E6E4] text-[#191919] hover:bg-[#F7F7F5]",
 };
 
 export default function Button({
@@ -26,7 +26,7 @@ export default function Button({
   return (
     <motion.a
       href={href}
-      className={`inline-flex items-center gap-2 font-semibold text-sm rounded-full px-7 py-3.5 cursor-pointer transition-shadow ${styles[variant]} ${className}`}
+      className={`inline-flex items-center gap-2 font-semibold text-sm rounded-md px-7 py-3.5 cursor-pointer transition-colors ${styles[variant]} ${className}`}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
     >

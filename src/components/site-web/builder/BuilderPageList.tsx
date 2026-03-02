@@ -34,13 +34,13 @@ export default function BuilderPageList() {
   const handleDragEnd = () => setDragIdx(null);
 
   return (
-    <div className="w-[250px] flex-shrink-0 bg-white border-r border-[#E6E8F0] flex flex-col select-none">
+    <div className="w-[250px] flex-shrink-0 bg-white border-r border-[#E6E6E4] flex flex-col select-none">
       {/* Pages */}
       <div className="px-3 pt-3 pb-1 flex items-center justify-between">
         <span className="text-[11px] font-semibold text-[#999] uppercase tracking-wider">Pages</span>
         <button
           onClick={handleAddPage}
-          className="w-5 h-5 rounded bg-[#F0EBFF] text-[#6a18f1] flex items-center justify-center hover:bg-[#E5DEFF] transition-colors"
+          className="w-5 h-5 rounded bg-[#EEF2FF] text-[#4F46E5] flex items-center justify-center hover:bg-[#E5DEFF] transition-colors"
         >
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -53,8 +53,8 @@ export default function BuilderPageList() {
             key={page.id}
             className={`w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-[12px] transition-all mb-px ${
               activePageId === page.id
-                ? "bg-[#F0EBFF] text-[#6a18f1] font-medium"
-                : "text-[#666] hover:bg-[#F8F9FC]"
+                ? "bg-[#EEF2FF] text-[#4F46E5] font-medium"
+                : "text-[#666] hover:bg-[#F7F7F5]"
             }`}
             onClick={() => dispatch({ type: "SET_ACTIVE_PAGE", pageId: page.id })}
           >
@@ -69,7 +69,7 @@ export default function BuilderPageList() {
       </div>
 
       {/* Separator */}
-      <div className="h-px bg-[#E6E8F0] mx-3" />
+      <div className="h-px bg-[#E6E6E4] mx-3" />
 
       {/* Block tree */}
       <div className="px-3 pt-2 pb-1 flex items-center justify-between">
@@ -91,7 +91,7 @@ export default function BuilderPageList() {
                 onDragEnd={handleDragEnd}
                 onClick={() => dispatch({ type: "SET_ACTIVE_BLOCK", blockId: block.id })}
                 className={`group flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] transition-all mb-px cursor-pointer ${
-                  isActive ? "bg-[#F0EBFF] text-[#6a18f1] font-medium" : "text-[#666] hover:bg-[#F8F9FC]"
+                  isActive ? "bg-[#EEF2FF] text-[#4F46E5] font-medium" : "text-[#666] hover:bg-[#F7F7F5]"
                 } ${!block.visible ? "opacity-40" : ""} ${dragIdx === idx ? "opacity-60" : ""}`}
               >
                 {/* Drag handle */}
@@ -105,7 +105,7 @@ export default function BuilderPageList() {
                 <div className="hidden group-hover:flex items-center gap-0.5">
                   <button
                     onClick={(e) => { e.stopPropagation(); dispatch({ type: "DUPLICATE_BLOCK", blockId: block.id }); }}
-                    className="w-4 h-4 rounded flex items-center justify-center text-[#999] hover:text-[#6a18f1]"
+                    className="w-4 h-4 rounded flex items-center justify-center text-[#999] hover:text-[#4F46E5]"
                     title="Dupliquer"
                   >
                     <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -114,7 +114,7 @@ export default function BuilderPageList() {
                   </button>
                   <button
                     onClick={(e) => { e.stopPropagation(); dispatch({ type: "TOGGLE_BLOCK_VISIBILITY", blockId: block.id }); }}
-                    className="w-4 h-4 rounded flex items-center justify-center text-[#999] hover:text-[#6a18f1]"
+                    className="w-4 h-4 rounded flex items-center justify-center text-[#999] hover:text-[#4F46E5]"
                     title={block.visible ? "Masquer" : "Afficher"}
                   >
                     <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

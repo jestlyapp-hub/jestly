@@ -6,7 +6,7 @@ function TimelineProcessBlockPreviewInner({ content }: { content: TimelineProces
     <div className="py-4 space-y-3">
       {content.steps.map((step, i) => (
         <div key={i} className="flex items-start gap-3">
-          <div className="w-7 h-7 rounded-full bg-[#6a18f1] text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">
+          <div className="w-7 h-7 rounded-full bg-[var(--site-primary)] text-white flex items-center justify-center text-[11px] font-bold flex-shrink-0 mt-0.5">
             {i + 1}
           </div>
           <div>

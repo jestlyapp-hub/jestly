@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { products } from "@/lib/mock-data";
-import type { ProductType } from "@/types";
+import { useApi } from "@/lib/hooks/use-api";
+import { serviceToProduct } from "@/lib/adapters";
+import { products as mockProducts } from "@/lib/mock-data";
+import type { Product, ProductType } from "@/types";
+import type { Service } from "@/types/database";
 
 interface ProductSingleSelectProps {
   selectedId: string;
@@ -14,6 +17,9 @@ interface ProductSingleSelectProps {
 export default function ProductSingleSelect({ selectedId, onChange, filterType, label }: ProductSingleSelectProps) {
   const [search, setSearch] = useState("");
   const [open, setOpen] = useState(false);
+
+  const { data: rawServices } = useApi<Service[]>("/api/products");
+  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : mockProducts;
 
   const selected = products.find((p) => p.id === selectedId);
 
@@ -33,14 +39,14 @@ export default function ProductSingleSelect({ selectedId, onChange, filterType, 
     return (
       <div className="space-y-1.5">
         {label && <label className="block text-[11px] font-medium text-[#999]">{label}</label>}
-        <div className="bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg p-3">
+        <div className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg p-3">
           <div className="flex items-start justify-between">
             <div>
               <div className="text-[13px] font-semibold text-[#1A1A1A]">{selected.name}</div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <span className="text-[10px] font-medium text-[#999] bg-white px-1.5 py-0.5 rounded">{selected.category}</span>
                 <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                  selected.type === "pack" ? "bg-[#6a18f1]/10 text-[#6a18f1]" :
+                  selected.type === "pack" ? "bg-[#4F46E5]/10 text-[#4F46E5]" :
                   selected.type === "digital" ? "bg-emerald-50 text-emerald-600" :
                   "bg-blue-50 text-blue-600"
                 }`}>
@@ -48,13 +54,13 @@ export default function ProductSingleSelect({ selectedId, onChange, filterType, 
                 </span>
               </div>
               <div className="text-[11px] text-[#999] mt-1">{selected.shortDescription}</div>
-              <div className="text-[14px] font-bold text-[#6a18f1] mt-1">{selected.price} €</div>
+              <div className="text-[14px] font-bold text-[#4F46E5] mt-1">{selected.price} €</div>
             </div>
           </div>
           <div className="flex items-center gap-2 mt-2">
             <button
               onClick={() => setOpen(true)}
-              className="text-[11px] font-medium text-[#6a18f1] hover:underline"
+              className="text-[11px] font-medium text-[#4F46E5] hover:underline"
             >
               Changer
             </button>
@@ -78,20 +84,20 @@ export default function ProductSingleSelect({ selectedId, onChange, filterType, 
                 onChange={(e) => setSearch(e.target.value)}
                 autoFocus
                 placeholder="Rechercher un produit…"
-                className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               />
-              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E6E8F0] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg max-h-48 overflow-y-auto">
                 {available.map((p) => (
                   <button
                     key={p.id}
                     onClick={() => select(p.id)}
-                    className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#F8F9FC] transition-colors text-left"
+                    className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#F7F7F5] transition-colors text-left"
                   >
                     <div>
                       <div className="text-[13px] font-medium text-[#1A1A1A]">{p.name}</div>
-                      <span className="text-[10px] font-medium text-[#999] bg-[#F8F9FC] px-1.5 py-0.5 rounded">{p.category}</span>
+                      <span className="text-[10px] font-medium text-[#999] bg-[#F7F7F5] px-1.5 py-0.5 rounded">{p.category}</span>
                     </div>
-                    <span className="text-[12px] font-semibold text-[#6a18f1]">{p.price} €</span>
+                    <span className="text-[12px] font-semibold text-[#4F46E5]">{p.price} €</span>
                   </button>
                 ))}
                 {available.length === 0 && (
@@ -116,27 +122,27 @@ export default function ProductSingleSelect({ selectedId, onChange, filterType, 
           onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           placeholder="Rechercher un produit…"
-          className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+          className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
         />
         {open && available.length > 0 && (
-          <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6E8F0] rounded-lg shadow-lg max-h-48 overflow-y-auto">
+          <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg max-h-48 overflow-y-auto">
             {available.map((p) => (
               <button
                 key={p.id}
                 onClick={() => select(p.id)}
-                className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#F8F9FC] transition-colors text-left"
+                className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#F7F7F5] transition-colors text-left"
               >
                 <div>
                   <div className="text-[13px] font-medium text-[#1A1A1A]">{p.name}</div>
-                  <span className="text-[10px] font-medium text-[#999] bg-[#F8F9FC] px-1.5 py-0.5 rounded">{p.category}</span>
+                  <span className="text-[10px] font-medium text-[#999] bg-[#F7F7F5] px-1.5 py-0.5 rounded">{p.category}</span>
                 </div>
-                <span className="text-[12px] font-semibold text-[#6a18f1]">{p.price} €</span>
+                <span className="text-[12px] font-semibold text-[#4F46E5]">{p.price} €</span>
               </button>
             ))}
           </div>
         )}
         {open && available.length === 0 && search && (
-          <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6E8F0] rounded-lg shadow-lg p-3 text-[12px] text-[#999]">
+          <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg p-3 text-[12px] text-[#999]">
             Aucun produit trouvé
           </div>
         )}

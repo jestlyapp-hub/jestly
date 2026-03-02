@@ -7,8 +7,8 @@ function WhyMeBlockPreviewInner({ content }: { content: WhyMeBlockContent }) {
       <h3 className="text-lg font-bold text-[#1A1A1A] mb-3">{content.title}</h3>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {content.reasons.map((r, i) => (
-          <div key={i} className="p-3 rounded-lg border border-[#E6E8F0]">
-            <div className="w-7 h-7 rounded-lg bg-[#F0EBFF] flex items-center justify-center text-[12px] font-bold text-[#6a18f1] mb-2">
+          <div key={i} className="p-3 rounded-lg border border-[#E6E6E4]">
+            <div className="w-7 h-7 rounded-lg bg-[var(--site-primary-light)] flex items-center justify-center text-[12px] font-bold text-[var(--site-primary)] mb-2">
               {i + 1}
             </div>
             <div className="text-[13px] font-semibold text-[#1A1A1A] mb-0.5">{r.title}</div>

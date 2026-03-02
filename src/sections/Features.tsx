@@ -102,10 +102,7 @@ export default function Features() {
   return (
     <section
       id="features"
-      className="relative py-32 px-6"
-      style={{
-        background: "linear-gradient(180deg, #050412 0%, #080618 50%, #050412 100%)",
-      }}
+      className="relative py-32 px-6 bg-[#FBFBFA]"
     >
       <div className="max-w-5xl mx-auto">
         {/* Titre */}
@@ -116,10 +113,10 @@ export default function Features() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl sm:text-[2.6rem] font-extrabold leading-tight mb-4">
+          <h2 className="text-3xl sm:text-[2.6rem] font-bold leading-tight mb-4 text-[#191919]">
             Tout ce qu&apos;il vous faut.
           </h2>
-          <p className="text-white/40 text-base max-w-md mx-auto">
+          <p className="text-[#8A8A88] text-base max-w-md mx-auto">
             Six outils essentiels réunis dans une interface unique.
           </p>
         </motion.div>
@@ -136,11 +133,11 @@ export default function Features() {
             <motion.div
               key={f.title}
               variants={cardVariants}
-              className="group bg-white/[0.03] border border-white/[0.06] rounded-2xl p-7 transition-all duration-300 hover:bg-white/[0.06] hover:border-[#6a18f1]/30 hover:shadow-[0_0_40px_rgba(106,24,241,0.08)] hover:-translate-y-1"
+              className="group bg-white border border-[#E6E6E4] rounded-lg p-7 transition-all duration-300 hover:bg-[#F7F7F5]"
             >
-              <div className="text-[#8f3dff] mb-4">{f.icon}</div>
-              <h3 className="text-[15px] font-bold mb-2">{f.title}</h3>
-              <p className="text-sm text-white/40 leading-relaxed">{f.desc}</p>
+              <div className="text-[#4F46E5] mb-4">{f.icon}</div>
+              <h3 className="text-[15px] font-semibold mb-2 text-[#191919]">{f.title}</h3>
+              <p className="text-sm text-[#8A8A88] leading-relaxed">{f.desc}</p>
             </motion.div>
           ))}
         </motion.div>

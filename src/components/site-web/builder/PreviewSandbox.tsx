@@ -10,7 +10,7 @@ function PreviewSandboxInner({ type }: { type: BlockType | null }) {
     return (
       <div className="h-full flex items-center justify-center">
         <div className="text-center">
-          <div className="w-10 h-10 rounded-xl bg-[#F8F9FC] flex items-center justify-center mx-auto mb-3">
+          <div className="w-10 h-10 rounded-xl bg-[#F7F7F5] flex items-center justify-center mx-auto mb-3">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
               <circle cx="12" cy="12" r="3" />
@@ -34,7 +34,7 @@ function PreviewSandboxInner({ type }: { type: BlockType | null }) {
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-4">
-        <div className="bg-white rounded-xl border border-[#E6E8F0] overflow-hidden shadow-sm">
+        <div className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden shadow-sm">
           <BlockPreview block={previewBlock} />
         </div>
       </div>

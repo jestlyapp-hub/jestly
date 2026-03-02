@@ -117,11 +117,11 @@ export default function Sidebar() {
     pathname === href || pathname.startsWith(href + "/");
 
   return (
-    <aside className="hidden lg:flex flex-col w-[260px] h-screen bg-white border-r border-[#E6E8F0] flex-shrink-0">
+    <aside className="hidden lg:flex flex-col w-[260px] h-screen bg-white border-r border-[#E6E6E4] flex-shrink-0">
       {/* Logo + Workspace */}
       <div className="px-5 pt-5 pb-4">
         <div className="flex items-center gap-2.5 mb-3">
-          <div className="w-7 h-7 rounded-lg bg-[#6a18f1] flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-7 h-7 rounded-lg bg-[#4F46E5] flex items-center justify-center text-white text-xs font-bold">
             J
           </div>
           <span className="text-[15px] font-bold text-[#1A1A1A] tracking-tight">
@@ -137,7 +137,7 @@ export default function Sidebar() {
       </div>
 
       {/* Separation */}
-      <div className="h-px bg-[#E6E8F0] mx-4" />
+      <div className="h-px bg-[#E6E6E4] mx-4" />
 
       {/* Navigation principale */}
       <nav className="flex-1 px-3 py-3 overflow-y-auto">
@@ -148,11 +148,11 @@ export default function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${
                 isActive(item.href)
-                  ? "bg-[#F0EBFF] text-[#6a18f1]"
-                  : "text-[#666] hover:bg-[#F8F9FC] hover:text-[#1A1A1A]"
+                  ? "bg-[#EEF2FF] text-[#4F46E5]"
+                  : "text-[#666] hover:bg-[#F7F7F5] hover:text-[#1A1A1A]"
               }`}
             >
-              <span className={isActive(item.href) ? "text-[#6a18f1]" : "text-[#999]"}>
+              <span className={isActive(item.href) ? "text-[#4F46E5]" : "text-[#999]"}>
                 {item.icon}
               </span>
               {item.label}
@@ -161,7 +161,7 @@ export default function Sidebar() {
         </div>
 
         {/* Section secondaire */}
-        <div className="h-px bg-[#E6E8F0] my-3" />
+        <div className="h-px bg-[#E6E6E4] my-3" />
         <div className="flex flex-col gap-0.5">
           {secondaryNav.map((item) => (
             <Link
@@ -169,11 +169,11 @@ export default function Sidebar() {
               href={item.href}
               className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${
                 isActive(item.href)
-                  ? "bg-[#F0EBFF] text-[#6a18f1]"
-                  : "text-[#666] hover:bg-[#F8F9FC] hover:text-[#1A1A1A]"
+                  ? "bg-[#EEF2FF] text-[#4F46E5]"
+                  : "text-[#666] hover:bg-[#F7F7F5] hover:text-[#1A1A1A]"
               }`}
             >
-              <span className={isActive(item.href) ? "text-[#6a18f1]" : "text-[#999]"}>
+              <span className={isActive(item.href) ? "text-[#4F46E5]" : "text-[#999]"}>
                 {item.icon}
               </span>
               {item.label}
@@ -183,9 +183,9 @@ export default function Sidebar() {
       </nav>
 
       {/* User profile */}
-      <div className="px-4 py-4 border-t border-[#E6E8F0]">
+      <div className="px-4 py-4 border-t border-[#E6E6E4]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#F0EBFF] flex items-center justify-center text-[11px] font-semibold text-[#6a18f1]">
+          <div className="w-8 h-8 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[11px] font-semibold text-[#4F46E5]">
             GB
           </div>
           <div className="flex-1 min-w-0">

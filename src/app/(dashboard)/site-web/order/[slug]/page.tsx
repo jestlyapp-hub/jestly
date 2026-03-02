@@ -5,10 +5,25 @@ import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { getProductBySlug } from "@/lib/mock-data";
 
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+
+const sectors = ["Tech / SaaS", "E-commerce", "Restauration", "Mode / Beauté", "Santé", "Éducation", "Autre"];
+
 export default function OrderPage() {
   const params = useParams<{ slug: string }>();
   const product = getProductBySlug(params.slug);
-  const [form, setForm] = useState({ name: "", email: "", message: "" });
+
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    message: "",
+    deadline: "",
+    description: "",
+    brand: "",
+    sector: "",
+  });
+  const [files, setFiles] = useState<{ name: string; size: string }[]>([]);
+  const [cgvAccepted, setCgvAccepted] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
   if (!product) {
@@ -23,8 +38,28 @@ export default function OrderPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!cgvAccepted) return;
     setSubmitted(true);
   };
+
+  const addMockFile = () => {
+    const mockFiles = [
+      { name: "brief-projet.pdf", size: "800 Ko" },
+      { name: "references-visuelles.zip", size: "2.4 Mo" },
+      { name: "logo-actuel.png", size: "1.2 Mo" },
+    ];
+    const next = mockFiles[files.length % mockFiles.length];
+    setFiles([...files, next]);
+  };
+
+  const removeFile = (index: number) => {
+    setFiles(files.filter((_, i) => i !== index));
+  };
+
+  const orderRef = `SCMD-${String(Math.floor(Math.random() * 900 + 100))}`;
+  const deliveryDate = product.deliveryTimeDays
+    ? new Date(Date.now() + product.deliveryTimeDays * 86400000).toLocaleDateString("fr-FR")
+    : null;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -47,125 +82,190 @@ export default function OrderPage() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             </motion.div>
-            <h2 className="text-xl font-bold text-[#1A1A1A] mb-2">Commande envoyée !</h2>
-            <p className="text-[13px] text-[#999] max-w-sm mx-auto">
-              Votre demande pour <span className="font-medium text-[#1A1A1A]">{product.name}</span> a été enregistrée. Vous recevrez un email de confirmation à <span className="font-medium text-[#1A1A1A]">{form.email}</span>.
+            <h2 className="text-xl font-bold text-[#1A1A1A] mb-2">Commande confirmée !</h2>
+            <div className="bg-white rounded-xl border border-[#E6E6E4] p-5 max-w-sm mx-auto mt-4 text-left space-y-2">
+              <div className="flex justify-between text-[13px]">
+                <span className="text-[#999]">Référence</span>
+                <span className="font-mono font-medium text-[#1A1A1A]">{orderRef}</span>
+              </div>
+              <div className="flex justify-between text-[13px]">
+                <span className="text-[#999]">Service</span>
+                <span className="font-medium text-[#1A1A1A]">{product.name}</span>
+              </div>
+              <div className="flex justify-between text-[13px]">
+                <span className="text-[#999]">Montant</span>
+                <span className="font-bold text-[#4F46E5]">{product.price} &euro;</span>
+              </div>
+              {deliveryDate && (
+                <div className="flex justify-between text-[13px]">
+                  <span className="text-[#999]">Livraison estimée</span>
+                  <span className="text-[#1A1A1A]">{deliveryDate}</span>
+                </div>
+              )}
+            </div>
+            <p className="text-[12px] text-[#999] mt-4">
+              Un email de confirmation a été envoyé à <span className="font-medium text-[#1A1A1A]">{form.email}</span>.
             </p>
           </motion.div>
         ) : (
-          <motion.div
+          <motion.form
             key="form"
+            onSubmit={handleSubmit}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
+            className="space-y-6"
           >
-            {/* Product summary */}
-            <div className="bg-white rounded-xl border border-[#E6E8F0] p-5 mb-6">
-              <div className="flex items-start justify-between mb-3">
-                <div>
+            {/* Section 1: Récapitulatif */}
+            <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
+              <h2 className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-3">Récapitulatif</h2>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h1 className="text-lg font-bold text-[#1A1A1A]">{product.name}</h1>
                     <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                      product.type === "pack" ? "bg-[#6a18f1]/10 text-[#6a18f1]" :
+                      product.type === "pack" ? "bg-[#4F46E5]/10 text-[#4F46E5]" :
                       product.type === "digital" ? "bg-emerald-50 text-emerald-600" :
                       "bg-blue-50 text-blue-600"
                     }`}>
                       {product.type === "pack" ? "Pack" : product.type === "digital" ? "Digital" : "Service"}
                     </span>
                   </div>
-                  <p className="text-[13px] text-[#999]">{product.shortDescription}</p>
-                  {product.longDescription && (
-                    <p className="text-[12px] text-[#999] mt-2">{product.longDescription}</p>
-                  )}
+                  <p className="text-[12px] text-[#999]">{product.shortDescription}</p>
                 </div>
+                <div className="text-2xl font-bold text-[#4F46E5] ml-4">{product.price} &euro;</div>
               </div>
-
-              {/* Features */}
               {product.features && product.features.length > 0 && (
-                <div className="mb-3">
-                  <div className="text-[11px] font-semibold text-[#999] uppercase mb-1.5">Inclus</div>
-                  <ul className="space-y-1">
-                    {product.features.map((f, i) => (
-                      <li key={i} className="text-[12px] text-[#666] flex items-center gap-2">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6a18f1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                        {f}
-                      </li>
-                    ))}
-                  </ul>
+                <ul className="mt-3 space-y-1">
+                  {product.features.map((f, i) => (
+                    <li key={i} className="text-[11px] text-[#666] flex items-center gap-2">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {product.deliveryTimeDays && (
+                <div className="mt-3 pt-3 border-t border-[#E6E6E4] text-[12px] text-[#999]">
+                  Livraison estimée : ~{product.deliveryTimeDays} jour{product.deliveryTimeDays > 1 ? "s" : ""}
+                </div>
+              )}
+            </div>
+
+            {/* Section 2: Vos informations */}
+            <div className="bg-white rounded-xl border border-[#E6E6E4] p-5 space-y-4">
+              <h2 className="text-[11px] font-semibold text-[#999] uppercase tracking-wider">Vos informations</h2>
+              <div>
+                <label className="block text-[11px] font-medium text-[#999] mb-1">Nom complet</label>
+                <input type="text" required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-[11px] font-medium text-[#999] mb-1">Email</label>
+                <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inputClass} />
+              </div>
+            </div>
+
+            {/* Section 3: Brief conditionnel */}
+            <div className="bg-white rounded-xl border border-[#E6E6E4] p-5 space-y-4">
+              <h2 className="text-[11px] font-semibold text-[#999] uppercase tracking-wider">Votre brief</h2>
+
+              {product.type === "service" && (
+                <>
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#999] mb-1">Deadline souhaitée</label>
+                    <input type="date" value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#999] mb-1">Description du projet</label>
+                    <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={4} placeholder="Décrivez votre projet, vos attentes, votre vision..." className={inputClass} />
+                  </div>
+                </>
+              )}
+
+              {product.type === "pack" && (
+                <>
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#999] mb-1">Votre marque</label>
+                    <input type="text" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} placeholder="Nom de votre marque" className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-medium text-[#999] mb-1">Secteur d&apos;activité</label>
+                    <select value={form.sector} onChange={(e) => setForm({ ...form, sector: e.target.value })} className={inputClass}>
+                      <option value="">Sélectionner...</option>
+                      {sectors.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+                </>
+              )}
+
+              {product.type === "digital" && (
+                <div>
+                  <label className="block text-[11px] font-medium text-[#999] mb-1">Message (optionnel)</label>
+                  <textarea value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })} rows={2} placeholder="Une question ou précision ?" className={inputClass} />
                 </div>
               )}
 
-              {/* Price + delivery */}
-              <div className="flex items-center gap-4 pt-3 border-t border-[#E6E8F0]">
-                <div className="text-xl font-bold text-[#6a18f1]">{product.price} €</div>
-                {product.deliveryTimeDays && (
-                  <div className="text-[12px] text-[#999]">
-                    Livraison en ~{product.deliveryTimeDays} jour{product.deliveryTimeDays > 1 ? "s" : ""}
+              {/* File upload mock */}
+              <div>
+                <label className="block text-[11px] font-medium text-[#999] mb-1">Fichiers (optionnel)</label>
+                <div
+                  onClick={addMockFile}
+                  className="border-2 border-dashed border-[#E6E6E4] rounded-lg p-4 text-center cursor-pointer hover:border-[#4F46E5]/30 transition-colors"
+                >
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  <div className="text-[12px] text-[#999]">Cliquez pour ajouter un fichier</div>
+                  <div className="text-[10px] text-[#BBB] mt-0.5">Formats acceptés : PDF, PNG, JPG, ZIP. Max 10 Mo</div>
+                </div>
+                {files.length > 0 && (
+                  <div className="mt-2 space-y-1.5">
+                    {files.map((f, i) => (
+                      <div key={i} className="flex items-center justify-between bg-[#F7F7F5] rounded-lg px-3 py-2">
+                        <div className="flex items-center gap-2">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                          </svg>
+                          <span className="text-[12px] text-[#1A1A1A]">{f.name}</span>
+                          <span className="text-[10px] text-[#999]">{f.size}</span>
+                        </div>
+                        <button type="button" onClick={() => removeFile(i)} className="text-[#999] hover:text-red-500 text-sm">&times;</button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Order form */}
-            <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-[#E6E8F0] p-5 space-y-4">
-              <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Passer commande</h2>
-
-              <div>
-                <label className="block text-[11px] font-medium text-[#999] mb-1">Nom complet</label>
+            {/* Section 4: CGV + Submit */}
+            <div className="bg-white rounded-xl border border-[#E6E6E4] p-5 space-y-4">
+              <label className="flex items-start gap-3 cursor-pointer">
                 <input
-                  type="text"
-                  required
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
-                  className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+                  type="checkbox"
+                  checked={cgvAccepted}
+                  onChange={(e) => setCgvAccepted(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-[#E6E6E4] text-[#4F46E5] focus:ring-[#4F46E5]/20"
                 />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-medium text-[#999] mb-1">Email</label>
-                <input
-                  type="email"
-                  required
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-medium text-[#999] mb-1">Message (optionnel)</label>
-                <textarea
-                  value={form.message}
-                  onChange={(e) => setForm({ ...form, message: e.target.value })}
-                  rows={3}
-                  placeholder="Décrivez votre projet, vos attentes…"
-                  className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
-                />
-              </div>
-
-              {/* Upload placeholder */}
-              <div>
-                <label className="block text-[11px] font-medium text-[#999] mb-1">Fichiers (optionnel)</label>
-                <div className="border-2 border-dashed border-[#E6E8F0] rounded-lg p-4 text-center cursor-pointer hover:border-[#6a18f1]/30 transition-colors">
-                  <div className="text-[12px] text-[#999]">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-1">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                      <polyline points="17 8 12 3 7 8" />
-                      <line x1="12" y1="3" x2="12" y2="15" />
-                    </svg>
-                    Glissez vos fichiers ici ou cliquez pour parcourir
-                  </div>
-                </div>
-              </div>
-
+                <span className="text-[12px] text-[#666]">
+                  J&apos;accepte les <span className="text-[#4F46E5] underline">conditions générales de vente</span> et la <span className="text-[#4F46E5] underline">politique de confidentialité</span>.
+                </span>
+              </label>
               <button
                 type="submit"
-                className="w-full bg-[#6a18f1] text-white text-[14px] font-semibold py-3 rounded-lg hover:bg-[#5a12d9] transition-colors"
+                disabled={!cgvAccepted}
+                className={`w-full text-[14px] font-semibold py-3 rounded-lg transition-colors ${
+                  cgvAccepted
+                    ? "bg-[#4F46E5] text-white hover:bg-[#4338CA]"
+                    : "bg-[#E6E6E4] text-[#999] cursor-not-allowed"
+                }`}
               >
-                Payer {product.price} €
+                Payer {product.price} &euro;
               </button>
-            </form>
-          </motion.div>
+            </div>
+          </motion.form>
         )}
       </AnimatePresence>
     </div>

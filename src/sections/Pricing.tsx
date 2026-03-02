@@ -9,7 +9,7 @@ function CheckIcon() {
       height="16"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="#8f3dff"
+      stroke="#4F46E5"
       strokeWidth="2.5"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -46,11 +46,7 @@ export default function Pricing() {
   return (
     <section
       id="pricing"
-      className="relative py-32 px-6"
-      style={{
-        background:
-          "linear-gradient(180deg, #0a0a12 0%, #0d0a1f 50%, #0a0a12 100%)",
-      }}
+      className="relative py-32 px-6 bg-[#FBFBFA]"
     >
       <div className="max-w-2xl mx-auto">
         {/* Titre */}
@@ -61,10 +57,10 @@ export default function Pricing() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-3xl sm:text-[2.6rem] font-extrabold leading-tight mb-4">
+          <h2 className="text-3xl sm:text-[2.6rem] font-bold leading-tight mb-4 text-[#191919]">
             Un prix simple.
           </h2>
-          <p className="text-white/40">
+          <p className="text-[#8A8A88]">
             Pas de frais cachés. Évoluez quand vous voulez.
           </p>
         </motion.div>
@@ -72,23 +68,23 @@ export default function Pricing() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* ── Free ── */}
           <motion.div
-            className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8"
+            className="bg-white border border-[#E6E6E4] rounded-lg p-8"
             variants={cardVariants}
             custom={0}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
           >
-            <h3 className="text-lg font-bold mb-1">Gratuit</h3>
+            <h3 className="text-lg font-semibold mb-1 text-[#191919]">Gratuit</h3>
             <div className="flex items-baseline gap-1 mb-8">
-              <span className="text-4xl font-extrabold">0&euro;</span>
-              <span className="text-white/30 text-sm">/mois</span>
+              <span className="text-4xl font-bold text-[#191919]">0&euro;</span>
+              <span className="text-[#8A8A88] text-sm">/mois</span>
             </div>
             <ul className="flex flex-col gap-3.5 mb-8">
               {freePlan.map((f) => (
                 <li
                   key={f}
-                  className="flex items-center gap-3 text-sm text-white/50"
+                  className="flex items-center gap-3 text-sm text-[#5A5A58]"
                 >
                   <CheckIcon /> {f}
                 </li>
@@ -96,7 +92,7 @@ export default function Pricing() {
             </ul>
             <motion.a
               href="#"
-              className="block text-center w-full py-3.5 rounded-full border border-white/10 text-sm font-semibold text-white hover:bg-white/[0.06] transition-colors cursor-pointer"
+              className="block text-center w-full py-3.5 rounded-md border border-[#E6E6E4] text-sm font-semibold text-[#191919] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
@@ -106,7 +102,7 @@ export default function Pricing() {
 
           {/* ── Pro ── */}
           <motion.div
-            className="relative bg-white/[0.04] rounded-2xl p-8 border border-[#6a18f1]/30 shadow-[0_0_60px_rgba(106,24,241,0.1)]"
+            className="relative bg-white rounded-lg p-8 border-2 border-[#4F46E5]"
             variants={cardVariants}
             custom={1}
             initial="hidden"
@@ -115,21 +111,21 @@ export default function Pricing() {
           >
             {/* Badge */}
             <div className="absolute -top-3 right-6">
-              <span className="text-[11px] font-bold uppercase tracking-wider bg-gradient-to-r from-[#6a18f1] to-[#8f3dff] text-white px-4 py-1.5 rounded-full">
+              <span className="text-[11px] font-bold uppercase tracking-wider bg-[#4F46E5] text-white px-4 py-1.5 rounded-full">
                 Populaire
               </span>
             </div>
 
-            <h3 className="text-lg font-bold mb-1">Pro</h3>
+            <h3 className="text-lg font-semibold mb-1 text-[#191919]">Pro</h3>
             <div className="flex items-baseline gap-1 mb-8">
-              <span className="text-4xl font-extrabold">7&euro;</span>
-              <span className="text-white/30 text-sm">/mois</span>
+              <span className="text-4xl font-bold text-[#191919]">7&euro;</span>
+              <span className="text-[#8A8A88] text-sm">/mois</span>
             </div>
             <ul className="flex flex-col gap-3.5 mb-8">
               {proPlan.map((f) => (
                 <li
                   key={f}
-                  className="flex items-center gap-3 text-sm text-white/50"
+                  className="flex items-center gap-3 text-sm text-[#5A5A58]"
                 >
                   <CheckIcon /> {f}
                 </li>
@@ -137,7 +133,7 @@ export default function Pricing() {
             </ul>
             <motion.a
               href="#"
-              className="block text-center w-full py-3.5 rounded-full bg-gradient-to-r from-[#6a18f1] to-[#8f3dff] text-sm font-semibold text-white cursor-pointer hover:shadow-[0_0_32px_rgba(106,24,241,0.45)] transition-shadow"
+              className="block text-center w-full py-3.5 rounded-md bg-[#4F46E5] text-sm font-semibold text-white cursor-pointer hover:bg-[#4338CA] transition-colors"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >

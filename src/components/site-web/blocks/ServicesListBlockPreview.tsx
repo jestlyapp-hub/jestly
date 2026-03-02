@@ -1,9 +1,14 @@
+"use client";
+
 import { memo } from "react";
 import type { ServicesListBlockContent } from "@/types";
-import { getProductsByIds } from "@/lib/mock-data";
+import { useProductsByIds } from "@/lib/product-context";
+import { getProductsByIds as getMockProductsByIds } from "@/lib/mock-data";
 
 function ServicesListBlockPreviewInner({ content }: { content: ServicesListBlockContent }) {
-  const products = getProductsByIds(content.productIds);
+  const contextProducts = useProductsByIds(content.productIds);
+  // Fallback to mock data if context is empty (builder mode)
+  const products = contextProducts.length > 0 ? contextProducts : getMockProductsByIds(content.productIds);
 
   if (products.length === 0) {
     return (
@@ -16,28 +21,36 @@ function ServicesListBlockPreviewInner({ content }: { content: ServicesListBlock
 
   const isGrid = content.layout === "grid";
 
+  // Pin featured products first
+  const sorted = [...products].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+
   return (
     <div className="py-4">
       {content.title && (
         <h3 className="text-lg font-bold text-[#1A1A1A] mb-4">{content.title}</h3>
       )}
       <div className={isGrid ? "grid grid-cols-2 gap-3" : "space-y-3"}>
-        {products.map((product) => (
+        {sorted.map((product) => (
           <div
             key={product.id}
-            className={`p-3 rounded-lg border border-[#E6E8F0] ${isGrid ? "" : "flex items-start justify-between"}`}
+            className={`p-3 rounded-lg border border-[#E6E6E4] ${isGrid ? "" : "flex items-start justify-between"}`}
           >
             <div className={isGrid ? "" : "flex-1"}>
-              <div className="text-[13px] font-semibold text-[#1A1A1A]">{product.name}</div>
+              <div className="flex items-center gap-2">
+                <div className="text-[13px] font-semibold text-[#1A1A1A]">{product.name}</div>
+                {product.featured && (
+                  <span className="bg-[var(--site-primary)] text-white text-[9px] font-bold px-2 py-0.5 rounded-full">En vedette</span>
+                )}
+              </div>
               <div className="text-[11px] text-[#999] mt-0.5">{product.shortDescription}</div>
               {content.showCategory && (
-                <span className="inline-block text-[10px] font-medium text-[#999] bg-[#F8F9FC] px-1.5 py-0.5 rounded mt-1.5">
+                <span className="inline-block text-[10px] font-medium text-[#999] bg-[#F7F7F5] px-1.5 py-0.5 rounded mt-1.5">
                   {product.category}
                 </span>
               )}
             </div>
             {content.showPrice && (
-              <span className={`text-[12px] font-medium text-[#6a18f1] whitespace-nowrap ${isGrid ? "block mt-2" : "ml-4"}`}>
+              <span className={`text-[12px] font-medium text-[var(--site-primary)] whitespace-nowrap ${isGrid ? "block mt-2" : "ml-4"}`}>
                 {product.price} €
               </span>
             )}

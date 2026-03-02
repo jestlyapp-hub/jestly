@@ -26,18 +26,18 @@ export default function SlidePanel({ open, onClose, title, children }: SlidePane
 
           {/* Panel */}
           <motion.div
-            className="fixed top-0 right-0 bottom-0 w-full max-w-lg bg-white border-l border-[#E6E8F0] z-50 flex flex-col shadow-xl"
+            className="fixed top-0 right-0 bottom-0 w-full max-w-lg bg-white border-l border-[#E6E6E4] z-50 flex flex-col shadow-xl"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E6E8F0]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#E6E6E4]">
               <h2 className="text-[15px] font-semibold text-[#1A1A1A]">{title}</h2>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg hover:bg-[#F8F9FC] transition-colors"
+                className="p-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />

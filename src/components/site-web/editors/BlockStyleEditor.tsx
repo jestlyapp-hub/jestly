@@ -1,10 +1,11 @@
 "use client";
 
 import { useBuilder } from "@/lib/site-builder-context";
-import type { Block, BlockStyle } from "@/types";
+import type { Block, BlockStyle, BlockType } from "@/types";
+import ButtonStyleEditor from "./ButtonStyleEditor";
 
-const inputClass = "w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all";
-const smallInputClass = "w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-2.5 py-1.5 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const smallInputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const sectionLabel = "text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-2 block";
 
 const shadowOptions: { value: NonNullable<BlockStyle["shadow"]>; label: string }[] = [
@@ -45,12 +46,23 @@ const borderRadiusPresets = [
   { value: 24, label: "24" },
 ];
 
+// Blocks that contain a button / CTA
+const blocksWithButton: BlockType[] = [
+  "hero", "pack-premium", "centered-cta", "custom-form",
+  "calendar-booking", "newsletter",
+  "pricing-table", "cta-premium", "contact-form", "service-cards",
+  "video-text-split", "comparison-table",
+  "lead-magnet", "availability-banner",
+];
+
 export default function BlockStyleEditor({ block }: { block: Block }) {
   const { dispatch } = useBuilder();
 
   const update = (style: Partial<BlockStyle>) => {
     dispatch({ type: "UPDATE_BLOCK_STYLE", blockId: block.id, style });
   };
+
+  const hasButton = blocksWithButton.includes(block.type);
 
   return (
     <div className="space-y-5">
@@ -65,7 +77,7 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
                 type="color"
                 value={block.style.backgroundColor || "#ffffff"}
                 onChange={(e) => update({ backgroundColor: e.target.value })}
-                className="w-7 h-7 rounded border border-[#E6E8F0] cursor-pointer flex-shrink-0"
+                className="w-7 h-7 rounded border border-[#E6E6E4] cursor-pointer flex-shrink-0"
               />
               <input
                 type="text"
@@ -83,7 +95,7 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
                 type="color"
                 value={block.style.textColor || "#1a1a1a"}
                 onChange={(e) => update({ textColor: e.target.value })}
-                className="w-7 h-7 rounded border border-[#E6E8F0] cursor-pointer flex-shrink-0"
+                className="w-7 h-7 rounded border border-[#E6E6E4] cursor-pointer flex-shrink-0"
               />
               <input
                 type="text"
@@ -133,8 +145,8 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
                   onClick={() => update({ fontWeight: fw.value })}
                   className={`py-1.5 rounded-md border text-[10px] font-medium transition-all ${
                     (block.style.fontWeight || "400") === fw.value
-                      ? "border-[#6a18f1] bg-[#F0EBFF] text-[#6a18f1]"
-                      : "border-[#E6E8F0] text-[#666] hover:border-[#6a18f1]/30"
+                      ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                      : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
                   }`}
                 >
                   {fw.label}
@@ -151,8 +163,8 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
                   onClick={() => update({ textAlign: ta.value })}
                   className={`flex-1 py-2 rounded-md border flex items-center justify-center transition-all ${
                     (block.style.textAlign || "left") === ta.value
-                      ? "border-[#6a18f1] bg-[#F0EBFF] text-[#6a18f1]"
-                      : "border-[#E6E8F0] text-[#999] hover:border-[#6a18f1]/30"
+                      ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                      : "border-[#E6E6E4] text-[#999] hover:border-[#4F46E5]/30"
                   }`}
                 >
                   {ta.icon}
@@ -168,35 +180,35 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
         <span className={sectionLabel}>Espacement</span>
         <div className="space-y-2.5">
           {/* Padding visual box */}
-          <div className="border border-[#E6E8F0] rounded-lg p-2 bg-[#FAFBFD]">
+          <div className="border border-[#E6E6E4] rounded-lg p-2 bg-[#FBFBFA]">
             <div className="text-[9px] text-[#BBB] text-center mb-1 uppercase tracking-wider">Padding</div>
             <div className="flex flex-col items-center gap-1">
               <input
                 type="number"
                 value={block.style.paddingTop ?? 40}
                 onChange={(e) => update({ paddingTop: parseInt(e.target.value) || 0 })}
-                className="w-14 text-center bg-white border border-[#E6E8F0] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/40"
+                className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40"
               />
               <div className="flex items-center gap-1 w-full">
                 <input
                   type="number"
                   value={block.style.paddingLeft ?? 0}
                   onChange={(e) => update({ paddingLeft: parseInt(e.target.value) || 0 })}
-                  className="w-14 text-center bg-white border border-[#E6E8F0] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/40"
+                  className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40"
                 />
                 <div className="flex-1 h-8 border border-dashed border-[#D0D5E0] rounded bg-white" />
                 <input
                   type="number"
                   value={block.style.paddingRight ?? 0}
                   onChange={(e) => update({ paddingRight: parseInt(e.target.value) || 0 })}
-                  className="w-14 text-center bg-white border border-[#E6E8F0] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/40"
+                  className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40"
                 />
               </div>
               <input
                 type="number"
                 value={block.style.paddingBottom ?? 40}
                 onChange={(e) => update({ paddingBottom: parseInt(e.target.value) || 0 })}
-                className="w-14 text-center bg-white border border-[#E6E8F0] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/40"
+                className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40"
               />
             </div>
           </div>
@@ -237,8 +249,8 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
                   onClick={() => update({ borderRadius: br.value })}
                   className={`flex-1 py-1.5 rounded-md border text-[10px] font-medium transition-all ${
                     (block.style.borderRadius ?? 0) === br.value
-                      ? "border-[#6a18f1] bg-[#F0EBFF] text-[#6a18f1]"
-                      : "border-[#E6E8F0] text-[#666] hover:border-[#6a18f1]/30"
+                      ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                      : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
                   }`}
                 >
                   {br.label}
@@ -255,8 +267,8 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
                   onClick={() => update({ shadow: s.value })}
                   className={`py-1.5 rounded-md border text-[10px] font-medium transition-all ${
                     (block.style.shadow || "none") === s.value
-                      ? "border-[#6a18f1] bg-[#F0EBFF] text-[#6a18f1]"
-                      : "border-[#E6E8F0] text-[#666] hover:border-[#6a18f1]/30"
+                      ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                      : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
                   }`}
                 >
                   {s.label}
@@ -279,6 +291,16 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
         />
         <p className="text-[10px] text-[#BBB] mt-1">CSS gradient (remplace la couleur de fond)</p>
       </div>
+
+      {/* ─── BUTTON STYLE (conditional) ─── */}
+      {hasButton && (
+        <div className="pt-2 border-t border-[#E6E6E4]">
+          <ButtonStyleEditor
+            value={block.style.buttonStyle}
+            onChange={(buttonStyle) => update({ buttonStyle })}
+          />
+        </div>
+      )}
     </div>
   );
 }

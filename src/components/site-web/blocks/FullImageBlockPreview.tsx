@@ -4,7 +4,7 @@ import type { FullImageBlockContent } from "@/types";
 function FullImageBlockPreviewInner({ content }: { content: FullImageBlockContent }) {
   return (
     <div className="py-4">
-      <div className="h-48 bg-gradient-to-br from-[#F0EBFF] to-[#E6E8F0] rounded-lg flex items-center justify-center relative">
+      <div className="h-48 bg-gradient-to-br from-[var(--site-primary-light)] to-[#E6E6E4] rounded-lg flex items-center justify-center relative">
         {content.overlayText && (
           <span className="text-[16px] font-bold text-[#1A1A1A]">{content.overlayText}</span>
         )}

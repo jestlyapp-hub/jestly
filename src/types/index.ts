@@ -38,6 +38,7 @@ export interface Product {
   features?: string[];
   deliveryTimeDays?: number;
   thumbnailUrl?: string;
+  featured?: boolean;
 }
 
 export interface Invoice {
@@ -68,6 +69,26 @@ export interface Activity {
 
 /* ─── Site Builder Types ─── */
 
+export type LinkType = "none" | "internal_page" | "external_url" | "product" | "anchor";
+
+export interface Link {
+  type: LinkType;
+  value: string;
+}
+
+export interface ButtonStyle {
+  bg?: string;
+  text?: string;
+  border?: string;
+  radius?: number;
+  hoverBg?: string;
+  hoverText?: string;
+  hoverBorder?: string;
+  hoverShadow?: "none" | "sm" | "md" | "lg";
+  hoverScale?: number;
+  transitionMs?: number;
+}
+
 export type BlockType =
   | "hero"
   | "portfolio-grid"
@@ -83,7 +104,29 @@ export type BlockType =
   | "custom-form"
   | "calendar-booking"
   | "stats-counter"
-  | "newsletter";
+  | "newsletter"
+  | "pricing-table"
+  | "feature-grid"
+  | "testimonials-carousel"
+  | "faq-advanced"
+  | "timeline-advanced"
+  | "cta-premium"
+  | "logo-cloud"
+  | "stats-animated"
+  | "masonry-gallery"
+  | "comparison-table"
+  | "contact-form"
+  | "blog-preview"
+  | "video-text-split"
+  | "before-after"
+  | "service-cards"
+  | "lead-magnet"
+  | "availability-banner"
+  | "product-hero-checkout"
+  | "product-cards-grid"
+  | "inline-checkout"
+  | "bundle-builder"
+  | "pricing-table-real";
 
 export interface BlockStyle {
   backgroundColor?: string;
@@ -99,9 +142,12 @@ export interface BlockStyle {
   lineHeight?: number;
   textAlign?: "left" | "center" | "right";
   borderRadius?: number;
+  borderColor?: string;
+  borderWidth?: number;
   shadow?: "none" | "sm" | "md" | "lg";
   containerWidth?: "full" | "boxed" | "narrow";
   backgroundGradient?: string;
+  buttonStyle?: ButtonStyle;
 }
 
 export type BlockAnimation = "none" | "fade-up" | "fade-in" | "slide-left";
@@ -116,12 +162,26 @@ export interface HeroBlockContent {
   subtitle: string;
   ctaLabel: string;
   ctaLink: string;
+  link?: Link;
   imageUrl?: string;
 }
 
 export interface PortfolioGridBlockContent {
-  items: { title: string; imageUrl: string; category: string }[];
+  items: {
+    title: string;
+    imageUrl: string;
+    category: string;
+    link?: Link;
+    slug?: string;
+    description?: string;
+    images?: string[];
+    featured?: boolean;
+  }[];
   columns: 2 | 3 | 4;
+  categories: string[];
+  showFilter: boolean;
+  showDetailLink: boolean;
+  showSearch?: boolean;
 }
 
 export interface ServicesListBlockContent {
@@ -162,6 +222,7 @@ export interface FullImageBlockContent {
   imageUrl: string;
   alt: string;
   overlayText?: string;
+  link?: Link;
 }
 
 export interface WhyMeBlockContent {
@@ -174,6 +235,7 @@ export interface CenteredCtaBlockContent {
   description: string;
   ctaLabel: string;
   ctaLink: string;
+  link?: Link;
   productId?: string;
 }
 
@@ -185,6 +247,10 @@ export interface CustomFormBlockContent {
 export interface CalendarBookingBlockContent {
   title: string;
   description: string;
+  provider: "calendly" | "cal";
+  embedUrl: string;
+  ctaLabel: string;
+  openModal: boolean;
   slots: string[];
 }
 
@@ -197,6 +263,282 @@ export interface NewsletterBlockContent {
   description: string;
   placeholder: string;
   buttonLabel: string;
+}
+
+/* ─── New V2 Block Content Types ─── */
+
+export interface PricingTableBlockContent {
+  title?: string;
+  plans: {
+    name: string;
+    price: number;
+    period: "monthly" | "yearly";
+    description: string;
+    features: string[];
+    isPopular: boolean;
+    productId?: string;
+    ctaLabel: string;
+  }[];
+  showToggle: boolean;
+  columns: 2 | 3 | 4;
+}
+
+export interface FeatureGridBlockContent {
+  title?: string;
+  subtitle?: string;
+  features: {
+    icon: string;
+    title: string;
+    description: string;
+  }[];
+  columns: 2 | 3 | 4;
+}
+
+export interface TestimonialsCarouselBlockContent {
+  testimonials: {
+    name: string;
+    role: string;
+    text: string;
+    avatar?: string;
+    rating: number;
+  }[];
+  autoplay: boolean;
+  autoplayInterval: number;
+}
+
+export interface FaqAdvancedBlockContent {
+  title?: string;
+  items: {
+    question: string;
+    answer: string;
+    icon?: string;
+  }[];
+  allowMultiple: boolean;
+  useGlobal: boolean;
+}
+
+export interface TimelineAdvancedBlockContent {
+  title?: string;
+  orientation: "vertical" | "horizontal";
+  steps: {
+    title: string;
+    description: string;
+    icon?: string;
+  }[];
+}
+
+export interface CtaPremiumBlockContent {
+  title: string;
+  description: string;
+  primaryCtaLabel: string;
+  primaryLink?: Link;
+  secondaryCtaLabel?: string;
+  secondaryLink?: Link;
+  backgroundImageUrl?: string;
+}
+
+export interface LogoCloudBlockContent {
+  title?: string;
+  logos: {
+    name: string;
+    imageUrl: string;
+    link?: Link;
+  }[];
+  grayscale: boolean;
+  columns: 3 | 4 | 5 | 6;
+}
+
+export interface StatsAnimatedBlockContent {
+  stats: {
+    value: number;
+    suffix: string;
+    label: string;
+  }[];
+  animateOnScroll: boolean;
+}
+
+export interface MasonryGalleryBlockContent {
+  items: {
+    imageUrl: string;
+    title?: string;
+    link?: Link;
+  }[];
+  columns: 2 | 3 | 4;
+  lightbox: boolean;
+  maxImages: number;
+}
+
+export interface ComparisonTableBlockContent {
+  title?: string;
+  plans: {
+    name: string;
+    isHighlighted: boolean;
+    productId?: string;
+    ctaLabel: string;
+  }[];
+  rows: {
+    feature: string;
+    values: (boolean | string)[];
+  }[];
+}
+
+export interface ContactFormBlockContent {
+  title?: string;
+  description?: string;
+  fields: {
+    label: string;
+    type: "text" | "email" | "textarea" | "select" | "phone";
+    required: boolean;
+    options?: string[];
+    placeholder?: string;
+  }[];
+  submitLabel: string;
+  successMessage: string;
+  notifyEmail?: string;
+  saveAsLead: boolean;
+}
+
+export interface BlogPreviewBlockContent {
+  title?: string;
+  posts: {
+    title: string;
+    excerpt: string;
+    imageUrl?: string;
+    date: string;
+    link?: Link;
+  }[];
+  columns: 2 | 3;
+}
+
+export interface VideoTextSplitBlockContent {
+  videoUrl: string;
+  videoPosition: "left" | "right";
+  title: string;
+  description: string;
+  ctaLabel?: string;
+  link?: Link;
+}
+
+export interface BeforeAfterBlockContent {
+  beforeImageUrl: string;
+  afterImageUrl: string;
+  beforeLabel: string;
+  afterLabel: string;
+  initialPosition: number;
+}
+
+export interface ServiceCardsBlockContent {
+  title?: string;
+  services: {
+    icon: string;
+    name: string;
+    description: string;
+    features: string[];
+    price?: number;
+    productId?: string;
+    ctaLabel: string;
+  }[];
+  columns: 2 | 3;
+}
+
+export interface LeadMagnetBlockContent {
+  title: string;
+  description: string;
+  fileUrl: string;
+  buttonLabel: string;
+  successMessage: string;
+}
+
+/* ─── V1.5 Sale Block Content Types ─── */
+
+export interface ProductHeroCheckoutBlockContent {
+  productId: string;
+  benefits: string[];
+  ctaLabel: string;
+  showFeatures: boolean;
+  layout: "left" | "center";
+}
+
+export interface ProductCardsGridBlockContent {
+  productIds: string[];
+  columns: 2 | 3 | 4;
+  showFilter: boolean;
+  ctaLabel: string;
+}
+
+export interface InlineCheckoutBlockContent {
+  productId: string;
+  layout: "compact" | "detailed";
+  ctaLabel: string;
+}
+
+export interface BundleBuilderBlockContent {
+  productIds: string[];
+  title: string;
+  description: string;
+  ctaLabel: string;
+  discountPercent: number;
+}
+
+export interface PricingTableRealBlockContent {
+  productIds: string[];
+  columns: 2 | 3;
+  showFeatures: boolean;
+  highlightIndex: number;
+  ctaLabel: string;
+}
+
+export type AvailabilityStatus = "open" | "limited" | "closed";
+
+export interface AvailabilityBannerBlockContent {
+  status: AvailabilityStatus;
+  message: string;
+  ctaLabel?: string;
+  ctaLink?: Link;
+}
+
+/* ─── Analytics Types ─── */
+
+export type AnalyticsEventType = "page_view" | "click_cta" | "form_submit" | "order_start" | "order_complete";
+
+export interface AnalyticsEvent {
+  id: string;
+  type: AnalyticsEventType;
+  page?: string;
+  data?: Record<string, string>;
+  timestamp: string;
+}
+
+/* ─── Lead Type ─── */
+
+export interface Lead {
+  id: string;
+  name: string;
+  email: string;
+  source: string;
+  date: string;
+  fields: Record<string, string>;
+}
+
+/* ─── Nav / Footer / Member Types ─── */
+
+export interface NavConfig {
+  links: { label: string; pageId?: string; url?: string }[];
+  showCta: boolean;
+  ctaLabel: string;
+  ctaLink?: Link;
+}
+
+export interface FooterConfig {
+  links: { label: string; pageId?: string; url?: string }[];
+  showSocials: boolean;
+  copyright: string;
+}
+
+export interface SiteMember {
+  userId: string;
+  role: "owner" | "editor" | "viewer";
+  email: string;
 }
 
 export type BlockContentMap = {
@@ -215,6 +557,28 @@ export type BlockContentMap = {
   "calendar-booking": CalendarBookingBlockContent;
   "stats-counter": StatsCounterBlockContent;
   newsletter: NewsletterBlockContent;
+  "pricing-table": PricingTableBlockContent;
+  "feature-grid": FeatureGridBlockContent;
+  "testimonials-carousel": TestimonialsCarouselBlockContent;
+  "faq-advanced": FaqAdvancedBlockContent;
+  "timeline-advanced": TimelineAdvancedBlockContent;
+  "cta-premium": CtaPremiumBlockContent;
+  "logo-cloud": LogoCloudBlockContent;
+  "stats-animated": StatsAnimatedBlockContent;
+  "masonry-gallery": MasonryGalleryBlockContent;
+  "comparison-table": ComparisonTableBlockContent;
+  "contact-form": ContactFormBlockContent;
+  "blog-preview": BlogPreviewBlockContent;
+  "video-text-split": VideoTextSplitBlockContent;
+  "before-after": BeforeAfterBlockContent;
+  "service-cards": ServiceCardsBlockContent;
+  "lead-magnet": LeadMagnetBlockContent;
+  "availability-banner": AvailabilityBannerBlockContent;
+  "product-hero-checkout": ProductHeroCheckoutBlockContent;
+  "product-cards-grid": ProductCardsGridBlockContent;
+  "inline-checkout": InlineCheckoutBlockContent;
+  "bundle-builder": BundleBuilderBlockContent;
+  "pricing-table-real": PricingTableRealBlockContent;
 };
 
 export type Block = {
@@ -238,6 +602,7 @@ export interface SitePage {
   blocks: Block[];
   seoTitle?: string;
   seoDescription?: string;
+  ogImageUrl?: string;
 }
 
 export interface SiteTheme {
@@ -270,6 +635,7 @@ export interface SiteSettings {
     youtube?: string;
     tiktok?: string;
   };
+  i18n?: { locales: string[]; defaultLocale: string };
 }
 
 export interface Site {
@@ -279,6 +645,9 @@ export interface Site {
   pages: SitePage[];
   domain: SiteDomainSettings;
   seo: SiteSeoSettings;
+  nav?: NavConfig;
+  footer?: FooterConfig;
+  members?: SiteMember[];
 }
 
 export type SiteOrderStatus = "pending" | "in_progress" | "delivered" | "cancelled";

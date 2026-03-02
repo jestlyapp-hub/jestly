@@ -7,7 +7,7 @@ interface StatCardProps {
 
 export default function StatCard({ label, value, change, positive = true }: StatCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-[#E6E8F0] p-5 hover:shadow-sm hover:-translate-y-0.5 transition-all">
+    <div className="bg-white rounded-xl border border-[#E6E6E4] p-5 hover:shadow-sm hover:-translate-y-0.5 transition-all">
       <div className="text-[12px] font-medium text-[#999] uppercase tracking-wider mb-2">
         {label}
       </div>

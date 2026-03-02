@@ -35,10 +35,10 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl border border-[#E6E8F0] w-full max-w-[960px] h-[600px] flex overflow-hidden">
+      <div className="relative bg-white rounded-2xl shadow-2xl border border-[#E6E6E4] w-full max-w-[960px] h-[600px] flex overflow-hidden">
 
         {/* LEFT — Categories + Search */}
-        <div className="w-[200px] flex-shrink-0 border-r border-[#E6E8F0] flex flex-col">
+        <div className="w-[200px] flex-shrink-0 border-r border-[#E6E6E4] flex flex-col">
           <div className="p-3">
             <div className="relative">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-2.5 top-1/2 -translate-y-1/2">
@@ -50,7 +50,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
                 placeholder="Rechercher..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg pl-8 pr-3 py-2 text-[12px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg pl-8 pr-3 py-2 text-[12px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               />
             </div>
           </div>
@@ -58,7 +58,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
             <button
               onClick={() => setActiveCategory("all")}
               className={`w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium transition-all mb-0.5 ${
-                activeCategory === "all" ? "bg-[#F0EBFF] text-[#6a18f1]" : "text-[#666] hover:bg-[#F8F9FC]"
+                activeCategory === "all" ? "bg-[#EEF2FF] text-[#4F46E5]" : "text-[#666] hover:bg-[#F7F7F5]"
               }`}
             >
               Tous les blocs
@@ -71,7 +71,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
                   key={cat.id}
                   onClick={() => setActiveCategory(cat.id)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium transition-all mb-0.5 ${
-                    activeCategory === cat.id ? "bg-[#F0EBFF] text-[#6a18f1]" : "text-[#666] hover:bg-[#F8F9FC]"
+                    activeCategory === cat.id ? "bg-[#EEF2FF] text-[#4F46E5]" : "text-[#666] hover:bg-[#F7F7F5]"
                   }`}
                 >
                   {cat.label}
@@ -84,9 +84,9 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
 
         {/* CENTER — Block grid */}
         <div className="flex-1 flex flex-col min-w-0">
-          <div className="px-5 py-3.5 border-b border-[#E6E8F0] flex items-center justify-between">
+          <div className="px-5 py-3.5 border-b border-[#E6E6E4] flex items-center justify-between">
             <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Ajouter un bloc</h2>
-            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F8F9FC] transition-colors">
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
@@ -108,12 +108,12 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
                     onMouseLeave={() => handleHover(null)}
                     className={`group flex flex-col p-3 rounded-xl border transition-all text-left ${
                       hoveredType === entry.type
-                        ? "border-[#6a18f1] bg-[#F0EBFF]/40 shadow-sm"
-                        : "border-[#E6E8F0] hover:border-[#6a18f1]/40"
+                        ? "border-[#4F46E5] bg-[#EEF2FF]/40 shadow-sm"
+                        : "border-[#E6E6E4] hover:border-[#4F46E5]/40"
                     }`}
                   >
                     {/* Miniature */}
-                    <div className="w-full h-14 bg-[#F8F9FC] rounded-lg p-2 mb-2 flex items-center justify-center overflow-hidden">
+                    <div className="w-full h-14 bg-[#F7F7F5] rounded-lg p-2 mb-2 flex items-center justify-center overflow-hidden">
                       <div className="w-full">
                         <BlockThumbnail type={entry.type} />
                       </div>
@@ -128,8 +128,8 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
         </div>
 
         {/* RIGHT — Live Preview */}
-        <div className="w-[300px] flex-shrink-0 border-l border-[#E6E8F0] bg-[#F8F9FC] flex flex-col">
-          <div className="px-4 py-3.5 border-b border-[#E6E8F0] bg-white">
+        <div className="w-[300px] flex-shrink-0 border-l border-[#E6E6E4] bg-[#F7F7F5] flex flex-col">
+          <div className="px-4 py-3.5 border-b border-[#E6E6E4] bg-white">
             <span className="text-[12px] font-semibold text-[#999] uppercase tracking-wider">Aperçu</span>
           </div>
           <div className="flex-1 overflow-hidden">

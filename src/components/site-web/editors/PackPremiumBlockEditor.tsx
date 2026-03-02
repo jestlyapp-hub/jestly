@@ -4,7 +4,7 @@ import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
 import ProductSingleSelect from "./ProductSingleSelect";
 
-const inputClass = "w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-9 h-5 rounded-full transition-colors cursor-pointer";
 const toggleDotClass = "absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform";
 
@@ -28,7 +28,7 @@ export default function PackPremiumBlockEditor({ block }: { block: Extract<Block
           <span className="text-[12px] text-[#666]">Mise en avant</span>
           <button
             onClick={() => update({ highlight: !block.content.highlight })}
-            className={`${toggleClass} ${block.content.highlight ? "bg-[#6a18f1]" : "bg-[#E6E8F0]"}`}
+            className={`${toggleClass} ${block.content.highlight ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"}`}
           >
             <div className={`${toggleDotClass} ${block.content.highlight ? "translate-x-[18px]" : "translate-x-0.5"}`} />
           </button>
@@ -37,7 +37,7 @@ export default function PackPremiumBlockEditor({ block }: { block: Extract<Block
           <span className="text-[12px] text-[#666]">Afficher les features</span>
           <button
             onClick={() => update({ showFeatures: !block.content.showFeatures })}
-            className={`${toggleClass} ${block.content.showFeatures ? "bg-[#6a18f1]" : "bg-[#E6E8F0]"}`}
+            className={`${toggleClass} ${block.content.showFeatures ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"}`}
           >
             <div className={`${toggleDotClass} ${block.content.showFeatures ? "translate-x-[18px]" : "translate-x-0.5"}`} />
           </button>
@@ -46,7 +46,7 @@ export default function PackPremiumBlockEditor({ block }: { block: Extract<Block
           <span className="text-[12px] text-[#666]">Afficher le prix</span>
           <button
             onClick={() => update({ showPrice: !block.content.showPrice })}
-            className={`${toggleClass} ${block.content.showPrice ? "bg-[#6a18f1]" : "bg-[#E6E8F0]"}`}
+            className={`${toggleClass} ${block.content.showPrice ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"}`}
           >
             <div className={`${toggleDotClass} ${block.content.showPrice ? "translate-x-[18px]" : "translate-x-0.5"}`} />
           </button>

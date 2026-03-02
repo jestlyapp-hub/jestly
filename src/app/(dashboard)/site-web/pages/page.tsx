@@ -26,7 +26,7 @@ export default function SitePagesPage() {
       </motion.div>
 
       <motion.div
-        className="bg-white rounded-xl border border-[#E6E8F0] overflow-hidden"
+        className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.08 }}
@@ -34,7 +34,7 @@ export default function SitePagesPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-[#F0F0F5]">
+              <tr className="border-b border-[#EFEFEF]">
                 {["Nom", "Slug", "Statut", "Blocs"].map((h) => (
                   <th key={h} className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
                     {h}
@@ -48,14 +48,14 @@ export default function SitePagesPage() {
                 <tr
                   key={page.id}
                   onClick={() => setSelected(page)}
-                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FAFBFD] transition-colors cursor-pointer"
+                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors cursor-pointer"
                 >
                   <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">{page.name}</td>
                   <td className="px-5 py-3.5 text-[12px] font-mono text-[#999]">{page.slug}</td>
                   <td className="px-5 py-3.5"><BadgeStatus status={page.status} /></td>
                   <td className="px-5 py-3.5 text-[13px] text-[#666]">{page.blocks.length} blocs</td>
                   <td className="px-5 py-3.5">
-                    <button className="text-[12px] font-medium text-[#6a18f1] hover:underline">Modifier</button>
+                    <button className="text-[12px] font-medium text-[#4F46E5] hover:underline">Modifier</button>
                   </td>
                 </tr>
               ))}
@@ -69,26 +69,26 @@ export default function SitePagesPage() {
           <div className="space-y-5">
             <div>
               <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1.5">Nom de la page</label>
-              <input type="text" defaultValue={selected.name} className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all" />
+              <input type="text" defaultValue={selected.name} className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
             </div>
             <div>
               <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1.5">Slug</label>
-              <input type="text" defaultValue={selected.slug} className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all" />
+              <input type="text" defaultValue={selected.slug} className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
             </div>
-            <div className="h-px bg-[#E6E8F0]" />
+            <div className="h-px bg-[#E6E6E4]" />
             <div>
               <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1.5">SEO — Titre</label>
-              <input type="text" defaultValue={selected.seoTitle || ""} placeholder="Titre de la page" className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all" />
+              <input type="text" defaultValue={selected.seoTitle || ""} placeholder="Titre de la page" className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
             </div>
             <div>
               <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1.5">SEO — Description</label>
-              <textarea defaultValue={selected.seoDescription || ""} rows={3} placeholder="Description pour les moteurs de recherche" className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all" />
+              <textarea defaultValue={selected.seoDescription || ""} rows={3} placeholder="Description pour les moteurs de recherche" className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
             </div>
             <div className="flex gap-3 pt-4">
-              <button className="flex-1 bg-[#6a18f1] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#5a12d9] transition-colors">
+              <button className="flex-1 bg-[#4F46E5] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors">
                 Sauvegarder
               </button>
-              <button onClick={() => setSelected(null)} className="flex-1 border border-[#E6E8F0] text-[#666] text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#F8F9FC] transition-colors">
+              <button onClick={() => setSelected(null)} className="flex-1 border border-[#E6E6E4] text-[#666] text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#F7F7F5] transition-colors">
                 Annuler
               </button>
             </div>

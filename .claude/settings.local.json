@@ -4,7 +4,8 @@
       "Bash(npx next:*)",
       "Bash(npm install:*)",
       "Bash(find C:\\\\Users\\\\Briau\\\\jestly\\\\src\\\\app\\\\\\(dashboard\\):*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(find C:\\\\Users\\\\Briau\\\\jestly\\\\src\\\\app\\\\\\(dashboard\\)\\\\site-web:*)"
     ]
   }
 }

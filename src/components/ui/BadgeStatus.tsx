@@ -4,7 +4,7 @@ type Status = OrderStatus | InvoiceStatus | SubscriptionStatus | SitePageStatus 
 
 const config: Record<string, { label: string; bg: string; text: string }> = {
   pending: { label: "En attente", bg: "bg-gray-100", text: "text-gray-600" },
-  in_progress: { label: "En cours", bg: "bg-[#F0EBFF]", text: "text-[#6a18f1]" },
+  in_progress: { label: "En cours", bg: "bg-[#EEF2FF]", text: "text-[#4F46E5]" },
   delivered: { label: "Livré", bg: "bg-emerald-50", text: "text-emerald-600" },
   cancelled: { label: "Annulé", bg: "bg-red-50", text: "text-red-500" },
   paid: { label: "Payée", bg: "bg-emerald-50", text: "text-emerald-600" },

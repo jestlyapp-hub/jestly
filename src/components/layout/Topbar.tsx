@@ -19,7 +19,7 @@ export default function Topbar() {
   const pageLabel = pageLabels[pathname] ?? (pathname.startsWith("/site-web") ? "Site web" : "Dashboard");
 
   return (
-    <header className="h-14 bg-white border-b border-[#E6E8F0] flex items-center justify-between px-6 flex-shrink-0">
+    <header className="h-14 bg-white border-b border-[#E6E6E4] flex items-center justify-between px-6 flex-shrink-0">
       {/* Gauche — Breadcrumb */}
       <div className="flex items-center gap-2">
         <span className="text-[15px] font-semibold text-[#1A1A1A]">{pageLabel}</span>
@@ -45,9 +45,9 @@ export default function Topbar() {
           <input
             type="text"
             placeholder="Rechercher..."
-            className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg pl-10 pr-14 py-2 text-[13px] text-[#1A1A1A] placeholder-[#AAA] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+            className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg pl-10 pr-14 py-2 text-[13px] text-[#1A1A1A] placeholder-[#AAA] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
           />
-          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#BBB] bg-white border border-[#E6E8F0] rounded px-1.5 py-0.5 font-mono">
+          <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-[#BBB] bg-white border border-[#E6E6E4] rounded px-1.5 py-0.5 font-mono">
             &#8984;K
           </kbd>
         </div>
@@ -56,7 +56,7 @@ export default function Topbar() {
       {/* Droite — Actions */}
       <div className="flex items-center gap-2">
         {/* Bouton New */}
-        <button className="flex items-center gap-1.5 bg-[#6a18f1] text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-[#5a12d9] transition-colors">
+        <button className="flex items-center gap-1.5 bg-[#4F46E5] text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-[#4338CA] transition-colors">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
@@ -65,16 +65,16 @@ export default function Topbar() {
         </button>
 
         {/* Notifications */}
-        <button className="relative p-2 rounded-lg hover:bg-[#F8F9FC] transition-colors">
+        <button className="relative p-2 rounded-lg hover:bg-[#F7F7F5] transition-colors">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
             <path d="M13.73 21a2 2 0 0 1-3.46 0" />
           </svg>
-          <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#6a18f1] rounded-full" />
+          <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#4F46E5] rounded-full" />
         </button>
 
         {/* Avatar */}
-        <button className="w-8 h-8 rounded-full bg-[#F0EBFF] flex items-center justify-center text-[11px] font-semibold text-[#6a18f1] hover:ring-2 hover:ring-[#6a18f1]/20 transition-all">
+        <button className="w-8 h-8 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[11px] font-semibold text-[#4F46E5] hover:ring-2 hover:ring-[#4F46E5]/20 transition-all">
           GB
         </button>
       </div>

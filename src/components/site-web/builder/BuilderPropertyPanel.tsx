@@ -39,9 +39,9 @@ export default function BuilderPropertyPanel() {
 
   if (!activeBlock) {
     return (
-      <div className="w-[320px] flex-shrink-0 bg-white border-l border-[#E6E8F0] flex items-center justify-center">
+      <div className="w-[320px] flex-shrink-0 bg-white border-l border-[#E6E6E4] flex items-center justify-center">
         <div className="text-center px-6">
-          <div className="w-10 h-10 rounded-xl bg-[#F8F9FC] flex items-center justify-center mx-auto mb-3">
+          <div className="w-10 h-10 rounded-xl bg-[#F7F7F5] flex items-center justify-center mx-auto mb-3">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
               <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -54,15 +54,15 @@ export default function BuilderPropertyPanel() {
   }
 
   const entry = getBlockEntry(activeBlock.type);
-  const inputClass = "w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all";
+  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
   return (
-    <div className="w-[320px] flex-shrink-0 bg-white border-l border-[#E6E8F0] flex flex-col overflow-hidden">
+    <div className="w-[320px] flex-shrink-0 bg-white border-l border-[#E6E6E4] flex flex-col overflow-hidden">
       {/* Header — block info */}
-      <div className="px-4 py-2.5 border-b border-[#E6E8F0] flex items-center justify-between">
+      <div className="px-4 py-2.5 border-b border-[#E6E6E4] flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-5 h-5 rounded bg-[#F0EBFF] flex items-center justify-center flex-shrink-0">
-            <div className="w-2 h-2 rounded-sm bg-[#6a18f1]" />
+          <div className="w-5 h-5 rounded bg-[#EEF2FF] flex items-center justify-center flex-shrink-0">
+            <div className="w-2 h-2 rounded-sm bg-[#4F46E5]" />
           </div>
           <span className="text-[12px] font-semibold text-[#1A1A1A] truncate">{entry?.name || activeBlock.type}</span>
         </div>
@@ -77,20 +77,20 @@ export default function BuilderPropertyPanel() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-[#E6E8F0]">
+      <div className="flex border-b border-[#E6E6E4]">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             className={`flex-1 py-2 text-[11px] font-medium transition-all relative ${
               activeTab === tab.id
-                ? "text-[#6a18f1]"
+                ? "text-[#4F46E5]"
                 : "text-[#999] hover:text-[#666]"
             }`}
           >
             {tab.label}
             {activeTab === tab.id && (
-              <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#6a18f1] rounded-full" />
+              <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#4F46E5] rounded-full" />
             )}
           </button>
         ))}
@@ -135,8 +135,8 @@ export default function BuilderPropertyPanel() {
                     onClick={() => dispatch({ type: "UPDATE_BLOCK_STYLE", blockId: activeBlock.id, style: { containerWidth: opt.value } })}
                     className={`py-2 px-1 rounded-lg border text-[10px] font-medium transition-all ${
                       (activeBlock.style.containerWidth || "full") === opt.value
-                        ? "border-[#6a18f1] bg-[#F0EBFF] text-[#6a18f1]"
-                        : "border-[#E6E8F0] text-[#666] hover:border-[#6a18f1]/30"
+                        ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                        : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
                     }`}
                   >
                     {opt.label}
@@ -153,7 +153,7 @@ export default function BuilderPropertyPanel() {
                 className={`flex items-center gap-2 w-full px-3 py-2 rounded-lg border transition-all ${
                   activeBlock.visible
                     ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-[#E6E8F0] bg-gray-50 text-[#999]"
+                    : "border-[#E6E6E4] bg-gray-50 text-[#999]"
                 }`}
               >
                 <div className={`w-8 h-4 rounded-full transition-all relative ${activeBlock.visible ? "bg-emerald-500" : "bg-gray-300"}`}>
@@ -176,14 +176,14 @@ export default function BuilderPropertyPanel() {
                     onClick={() => dispatch({ type: "UPDATE_BLOCK_SETTINGS", blockId: activeBlock.id, settings: { animation: anim.value } })}
                     className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all text-left ${
                       (activeBlock.settings?.animation || "none") === anim.value
-                        ? "border-[#6a18f1] bg-[#F0EBFF]/50"
-                        : "border-[#E6E8F0] hover:border-[#6a18f1]/30"
+                        ? "border-[#4F46E5] bg-[#EEF2FF]/50"
+                        : "border-[#E6E6E4] hover:border-[#4F46E5]/30"
                     }`}
                   >
                     <div className={`w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0 ${
                       (activeBlock.settings?.animation || "none") === anim.value
-                        ? "bg-[#6a18f1] text-white"
-                        : "bg-[#F8F9FC] text-[#999]"
+                        ? "bg-[#4F46E5] text-white"
+                        : "bg-[#F7F7F5] text-[#999]"
                     }`}>
                       {anim.value === "none" ? (
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>

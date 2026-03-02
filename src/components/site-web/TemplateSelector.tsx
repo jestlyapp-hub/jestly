@@ -19,8 +19,8 @@ export default function TemplateSelector({ onSelect }: { onSelect?: (templateId:
             }}
             className={`text-left rounded-xl border-2 overflow-hidden transition-all hover:shadow-md ${
               selectedId === template.id
-                ? "border-[#6a18f1] ring-2 ring-[#6a18f1]/20"
-                : "border-[#E6E8F0]"
+                ? "border-[#4F46E5] ring-2 ring-[#4F46E5]/20"
+                : "border-[#E6E6E4]"
             }`}
           >
             {/* Preview gradient */}
@@ -33,8 +33,8 @@ export default function TemplateSelector({ onSelect }: { onSelect?: (templateId:
               <span
                 className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg transition-colors ${
                   selectedId === template.id
-                    ? "bg-[#6a18f1] text-white"
-                    : "bg-[#F0EBFF] text-[#6a18f1]"
+                    ? "bg-[#4F46E5] text-white"
+                    : "bg-[#EEF2FF] text-[#4F46E5]"
                 }`}
               >
                 {selectedId === template.id ? "Sélectionné" : "Utiliser"}

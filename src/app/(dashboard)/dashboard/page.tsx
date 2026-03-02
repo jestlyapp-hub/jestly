@@ -3,14 +3,30 @@
 import { motion } from "framer-motion";
 import StatCard from "@/components/ui/StatCard";
 import BadgeStatus from "@/components/ui/BadgeStatus";
-import { orders, activities } from "@/lib/mock-data";
+import type { OrderStatus } from "@/types";
+import { useApi } from "@/lib/hooks/use-api";
+import { orders as mockOrders, clients as mockClients, products as mockProducts, revenueData, ordersChartData } from "@/lib/mock-data";
 
-const stats = [
-  { label: "Revenu du mois", value: "3 920 \u20ac", change: "+14 % vs mois dernier", positive: true },
-  { label: "Commandes actives", value: "5", change: "+2 cette semaine", positive: true },
-  { label: "Clients actifs", value: "6", change: "+1 ce mois", positive: true },
-  { label: "Taux conversion", value: "68 %", change: "-3 % vs mois dernier", positive: false },
-];
+interface DashboardStats {
+  totalRevenue: number;
+  ordersCount: number;
+  pendingOrders: number;
+  clientsCount: number;
+  activeProductsCount: number;
+  monthlyRevenue: { month: string; revenue: number; orders: number }[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  recentOrders: any[];
+}
+
+const mockDashboardStats: DashboardStats = {
+  totalRevenue: mockOrders.reduce((s, o) => s + o.price, 0),
+  ordersCount: mockOrders.length,
+  pendingOrders: mockOrders.filter((o) => o.status === "pending").length,
+  clientsCount: mockClients.length,
+  activeProductsCount: mockProducts.filter((p) => p.active).length,
+  monthlyRevenue: revenueData.map((r, i) => ({ ...r, orders: ordersChartData[i]?.orders ?? 0 })),
+  recentOrders: mockOrders.slice(0, 5).map((o) => ({ id: o.id, title: o.product, amount: o.price, status: o.status, clients: { name: o.client } })),
+};
 
 const fadeIn = {
   hidden: { opacity: 0, y: 16 },
@@ -22,7 +38,40 @@ const fadeIn = {
 };
 
 export default function DashboardPage() {
-  const recentOrders = orders.slice(0, 5);
+  const { data: apiStats, loading, error, mutate } = useApi<DashboardStats>("/api/dashboard/stats");
+  const stats = apiStats || (loading ? null : mockDashboardStats);
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto">
+        <div className="h-8 w-48 bg-[#F7F7F5] rounded animate-pulse mb-8" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="bg-white rounded-xl border border-[#E6E6E4] p-5 h-24 animate-pulse" />
+          ))}
+        </div>
+        <div className="bg-white rounded-xl border border-[#E6E6E4] p-4 h-64 animate-pulse" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto py-12 text-center">
+        <p className="text-[14px] text-red-500 mb-2">Erreur : {error}</p>
+        <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline">Réessayer</button>
+      </div>
+    );
+  }
+
+  const statCards = [
+    { label: "Revenu total", value: `${stats?.totalRevenue?.toLocaleString("fr-FR") ?? 0} €`, change: `${stats?.ordersCount ?? 0} commandes`, positive: true },
+    { label: "Commandes en attente", value: String(stats?.pendingOrders ?? 0), change: "à traiter", positive: true },
+    { label: "Clients", value: String(stats?.clientsCount ?? 0), change: "actifs", positive: true },
+    { label: "Produits actifs", value: String(stats?.activeProductsCount ?? 0), change: "en ligne", positive: true },
+  ];
+
+  const recentOrders = stats?.recentOrders?.slice(0, 5) || [];
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -33,7 +82,7 @@ export default function DashboardPage() {
         transition={{ duration: 0.4 }}
         className="mb-8"
       >
-        <h1 className="text-2xl font-bold text-[#1A1A1A]">Bonjour Gabriel</h1>
+        <h1 className="text-2xl font-bold text-[#1A1A1A]">Dashboard</h1>
         <p className="text-[14px] text-[#999] mt-1">
           Voici un aperçu de votre activité.
         </p>
@@ -41,7 +90,7 @@ export default function DashboardPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        {stats.map((s, i) => (
+        {statCards.map((s, i) => (
           <motion.div
             key={s.label}
             variants={fadeIn}
@@ -54,101 +103,65 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Main content — orders + activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Commandes recentes */}
-        <motion.div
-          className="lg:col-span-2 bg-white rounded-xl border border-[#E6E8F0]"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.25 }}
-        >
-          <div className="px-5 py-4 border-b border-[#E6E8F0] flex items-center justify-between">
-            <h2 className="text-[14px] font-semibold text-[#1A1A1A]">
-              Commandes récentes
-            </h2>
-            <a
-              href="/commandes"
-              className="text-[12px] font-medium text-[#6a18f1] hover:underline"
-            >
-              Tout voir
-            </a>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[#F0F0F5]">
-                  <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
-                    Client
-                  </th>
-                  <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
-                    Produit
-                  </th>
-                  <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
-                    Prix
-                  </th>
-                  <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
-                    Statut
-                  </th>
+      {/* Recent Orders */}
+      <motion.div
+        className="bg-white rounded-xl border border-[#E6E6E4]"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.25 }}
+      >
+        <div className="px-5 py-4 border-b border-[#E6E6E4] flex items-center justify-between">
+          <h2 className="text-[14px] font-semibold text-[#1A1A1A]">
+            Commandes récentes
+          </h2>
+          <a
+            href="/commandes"
+            className="text-[12px] font-medium text-[#4F46E5] hover:underline"
+          >
+            Tout voir
+          </a>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-[#EFEFEF]">
+                <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">Client</th>
+                <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">Produit</th>
+                <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">Prix</th>
+                <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              {recentOrders.map((order: { id: string; title: string; amount: number; status: string; clients?: { name: string } }) => (
+                <tr
+                  key={order.id}
+                  className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors"
+                >
+                  <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">
+                    {order.clients?.name ?? "—"}
+                  </td>
+                  <td className="px-5 py-3.5 text-[13px] text-[#666]">
+                    {order.title}
+                  </td>
+                  <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">
+                    {order.amount} &euro;
+                  </td>
+                  <td className="px-5 py-3.5">
+                    <BadgeStatus status={(order.status === "new" ? "pending" : order.status) as OrderStatus} />
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FAFBFD] transition-colors"
-                  >
-                    <td className="px-5 py-3.5">
-                      <div className="text-[13px] font-medium text-[#1A1A1A]">
-                        {order.client}
-                      </div>
-                    </td>
-                    <td className="px-5 py-3.5 text-[13px] text-[#666]">
-                      {order.product}
-                    </td>
-                    <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">
-                      {order.price} &euro;
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <BadgeStatus status={order.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
-
-        {/* Activite recente */}
-        <motion.div
-          className="bg-white rounded-xl border border-[#E6E8F0]"
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.35 }}
-        >
-          <div className="px-5 py-4 border-b border-[#E6E8F0]">
-            <h2 className="text-[14px] font-semibold text-[#1A1A1A]">
-              Activité
-            </h2>
-          </div>
-          <div className="p-4">
-            {activities.map((a) => (
-              <div
-                key={a.id}
-                className="flex items-start gap-3 py-3 border-b border-[#F8F8FA] last:border-b-0"
-              >
-                <div className="w-2 h-2 rounded-full bg-[#6a18f1] mt-1.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] text-[#1A1A1A] leading-snug">
-                    {a.message}
-                  </p>
-                  <p className="text-[11px] text-[#BBB] mt-0.5">{a.time}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
+              ))}
+              {recentOrders.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-5 py-12 text-center text-[14px] text-[#BBB]">
+                    Aucune commande pour le moment.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </motion.div>
     </div>
   );
 }

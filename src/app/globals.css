@@ -1,11 +1,40 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #0a0a12;
-  --color-foreground: #ffffff;
-  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  /* ── Surface ── */
+  --color-background: #FFFFFF;
+  --color-foreground: #191919;
+  --color-surface: #F7F7F5;
+  --color-surface-hover: #FBFBFA;
+
+  /* ── Text ── */
+  --color-text-primary: #191919;
+  --color-text-secondary: #5A5A58;
+  --color-text-muted: #8A8A88;
+
+  /* ── Border ── */
+  --color-border: #E6E6E4;
+  --color-border-subtle: #EFEFEF;
+
+  /* ── Accent (Jestly indigo) ── */
+  --color-accent: #4F46E5;
+  --color-accent-hover: #4338CA;
+  --color-accent-light: #EEF2FF;
+  --color-accent-secondary: #6366F1;
+
+  /* ── Font ── */
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* ─── Site-level tokens (overridable per-site in public renderer) ─── */
+:root {
+  --site-primary: #4F46E5;
+  --site-primary-hover: #4338CA;
+  --site-primary-light: #EEF2FF;
+  --site-border: #E6E6E4;
+  --site-bg-muted: #F7F7F5;
 }
 
 /* ─── Base ─── */
@@ -14,23 +43,11 @@ html {
 }
 
 body {
-  background: #0a0a12;
-  color: #ffffff;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-}
-
-/* ─── Noise Texture Overlay ─── */
-.noise-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: 0.04;
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIzMDAiIGhlaWdodD0iMzAwIj48ZmlsdGVyIGlkPSJhIiB4PSIwIiB5PSIwIj48ZmVUdXJidWxlbmNlIGJhc2VGcmVxdWVuY3k9Ii43NSIgc3RpdGNoVGlsZXM9InN0aXRjaCIgdHlwZT0iZnJhY3RhbE5vaXNlIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ic2F0dXJhdGUiIHZhbHVlcz0iMCIvPjwvZmlsdGVyPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbHRlcj0idXJsKCNhKSIgb3BhY2l0eT0iLjA1Ii8+PC9zdmc+");
-  background-repeat: repeat;
-  background-size: 256px 256px;
 }
 
 /* ─── Custom Scrollbar ─── */
@@ -38,12 +55,36 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0a0a12;
+  background: var(--color-background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #1a153d;
+  background: var(--color-border);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #2a2060;
+  background: #DADADA;
+}
+
+/* ─── Public site block animation classes ─── */
+.animate-fade-up {
+  animation: fadeUp 0.5s ease-out forwards;
+}
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+.animate-slide-left {
+  animation: slideLeft 0.5s ease-out forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideLeft {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: translateX(0); }
 }

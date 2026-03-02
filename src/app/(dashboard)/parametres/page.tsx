@@ -17,7 +17,7 @@ export default function ParametresPage() {
       <div className="space-y-8">
         {/* Profil */}
         <motion.section
-          className="bg-white rounded-xl border border-[#E6E8F0] p-6"
+          className="bg-white rounded-xl border border-[#E6E6E4] p-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.06 }}
@@ -29,7 +29,7 @@ export default function ParametresPage() {
               <input
                 type="text"
                 defaultValue="Gabriel"
-                className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               />
             </div>
             <div>
@@ -37,7 +37,7 @@ export default function ParametresPage() {
               <input
                 type="text"
                 defaultValue="Briau"
-                className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               />
             </div>
             <div className="sm:col-span-2">
@@ -45,12 +45,12 @@ export default function ParametresPage() {
               <input
                 type="email"
                 defaultValue="gabriel@jestly.fr"
-                className="w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all"
+                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               />
             </div>
           </div>
           <div className="mt-5 flex justify-end">
-            <button className="bg-[#6a18f1] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#5a12d9] transition-colors">
+            <button className="bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors">
               Sauvegarder
             </button>
           </div>
@@ -58,18 +58,18 @@ export default function ParametresPage() {
 
         {/* Abonnement */}
         <motion.section
-          className="bg-white rounded-xl border border-[#E6E8F0] p-6"
+          className="bg-white rounded-xl border border-[#E6E6E4] p-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.12 }}
         >
           <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-4">Abonnement</h2>
-          <div className="flex items-center justify-between p-4 bg-[#F0EBFF] rounded-lg">
+          <div className="flex items-center justify-between p-4 bg-[#EEF2FF] rounded-lg">
             <div>
-              <div className="text-[14px] font-semibold text-[#6a18f1]">Plan Pro</div>
-              <div className="text-[12px] text-[#6a18f1]/60">7 &euro;/mois &middot; Renouvellement le 15 avril 2025</div>
+              <div className="text-[14px] font-semibold text-[#4F46E5]">Plan Pro</div>
+              <div className="text-[12px] text-[#4F46E5]/60">7 &euro;/mois &middot; Renouvellement le 15 avril 2025</div>
             </div>
-            <button className="text-[12px] font-medium text-[#6a18f1] hover:underline">
+            <button className="text-[12px] font-medium text-[#4F46E5] hover:underline">
               Gérer
             </button>
           </div>
@@ -77,7 +77,7 @@ export default function ParametresPage() {
 
         {/* Intégrations */}
         <motion.section
-          className="bg-white rounded-xl border border-[#E6E8F0] p-6"
+          className="bg-white rounded-xl border border-[#E6E6E4] p-6"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.18 }}
@@ -91,7 +91,7 @@ export default function ParametresPage() {
             ].map((integration) => (
               <div
                 key={integration.name}
-                className="flex items-center justify-between p-4 border border-[#E6E8F0] rounded-lg"
+                className="flex items-center justify-between p-4 border border-[#E6E6E4] rounded-lg"
               >
                 <div>
                   <div className="text-[13px] font-semibold text-[#1A1A1A]">{integration.name}</div>
@@ -100,7 +100,7 @@ export default function ParametresPage() {
                 {integration.connected ? (
                   <span className="text-[12px] font-medium text-emerald-500">Connecté</span>
                 ) : (
-                  <button className="text-[12px] font-medium text-[#6a18f1] border border-[#6a18f1]/20 px-3 py-1.5 rounded-lg hover:bg-[#F0EBFF] transition-colors">
+                  <button className="text-[12px] font-medium text-[#4F46E5] border border-[#4F46E5]/20 px-3 py-1.5 rounded-lg hover:bg-[#EEF2FF] transition-colors">
                     Connecter
                   </button>
                 )}

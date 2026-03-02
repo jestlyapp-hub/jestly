@@ -3,7 +3,7 @@
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
 
-const inputClass = "w-full bg-[#F8F9FC] border border-[#E6E8F0] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#6a18f1]/30 focus:ring-1 focus:ring-[#6a18f1]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 export default function NewsletterBlockEditor({ block }: { block: Extract<Block, { type: "newsletter" }> }) {
   const { dispatch } = useBuilder();

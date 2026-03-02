@@ -12,7 +12,7 @@ const links = [
 export default function Navbar() {
   return (
     <motion.nav
-      className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a12]/60 backdrop-blur-2xl border-b border-white/[0.04]"
+      className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#EFEFEF]"
       initial={{ y: -80 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.7, ease: "easeOut" }}
@@ -21,7 +21,7 @@ export default function Navbar() {
         {/* Logo */}
         <a
           href="#"
-          className="text-[22px] font-extrabold tracking-tight text-white"
+          className="text-[22px] font-bold tracking-tight text-[#191919]"
         >
           Jestly
         </a>
@@ -32,7 +32,7 @@ export default function Navbar() {
             <a
               key={link.href}
               href={link.href}
-              className="text-sm text-white/50 hover:text-white transition-colors"
+              className="text-sm text-[#5A5A58] hover:text-[#191919] transition-colors"
             >
               {link.label}
             </a>
@@ -43,7 +43,7 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <a
             href="#"
-            className="hidden sm:inline text-sm text-white/50 hover:text-white transition-colors font-medium"
+            className="hidden sm:inline text-sm text-[#5A5A58] hover:text-[#191919] transition-colors font-medium"
           >
             Se connecter
           </a>
