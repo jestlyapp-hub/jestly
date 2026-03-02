@@ -57,7 +57,7 @@ export default function AnalyticsPage() {
           transition={{ duration: 0.4, delay: 0.25 }}
         >
           <h2 className="text-[14px] font-semibold text-[#1A1A1A] mb-6">
-            Evolution des revenus
+            Évolution des revenus
           </h2>
           <ResponsiveContainer width="100%" height={240}>
             <AreaChart data={revenueData}>

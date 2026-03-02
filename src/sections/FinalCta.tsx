@@ -46,7 +46,7 @@ export default function FinalCta() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          Pret a scaler votre freelance ?
+          Prêt à scaler votre freelance ?
         </motion.h2>
 
         <motion.div

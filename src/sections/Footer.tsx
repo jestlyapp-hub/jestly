@@ -24,7 +24,7 @@ export default function Footer() {
                   href="#features"
                   className="text-sm text-white/40 hover:text-white transition-colors"
                 >
-                  Fonctionnalites
+                  Fonctionnalités
                 </a>
               </li>
               <li>
@@ -65,7 +65,7 @@ export default function Footer() {
                   href="#"
                   className="text-sm text-white/40 hover:text-white transition-colors"
                 >
-                  Confidentialite
+                  Confidentialité
                 </a>
               </li>
             </ul>
@@ -87,7 +87,7 @@ export default function Footer() {
 
         <div className="border-t border-white/[0.04] pt-8">
           <p className="text-xs text-white/20 text-center">
-            &copy; 2025 Jestly. Tous droits reserves.
+            &copy; 2025 Jestly. Tous droits réservés.
           </p>
         </div>
       </div>

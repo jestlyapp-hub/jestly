@@ -11,12 +11,12 @@ const pageLabels: Record<string, string> = {
   "/facturation": "Facturation",
   "/abonnements": "Abonnements",
   "/analytics": "Analytics",
-  "/parametres": "Parametres",
+  "/parametres": "Paramètres",
 };
 
 export default function Topbar() {
   const pathname = usePathname();
-  const pageLabel = pageLabels[pathname] ?? "Dashboard";
+  const pageLabel = pageLabels[pathname] ?? (pathname.startsWith("/site-web") ? "Site web" : "Dashboard");
 
   return (
     <header className="h-14 bg-white border-b border-[#E6E8F0] flex items-center justify-between px-6 flex-shrink-0">

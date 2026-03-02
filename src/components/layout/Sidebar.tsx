@@ -52,6 +52,17 @@ const mainNav = [
     ),
   },
   {
+    label: "Site web",
+    href: "/site-web",
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      </svg>
+    ),
+  },
+  {
     label: "Facturation",
     href: "/facturation",
     icon: (
@@ -88,7 +99,7 @@ const mainNav = [
 
 const secondaryNav = [
   {
-    label: "Parametres",
+    label: "Paramètres",
     href: "/parametres",
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -102,7 +113,8 @@ const secondaryNav = [
 export default function Sidebar() {
   const pathname = usePathname();
 
-  const isActive = (href: string) => pathname === href;
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(href + "/");
 
   return (
     <aside className="hidden lg:flex flex-col w-[260px] h-screen bg-white border-r border-[#E6E8F0] flex-shrink-0">

@@ -54,17 +54,17 @@ const features = [
   {
     icon: icons.globe,
     title: "Site web no-code",
-    desc: "Creez votre vitrine avec sous-domaine personnalise en quelques minutes.",
+    desc: "Créez votre vitrine avec sous-domaine personnalisé en quelques minutes.",
   },
   {
     icon: icons.layout,
     title: "Commandes clients",
-    desc: "Recevez et gerez vos commandes avec un kanban intuitif.",
+    desc: "Recevez et gérez vos commandes avec un kanban intuitif.",
   },
   {
     icon: icons.barChart,
     title: "Dashboard revenus",
-    desc: "Suivez vos revenus, conversions et panier moyen en temps reel.",
+    desc: "Suivez vos revenus, conversions et panier moyen en temps réel.",
   },
   {
     icon: icons.users,
@@ -73,13 +73,13 @@ const features = [
   },
   {
     icon: icons.fileText,
-    title: "Facturation integree",
-    desc: "Factures PDF automatiques. Numerotation, TVA, tout est gere.",
+    title: "Facturation intégrée",
+    desc: "Factures PDF automatiques. Numérotation, TVA, tout est géré.",
   },
   {
     icon: icons.creditCard,
     title: "Gestion abonnements",
-    desc: "Proposez des abonnements et gerez les paiements recurrents.",
+    desc: "Proposez des abonnements et gérez les paiements récurrents.",
   },
 ];
 
@@ -120,7 +120,7 @@ export default function Features() {
             Tout ce qu&apos;il vous faut.
           </h2>
           <p className="text-white/40 text-base max-w-md mx-auto">
-            Six outils essentiels reunis dans une interface unique.
+            Six outils essentiels réunis dans une interface unique.
           </p>
         </motion.div>
 

@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Jestly — Le cockpit du freelance moderne",
   description:
-    "Plateforme tout-en-un pour vendre, gerer et scaler votre activite freelance.",
+    "Plateforme tout-en-un pour vendre, gérer et scaler votre activité freelance.",
 };
 
 export default function RootLayout({

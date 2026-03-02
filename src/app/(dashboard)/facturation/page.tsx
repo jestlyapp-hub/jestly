@@ -35,7 +35,7 @@ export default function FacturationPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#F0F0F5]">
-                {["Numero", "Client", "Montant", "Statut", "Date", ""].map((h) => (
+                {["Numéro", "Client", "Montant", "Statut", "Date", ""].map((h) => (
                   <th key={h} className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
                     {h}
                   </th>

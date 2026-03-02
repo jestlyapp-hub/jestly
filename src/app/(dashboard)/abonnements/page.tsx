@@ -29,7 +29,7 @@ export default function AbonnementsPage() {
           <StatCard label="MRR" value={`${mrr} \u20ac`} change="+8 % ce mois" positive />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.12 }}>
-          <StatCard label="Abonnes actifs" value={String(activeCount)} />
+          <StatCard label="Abonnés actifs" value={String(activeCount)} />
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.18 }}>
           <StatCard label="Panier moyen" value={`${Math.round(mrr / activeCount)} \u20ac`} />

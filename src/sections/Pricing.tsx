@@ -27,9 +27,9 @@ const freePlan = [
 ];
 
 const proPlan = [
-  "Commandes illimitees",
+  "Commandes illimitées",
   "Factures automatiques",
-  "Toutes les integrations",
+  "Toutes les intégrations",
   "Support prioritaire",
 ];
 
@@ -65,7 +65,7 @@ export default function Pricing() {
             Un prix simple.
           </h2>
           <p className="text-white/40">
-            Pas de frais caches. Evoluez quand vous voulez.
+            Pas de frais cachés. Évoluez quand vous voulez.
           </p>
         </motion.div>
 

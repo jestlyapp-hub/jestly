@@ -11,8 +11,8 @@ const statusFilters: { label: string; value: OrderStatus | "all" }[] = [
   { label: "Toutes", value: "all" },
   { label: "En attente", value: "pending" },
   { label: "En cours", value: "in_progress" },
-  { label: "Livree", value: "delivered" },
-  { label: "Annulee", value: "cancelled" },
+  { label: "Livrée", value: "delivered" },
+  { label: "Annulée", value: "cancelled" },
 ];
 
 export default function CommandesPage() {
@@ -140,7 +140,7 @@ export default function CommandesPage() {
                     colSpan={6}
                     className="px-5 py-12 text-center text-[14px] text-[#BBB]"
                   >
-                    Aucune commande trouvee.
+                    Aucune commande trouvée.
                   </td>
                 </tr>
               )}
@@ -198,7 +198,7 @@ export default function CommandesPage() {
             </div>
             <div className="flex gap-3 pt-4">
               <button className="flex-1 bg-[#6a18f1] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#5a12d9] transition-colors">
-                Marquer livree
+                Marquer livrée
               </button>
               <button className="flex-1 border border-[#E6E8F0] text-[#666] text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#F8F9FC] transition-colors">
                 Modifier

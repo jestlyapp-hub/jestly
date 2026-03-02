@@ -35,7 +35,7 @@ export default function DashboardPage() {
       >
         <h1 className="text-2xl font-bold text-[#1A1A1A]">Bonjour Gabriel</h1>
         <p className="text-[14px] text-[#999] mt-1">
-          Voici un apercu de votre activite.
+          Voici un aperçu de votre activité.
         </p>
       </motion.div>
 
@@ -65,7 +65,7 @@ export default function DashboardPage() {
         >
           <div className="px-5 py-4 border-b border-[#E6E8F0] flex items-center justify-between">
             <h2 className="text-[14px] font-semibold text-[#1A1A1A]">
-              Commandes recentes
+              Commandes récentes
             </h2>
             <a
               href="/commandes"
@@ -128,7 +128,7 @@ export default function DashboardPage() {
         >
           <div className="px-5 py-4 border-b border-[#E6E8F0]">
             <h2 className="text-[14px] font-semibold text-[#1A1A1A]">
-              Activite
+              Activité
             </h2>
           </div>
           <div className="p-4">

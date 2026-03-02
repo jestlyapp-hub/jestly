@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import Button from "./ui/Button";
 
 const links = [
-  { label: "Fonctionnalites", href: "#features" },
+  { label: "Fonctionnalités", href: "#features" },
   { label: "Tarifs", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
 ];

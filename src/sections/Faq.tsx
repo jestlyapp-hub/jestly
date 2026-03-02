@@ -6,19 +6,19 @@ import { motion, AnimatePresence } from "framer-motion";
 const faqData = [
   {
     q: "C'est quoi Jestly exactement ?",
-    a: "Jestly est une plateforme tout-en-un pour freelances creatifs. Elle regroupe votre site web, la gestion de commandes, le CRM, la facturation, les paiements et l'agenda dans un seul outil simple et intuitif.",
+    a: "Jestly est une plateforme tout-en-un pour freelances créatifs. Elle regroupe votre site web, la gestion de commandes, le CRM, la facturation, les paiements et l'agenda dans un seul outil simple et intuitif.",
   },
   {
     q: "Est-ce que c'est vraiment gratuit ?",
-    a: "Oui. Le plan Free vous permet de gerer jusqu'a 10 commandes par mois, avec un site web inclus et un CRM basique. Aucune carte bancaire requise.",
+    a: "Oui. Le plan Free vous permet de gérer jusqu'à 10 commandes par mois, avec un site web inclus et un CRM basique. Aucune carte bancaire requise.",
   },
   {
     q: "Je peux vendre des formations ?",
-    a: "Absolument. Jestly vous permet de vendre des services, des prestations ponctuelles, des abonnements et des produits numeriques comme des formations ou des templates.",
+    a: "Absolument. Jestly vous permet de vendre des services, des prestations ponctuelles, des abonnements et des produits numériques comme des formations ou des templates.",
   },
   {
     q: "Comment fonctionne le sous-domaine ?",
-    a: "A la creation de votre compte, vous choisissez votre identifiant. Votre site sera accessible a votrenom.jestly.fr. Vous pourrez aussi connecter votre propre domaine avec le plan Pro.",
+    a: "À la création de votre compte, vous choisissez votre identifiant. Votre site sera accessible à votrenom.jestly.fr. Vous pourrez aussi connecter votre propre domaine avec le plan Pro.",
   },
   {
     q: "Puis-je connecter mon Stripe existant ?",
@@ -60,7 +60,7 @@ export default function Faq() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          Questions frequentes
+          Questions fréquentes
         </motion.h2>
 
         <div className="flex flex-col">

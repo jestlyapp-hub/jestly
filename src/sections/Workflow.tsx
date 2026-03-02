@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 const steps = [
   {
     num: "01",
-    title: "Creez votre compte",
+    title: "Créez votre compte",
     desc: "Inscription gratuite en 30 secondes, sans carte bancaire.",
   },
   {
@@ -41,7 +41,7 @@ export default function Workflow() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          Lancez-vous en 3 etapes.
+          Lancez-vous en 3 étapes.
         </motion.h2>
 
         <div className="relative grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-6">

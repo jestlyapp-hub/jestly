@@ -19,7 +19,7 @@ export default function ClientsPage() {
       c.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  /* Commandes du client selectionne */
+  /* Commandes du client sélectionné */
   const clientOrders = selected
     ? orders.filter((o) => o.client === selected.name)
     : [];
@@ -60,7 +60,7 @@ export default function ClientsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#F0F0F5]">
-                {["Client", "Email", "Commandes", "Revenu total", "Derniere commande"].map((h) => (
+                {["Client", "Email", "Commandes", "Revenu total", "Dernière commande"].map((h) => (
                   <th key={h} className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-3">
                     {h}
                   </th>

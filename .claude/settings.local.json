@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(npx next:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(find C:\\\\Users\\\\Briau\\\\jestly\\\\src\\\\app\\\\\\(dashboard\\):*)",
+      "Bash(ls:*)"
     ]
   }
 }

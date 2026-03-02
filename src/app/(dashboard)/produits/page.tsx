@@ -45,9 +45,18 @@ export default function ProduitsPage() {
             transition={{ duration: 0.4, delay: i * 0.05 }}
           >
             <div className="flex items-start justify-between mb-3">
-              <span className="text-[11px] font-medium text-[#999] bg-[#F8F9FC] px-2 py-0.5 rounded">
-                {p.category}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-medium text-[#999] bg-[#F8F9FC] px-2 py-0.5 rounded">
+                  {p.category}
+                </span>
+                <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                  p.type === "pack" ? "bg-[#6a18f1]/10 text-[#6a18f1]" :
+                  p.type === "digital" ? "bg-emerald-50 text-emerald-600" :
+                  "bg-blue-50 text-blue-600"
+                }`}>
+                  {p.type === "pack" ? "Pack" : p.type === "digital" ? "Digital" : "Service"}
+                </span>
+              </div>
               {/* Toggle */}
               <button
                 onClick={() => toggleActive(p.id)}
@@ -66,6 +75,9 @@ export default function ProduitsPage() {
             <h3 className="text-[15px] font-semibold text-[#1A1A1A] mb-1">
               {p.name}
             </h3>
+            <p className="text-[11px] text-[#999] mb-2 line-clamp-2">
+              {p.shortDescription}
+            </p>
             <div className="text-xl font-bold text-[#1A1A1A] mb-3">
               {p.price} &euro;
             </div>

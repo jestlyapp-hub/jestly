@@ -69,7 +69,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: "easeOut" }}
         >
-          Gerez votre freelance
+          Gérez votre freelance
           <br />
           comme un{" "}
           <span className="bg-gradient-to-r from-[#6a18f1] via-[#8f3dff] to-[#b06aff] bg-clip-text text-transparent">
@@ -83,7 +83,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.15, ease: "easeOut" }}
         >
-          Plateforme tout-en-un pour vendre, gerer et scaler votre activite
+          Plateforme tout-en-un pour vendre, gérer et scaler votre activité
           freelance.
         </motion.p>
 
@@ -105,7 +105,7 @@ export default function Hero() {
           animate={{ opacity: 1 }}
           transition={{ duration: 1, delay: 0.6 }}
         >
-          Gratuit &middot; Sans carte bancaire &middot; Pret en 3 minutes
+          Gratuit &middot; Sans carte bancaire &middot; Prêt en 3 minutes
         </motion.p>
       </motion.div>
 
@@ -156,7 +156,7 @@ export default function Hero() {
               <polyline points="20 6 9 17 4 12" />
             </svg>
             <span className="text-[11px] text-emerald-400 font-medium">
-              Payee
+              Payée
             </span>
           </div>
         </FloatingCard>
