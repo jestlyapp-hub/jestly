@@ -1,26 +1,314 @@
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap');
+
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: #0A0A0B;
+  --color-foreground: #ffffff;
+  --color-bg-secondary: #111113;
+  --color-border-subtle: #1a1a1f;
+  --color-text-secondary: #a1a1aa;
+  --color-accent-orange: #FF6B35;
+  --color-accent-red: #FF3366;
+  --font-sans: 'DM Sans', sans-serif;
+  --font-heading: 'Satoshi', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Base ─── */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #0A0A0B;
+  color: #ffffff;
+  font-family: 'DM Sans', sans-serif;
+}
+
+/* ─── Gradient Text ─── */
+.gradient-text {
+  background: linear-gradient(135deg, #FF6B35, #FF3366);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Glow Effects ─── */
+.hero-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 800px;
+  height: 600px;
+  background: radial-gradient(ellipse, rgba(255, 107, 53, 0.15), rgba(255, 51, 102, 0.08), transparent 70%);
+  filter: blur(150px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.footer-cta-glow {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 600px;
+  height: 400px;
+  background: radial-gradient(ellipse, rgba(255, 107, 53, 0.12), rgba(255, 51, 102, 0.06), transparent 70%);
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Glass Navbar ─── */
+.navbar-glass {
+  background: rgba(10, 10, 11, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ─── Buttons ─── */
+.btn-primary {
+  background: linear-gradient(135deg, #FF6B35, #FF3366);
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 14px 32px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #FF6B35, #FF3366);
+  opacity: 0;
+  filter: blur(20px);
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 30px rgba(255, 107, 53, 0.3), 0 0 60px rgba(255, 51, 102, 0.15);
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #a1a1aa;
+  font-weight: 500;
+  border-radius: 12px;
+  padding: 14px 32px;
+  font-size: 0.95rem;
+  border: 1px solid #1a1a1f;
+  transition: all 0.3s ease;
+}
+
+.btn-ghost:hover {
+  color: #ffffff;
+  border-color: rgba(255, 107, 53, 0.4);
+  background: rgba(255, 107, 53, 0.05);
+}
+
+/* ─── Feature Cards ─── */
+.feature-card {
+  background: #111113;
+  border: 1px solid #1a1a1f;
+  border-radius: 16px;
+  padding: 32px;
+  transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+  border-color: rgba(255, 107, 53, 0.3);
+  box-shadow: 0 0 30px rgba(255, 107, 53, 0.06);
+  transform: translateY(-2px);
+}
+
+/* ─── Pricing Cards ─── */
+.pricing-card {
+  background: #111113;
+  border: 1px solid #1a1a1f;
+  border-radius: 20px;
+  padding: 40px;
+  transition: all 0.3s ease;
+}
+
+.pricing-card-pro {
+  background: #111113;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 40px;
+  position: relative;
+  transition: all 0.3s ease;
+  background-clip: padding-box;
+}
+
+.pricing-card-pro::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #FF6B35, #FF3366);
+  z-index: -1;
+}
+
+.pricing-card-pro::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: #111113;
+  z-index: -1;
+}
+
+/* ─── FAQ ─── */
+.faq-item {
+  border-bottom: 1px solid #1a1a1f;
+  transition: all 0.3s ease;
+}
+
+.faq-answer {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  opacity: 0;
+}
+
+.faq-answer.open {
+  max-height: 200px;
+  opacity: 1;
+}
+
+.faq-icon {
+  transition: transform 0.3s ease;
+}
+
+.faq-icon.open {
+  transform: rotate(45deg);
+}
+
+/* ─── Tool Strike ─── */
+.tool-name {
+  position: relative;
+  color: #a1a1aa;
+  transition: all 0.3s ease;
+}
+
+.tool-name::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #FF6B35, #FF3366);
+  transition: width 0.6s ease;
+}
+
+.tool-name.visible::after {
+  width: 100%;
+}
+
+/* ─── Dashboard Mockup ─── */
+.dashboard-mockup {
+  background: #0d0d0f;
+  border: 1px solid #1a1a1f;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 60px rgba(255, 107, 53, 0.05);
+}
+
+/* ─── Scroll Animations ─── */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.stagger-1 { transition-delay: 0.1s; }
+.stagger-2 { transition-delay: 0.2s; }
+.stagger-3 { transition-delay: 0.3s; }
+.stagger-4 { transition-delay: 0.4s; }
+.stagger-5 { transition-delay: 0.5s; }
+.stagger-6 { transition-delay: 0.6s; }
+.stagger-7 { transition-delay: 0.7s; }
+.stagger-8 { transition-delay: 0.8s; }
+.stagger-9 { transition-delay: 0.9s; }
+.stagger-10 { transition-delay: 1.0s; }
+
+/* ─── Keyframes ─── */
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.25; transform: translate(-50%, -50%) scale(1.05); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes jestly-pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 107, 53, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(255, 107, 53, 0.4), 0 0 60px rgba(255, 51, 102, 0.2); }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-jestly-pulse {
+  animation: jestly-pulse 2s ease-in-out infinite;
+}
+
+/* ─── Step Connector Line ─── */
+.step-connector {
+  position: relative;
+}
+
+.step-connector::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -50%;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, #1a1a1f, rgba(255, 107, 53, 0.3), #1a1a1f);
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0A0B;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1a1a1f;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2a2f;
 }
