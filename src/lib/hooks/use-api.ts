@@ -12,7 +12,8 @@ interface UseApiResult<T> {
 /**
  * Lightweight data fetching hook (no SWR/React Query dependency).
  * Fetches on mount and provides a mutate function to refetch.
- * If `fallback` is provided, it will be used when the API returns 401 (not authenticated).
+ * When the API is unavailable (401/403/404/500), silently returns null
+ * so pages can fallback to mock data during development.
  */
 export function useApi<T>(url: string | null, fallback?: T): UseApiResult<T> {
   const [data, setData] = useState<T | null>(null);
@@ -32,29 +33,20 @@ export function useApi<T>(url: string | null, fallback?: T): UseApiResult<T> {
     try {
       const res = await fetch(url);
       if (!res.ok) {
-        // If 401 and we have fallback data, use it silently
-        if (res.status === 401) {
-          if (fallback !== undefined && mountedRef.current) {
-            setData(fallback);
-          }
-          // Silently return without setting error (dev mode without auth)
-          return;
+        // Silently swallow auth/server errors — pages fallback to mock data
+        if (fallback !== undefined && mountedRef.current) {
+          setData(fallback);
         }
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${res.status}`);
+        return;
       }
       const json = await res.json();
       if (mountedRef.current) {
         setData(json);
       }
-    } catch (err) {
-      if (mountedRef.current) {
-        // If fetch fails entirely and we have fallback, use it
-        if (fallback !== undefined) {
-          setData(fallback);
-        } else {
-          setError(err instanceof Error ? err.message : "Unknown error");
-        }
+    } catch {
+      // Network error or fetch failure — use fallback if available
+      if (fallback !== undefined && mountedRef.current) {
+        setData(fallback);
       }
     } finally {
       if (mountedRef.current) {
