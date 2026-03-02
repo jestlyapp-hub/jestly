@@ -2,14 +2,13 @@
 
 import { useState, useEffect } from "react";
 
-/* ═══════════════════════════════════════════
-   SVG ICONS
-   ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   ICONS SVG
+   ═══════════════════════════════════════════════════ */
 
 function IconGlobe() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#grad)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#FF3366" /></linearGradient></defs>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="10" />
       <path d="M2 12h20" />
       <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
@@ -17,22 +16,42 @@ function IconGlobe() {
   );
 }
 
+function IconLayout() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 9h18" />
+      <path d="M9 21V9" />
+    </svg>
+  );
+}
+
 function IconUsers() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#grad2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <defs><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#FF3366" /></linearGradient></defs>
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
       <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   );
 }
 
-function IconChart() {
+function IconFileText() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#grad3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <defs><linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#FF3366" /></linearGradient></defs>
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10 9 9 9 8 9" />
+    </svg>
+  );
+}
+
+function IconBarChart() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 20V10" />
       <path d="M12 20V4" />
       <path d="M6 20v-6" />
@@ -40,43 +59,13 @@ function IconChart() {
   );
 }
 
-function IconCard() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#grad4)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <defs><linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#FF3366" /></linearGradient></defs>
-      <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
-      <line x1="1" y1="10" x2="23" y2="10" />
-    </svg>
-  );
-}
-
-function IconCheckSquare() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#grad5)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <defs><linearGradient id="grad5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#FF3366" /></linearGradient></defs>
-      <polyline points="9 11 12 14 22 4" />
-      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
-    </svg>
-  );
-}
-
 function IconCalendar() {
   return (
-    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="url(#grad6)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <defs><linearGradient id="grad6" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#FF6B35" /><stop offset="100%" stopColor="#FF3366" /></linearGradient></defs>
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#FF6B35" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" />
       <line x1="16" y1="2" x2="16" y2="6" />
       <line x1="8" y1="2" x2="8" y2="6" />
       <line x1="3" y1="10" x2="21" y2="10" />
-    </svg>
-  );
-}
-
-function IconPlus({ className }: { className?: string }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   );
 }
@@ -98,82 +87,68 @@ function IconCheck() {
   );
 }
 
-/* ═══════════════════════════════════════════
+function IconPlus({ className }: { className?: string }) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
    DATA
-   ═══════════════════════════════════════════ */
+   ═══════════════════════════════════════════════════ */
 
 const features = [
   {
     icon: <IconGlobe />,
     title: "Site web no-code",
-    desc: "Creez votre vitrine en minutes. Portfolio, services, formations. Votre domaine : vous.jestly.fr",
+    desc: "Votre vitrine en ligne en 5 minutes. Portfolio, services, formations.",
+  },
+  {
+    icon: <IconLayout />,
+    title: "Gestion des commandes",
+    desc: "Kanban, statuts, brief client. Chaque commande est un projet.",
   },
   {
     icon: <IconUsers />,
-    title: "Commandes & CRM",
-    desc: "Chaque commande alimente votre base clients automatiquement. Kanban, statuts, historique.",
+    title: "Base clients",
+    desc: "CRM automatique. Chaque vente enrichit votre base.",
   },
   {
-    icon: <IconChart />,
-    title: "Dashboard revenus",
-    desc: "Visualisez vos revenus, conversions, panier moyen. Pilotez votre business en un coup d'oeil.",
+    icon: <IconFileText />,
+    title: "Facturation",
+    desc: "Factures PDF auto. Numerotation, TVA, tout est gere.",
   },
   {
-    icon: <IconCard />,
-    title: "Paiements Stripe",
-    desc: "Encaissez en ligne. One-shot ou abonnement. Facturation automatique.",
-  },
-  {
-    icon: <IconCheckSquare />,
-    title: "Gestion de projets",
-    desc: "To-do, deadlines, progression. Chaque commande devient un projet structure.",
+    icon: <IconBarChart />,
+    title: "Dashboard",
+    desc: "Revenus, conversions, panier moyen. Votre cockpit business.",
   },
   {
     icon: <IconCalendar />,
-    title: "Agenda integre",
-    desc: "Deadlines auto, rappels, sync Google Calendar et Apple Calendar.",
+    title: "Agenda",
+    desc: "Deadlines, rappels, sync Google Calendar.",
   },
 ];
 
-const tools = [
-  "Stripe",
-  "Notion",
-  "Trello",
-  "Google Sheets",
-  "Google Calendar",
-  "WordPress",
-  "Canva Portfolio",
-  "Gmail",
-  "Google Drive",
-  "WhatsApp",
-];
+const tools = ["Notion", "Trello", "Stripe", "Google Sheets", "WordPress", "Canva", "Gmail"];
 
 const steps = [
-  {
-    num: "01",
-    title: "Creez votre compte",
-    desc: "Inscription gratuite, sans carte bancaire.",
-  },
-  {
-    num: "02",
-    title: "Personnalisez votre site",
-    desc: "Choisissez vos services, fixez vos prix.",
-  },
-  {
-    num: "03",
-    title: "Recevez vos commandes",
-    desc: "Vos clients commandent, vous livrez.",
-  },
+  { num: "01", title: "Inscrivez-vous", desc: "Gratuit, 30 secondes, sans CB." },
+  { num: "02", title: "Creez votre site", desc: "Ajoutez vos services, fixez vos tarifs." },
+  { num: "03", title: "Recevez et gerez", desc: "Commandes, clients, factures. Tout est automatique." },
 ];
 
-const faqItems = [
+const faqData = [
   {
     q: "C'est quoi Jestly exactement ?",
     a: "Jestly est une plateforme tout-en-un pour freelances creatifs. Elle regroupe votre site web, la gestion de commandes, le CRM, la facturation, les paiements et l'agenda dans un seul outil simple et intuitif.",
   },
   {
     q: "Est-ce que c'est vraiment gratuit ?",
-    a: "Oui ! Le plan Free vous permet de gerer jusqu'a 10 commandes par mois, avec un site web inclus et un CRM basique. Aucune carte bancaire requise pour commencer.",
+    a: "Oui. Le plan Free vous permet de gerer jusqu'a 10 commandes par mois, avec un site web inclus et un CRM basique. Aucune carte bancaire requise pour commencer.",
   },
   {
     q: "Je peux vendre des formations ?",
@@ -181,7 +156,7 @@ const faqItems = [
   },
   {
     q: "Comment fonctionne le sous-domaine ?",
-    a: "A la creation de votre compte, vous choisissez votre identifiant. Votre site sera accessible a l'adresse votrenom.jestly.fr. Vous pourrez aussi connecter votre propre domaine avec le plan Pro.",
+    a: "A la creation de votre compte, vous choisissez votre identifiant unique. Votre site sera accessible a l'adresse votrenom.jestly.fr. Vous pourrez aussi connecter votre propre domaine avec le plan Pro.",
   },
   {
     q: "Puis-je connecter mon Stripe existant ?",
@@ -189,123 +164,96 @@ const faqItems = [
   },
 ];
 
-const freePlanFeatures = [
-  "10 commandes/mois",
-  "Site web inclus",
-  "CRM basique",
-  "Dashboard",
-  "1 integration",
-];
+const freePlan = ["10 commandes/mois", "Site web inclus", "CRM", "Dashboard"];
+const proPlan = ["Commandes illimitees", "Factures auto", "Toutes les integrations", "Support prioritaire"];
 
-const proPlanFeatures = [
-  "Commandes illimitees",
-  "CRM avance",
-  "Factures auto",
-  "Toutes les integrations",
-  "Support prioritaire",
-];
+/* ═══════════════════════════════════════════════════
+   COMPOSANTS FLOTTANTS HERO
+   ═══════════════════════════════════════════════════ */
 
-/* ═══════════════════════════════════════════
-   DASHBOARD MOCKUP COMPONENT
-   ═══════════════════════════════════════════ */
-
-function DashboardMockup() {
+function FloatingDashboard() {
   return (
-    <div className="dashboard-mockup w-full max-w-4xl mx-auto">
-      {/* Title bar */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-[#1a1a1f]">
-        <div className="flex gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
-          <div className="w-3 h-3 rounded-full bg-[#febc2e]" />
-          <div className="w-3 h-3 rounded-full bg-[#28c840]" />
-        </div>
-        <div className="flex-1 flex justify-center">
-          <div className="bg-[#111113] rounded-md px-16 py-1 text-xs text-[#555]">app.jestly.fr</div>
-        </div>
+    <div className="float-element animate-float-1 top-[8%] right-[4%] w-52 p-4 hidden lg:block">
+      <div className="text-[10px] font-semibold text-[#999] uppercase tracking-wider mb-2">Revenus</div>
+      <div className="text-xl font-bold text-[#1A1A1A]">2 480 &euro;</div>
+      <div className="mt-2 h-1.5 bg-[#F0F0F0] rounded-full overflow-hidden">
+        <div className="h-full w-[72%] bg-[#FF6B35] rounded-full" />
       </div>
+      <div className="text-[10px] text-emerald-500 mt-1.5 font-medium">+12% ce mois</div>
+    </div>
+  );
+}
 
-      <div className="flex min-h-[340px]">
-        {/* Sidebar */}
-        <div className="w-48 border-r border-[#1a1a1f] p-4 hidden sm:block">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#FF6B35] to-[#FF3366] flex items-center justify-center text-[10px] font-bold">J</div>
-            <span className="text-sm font-semibold text-white" style={{ fontFamily: "var(--font-heading)" }}>Jestly</span>
-          </div>
-          <nav className="flex flex-col gap-1">
-            {["Dashboard", "Commandes", "Clients", "Site web", "Factures", "Agenda"].map((item, i) => (
-              <div key={item} className={`px-3 py-2 rounded-lg text-xs ${i === 0 ? "bg-white/5 text-white" : "text-[#666]"}`}>
-                {item}
-              </div>
-            ))}
-          </nav>
-        </div>
-
-        {/* Main content */}
-        <div className="flex-1 p-4 sm:p-6">
-          {/* Stats row */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-            {[
-              { label: "Revenus", value: "2 480 \u20ac", change: "+12%" },
-              { label: "Commandes", value: "34", change: "+8%" },
-              { label: "Clients", value: "21", change: "+3" },
-              { label: "Panier moyen", value: "73 \u20ac", change: "+5%" },
-            ].map((stat) => (
-              <div key={stat.label} className="bg-[#111113] border border-[#1a1a1f] rounded-xl p-3">
-                <div className="text-[10px] text-[#666] mb-1">{stat.label}</div>
-                <div className="text-sm font-semibold text-white">{stat.value}</div>
-                <div className="text-[10px] text-emerald-400 mt-0.5">{stat.change}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom row: chart + kanban */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Mini chart */}
-            <div className="bg-[#111113] border border-[#1a1a1f] rounded-xl p-4">
-              <div className="text-[10px] text-[#666] mb-3">Revenus (7j)</div>
-              <div className="flex items-end gap-1.5 h-20">
-                {[40, 65, 45, 80, 55, 90, 70].map((h, i) => (
-                  <div key={i} className="flex-1 rounded-sm" style={{
-                    height: `${h}%`,
-                    background: `linear-gradient(to top, #FF6B35, #FF3366)`,
-                    opacity: 0.6 + (i * 0.05),
-                  }} />
-                ))}
-              </div>
-            </div>
-
-            {/* Mini kanban */}
-            <div className="bg-[#111113] border border-[#1a1a1f] rounded-xl p-4">
-              <div className="text-[10px] text-[#666] mb-3">Commandes recentes</div>
-              <div className="flex flex-col gap-2">
-                {[
-                  { name: "Logo redesign", status: "En cours", color: "#FF6B35" },
-                  { name: "Motion intro YT", status: "A livrer", color: "#FEBC2E" },
-                  { name: "Montage podcast", status: "Termine", color: "#28C840" },
-                ].map((item) => (
-                  <div key={item.name} className="flex items-center justify-between py-1.5 px-2 rounded-lg bg-[#0d0d0f]">
-                    <span className="text-[11px] text-[#ccc]">{item.name}</span>
-                    <span className="text-[9px] px-2 py-0.5 rounded-full" style={{ background: `${item.color}20`, color: item.color }}>
-                      {item.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+function FloatingOrder() {
+  return (
+    <div className="float-element animate-float-2 bottom-[18%] left-[3%] w-48 p-4 hidden lg:block">
+      <div className="text-[10px] font-semibold text-[#999] uppercase tracking-wider mb-2">Commande</div>
+      <div className="text-sm font-semibold text-[#1A1A1A] mb-1">Logo redesign</div>
+      <div className="flex items-center gap-1.5">
+        <div className="w-1.5 h-1.5 rounded-full bg-[#FF6B35]" />
+        <span className="text-[11px] text-[#888]">En cours &middot; Marie D.</span>
       </div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════
-   MAIN PAGE COMPONENT
-   ═══════════════════════════════════════════ */
+function FloatingCalendar() {
+  return (
+    <div className="float-element animate-float-3 top-[45%] right-[2%] w-40 p-4 hidden lg:block">
+      <div className="text-[10px] font-semibold text-[#999] uppercase tracking-wider mb-2">Agenda</div>
+      <div className="text-sm font-semibold text-[#1A1A1A]">15 Mars</div>
+      <div className="flex items-center gap-1.5 mt-1">
+        <div className="w-1.5 h-1.5 rounded-full bg-[#E8453C]" />
+        <span className="text-[11px] text-[#888]">Livraison deadline</span>
+      </div>
+    </div>
+  );
+}
+
+function FloatingInvoice() {
+  return (
+    <div className="float-element animate-float-4 top-[12%] left-[3%] w-44 p-4 hidden lg:block">
+      <div className="text-[10px] font-semibold text-[#999] uppercase tracking-wider mb-2">Facture</div>
+      <div className="text-lg font-bold text-[#1A1A1A]">850 &euro;</div>
+      <div className="flex items-center gap-1.5 mt-1">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+        <span className="text-[11px] text-emerald-500 font-medium">Payee</span>
+      </div>
+    </div>
+  );
+}
+
+/* Fleches courbes SVG decoratives */
+function CurvedArrows() {
+  return (
+    <div className="absolute inset-0 pointer-events-none hidden lg:block">
+      {/* Fleche de la facture (haut-gauche) vers le centre */}
+      <svg className="absolute top-[18%] left-[14%] w-32 h-24" viewBox="0 0 140 100" fill="none">
+        <path d="M10 15 Q60 5 110 55" stroke="#FF6B35" strokeWidth="1.2" strokeDasharray="5 4" opacity="0.25" strokeLinecap="round" />
+        <path d="M105 48 L113 58 L101 56" stroke="#FF6B35" strokeWidth="1.2" opacity="0.25" fill="none" strokeLinecap="round" />
+      </svg>
+      {/* Fleche du dashboard (haut-droit) vers le centre */}
+      <svg className="absolute top-[16%] right-[16%] w-28 h-24" viewBox="0 0 120 100" fill="none">
+        <path d="M100 10 Q60 15 30 60" stroke="#FF6B35" strokeWidth="1.2" strokeDasharray="5 4" opacity="0.25" strokeLinecap="round" />
+        <path d="M35 53 L27 63 L38 62" stroke="#FF6B35" strokeWidth="1.2" opacity="0.25" fill="none" strokeLinecap="round" />
+      </svg>
+      {/* Fleche de la commande (bas-gauche) vers le centre */}
+      <svg className="absolute bottom-[22%] left-[16%] w-28 h-20" viewBox="0 0 120 80" fill="none">
+        <path d="M15 65 Q50 40 95 30" stroke="#FF6B35" strokeWidth="1.2" strokeDasharray="5 4" opacity="0.25" strokeLinecap="round" />
+        <path d="M89 25 L99 28 L91 36" stroke="#FF6B35" strokeWidth="1.2" opacity="0.25" fill="none" strokeLinecap="round" />
+      </svg>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   PAGE PRINCIPALE
+   ═══════════════════════════════════════════════════ */
 
 export default function Home() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
+  /* Observation au scroll pour les animations fade-in */
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -325,248 +273,222 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] text-white overflow-x-hidden">
-      {/* ─── NAVBAR ─── */}
-      <nav className="navbar-glass fixed top-0 left-0 right-0 z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href="#" className="text-xl font-bold tracking-tight" style={{ fontFamily: "var(--font-heading)" }}>
+    <div className="min-h-screen bg-[#FAFAFA] text-[#1A1A1A] overflow-x-hidden">
+
+      {/* ──────────────── NAVBAR ──────────────── */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-[#F0F0F0]">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          <a href="#" className="text-[22px] font-extrabold tracking-tight" style={{ fontFamily: "var(--font-sans)" }}>
             Jestly
           </a>
+
           <div className="hidden md:flex items-center gap-8">
-            <a href="#fonctionnalites" className="text-sm text-[#a1a1aa] hover:text-white transition-colors">Fonctionnalites</a>
-            <a href="#tarifs" className="text-sm text-[#a1a1aa] hover:text-white transition-colors">Tarifs</a>
-            <a href="#faq" className="text-sm text-[#a1a1aa] hover:text-white transition-colors">FAQ</a>
+            <a href="#fonctionnalites" className="text-sm text-[#666] hover:text-[#1A1A1A] transition-colors">Fonctionnalites</a>
+            <a href="#tarifs" className="text-sm text-[#666] hover:text-[#1A1A1A] transition-colors">Tarifs</a>
+            <a href="#faq" className="text-sm text-[#666] hover:text-[#1A1A1A] transition-colors">FAQ</a>
           </div>
-          <a href="#" className="btn-primary !py-2.5 !px-5 !text-sm !rounded-lg">
-            Commencer gratuitement
-          </a>
+
+          <div className="flex items-center gap-3">
+            <a href="#" className="hidden sm:inline text-sm text-[#666] hover:text-[#1A1A1A] transition-colors font-medium">Se connecter</a>
+            <a href="#" className="btn-primary !py-2.5 !px-5 !text-[13px]">Commencer gratuitement</a>
+          </div>
         </div>
       </nav>
 
-      {/* ─── HERO ─── */}
-      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-24 pb-16">
-        <div className="hero-glow animate-glow-pulse" />
+      {/* ──────────────── HERO ──────────────── */}
+      <section className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-20">
+        {/* Elements flottants */}
+        <FloatingDashboard />
+        <FloatingInvoice />
+        <FloatingCalendar />
+        <FloatingOrder />
+        <CurvedArrows />
 
         <div className="relative z-10 text-center max-w-3xl mx-auto">
           <h1
-            className="text-[clamp(2.5rem,6vw,5rem)] font-bold leading-[1.1] tracking-tight mb-6 animate-on-scroll"
-            style={{ fontFamily: "var(--font-heading)" }}
+            className="text-[clamp(2.8rem,7vw,5.2rem)] font-extrabold leading-[1.08] tracking-tight mb-6"
+            style={{ fontFamily: "var(--font-sans)" }}
           >
-            Pilotez votre freelance<br />
-            depuis <span className="gradient-text">un seul endroit.</span>
+            Gerez votre freelance<br />
+            comme un{" "}
+            <span className="accent-word text-[1.15em]">pro.</span>
           </h1>
 
-          <p className="text-base sm:text-lg text-[#a1a1aa] max-w-xl mx-auto mb-10 leading-relaxed animate-on-scroll stagger-1">
-            Site web, commandes, clients, factures, agenda &mdash; tout centralise dans une plateforme pensee pour les creatifs.
+          <p className="text-base sm:text-lg text-[#666] max-w-lg mx-auto mb-10 leading-relaxed">
+            De la commande a la facturation. Tout votre business freelance dans une seule plateforme simple et intuitive.
           </p>
 
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6 animate-on-scroll stagger-2">
-            <a href="#" className="btn-primary flex items-center gap-2">
-              Demarrer gratuitement <IconArrowRight />
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-5">
+            <a href="#" className="btn-primary">
+              Commencer gratuitement <IconArrowRight />
             </a>
-            <a href="#" className="btn-ghost">Voir la demo</a>
+            <a href="#" className="btn-outline">
+              Voir la demo
+            </a>
           </div>
 
-          <p className="text-xs text-[#555] mb-16 animate-on-scroll stagger-3">
-            Gratuit jusqu&apos;a 10 commandes/mois &middot; Sans carte bancaire
+          <p className="text-[13px] text-[#AAAAAA]">
+            Gratuit &middot; Sans carte bancaire &middot; Pret en 3 minutes
           </p>
-
-          {/* Dashboard mockup */}
-          <div className="animate-on-scroll stagger-4">
-            <DashboardMockup />
-          </div>
         </div>
       </section>
 
-      {/* ─── TOOLS REPLACEMENT ─── */}
-      <section className="py-24 px-6 bg-[#111113]">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2
-            className="text-3xl sm:text-4xl font-bold mb-4 animate-on-scroll"
-            style={{ fontFamily: "var(--font-heading)" }}
-          >
-            Arretez de jongler entre 10 outils.
-          </h2>
-          <p className="text-[#a1a1aa] text-lg mb-14 animate-on-scroll stagger-1">
-            Jestly remplace tout ca.
-          </p>
+      {/* ──────────────── SOCIAL PROOF / LOGOS ──────────────── */}
+      <section className="py-16 bg-[#F0F0F0]">
+        <p className="text-center text-sm text-[#999] mb-8 font-medium">Remplace vos outils du quotidien</p>
 
-          {/* Tools grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mb-14">
-            {tools.map((tool, i) => (
-              <div
-                key={tool}
-                className={`tool-name animate-on-scroll stagger-${i + 1} bg-[#0A0A0B] border border-[#1a1a1f] rounded-xl px-4 py-4 text-sm font-medium`}
-              >
+        <div className="overflow-hidden">
+          <div className="scrolling-logos flex items-center gap-16 whitespace-nowrap w-max">
+            {[...tools, ...tools].map((tool, i) => (
+              <span key={i} className="text-lg font-semibold text-[#1A1A1A] opacity-[0.18] select-none">
                 {tool}
-              </div>
+              </span>
             ))}
           </div>
-
-          {/* Arrow down */}
-          <div className="flex justify-center mb-8 animate-on-scroll">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <polyline points="19 12 12 19 5 12" />
-            </svg>
-          </div>
-
-          {/* Jestly badge */}
-          <div className="inline-flex items-center gap-3 animate-jestly-pulse bg-[#0A0A0B] border border-[#1a1a1f] rounded-2xl px-8 py-5 animate-on-scroll">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B35] to-[#FF3366] flex items-center justify-center text-lg font-bold" style={{ fontFamily: "var(--font-heading)" }}>
-              J
-            </div>
-            <span className="text-xl font-bold" style={{ fontFamily: "var(--font-heading)" }}>Jestly</span>
-          </div>
         </div>
       </section>
 
-      {/* ─── FEATURES ─── */}
-      <section id="fonctionnalites" className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <h2
-            className="text-3xl sm:text-4xl font-bold text-center mb-4 animate-on-scroll"
-            style={{ fontFamily: "var(--font-heading)" }}
-          >
-            Tout ce dont un freelance a besoin.
-          </h2>
-          <p className="text-[#a1a1aa] text-center mb-14 animate-on-scroll stagger-1">
-            Six outils essentiels, une seule interface.
-          </p>
+      {/* ──────────────── FONCTIONNALITES ──────────────── */}
+      <section id="fonctionnalites" className="py-28 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <h2
+              className="text-3xl sm:text-[2.6rem] font-extrabold leading-tight mb-4 animate-on-scroll"
+              style={{ fontFamily: "var(--font-sans)" }}
+            >
+              Tout ce qu&apos;il vous faut.
+            </h2>
+            <p className="text-[#666] text-base animate-on-scroll stagger-1">
+              Une seule plateforme, zero prise de tete.
+            </p>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f, i) => (
               <div key={f.title} className={`feature-card animate-on-scroll stagger-${i + 1}`}>
                 <div className="mb-4">{f.icon}</div>
-                <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: "var(--font-heading)" }}>
+                <h3 className="text-base font-bold mb-2" style={{ fontFamily: "var(--font-sans)" }}>
                   {f.title}
                 </h3>
-                <p className="text-sm text-[#a1a1aa] leading-relaxed">{f.desc}</p>
+                <p className="text-sm text-[#666] leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─── HOW IT WORKS ─── */}
-      <section className="py-24 px-6 bg-[#111113]">
+      {/* ──────────────── COMMENT CA MARCHE ──────────────── */}
+      <section className="py-28 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
           <h2
-            className="text-3xl sm:text-4xl font-bold text-center mb-4 animate-on-scroll"
-            style={{ fontFamily: "var(--font-heading)" }}
+            className="text-3xl sm:text-[2.6rem] font-extrabold text-center leading-tight mb-16 animate-on-scroll"
+            style={{ fontFamily: "var(--font-sans)" }}
           >
-            Lancez-vous en 3 minutes.
+            Lancez-vous en 3 etapes.
           </h2>
-          <p className="text-[#a1a1aa] text-center mb-16 animate-on-scroll stagger-1">
-            Simple, rapide, efficace.
-          </p>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6 relative">
-            {/* Connector line (desktop) */}
-            <div className="hidden md:block absolute top-12 left-[20%] right-[20%] h-px bg-gradient-to-r from-[#1a1a1f] via-[rgba(255,107,53,0.3)] to-[#1a1a1f]" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-6 relative">
+            {/* Ligne de connexion horizontale (desktop) */}
+            <div className="hidden md:block absolute top-8 left-[18%] right-[18%] h-px bg-[#E8E8E8]" />
 
             {steps.map((step, i) => (
-              <div key={step.num} className={`relative text-center animate-on-scroll stagger-${i + 1}`}>
-                <div className="inline-block mb-6">
+              <div key={step.num} className={`text-center relative animate-on-scroll stagger-${i + 1}`}>
+                <div className="relative inline-block mb-5">
                   <span
-                    className="text-4xl font-bold gradient-text"
-                    style={{ fontFamily: "var(--font-heading)" }}
+                    className="text-5xl font-extrabold text-[#FF6B35] opacity-20"
+                    style={{ fontFamily: "var(--font-sans)" }}
                   >
                     {step.num}
                   </span>
                 </div>
-                <h3 className="text-lg font-semibold mb-2" style={{ fontFamily: "var(--font-heading)" }}>
+                <h3 className="text-lg font-bold mb-2" style={{ fontFamily: "var(--font-sans)" }}>
                   {step.title}
                 </h3>
-                <p className="text-sm text-[#a1a1aa]">{step.desc}</p>
+                <p className="text-sm text-[#666]">{step.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ─── PRICING ─── */}
-      <section id="tarifs" className="py-24 px-6">
-        <div className="max-w-3xl mx-auto">
+      {/* ──────────────── PRICING ──────────────── */}
+      <section id="tarifs" className="py-28 px-6">
+        <div className="max-w-2xl mx-auto">
           <h2
-            className="text-3xl sm:text-4xl font-bold text-center mb-4 animate-on-scroll"
-            style={{ fontFamily: "var(--font-heading)" }}
+            className="text-3xl sm:text-[2.6rem] font-extrabold text-center leading-tight mb-4 animate-on-scroll"
+            style={{ fontFamily: "var(--font-sans)" }}
           >
-            Simple. Transparent.
+            Un prix simple.
           </h2>
-          <p className="text-[#a1a1aa] text-center mb-14 animate-on-scroll stagger-1">
-            Pas de frais caches. Upgradez quand vous voulez.
+          <p className="text-center text-[#666] mb-14 animate-on-scroll stagger-1">
+            Pas de frais caches. Evoluez quand vous voulez.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {/* Free plan */}
+            {/* Free */}
             <div className="pricing-card animate-on-scroll stagger-1">
-              <h3 className="text-lg font-semibold mb-1" style={{ fontFamily: "var(--font-heading)" }}>Free</h3>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold" style={{ fontFamily: "var(--font-heading)" }}>0&euro;</span>
-                <span className="text-[#666] text-sm">/mois</span>
+              <h3 className="text-lg font-bold mb-1" style={{ fontFamily: "var(--font-sans)" }}>Gratuit</h3>
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-4xl font-extrabold" style={{ fontFamily: "var(--font-sans)" }}>0&euro;</span>
+                <span className="text-[#999] text-sm">/mois</span>
               </div>
-              <ul className="flex flex-col gap-3 mb-8">
-                {freePlanFeatures.map((f) => (
-                  <li key={f} className="flex items-center gap-3 text-sm text-[#a1a1aa]">
+              <ul className="flex flex-col gap-3.5 mb-8">
+                {freePlan.map((f) => (
+                  <li key={f} className="flex items-center gap-3 text-sm text-[#666]">
                     <IconCheck /> {f}
                   </li>
                 ))}
               </ul>
-              <a href="#" className="btn-ghost block text-center w-full">
-                Commencer gratuitement
-              </a>
+              <a href="#" className="btn-outline block text-center w-full justify-center">Commencer</a>
             </div>
 
-            {/* Pro plan */}
+            {/* Pro */}
             <div className="pricing-card-pro animate-on-scroll stagger-2">
-              <div className="flex items-center justify-between mb-1">
-                <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--font-heading)" }}>Pro</h3>
-                <span className="text-[10px] font-semibold uppercase tracking-wider bg-gradient-to-r from-[#FF6B35] to-[#FF3366] text-white px-3 py-1 rounded-full">
+              <div className="absolute -top-3 right-6">
+                <span className="text-[11px] font-bold uppercase tracking-wider bg-[#FF6B35] text-white px-4 py-1.5 rounded-full">
                   Populaire
                 </span>
               </div>
-              <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-bold" style={{ fontFamily: "var(--font-heading)" }}>7&euro;</span>
-                <span className="text-[#666] text-sm">/mois</span>
+              <h3 className="text-lg font-bold mb-1" style={{ fontFamily: "var(--font-sans)" }}>Pro</h3>
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-4xl font-extrabold" style={{ fontFamily: "var(--font-sans)" }}>7&euro;</span>
+                <span className="text-[#999] text-sm">/mois</span>
               </div>
-              <ul className="flex flex-col gap-3 mb-8">
-                {proPlanFeatures.map((f) => (
-                  <li key={f} className="flex items-center gap-3 text-sm text-[#a1a1aa]">
+              <ul className="flex flex-col gap-3.5 mb-8">
+                {proPlan.map((f) => (
+                  <li key={f} className="flex items-center gap-3 text-sm text-[#666]">
                     <IconCheck /> {f}
                   </li>
                 ))}
               </ul>
-              <a href="#" className="btn-primary block text-center w-full">
-                Passer Pro
-              </a>
+              <a href="#" className="btn-primary block text-center w-full justify-center">Passer Pro</a>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── FAQ ─── */}
-      <section id="faq" className="py-24 px-6 bg-[#111113]">
+      {/* ──────────────── FAQ ──────────────── */}
+      <section id="faq" className="py-28 px-6 bg-white">
         <div className="max-w-2xl mx-auto">
           <h2
-            className="text-3xl sm:text-4xl font-bold text-center mb-14 animate-on-scroll"
-            style={{ fontFamily: "var(--font-heading)" }}
+            className="text-3xl sm:text-[2.6rem] font-extrabold text-center leading-tight mb-14 animate-on-scroll"
+            style={{ fontFamily: "var(--font-sans)" }}
           >
             Questions frequentes
           </h2>
 
           <div className="flex flex-col">
-            {faqItems.map((item, i) => (
+            {faqData.map((item, i) => (
               <div key={i} className={`faq-item animate-on-scroll stagger-${i + 1}`}>
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between py-5 text-left"
+                  className="w-full flex items-center justify-between py-5 text-left cursor-pointer"
                 >
-                  <span className="text-sm sm:text-base font-medium pr-4">{item.q}</span>
-                  <IconPlus className={`faq-icon flex-shrink-0 text-[#666] ${openFaq === i ? "open" : ""}`} />
+                  <span className="text-[15px] font-semibold pr-4">{item.q}</span>
+                  <IconPlus className={`faq-icon flex-shrink-0 ${openFaq === i ? "open" : ""}`} />
                 </button>
                 <div className={`faq-answer ${openFaq === i ? "open" : ""}`}>
-                  <p className="text-sm text-[#a1a1aa] pb-5 leading-relaxed">{item.a}</p>
+                  <p className="text-sm text-[#666] pb-5 leading-relaxed">{item.a}</p>
                 </div>
               </div>
             ))}
@@ -574,68 +496,62 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── FOOTER CTA ─── */}
-      <section className="relative py-24 px-6">
-        <div className="footer-cta-glow animate-glow-pulse" />
-        <div className="relative z-10 text-center max-w-2xl mx-auto">
+      {/* ──────────────── CTA FINAL ──────────────── */}
+      <section className="py-28 px-6" style={{ background: "linear-gradient(180deg, #FAFAFA 0%, #FFF5EE 100%)" }}>
+        <div className="text-center max-w-2xl mx-auto">
           <h2
-            className="text-3xl sm:text-4xl font-bold mb-6 animate-on-scroll"
-            style={{ fontFamily: "var(--font-heading)" }}
+            className="text-3xl sm:text-[2.6rem] font-extrabold leading-tight mb-8 animate-on-scroll"
+            style={{ fontFamily: "var(--font-sans)" }}
           >
-            Pret a structurer votre freelance ?
+            Pret a simplifier votre{" "}
+            <span className="accent-word text-[1.1em]">freelance</span> ?
           </h2>
           <div className="animate-on-scroll stagger-1">
-            <a href="#" className="btn-primary inline-flex items-center gap-2 !py-4 !px-10 !text-base">
+            <a href="#" className="btn-primary !py-4 !px-10 !text-base">
               Commencer gratuitement <IconArrowRight />
             </a>
           </div>
         </div>
       </section>
 
-      {/* ─── FOOTER ─── */}
-      <footer className="border-t border-[#1a1a1f] py-16 px-6">
+      {/* ──────────────── FOOTER ──────────────── */}
+      <footer className="bg-[#1A1A1A] text-white py-16 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-            {/* Brand */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
             <div>
-              <span className="text-xl font-bold tracking-tight block mb-2" style={{ fontFamily: "var(--font-heading)" }}>
+              <span className="text-xl font-extrabold tracking-tight block mb-2" style={{ fontFamily: "var(--font-sans)" }}>
                 Jestly
               </span>
-              <p className="text-sm text-[#666]">Le cockpit du freelance moderne.</p>
+              <p className="text-sm text-[#888]">Le cockpit du freelance moderne.</p>
             </div>
 
-            {/* Produit */}
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-[#666] mb-4">Produit</h4>
-              <ul className="flex flex-col gap-2">
-                <li><a href="#fonctionnalites" className="text-sm text-[#a1a1aa] hover:text-white transition-colors">Fonctionnalites</a></li>
-                <li><a href="#tarifs" className="text-sm text-[#a1a1aa] hover:text-white transition-colors">Tarifs</a></li>
-                <li><a href="#faq" className="text-sm text-[#a1a1aa] hover:text-white transition-colors">FAQ</a></li>
+              <ul className="flex flex-col gap-2.5">
+                <li><a href="#fonctionnalites" className="text-sm text-[#999] hover:text-white transition-colors">Fonctionnalites</a></li>
+                <li><a href="#tarifs" className="text-sm text-[#999] hover:text-white transition-colors">Tarifs</a></li>
+                <li><a href="#faq" className="text-sm text-[#999] hover:text-white transition-colors">FAQ</a></li>
               </ul>
             </div>
 
-            {/* Legal */}
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-[#666] mb-4">Legal</h4>
-              <ul className="flex flex-col gap-2">
-                <li><a href="#" className="text-sm text-[#a1a1aa] hover:text-white transition-colors">CGU</a></li>
-                <li><a href="#" className="text-sm text-[#a1a1aa] hover:text-white transition-colors">Confidentialite</a></li>
+              <ul className="flex flex-col gap-2.5">
+                <li><a href="#" className="text-sm text-[#999] hover:text-white transition-colors">CGU</a></li>
+                <li><a href="#" className="text-sm text-[#999] hover:text-white transition-colors">Confidentialite</a></li>
               </ul>
             </div>
 
-            {/* Contact */}
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-[#666] mb-4">Contact</h4>
-              <a href="mailto:contact@jestly.fr" className="text-sm text-[#a1a1aa] hover:text-white transition-colors">
+              <a href="mailto:contact@jestly.fr" className="text-sm text-[#999] hover:text-white transition-colors">
                 contact@jestly.fr
               </a>
             </div>
           </div>
 
-          <div className="border-t border-[#1a1a1f] pt-8">
-            <p className="text-xs text-[#444] text-center">
-              &copy; 2025 Jestly. Tous droits reserves.
-            </p>
+          <div className="border-t border-[#333] pt-8">
+            <p className="text-xs text-[#555] text-center">&copy; 2025 Jestly. Tous droits reserves.</p>
           </div>
         </div>
       </footer>
