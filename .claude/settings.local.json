@@ -5,7 +5,9 @@
       "Bash(npm install:*)",
       "Bash(find C:\\\\Users\\\\Briau\\\\jestly\\\\src\\\\app\\\\\\(dashboard\\):*)",
       "Bash(ls:*)",
-      "Bash(find C:\\\\Users\\\\Briau\\\\jestly\\\\src\\\\app\\\\\\(dashboard\\)\\\\site-web:*)"
+      "Bash(find C:\\\\Users\\\\Briau\\\\jestly\\\\src\\\\app\\\\\\(dashboard\\)\\\\site-web:*)",
+      "WebFetch(domain:www.jestly.fr)",
+      "WebFetch(domain:jestly.fr)"
     ]
   }
 }
