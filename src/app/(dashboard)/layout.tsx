@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/ensure-profile";
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
+import Toaster from "@/components/ui/Toaster";
 
 export default async function DashboardLayout({
   children,
@@ -19,7 +20,10 @@ export default async function DashboardLayout({
       <Sidebar />
       <div className="flex-1 flex flex-col min-w-0">
         <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6">
+          {children}
+        </main>
+        <Toaster />
       </div>
     </div>
   );

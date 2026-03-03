@@ -21,17 +21,44 @@ export const AVAILABLE_COLORS = Object.keys(STATUS_COLORS);
 /* ─── Default statuses per view ─── */
 
 export const DEFAULT_PRODUCTION_STATUSES = [
-  { slug: "a_faire", name: "A faire", color: "blue", view: "production", position: 0 },
-  { slug: "valide", name: "Valide", color: "green", view: "production", position: 1 },
-  { slug: "paye_prod", name: "Paye", color: "emerald", view: "production", position: 2 },
+  { slug: "new", name: "À faire", color: "blue", view: "production", position: 0 },
+  { slug: "in_progress", name: "En cours", color: "violet", view: "production", position: 1 },
+  { slug: "delivered", name: "Livré", color: "green", view: "production", position: 2 },
+  { slug: "paid", name: "Payé", color: "emerald", view: "production", position: 3 },
 ];
 
 export const DEFAULT_CASH_STATUSES = [
-  { slug: "a_facturer", name: "A facturer", color: "orange", view: "cash", position: 0 },
-  { slug: "facture", name: "Facture", color: "violet", view: "cash", position: 1 },
-  { slug: "attente_paiement", name: "En attente paiement", color: "amber", view: "cash", position: 2 },
-  { slug: "paye_cash", name: "Paye", color: "green", view: "cash", position: 3 },
+  { slug: "invoiced", name: "Facturée", color: "orange", view: "cash", position: 0 },
+  { slug: "in_review", name: "En attente paiement", color: "amber", view: "cash", position: 1 },
+  { slug: "paid", name: "Payée", color: "green", view: "cash", position: 2 },
 ];
+
+/* ─── Status labels (FR) ─── */
+
+export const STATUS_LABELS: Record<string, string> = {
+  new: "À faire",
+  in_progress: "En cours",
+  delivered: "Livré",
+  paid: "Payé",
+};
+
+/* ─── Status order (strict) ─── */
+
+export const STATUS_ORDER: string[] = ["new", "in_progress", "delivered", "paid"];
+
+/* ─── Status flow: bidirectional navigation ─── */
+
+export const NEXT_STATUS: Record<string, string> = {
+  new: "in_progress",
+  in_progress: "delivered",
+  delivered: "paid",
+};
+
+export const PREV_STATUS: Record<string, string> = {
+  in_progress: "new",
+  delivered: "in_progress",
+  paid: "delivered",
+};
 
 /* ─── Priority ─── */
 
@@ -49,6 +76,17 @@ export const PRIORITIES = [
   { value: "urgent", label: "Urgente" },
 ];
 
+/* ─── System columns (built-in, non-deletable) ─── */
+
+export const SYSTEM_COLUMNS = [
+  { key: "title",    label: "Titre",    field_type: "text",   position: 0 },
+  { key: "client",   label: "Client",   field_type: "text",   position: 1 },
+  { key: "price",    label: "Prix",     field_type: "money",  position: 2 },
+  { key: "status",   label: "Statut",   field_type: "select", position: 3 },
+  { key: "deadline", label: "Deadline", field_type: "date",   position: 4 },
+  { key: "date",     label: "Date",     field_type: "date",   position: 5, config: { readOnly: true } },
+] as const;
+
 /* ─── Field types ─── */
 
 export const FIELD_TYPES = [
@@ -56,19 +94,26 @@ export const FIELD_TYPES = [
   { value: "number", label: "Nombre" },
   { value: "money", label: "Montant" },
   { value: "date", label: "Date" },
-  { value: "select", label: "Selection" },
-  { value: "multi_select", label: "Multi-selection" },
+  { value: "select", label: "Sélection" },
+  { value: "multi_select", label: "Multi-sélection" },
   { value: "url", label: "Lien URL" },
-  { value: "boolean", label: "Case a cocher" },
+  { value: "boolean", label: "Case à cocher" },
 ];
+
+/* ─── Legacy seeded keys — MUST be excluded from table ─── */
+// These were auto-seeded before the fix. They stay in DB (data in side sheet)
+// but are forcibly hidden from the table at API + frontend level.
+export const LEGACY_SEEDED_KEYS = new Set([
+  "deadline_custom",
+  "lien_drive",
+  "revisions",
+  "type_paiement",
+  "client_vip",
+  "notes_custom",
+]);
 
 /* ─── Default fields for seeding ─── */
-
-export const DEFAULT_FIELDS = [
-  { key: "deadline_custom", label: "Deadline", field_type: "date", position: 0 },
-  { key: "lien_drive", label: "Lien Drive", field_type: "url", position: 1 },
-  { key: "revisions", label: "Revisions", field_type: "number", position: 2 },
-  { key: "type_paiement", label: "Type de paiement", field_type: "select", options: ["Acompte", "Full"], position: 3 },
-  { key: "client_vip", label: "Client VIP", field_type: "boolean", position: 4, is_visible_on_card: true },
-  { key: "notes_custom", label: "Notes", field_type: "text", position: 5 },
-];
+// Empty: no custom columns are seeded by default.
+// Base columns (Titre, Client, Prix, Statut, Deadline, Date) are hardcoded in page.tsx.
+// Users add custom columns via the "+" button.
+export const DEFAULT_FIELDS: { key: string; label: string; field_type: string; position: number; options?: string[]; is_visible_on_card?: boolean }[] = [];

@@ -18,6 +18,7 @@ export async function middleware(req: NextRequest) {
   if (isRootDomain || isLocalhost) {
     // Refresh Supabase session for protected + auth routes
     const needsSession =
+      url.pathname.startsWith("/api/") ||
       url.pathname.startsWith("/dashboard") ||
       url.pathname.startsWith("/site-web") ||
       url.pathname.startsWith("/clients") ||

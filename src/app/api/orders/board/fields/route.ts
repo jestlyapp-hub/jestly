@@ -22,6 +22,12 @@ export async function POST(req: NextRequest) {
 
   if (!label) return NextResponse.json({ error: "label is required" }, { status: 400 });
 
+  // Block reserved labels (base column names)
+  const BASE_LABELS = new Set(["Titre", "Client", "Prix", "Statut", "Deadline", "Date"]);
+  if (BASE_LABELS.has(label.trim())) {
+    return NextResponse.json({ error: "Ce nom est reserve (colonne de base)" }, { status: 400 });
+  }
+
   // Get max position
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: existing } = await (supabase.from("order_fields") as any)
@@ -32,6 +38,8 @@ export async function POST(req: NextRequest) {
 
   const maxPos = existing?.[0]?.position ?? -1;
 
+  // Don't include is_system/config — they have DB defaults if migration 012 applied,
+  // and won't cause errors if the columns don't exist yet.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("order_fields") as any)
     .insert({

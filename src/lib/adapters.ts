@@ -55,6 +55,20 @@ export function orderRecordToOrder(
     checklist,
     notes: row.notes ?? undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    briefing: (row as any).briefing ?? undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resources: Array.isArray((row as any).resources) ? (row as any).resources : [],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    category: (row as any).category ?? undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    externalRef: (row as any).external_ref ?? undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    groupId: (row as any).group_id ?? undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    groupIndex: (row as any).group_index ?? undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    groupTotal: (row as any).group_total ?? undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     statusId: (row as any).status_id ?? undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     customFields: (row as any).custom_fields ?? {},

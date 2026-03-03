@@ -100,6 +100,11 @@ async function main() {
     "006_fix_handle_new_user.sql",
     "007_kanban_statuses.sql",
     "008_custom_workflow.sql",
+    "009_fix_orders_statuses.sql",
+    "010_ensure_workflow_tables.sql",
+    "011_order_freelance_fields.sql",
+    "012_dynamic_columns.sql",
+    "013_hide_default_seeded_fields.sql",
   ];
 
   const migrationsDir = join(__dirname, "..", "supabase", "migrations");

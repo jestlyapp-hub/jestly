@@ -77,6 +77,13 @@ export interface Order {
   tags: string[];
   checklist: ChecklistItem[];
   notes?: string;
+  briefing?: string;
+  resources?: string[];
+  category?: string;
+  externalRef?: string;
+  groupId?: string;
+  groupIndex?: number;
+  groupTotal?: number;
   customFields?: Record<string, unknown>;
 }
 
@@ -96,14 +103,21 @@ export interface BoardStatus {
 
 export type BoardFieldType = "text" | "number" | "select" | "multi_select" | "date" | "url" | "money" | "boolean";
 
+export interface FieldOption {
+  label: string;
+  color: string;
+}
+
 export interface BoardField {
   id: string;
   key: string;
   label: string;
   fieldType: BoardFieldType;
-  options: string[];
+  options: FieldOption[];
   isRequired: boolean;
   isVisibleOnCard: boolean;
+  isSystem: boolean;
+  config: Record<string, unknown>;
   position: number;
 }
 
