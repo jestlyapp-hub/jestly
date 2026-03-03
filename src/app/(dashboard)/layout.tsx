@@ -11,8 +11,13 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   // Safety net: guarantee profile exists for all dashboard pages
-  const supabase = await createClient();
-  const user = await ensureProfile(supabase);
+  let user;
+  try {
+    const supabase = await createClient();
+    user = await ensureProfile(supabase);
+  } catch {
+    // Supabase unreachable or session corrupted → redirect to login
+  }
   if (!user) redirect("/login");
 
   return (
