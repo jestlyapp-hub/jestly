@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { mockSite } from "@/lib/mock-data";
+import { useSite } from "@/lib/hooks/use-site";
 
 export default function SiteDomainePage() {
+  const { site } = useSite();
   const [copied, setCopied] = useState(false);
-  const siteUrl = `${mockSite.domain.subdomain}.jestly.site`;
+  const siteUrl = `${site.domain.subdomain}.jestly.site`;
 
   const handleCopy = () => {
     navigator.clipboard.writeText(`https://${siteUrl}`);
@@ -30,7 +31,7 @@ export default function SiteDomainePage() {
               <span className="px-3 text-[13px] text-[#999] border-r border-[#E6E6E4] py-2.5">https://</span>
               <input
                 type="text"
-                defaultValue={mockSite.domain.subdomain}
+                defaultValue={site.domain.subdomain}
                 className="flex-1 bg-transparent px-3 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none"
               />
               <span className="px-3 text-[13px] text-[#999] border-l border-[#E6E6E4] py-2.5">.jestly.site</span>

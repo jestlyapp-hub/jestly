@@ -2,11 +2,10 @@
 
 import { memo, useState } from "react";
 import type { FaqAdvancedBlockContent } from "@/types";
-import { getWorkspaceFaq } from "@/lib/mock-data";
 
 function FaqAdvancedBlockPreviewInner({ content }: { content: FaqAdvancedBlockContent }) {
   const [openItems, setOpenItems] = useState<Set<number>>(new Set());
-  const displayItems = content.useGlobal ? getWorkspaceFaq() : content.items;
+  const displayItems = content.items;
 
   const toggle = (i: number) => {
     setOpenItems((prev) => {

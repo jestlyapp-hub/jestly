@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import type { ReactNode } from "react";
 
@@ -17,20 +18,38 @@ const styles = {
     "border border-[#E6E6E4] text-[#191919] hover:bg-[#F7F7F5]",
 };
 
+const MotionLink = motion.create(Link);
+
 export default function Button({
   children,
   variant = "primary",
   href = "#",
   className = "",
 }: ButtonProps) {
+  // Use anchor for hash links, Next Link for routes
+  const isHash = href.startsWith("#");
+
+  if (isHash) {
+    return (
+      <motion.a
+        href={href}
+        className={`inline-flex items-center gap-2 font-semibold text-sm rounded-md px-7 py-3.5 cursor-pointer transition-colors ${styles[variant]} ${className}`}
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.97 }}
+      >
+        {children}
+      </motion.a>
+    );
+  }
+
   return (
-    <motion.a
+    <MotionLink
       href={href}
       className={`inline-flex items-center gap-2 font-semibold text-sm rounded-md px-7 py-3.5 cursor-pointer transition-colors ${styles[variant]} ${className}`}
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
     >
       {children}
-    </motion.a>
+    </MotionLink>
   );
 }

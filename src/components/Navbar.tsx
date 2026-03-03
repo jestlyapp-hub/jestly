@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { motion } from "framer-motion";
 import Button from "./ui/Button";
 
@@ -19,12 +20,12 @@ export default function Navbar() {
     >
       <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo */}
-        <a
-          href="#"
+        <Link
+          href="/"
           className="text-[22px] font-bold tracking-tight text-[#191919]"
         >
           Jestly
-        </a>
+        </Link>
 
         {/* Nav links — centre */}
         <div className="hidden md:flex items-center gap-8">
@@ -41,13 +42,13 @@ export default function Navbar() {
 
         {/* Actions — droite */}
         <div className="flex items-center gap-4">
-          <a
-            href="#"
+          <Link
+            href="/login"
             className="hidden sm:inline text-sm text-[#5A5A58] hover:text-[#191919] transition-colors font-medium"
           >
             Se connecter
-          </a>
-          <Button className="!py-2.5 !px-5 !text-[13px]">Commencer</Button>
+          </Link>
+          <Button href="/login" className="!py-2.5 !px-5 !text-[13px]">Commencer</Button>
         </div>
       </div>
     </motion.nav>

@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { getProductBySlug } from "@/lib/mock-data";
+import { useApi } from "@/lib/hooks/use-api";
+import { serviceToProduct } from "@/lib/adapters";
+import type { Product } from "@/types";
+import type { Service } from "@/types/database";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
@@ -11,7 +14,9 @@ const sectors = ["Tech / SaaS", "E-commerce", "Restauration", "Mode / Beauté", 
 
 export default function OrderPage() {
   const params = useParams<{ slug: string }>();
-  const product = getProductBySlug(params.slug);
+  const { data: rawServices } = useApi<Service[]>("/api/products");
+  const products: Product[] = useMemo(() => rawServices ? rawServices.map(serviceToProduct) : [], [rawServices]);
+  const product = products.find((p) => p.slug === params.slug);
 
   const [form, setForm] = useState({
     name: "",

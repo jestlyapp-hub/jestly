@@ -3,7 +3,6 @@
 import { useState, useRef } from "react";
 import { useApi } from "@/lib/hooks/use-api";
 import { serviceToProduct } from "@/lib/adapters";
-import { products as mockProducts } from "@/lib/mock-data";
 import type { Product, ProductType } from "@/types";
 import type { Service } from "@/types/database";
 
@@ -20,7 +19,7 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data: rawServices } = useApi<Service[]>("/api/products");
-  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : mockProducts;
+  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : [];
 
   const available = products.filter((p) => {
     if (filterType && p.type !== filterType) return false;

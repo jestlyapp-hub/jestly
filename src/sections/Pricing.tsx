@@ -91,7 +91,7 @@ export default function Pricing() {
               ))}
             </ul>
             <motion.a
-              href="#"
+              href="/login"
               className="block text-center w-full py-3.5 rounded-md border border-[#E6E6E4] text-sm font-semibold text-[#191919] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -132,7 +132,7 @@ export default function Pricing() {
               ))}
             </ul>
             <motion.a
-              href="#"
+              href="/login"
               className="block text-center w-full py-3.5 rounded-md bg-[#4F46E5] text-sm font-semibold text-white cursor-pointer hover:bg-[#4338CA] transition-colors"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}

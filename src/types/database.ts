@@ -174,12 +174,16 @@ export interface Database {
           title: string;
           description: string;
           amount: number;
-          status: "new" | "in_progress" | "delivered" | "cancelled" | "refunded";
+          status: "new" | "brief_received" | "in_progress" | "in_review" | "validated" | "delivered" | "invoiced" | "paid" | "cancelled" | "refunded" | "dispute";
           priority: "low" | "normal" | "high" | "urgent";
           deadline: string | null;
           stripe_payment_id: string | null;
           paid: boolean;
           notes: string | null;
+          checklist: Json;
+          tags: string[];
+          status_id: string | null;
+          custom_fields: Json;
           created_at: string;
           updated_at: string;
         };
@@ -191,12 +195,16 @@ export interface Database {
           title: string;
           description: string;
           amount: number;
-          status?: "new" | "in_progress" | "delivered" | "cancelled" | "refunded";
+          status?: "new" | "brief_received" | "in_progress" | "in_review" | "validated" | "delivered" | "invoiced" | "paid" | "cancelled" | "refunded" | "dispute";
           priority?: "low" | "normal" | "high" | "urgent";
           deadline?: string | null;
           stripe_payment_id?: string | null;
           paid?: boolean;
           notes?: string | null;
+          checklist?: Json;
+          tags?: string[];
+          status_id?: string | null;
+          custom_fields?: Json;
           created_at?: string;
           updated_at?: string;
         };
@@ -208,12 +216,16 @@ export interface Database {
           title?: string;
           description?: string;
           amount?: number;
-          status?: "new" | "in_progress" | "delivered" | "cancelled" | "refunded";
+          status?: "new" | "brief_received" | "in_progress" | "in_review" | "validated" | "delivered" | "invoiced" | "paid" | "cancelled" | "refunded" | "dispute";
           priority?: "low" | "normal" | "high" | "urgent";
           deadline?: string | null;
           stripe_payment_id?: string | null;
           paid?: boolean;
           notes?: string | null;
+          checklist?: Json;
+          tags?: string[];
+          status_id?: string | null;
+          custom_fields?: Json;
           created_at?: string;
           updated_at?: string;
         };
@@ -585,6 +597,91 @@ export interface Database {
           page_slug?: string | null;
           data?: Json;
           visitor_id?: string | null;
+        };
+      };
+      // ── Custom Workflow tables ──
+      order_boards: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          is_default: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name?: string;
+          is_default?: boolean;
+        };
+        Update: {
+          name?: string;
+          is_default?: boolean;
+        };
+      };
+      order_statuses: {
+        Row: {
+          id: string;
+          board_id: string;
+          slug: string;
+          name: string;
+          color: string;
+          view: "production" | "cash";
+          position: number;
+          is_archived: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          board_id: string;
+          slug?: string;
+          name: string;
+          color?: string;
+          view?: "production" | "cash";
+          position?: number;
+          is_archived?: boolean;
+        };
+        Update: {
+          slug?: string;
+          name?: string;
+          color?: string;
+          view?: "production" | "cash";
+          position?: number;
+          is_archived?: boolean;
+        };
+      };
+      order_fields: {
+        Row: {
+          id: string;
+          user_id: string;
+          key: string;
+          label: string;
+          field_type: string;
+          options: Json;
+          is_required: boolean;
+          is_visible_on_card: boolean;
+          position: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          key: string;
+          label: string;
+          field_type?: string;
+          options?: Json;
+          is_required?: boolean;
+          is_visible_on_card?: boolean;
+          position?: number;
+        };
+        Update: {
+          key?: string;
+          label?: string;
+          field_type?: string;
+          options?: Json;
+          is_required?: boolean;
+          is_visible_on_card?: boolean;
+          position?: number;
         };
       };
     };

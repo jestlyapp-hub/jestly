@@ -57,10 +57,10 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.3, ease: "easeOut" }}
         >
-          <Button>
+          <Button href="/login">
             Commencer gratuitement <ArrowIcon />
           </Button>
-          <Button variant="secondary">Voir la demo</Button>
+          <Button variant="secondary" href="#features">Voir la demo</Button>
         </motion.div>
 
         <motion.p

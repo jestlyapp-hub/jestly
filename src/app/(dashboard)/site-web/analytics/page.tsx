@@ -2,9 +2,8 @@
 
 import { motion } from "framer-motion";
 import StatCard from "@/components/ui/StatCard";
-import { getAnalyticsSummary } from "@/lib/analytics";
-import { mockAnalyticsEvents } from "@/lib/mock-data";
-import type { AnalyticsEventType } from "@/types";
+import { useApi } from "@/lib/hooks/use-api";
+import type { AnalyticsEvent, AnalyticsEventType } from "@/types";
 
 const eventTypeLabels: Record<AnalyticsEventType, string> = {
   page_view: "Page vue",
@@ -22,10 +21,21 @@ const eventTypeColors: Record<AnalyticsEventType, string> = {
   order_complete: "#10B981",
 };
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function transformEvent(row: any): AnalyticsEvent {
+  return {
+    id: row.id,
+    type: row.event_type || row.type,
+    page: row.page_path || row.page || null,
+    timestamp: row.created_at || row.timestamp,
+    data: row.event_data || row.data || null,
+  };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 export default function SiteAnalyticsPage() {
-  const analytics = getAnalyticsSummary();
-  const allEvents = mockAnalyticsEvents;
-  const maxPageCount = Math.max(...analytics.topPages.map((p) => p.count), 1);
+  const { data: rawEvents } = useApi<Record<string, unknown>[]>("/api/analytics/summary");
+  const allEvents: AnalyticsEvent[] = rawEvents ? rawEvents.map(transformEvent) : [];
 
   // Group events by type for breakdown
   const typeCounts: Record<string, number> = {};
@@ -33,6 +43,21 @@ export default function SiteAnalyticsPage() {
     typeCounts[evt.type] = (typeCounts[evt.type] || 0) + 1;
   }
   const totalEvents = allEvents.length;
+  const totalViews = typeCounts["page_view"] ?? 0;
+  const totalConversions = typeCounts["order_complete"] ?? 0;
+
+  // Top pages by view count
+  const pageCounts: Record<string, number> = {};
+  for (const e of allEvents) {
+    if (e.page) {
+      pageCounts[e.page] = (pageCounts[e.page] || 0) + 1;
+    }
+  }
+  const topPages = Object.entries(pageCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([page, count]) => ({ page, count }));
+  const maxPageCount = Math.max(...topPages.map((p) => p.count), 1);
 
   // Conversion rate
   const views = typeCounts["page_view"] ?? 0;
@@ -54,8 +79,8 @@ export default function SiteAnalyticsPage() {
       {/* Stats row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Pages vues", value: String(analytics.totalViews), change: `${totalEvents} événements total`, positive: true },
-          { label: "Conversions", value: String(analytics.totalConversions), change: `${conversionRate}% taux`, positive: analytics.totalConversions > 0 },
+          { label: "Pages vues", value: String(totalViews), change: `${totalEvents} événements total`, positive: true },
+          { label: "Conversions", value: String(totalConversions), change: `${conversionRate}% taux`, positive: totalConversions > 0 },
           { label: "Clics CTA", value: String(typeCounts["click_cta"] ?? 0), change: "tous les clics", positive: true },
           { label: "Formulaires", value: String(typeCounts["form_submit"] ?? 0), change: "soumissions", positive: true },
         ].map((s, i) => (
@@ -80,7 +105,7 @@ export default function SiteAnalyticsPage() {
         >
           <h2 className="text-[14px] font-semibold text-[#191919] mb-4">Pages les plus visitées</h2>
           <div className="space-y-4">
-            {analytics.topPages.map((p, i) => (
+            {topPages.map((p, i) => (
               <div key={p.page}>
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-2">
@@ -97,7 +122,7 @@ export default function SiteAnalyticsPage() {
                 </div>
               </div>
             ))}
-            {analytics.topPages.length === 0 && (
+            {topPages.length === 0 && (
               <p className="text-sm text-[#8A8A88]">Aucune donnée pour le moment.</p>
             )}
           </div>

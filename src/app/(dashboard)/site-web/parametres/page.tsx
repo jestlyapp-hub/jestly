@@ -1,36 +1,54 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { mockSite } from "@/lib/mock-data";
+import { useSite } from "@/lib/hooks/use-site";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-11 h-6 rounded-full transition-colors cursor-pointer";
 const toggleDotClass = "absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform";
 
 export default function SiteParametresPage() {
-  const [name, setName] = useState(mockSite.settings.name);
-  const [description, setDescription] = useState(mockSite.settings.description);
-  const [maintenance, setMaintenance] = useState(mockSite.settings.maintenanceMode);
-  const [socials, setSocials] = useState(mockSite.settings.socials);
+  const { site } = useSite();
+  const [name, setName] = useState(site.settings.name);
+  const [description, setDescription] = useState(site.settings.description);
+  const [maintenance, setMaintenance] = useState(site.settings.maintenanceMode);
+  const [socials, setSocials] = useState(site.settings.socials);
 
   // Nav state
-  const [navLinks, setNavLinks] = useState(mockSite.nav?.links ?? []);
-  const [navShowCta, setNavShowCta] = useState(mockSite.nav?.showCta ?? false);
-  const [navCtaLabel, setNavCtaLabel] = useState(mockSite.nav?.ctaLabel ?? "");
+  const [navLinks, setNavLinks] = useState(site.nav?.links ?? []);
+  const [navShowCta, setNavShowCta] = useState(site.nav?.showCta ?? false);
+  const [navCtaLabel, setNavCtaLabel] = useState(site.nav?.ctaLabel ?? "");
 
   // Footer state
-  const [footerLinks, setFooterLinks] = useState(mockSite.footer?.links ?? []);
-  const [footerShowSocials, setFooterShowSocials] = useState(mockSite.footer?.showSocials ?? true);
-  const [footerCopyright, setFooterCopyright] = useState(mockSite.footer?.copyright ?? "");
+  const [footerLinks, setFooterLinks] = useState(site.footer?.links ?? []);
+  const [footerShowSocials, setFooterShowSocials] = useState(site.footer?.showSocials ?? true);
+  const [footerCopyright, setFooterCopyright] = useState(site.footer?.copyright ?? "");
 
   // Auto-services
   const [autoServices, setAutoServices] = useState(false);
 
   // i18n
-  const i18n = mockSite.settings.i18n ?? { locales: ["fr"], defaultLocale: "fr" };
+  const i18n = site.settings.i18n ?? { locales: ["fr"], defaultLocale: "fr" };
   const [defaultLocale, setDefaultLocale] = useState(i18n.defaultLocale);
   const [locales, setLocales] = useState(i18n.locales);
+
+  // Sync form state when API data arrives
+  useEffect(() => {
+    setName(site.settings.name);
+    setDescription(site.settings.description);
+    setMaintenance(site.settings.maintenanceMode);
+    setSocials(site.settings.socials);
+    setNavLinks(site.nav?.links ?? []);
+    setNavShowCta(site.nav?.showCta ?? false);
+    setNavCtaLabel(site.nav?.ctaLabel ?? "");
+    setFooterLinks(site.footer?.links ?? []);
+    setFooterShowSocials(site.footer?.showSocials ?? true);
+    setFooterCopyright(site.footer?.copyright ?? "");
+    const i = site.settings.i18n ?? { locales: ["fr"], defaultLocale: "fr" };
+    setDefaultLocale(i.defaultLocale);
+    setLocales(i.locales);
+  }, [site]);
 
   const updateSocial = (key: string, value: string) => {
     setSocials((prev) => ({ ...prev, [key]: value }));
@@ -126,7 +144,7 @@ export default function SiteParametresPage() {
                     className={`${inputClass} flex-1`}
                   >
                     <option value="">Page...</option>
-                    {mockSite.pages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {site.pages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 ) : (
                   <input
@@ -184,7 +202,7 @@ export default function SiteParametresPage() {
                     className={`${inputClass} flex-1`}
                   >
                     <option value="">Page...</option>
-                    {mockSite.pages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {site.pages.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 ) : (
                   <input

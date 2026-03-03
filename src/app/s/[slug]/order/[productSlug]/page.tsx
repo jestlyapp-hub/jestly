@@ -1,6 +1,5 @@
 import { getSiteBySlug } from "@/lib/site-resolver";
 import { getPublicProductBySlug } from "@/lib/product-resolver";
-import { getProductBySlug as getMockProductBySlug } from "@/lib/mock-data";
 import CheckoutStepper from "@/components/site-public/CheckoutStepper";
 import { createClient } from "@/lib/supabase/server";
 
@@ -42,15 +41,7 @@ export default async function PublicOrderPage({
       product = await getPublicProductBySlug(productSlug, dbSite.owner_id);
     }
   } catch {
-    // Fallback to mock
-  }
-
-  // Fallback to mock data
-  if (!product) {
-    const mockProduct = getMockProductBySlug(productSlug);
-    if (mockProduct) {
-      product = mockProduct;
-    }
+    // Product not found
   }
 
   if (!product) {

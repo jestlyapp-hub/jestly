@@ -2,11 +2,11 @@
 
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { mockSite } from "@/lib/mock-data";
-import type { PortfolioGridBlockContent } from "@/types";
+import { useSite } from "@/lib/hooks/use-site";
+import type { Site, PortfolioGridBlockContent } from "@/types";
 
-function findProjectBySlug(slug: string) {
-  for (const page of mockSite.pages) {
+function findProjectBySlug(site: Site, slug: string) {
+  for (const page of site.pages) {
     for (const block of page.blocks) {
       if (block.type === "portfolio-grid") {
         const content = block.content as PortfolioGridBlockContent;
@@ -19,8 +19,9 @@ function findProjectBySlug(slug: string) {
 }
 
 export default function ProjectDetailPage() {
+  const { site } = useSite();
   const params = useParams<{ slug: string }>();
-  const project = findProjectBySlug(params.slug);
+  const project = findProjectBySlug(site, params.slug);
 
   if (!project) {
     return (

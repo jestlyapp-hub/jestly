@@ -1,7 +1,31 @@
 "use client";
 
 import { useState } from "react";
-import { siteTemplates } from "@/lib/mock-data";
+import type { SiteTemplate } from "@/types";
+
+const siteTemplates: SiteTemplate[] = [
+  {
+    id: "TPL-001",
+    name: "Creator Pro",
+    description: "Template moderne pour créateurs de contenu avec portfolio en grille et prise de commande intégrée.",
+    gradient: "from-purple-600 to-indigo-600",
+    pages: [],
+  },
+  {
+    id: "TPL-002",
+    name: "Studio Minimal",
+    description: "Design épuré et minimaliste, idéal pour les studios de design et photographes.",
+    gradient: "from-gray-800 to-gray-600",
+    pages: [],
+  },
+  {
+    id: "TPL-003",
+    name: "Agency Dark",
+    description: "Thème sombre premium pour agences créatives et consultants haut de gamme.",
+    gradient: "from-violet-900 to-black",
+    pages: [],
+  },
+];
 
 export default function TemplateSelector({ onSelect }: { onSelect?: (templateId: string) => void }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);

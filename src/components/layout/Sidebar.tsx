@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "@/lib/auth/actions";
 
 /* ─── Navigation items ─── */
 
@@ -182,7 +183,7 @@ export default function Sidebar() {
         </div>
       </nav>
 
-      {/* User profile */}
+      {/* User profile + sign out */}
       <div className="px-4 py-4 border-t border-[#E6E6E4]">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[11px] font-semibold text-[#4F46E5]">
@@ -192,6 +193,19 @@ export default function Sidebar() {
             <div className="text-[13px] font-semibold text-[#1A1A1A] truncate">Gabriel B.</div>
             <div className="text-[11px] text-[#999]">Plan Pro</div>
           </div>
+          <form action={signOut}>
+            <button
+              type="submit"
+              title="Se déconnecter"
+              className="p-1.5 rounded-lg text-[#999] hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+            </button>
+          </form>
         </div>
       </div>
     </aside>

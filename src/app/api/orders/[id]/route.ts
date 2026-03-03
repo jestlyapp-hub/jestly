@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/orders/[id]
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getAuthUser();
+  if (auth.error) return auth.error;
+  const { user, supabase } = auth;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("orders") as any)
@@ -22,12 +22,12 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 // PATCH /api/orders/[id]
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getAuthUser();
+  if (auth.error) return auth.error;
+  const { user, supabase } = auth;
 
   const body = await req.json();
-  const allowed = ["status", "priority", "deadline", "notes", "paid", "title", "description", "amount"];
+  const allowed = ["status", "status_id", "priority", "deadline", "notes", "paid", "title", "description", "amount", "checklist", "tags", "custom_fields"];
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
     if (key in body) updates[key] = body[key];

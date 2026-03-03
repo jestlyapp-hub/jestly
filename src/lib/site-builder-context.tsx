@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useReducer, useEffect, useState, type ReactNode } from "react";
 import type { Site, Block, BlockType, BlockContentMap, BlockSettings, SitePage } from "@/types";
-import { mockSite } from "@/lib/mock-data";
 
 type Breakpoint = "desktop" | "tablet" | "mobile";
 
@@ -254,14 +253,23 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
   }
 }
 
+const emptySite: Site = {
+  id: "",
+  settings: { name: "", description: "", maintenanceMode: false, socials: {} },
+  theme: { primaryColor: "#4F46E5", fontFamily: "Inter, sans-serif", borderRadius: "rounded", shadow: "sm" },
+  pages: [],
+  domain: { subdomain: "" },
+  seo: { globalTitle: "", globalDescription: "" },
+};
+
 const initialState: BuilderState = {
-  site: mockSite,
-  activePageId: mockSite.pages[0]?.id ?? "",
+  site: emptySite,
+  activePageId: "",
   activeBlockId: null,
   isDirty: false,
   breakpoint: "desktop",
   previewMode: false,
-  history: [JSON.parse(JSON.stringify(mockSite))],
+  history: [JSON.parse(JSON.stringify(emptySite))],
   historyIndex: 0,
 };
 

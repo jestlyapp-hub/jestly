@@ -2,7 +2,6 @@
 
 import { memo } from "react";
 import { useProductsByIds } from "@/lib/product-context";
-import { getProductsByIds as getMockProductsByIds } from "@/lib/mock-data";
 import { getButtonInlineStyle } from "@/lib/block-style-engine";
 
 interface PricingTableRealBlockContent {
@@ -14,8 +13,7 @@ interface PricingTableRealBlockContent {
 }
 
 function PricingTableRealBlockPreviewInner({ content }: { content: PricingTableRealBlockContent }) {
-  const contextProducts = useProductsByIds(content.productIds);
-  const products = contextProducts.length > 0 ? contextProducts : getMockProductsByIds(content.productIds);
+  const products = useProductsByIds(content.productIds);
 
   if (products.length === 0) {
     return (

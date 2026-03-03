@@ -4,12 +4,13 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import BadgeStatus from "@/components/ui/BadgeStatus";
 import SlidePanel from "@/components/ui/SlidePanel";
-import { mockSite } from "@/lib/mock-data";
+import { useSite } from "@/lib/hooks/use-site";
 import type { SitePage } from "@/types";
 
 export default function SitePagesPage() {
+  const { site } = useSite();
   const [selected, setSelected] = useState<SitePage | null>(null);
-  const pages = mockSite.pages;
+  const pages = site.pages;
 
   return (
     <div className="max-w-4xl mx-auto">

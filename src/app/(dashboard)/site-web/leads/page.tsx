@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import SlidePanel from "@/components/ui/SlidePanel";
-import { mockLeads } from "@/lib/mock-data";
+import { useApi } from "@/lib/hooks/use-api";
 import type { Lead } from "@/types";
 
 const sourceLabels: Record<string, { label: string; color: string; bg: string }> = {
@@ -13,11 +13,26 @@ const sourceLabels: Record<string, { label: string; color: string; bg: string }>
   "order_form": { label: "Commande", color: "#8B5CF6", bg: "#F5F3FF" },
 };
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+function transformLead(row: any): Lead {
+  return {
+    id: row.id,
+    name: row.name || "",
+    email: row.email,
+    source: row.source || "contact-form",
+    date: new Date(row.created_at).toLocaleDateString("fr-FR"),
+    fields: row.fields || {},
+  };
+}
+/* eslint-enable @typescript-eslint/no-explicit-any */
+
 export default function SiteLeadsPage() {
+  const { data: rawLeads } = useApi<Record<string, unknown>[]>("/api/leads");
+  const leads: Lead[] = rawLeads ? rawLeads.map(transformLead) : [];
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Lead | null>(null);
 
-  const filtered = mockLeads.filter((l) =>
+  const filtered = leads.filter((l) =>
     l.name.toLowerCase().includes(search.toLowerCase()) ||
     l.email.toLowerCase().includes(search.toLowerCase()) ||
     l.source.toLowerCase().includes(search.toLowerCase())
@@ -34,7 +49,7 @@ export default function SiteLeadsPage() {
       >
         <div>
           <h1 className="text-xl font-bold text-[#191919]">Leads</h1>
-          <p className="text-[13px] text-[#8A8A88] mt-0.5">{mockLeads.length} contacts collectés depuis votre site</p>
+          <p className="text-[13px] text-[#8A8A88] mt-0.5">{leads.length} contacts collectés depuis votre site</p>
         </div>
         <div className="relative w-full sm:w-64">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A8A88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2">

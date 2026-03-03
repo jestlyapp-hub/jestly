@@ -30,21 +30,22 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // TODO: Uncomment when login page is ready
-  // // Protected routes: redirect to /login if not authenticated
-  // const isProtectedRoute = request.nextUrl.pathname.startsWith("/dashboard");
-  // if (!user && isProtectedRoute) {
-  //   const url = request.nextUrl.clone();
-  //   url.pathname = "/login";
-  //   return NextResponse.redirect(url);
-  // }
+  // Protected routes: redirect to /login if not authenticated
+  const protectedPrefixes = ["/dashboard", "/clients", "/commandes", "/produits", "/facturation", "/abonnements", "/analytics", "/parametres", "/site-web"];
+  const isProtectedRoute = protectedPrefixes.some((p) => request.nextUrl.pathname.startsWith(p));
 
-  // // Redirect authenticated users away from /login
-  // if (user && request.nextUrl.pathname === "/login") {
-  //   const url = request.nextUrl.clone();
-  //   url.pathname = "/dashboard";
-  //   return NextResponse.redirect(url);
-  // }
+  if (!user && isProtectedRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return NextResponse.redirect(url);
+  }
+
+  // Redirect authenticated users away from /login
+  if (user && request.nextUrl.pathname === "/login") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    return NextResponse.redirect(url);
+  }
 
   return supabaseResponse;
 }

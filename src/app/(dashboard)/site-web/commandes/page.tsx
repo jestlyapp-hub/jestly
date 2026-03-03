@@ -6,15 +6,14 @@ import BadgeStatus from "@/components/ui/BadgeStatus";
 import SlidePanel from "@/components/ui/SlidePanel";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { orderRecordToOrder } from "@/lib/adapters";
-import { orders as mockOrders } from "@/lib/mock-data";
 import type { Order, OrderStatus } from "@/types";
 
 const statusFilters: { label: string; value: OrderStatus | "all" }[] = [
   { label: "Toutes", value: "all" },
-  { label: "En attente", value: "pending" },
+  { label: "Nouveau", value: "new" },
   { label: "En cours", value: "in_progress" },
-  { label: "Livrée", value: "delivered" },
-  { label: "Annulée", value: "cancelled" },
+  { label: "Valide", value: "validated" },
+  { label: "Annule", value: "cancelled" },
 ];
 
 export default function SiteCommandesPage() {
@@ -24,7 +23,7 @@ export default function SiteCommandesPage() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: rawOrders, loading, error, mutate } = useApi<any[]>("/api/orders?source=site");
-  const orders: Order[] = rawOrders ? rawOrders.map(orderRecordToOrder) : mockOrders;
+  const orders: Order[] = rawOrders ? rawOrders.map(orderRecordToOrder) : [];
 
   const filtered = orders.filter((o) => {
     const matchStatus = filter === "all" || o.status === filter;

@@ -2,7 +2,6 @@
 
 import { memo, useState } from "react";
 import { useProductsByIds } from "@/lib/product-context";
-import { getProductsByIds as getMockProductsByIds } from "@/lib/mock-data";
 import { getButtonInlineStyle } from "@/lib/block-style-engine";
 
 interface ProductCardsGridBlockContent {
@@ -13,8 +12,7 @@ interface ProductCardsGridBlockContent {
 }
 
 function ProductCardsGridBlockPreviewInner({ content }: { content: ProductCardsGridBlockContent }) {
-  const contextProducts = useProductsByIds(content.productIds);
-  const products = contextProducts.length > 0 ? contextProducts : getMockProductsByIds(content.productIds);
+  const products = useProductsByIds(content.productIds);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   if (products.length === 0) {

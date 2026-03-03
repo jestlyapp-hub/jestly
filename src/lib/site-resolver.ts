@@ -1,6 +1,5 @@
 import type { Site, SitePage, Block, BlockType } from "@/types";
 import { createClient } from "@/lib/supabase/server";
-import { mockSite } from "@/lib/mock-data";
 
 // Re-export pure utilities so server-side callers can still import from this module
 export { getPageByPath, resolvePageSlug, resolveLink } from "@/lib/site-utils";
@@ -97,8 +96,6 @@ export async function getSiteBySlug(slug: string): Promise<Site | null> {
       .single();
 
     if (error || !dbSite) {
-      // Fallback to mock for development
-      if (mockSite.domain.subdomain === slug) return mockSite;
       return null;
     }
 
@@ -112,8 +109,6 @@ export async function getSiteBySlug(slug: string): Promise<Site | null> {
 
     return transformDbSiteToFrontend(dbSite, dbPages || []);
   } catch {
-    // Fallback to mock if Supabase is not available
-    if (mockSite.domain.subdomain === slug) return mockSite;
     return null;
   }
 }

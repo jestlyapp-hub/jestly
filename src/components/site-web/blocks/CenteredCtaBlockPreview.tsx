@@ -1,10 +1,8 @@
 import { memo } from "react";
 import type { CenteredCtaBlockContent } from "@/types";
-import { getProductById } from "@/lib/mock-data";
 import { getButtonInlineStyle } from "@/lib/block-style-engine";
 
 function CenteredCtaBlockPreviewInner({ content }: { content: CenteredCtaBlockContent }) {
-  const product = content.productId ? getProductById(content.productId) : undefined;
 
   return (
     <div className="text-center py-8">
@@ -13,11 +11,6 @@ function CenteredCtaBlockPreviewInner({ content }: { content: CenteredCtaBlockCo
       <span className="btn-styled inline-block text-[13px] font-semibold px-5 py-2.5 cursor-pointer" style={getButtonInlineStyle()}>
         {content.ctaLabel}
       </span>
-      {product && (
-        <div className="mt-2 text-[10px] opacity-50">
-          Lié au produit : {product.name} — {product.price} €
-        </div>
-      )}
     </div>
   );
 }

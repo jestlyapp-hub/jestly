@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import StatCard from "@/components/ui/StatCard";
 import { useApi } from "@/lib/hooks/use-api";
-import { orders as mockOrders, clients as mockClients, revenueData, ordersChartData } from "@/lib/mock-data";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -24,17 +23,17 @@ interface AnalyticsSummary {
   months: { month: string; revenue: number; orders: number }[];
 }
 
-const mockAnalyticsSummary: AnalyticsSummary = {
-  totalRevenue: mockOrders.reduce((s, o) => s + o.price, 0),
-  totalOrders: mockOrders.length,
-  clientCount: mockClients.length,
-  avgBasket: Math.round(mockOrders.reduce((s, o) => s + o.price, 0) / mockOrders.length),
-  months: revenueData.map((r, i) => ({ ...r, orders: ordersChartData[i]?.orders ?? 0 })),
+const emptyAnalytics: AnalyticsSummary = {
+  totalRevenue: 0,
+  totalOrders: 0,
+  clientCount: 0,
+  avgBasket: 0,
+  months: [],
 };
 
 export default function AnalyticsPage() {
   const { data: apiData, loading } = useApi<AnalyticsSummary>("/api/analytics/summary");
-  const data = apiData || (loading ? null : mockAnalyticsSummary);
+  const data = apiData || (loading ? null : emptyAnalytics);
 
   const stats = data
     ? [

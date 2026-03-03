@@ -3,13 +3,12 @@
 import { motion } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { serviceToProduct } from "@/lib/adapters";
-import { products as mockProducts } from "@/lib/mock-data";
 import type { Product } from "@/types";
 import type { Service } from "@/types/database";
 
 export default function ProduitsPage() {
   const { data: rawServices, loading, error, mutate } = useApi<Service[]>("/api/products");
-  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : mockProducts;
+  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : [];
 
   const toggleActive = async (id: string, currentActive: boolean) => {
     await apiFetch(`/api/products/${id}`, { method: "PATCH", body: { is_active: !currentActive } });

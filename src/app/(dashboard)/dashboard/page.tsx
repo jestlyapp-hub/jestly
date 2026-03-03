@@ -5,7 +5,6 @@ import StatCard from "@/components/ui/StatCard";
 import BadgeStatus from "@/components/ui/BadgeStatus";
 import type { OrderStatus } from "@/types";
 import { useApi } from "@/lib/hooks/use-api";
-import { orders as mockOrders, clients as mockClients, products as mockProducts, revenueData, ordersChartData } from "@/lib/mock-data";
 
 interface DashboardStats {
   totalRevenue: number;
@@ -18,14 +17,14 @@ interface DashboardStats {
   recentOrders: any[];
 }
 
-const mockDashboardStats: DashboardStats = {
-  totalRevenue: mockOrders.reduce((s, o) => s + o.price, 0),
-  ordersCount: mockOrders.length,
-  pendingOrders: mockOrders.filter((o) => o.status === "pending").length,
-  clientsCount: mockClients.length,
-  activeProductsCount: mockProducts.filter((p) => p.active).length,
-  monthlyRevenue: revenueData.map((r, i) => ({ ...r, orders: ordersChartData[i]?.orders ?? 0 })),
-  recentOrders: mockOrders.slice(0, 5).map((o) => ({ id: o.id, title: o.product, amount: o.price, status: o.status, clients: { name: o.client } })),
+const emptyStats: DashboardStats = {
+  totalRevenue: 0,
+  ordersCount: 0,
+  pendingOrders: 0,
+  clientsCount: 0,
+  activeProductsCount: 0,
+  monthlyRevenue: [],
+  recentOrders: [],
 };
 
 const fadeIn = {
@@ -39,7 +38,7 @@ const fadeIn = {
 
 export default function DashboardPage() {
   const { data: apiStats, loading, error, mutate } = useApi<DashboardStats>("/api/dashboard/stats");
-  const stats = apiStats || (loading ? null : mockDashboardStats);
+  const stats = apiStats || (loading ? null : emptyStats);
 
   if (loading) {
     return (
@@ -59,7 +58,7 @@ export default function DashboardPage() {
     return (
       <div className="max-w-6xl mx-auto py-12 text-center">
         <p className="text-[14px] text-red-500 mb-2">Erreur : {error}</p>
-        <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline">Réessayer</button>
+        <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline cursor-pointer">Réessayer</button>
       </div>
     );
   }
@@ -147,7 +146,7 @@ export default function DashboardPage() {
                     {order.amount} &euro;
                   </td>
                   <td className="px-5 py-3.5">
-                    <BadgeStatus status={(order.status === "new" ? "pending" : order.status) as OrderStatus} />
+                    <BadgeStatus status={order.status as OrderStatus} />
                   </td>
                 </tr>
               ))}

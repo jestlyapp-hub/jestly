@@ -1,27 +1,44 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { mockSite } from "@/lib/mock-data";
+import { useSite } from "@/lib/hooks/use-site";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 export default function SiteSeoPage() {
-  const [globalTitle, setGlobalTitle] = useState(mockSite.seo.globalTitle);
-  const [globalDesc, setGlobalDesc] = useState(mockSite.seo.globalDescription);
-  const [ogImage, setOgImage] = useState(mockSite.seo.ogImageUrl || "");
+  const { site } = useSite();
+  const [globalTitle, setGlobalTitle] = useState(site.seo.globalTitle);
+  const [globalDesc, setGlobalDesc] = useState(site.seo.globalDescription);
+  const [ogImage, setOgImage] = useState(site.seo.ogImageUrl || "");
   const [expandedPageId, setExpandedPageId] = useState<string | null>(null);
 
   // Local state for per-page SEO fields
   const [pageSeo, setPageSeo] = useState<Record<string, { seoTitle: string; seoDescription: string; ogImageUrl: string }>>(
     Object.fromEntries(
-      mockSite.pages.map((p) => [p.id, {
+      site.pages.map((p) => [p.id, {
         seoTitle: p.seoTitle ?? "",
         seoDescription: p.seoDescription ?? "",
         ogImageUrl: p.ogImageUrl ?? "",
       }])
     )
   );
+
+  // Sync form state when API data arrives
+  useEffect(() => {
+    setGlobalTitle(site.seo.globalTitle);
+    setGlobalDesc(site.seo.globalDescription);
+    setOgImage(site.seo.ogImageUrl || "");
+    setPageSeo(
+      Object.fromEntries(
+        site.pages.map((p) => [p.id, {
+          seoTitle: p.seoTitle ?? "",
+          seoDescription: p.seoDescription ?? "",
+          ogImageUrl: p.ogImageUrl ?? "",
+        }])
+      )
+    );
+  }, [site]);
 
   const updatePageSeo = (pageId: string, field: string, value: string) => {
     setPageSeo((prev) => ({ ...prev, [pageId]: { ...prev[pageId], [field]: value } }));
@@ -73,7 +90,7 @@ export default function SiteSeoPage() {
         >
           <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-4">SEO par page</h2>
           <div className="space-y-3">
-            {mockSite.pages.map((page) => {
+            {site.pages.map((page) => {
               const isExpanded = expandedPageId === page.id;
               const seo = pageSeo[page.id];
               return (

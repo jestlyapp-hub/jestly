@@ -3,13 +3,10 @@
 import { memo } from "react";
 import type { PackPremiumBlockContent } from "@/types";
 import { useProductById } from "@/lib/product-context";
-import { getProductById as getMockProductById } from "@/lib/mock-data";
 import { getButtonInlineStyle } from "@/lib/block-style-engine";
 
 function PackPremiumBlockPreviewInner({ content }: { content: PackPremiumBlockContent }) {
-  const contextProduct = useProductById(content.productId);
-  // Fallback to mock data if context is empty (builder mode)
-  const product = contextProduct || (content.productId ? getMockProductById(content.productId) : undefined);
+  const product = useProductById(content.productId);
 
   if (!product) {
     return (

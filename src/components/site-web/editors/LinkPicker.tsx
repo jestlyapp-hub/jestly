@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
-import { products } from "@/lib/mock-data";
-import type { Link, LinkType } from "@/types";
+import { useApi } from "@/lib/hooks/use-api";
+import { serviceToProduct } from "@/lib/adapters";
+import type { Link, LinkType, Product } from "@/types";
 
 interface LinkPickerProps {
   value: Link | undefined;
@@ -23,6 +24,9 @@ const linkTypes: { value: LinkType; label: string }[] = [
 
 export default function LinkPicker({ value, onChange, label }: LinkPickerProps) {
   const { state } = useBuilder();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rawServices } = useApi<any[]>("/api/products");
+  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : [];
   const [productSearch, setProductSearch] = useState("");
   const [productOpen, setProductOpen] = useState(false);
 

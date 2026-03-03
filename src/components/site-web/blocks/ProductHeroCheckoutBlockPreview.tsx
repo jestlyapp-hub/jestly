@@ -2,7 +2,6 @@
 
 import { memo } from "react";
 import { useProductById } from "@/lib/product-context";
-import { getProductById as getMockProductById } from "@/lib/mock-data";
 import { getButtonInlineStyle } from "@/lib/block-style-engine";
 
 interface ProductHeroCheckoutBlockContent {
@@ -14,8 +13,7 @@ interface ProductHeroCheckoutBlockContent {
 }
 
 function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHeroCheckoutBlockContent }) {
-  const contextProduct = useProductById(content.productId);
-  const product = contextProduct || (content.productId ? getMockProductById(content.productId) : undefined);
+  const product = useProductById(content.productId);
 
   if (!product) {
     return (

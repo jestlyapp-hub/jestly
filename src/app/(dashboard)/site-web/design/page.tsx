@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { mockSite } from "@/lib/mock-data";
+import { useSite } from "@/lib/hooks/use-site";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
@@ -29,10 +29,19 @@ const presets = [
 ];
 
 export default function SiteDesignPage() {
-  const [primaryColor, setPrimaryColor] = useState(mockSite.theme.primaryColor);
-  const [fontFamily, setFontFamily] = useState(mockSite.theme.fontFamily);
-  const [borderRadius, setBorderRadius] = useState(mockSite.theme.borderRadius);
-  const [shadow, setShadow] = useState(mockSite.theme.shadow);
+  const { site } = useSite();
+  const [primaryColor, setPrimaryColor] = useState(site.theme.primaryColor);
+  const [fontFamily, setFontFamily] = useState(site.theme.fontFamily);
+  const [borderRadius, setBorderRadius] = useState(site.theme.borderRadius);
+  const [shadow, setShadow] = useState(site.theme.shadow);
+
+  // Sync form state when API data arrives
+  useEffect(() => {
+    setPrimaryColor(site.theme.primaryColor);
+    setFontFamily(site.theme.fontFamily);
+    setBorderRadius(site.theme.borderRadius);
+    setShadow(site.theme.shadow);
+  }, [site]);
 
   const applyPreset = (preset: typeof presets[number]) => {
     setPrimaryColor(preset.primary);

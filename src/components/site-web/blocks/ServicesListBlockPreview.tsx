@@ -3,12 +3,9 @@
 import { memo } from "react";
 import type { ServicesListBlockContent } from "@/types";
 import { useProductsByIds } from "@/lib/product-context";
-import { getProductsByIds as getMockProductsByIds } from "@/lib/mock-data";
 
 function ServicesListBlockPreviewInner({ content }: { content: ServicesListBlockContent }) {
-  const contextProducts = useProductsByIds(content.productIds);
-  // Fallback to mock data if context is empty (builder mode)
-  const products = contextProducts.length > 0 ? contextProducts : getMockProductsByIds(content.productIds);
+  const products = useProductsByIds(content.productIds);
 
   if (products.length === 0) {
     return (

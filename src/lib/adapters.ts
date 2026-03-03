@@ -1,4 +1,4 @@
-import type { Product, Order, Client } from "@/types";
+import type { Product, Order, Client, ClientDetail, ClientNote, ClientEvent } from "@/types";
 import type { Service, OrderRecord, ClientRecord } from "@/types/database";
 
 /**
@@ -28,18 +28,36 @@ export function serviceToProduct(row: Service): Product {
  */
 export function orderRecordToOrder(
   row: OrderRecord & {
-    clients?: { name: string; email: string } | null;
+    clients?: { name: string; email: string; phone?: string | null } | null;
     services?: { title: string } | null;
   }
 ): Order {
+  // Parse checklist safely
+  let checklist: { id: string; label: string; done: boolean }[] = [];
+  if (Array.isArray(row.checklist)) {
+    checklist = row.checklist as typeof checklist;
+  }
+
   return {
     id: row.id,
     client: row.clients?.name ?? "Client inconnu",
     clientEmail: row.clients?.email ?? "",
+    clientId: row.client_id,
+    clientPhone: row.clients?.phone ?? undefined,
     product: row.services?.title ?? row.title,
     price: Number(row.amount),
-    status: row.status === "new" ? "pending" : (row.status as Order["status"]),
+    status: row.status as Order["status"],
     date: row.created_at.split("T")[0],
+    priority: row.priority,
+    deadline: row.deadline ?? undefined,
+    paid: row.paid,
+    tags: row.tags ?? [],
+    checklist,
+    notes: row.notes ?? undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    statusId: (row as any).status_id ?? undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    customFields: (row as any).custom_fields ?? {},
   };
 }
 
@@ -62,5 +80,62 @@ export function clientRecordToClient(
       .join("")
       .toUpperCase()
       .slice(0, 2),
+  };
+}
+
+/**
+ * Convert a DB client row (enriched) to the frontend ClientDetail type.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function clientDetailFromRecord(row: any): ClientDetail {
+  return {
+    id: row.id,
+    name: row.name,
+    email: row.email,
+    phone: row.phone ?? null,
+    company: row.company ?? null,
+    website: row.website ?? null,
+    tags: row.tags ?? [],
+    notes: row.notes ?? null,
+    totalRevenue: Number(row.total_revenue ?? 0),
+    ordersCount: row.orders_count ?? 0,
+    status: row.status ?? "active",
+    source: row.source ?? null,
+    lastOrderAt: row.last_order_at ?? null,
+    createdAt: row.created_at,
+    avatar: (row.name || "?")
+      .split(" ")
+      .map((w: string) => w[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2),
+  };
+}
+
+/**
+ * Convert a DB client_notes row to the frontend ClientNote type.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function clientNoteFromRecord(row: any): ClientNote {
+  return {
+    id: row.id,
+    clientId: row.client_id,
+    content: row.content,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+/**
+ * Convert a DB client_events row to the frontend ClientEvent type.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function clientEventFromRecord(row: any): ClientEvent {
+  return {
+    id: row.id,
+    clientId: row.client_id,
+    type: row.type,
+    payload: row.payload ?? {},
+    createdAt: row.created_at,
   };
 }

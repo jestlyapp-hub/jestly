@@ -41,7 +41,7 @@ export default function FinalCta() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.15 }}
         >
-          <Button className="!py-4 !px-10 !text-base">
+          <Button href="/login" className="!py-4 !px-10 !text-base">
             Commencer gratuitement <ArrowIcon />
           </Button>
         </motion.div>

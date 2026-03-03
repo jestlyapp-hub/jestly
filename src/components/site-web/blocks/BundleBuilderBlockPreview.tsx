@@ -2,7 +2,6 @@
 
 import { memo, useState } from "react";
 import { useProductsByIds } from "@/lib/product-context";
-import { getProductsByIds as getMockProductsByIds } from "@/lib/mock-data";
 import { getButtonInlineStyle } from "@/lib/block-style-engine";
 
 interface BundleBuilderBlockContent {
@@ -14,8 +13,7 @@ interface BundleBuilderBlockContent {
 }
 
 function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlockContent }) {
-  const contextProducts = useProductsByIds(content.productIds);
-  const products = contextProducts.length > 0 ? contextProducts : getMockProductsByIds(content.productIds);
+  const products = useProductsByIds(content.productIds);
   const [checked, setChecked] = useState<Set<string>>(() => new Set(products.map((p) => p.id)));
 
   if (products.length === 0) {

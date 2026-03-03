@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useApi } from "@/lib/hooks/use-api";
 import { serviceToProduct } from "@/lib/adapters";
-import { products as mockProducts } from "@/lib/mock-data";
 import type { Product, ProductType } from "@/types";
 import type { Service } from "@/types/database";
 
@@ -19,7 +18,7 @@ export default function ProductSingleSelect({ selectedId, onChange, filterType, 
   const [open, setOpen] = useState(false);
 
   const { data: rawServices } = useApi<Service[]>("/api/products");
-  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : mockProducts;
+  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : [];
 
   const selected = products.find((p) => p.id === selectedId);
 

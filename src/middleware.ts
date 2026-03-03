@@ -16,8 +16,20 @@ export async function middleware(req: NextRequest) {
 
   // Root domain or localhost → serve app normally (landing + dashboard)
   if (isRootDomain || isLocalhost) {
-    // Refresh Supabase session for dashboard routes
-    if (url.pathname.startsWith("/dashboard") || url.pathname.startsWith("/site-web")) {
+    // Refresh Supabase session for protected + auth routes
+    const needsSession =
+      url.pathname.startsWith("/dashboard") ||
+      url.pathname.startsWith("/site-web") ||
+      url.pathname.startsWith("/clients") ||
+      url.pathname.startsWith("/commandes") ||
+      url.pathname.startsWith("/produits") ||
+      url.pathname.startsWith("/facturation") ||
+      url.pathname.startsWith("/abonnements") ||
+      url.pathname.startsWith("/analytics") ||
+      url.pathname.startsWith("/parametres") ||
+      url.pathname === "/login";
+
+    if (needsSession) {
       try {
         return await updateSession(req);
       } catch {

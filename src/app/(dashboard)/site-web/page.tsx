@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import StatCard from "@/components/ui/StatCard";
 import BadgeStatus from "@/components/ui/BadgeStatus";
-import { mockSite, siteOrders, siteStats } from "@/lib/mock-data";
-import { getAnalyticsSummary } from "@/lib/analytics";
+import { useSite } from "@/lib/hooks/use-site";
+import { useApi } from "@/lib/hooks/use-api";
 
 const fadeIn = {
   hidden: { opacity: 0, y: 16 },
@@ -18,19 +18,28 @@ const fadeIn = {
 };
 
 const stats = [
-  { label: "Visites", value: siteStats.visits, change: "+18 % vs mois dernier", positive: true },
-  { label: "Conversion", value: siteStats.conversion, change: "+0,4 % vs mois dernier", positive: true },
-  { label: "Panier moyen", value: siteStats.avgCart, change: "+12 % vs mois dernier", positive: true },
-  { label: "Taux clic CTA", value: siteStats.ctaRate, change: "-1,2 % vs mois dernier", positive: false },
+  { label: "Visites", value: "0", change: "", positive: true },
+  { label: "Conversion", value: "0%", change: "", positive: true },
+  { label: "Panier moyen", value: "0 €", change: "", positive: true },
+  { label: "Taux clic CTA", value: "0%", change: "", positive: true },
 ];
 
 export default function SiteWebApercu() {
-  const [maintenance, setMaintenance] = useState(mockSite.settings.maintenanceMode);
+  const { site } = useSite();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: apiOrders } = useApi<any[]>("/api/orders?source=site");
+  const [maintenance, setMaintenance] = useState(site.settings.maintenanceMode);
   const [copied, setCopied] = useState(false);
-  const analytics = getAnalyticsSummary();
-  const maxPageCount = Math.max(...analytics.topPages.map((p) => p.count), 1);
-  const siteUrl = `${mockSite.domain.subdomain}.jestly.site`;
-  const recentOrders = siteOrders.slice(0, 3);
+  const siteUrl = `${site.domain.subdomain}.jestly.site`;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recentOrders = apiOrders ? apiOrders.slice(0, 3).map((o: any) => ({
+    id: o.id,
+    client: o.clients?.name || "—",
+    service: o.services?.title || "—",
+    price: o.total_amount || 0,
+    status: o.status || "pending",
+    date: new Date(o.created_at).toLocaleDateString("fr-FR"),
+  })) : [];
 
   const handleCopy = () => {
     navigator.clipboard.writeText(`https://${siteUrl}`);
@@ -123,8 +132,8 @@ export default function SiteWebApercu() {
                     <line x1="12" y1="17" x2="12" y2="21" />
                   </svg>
                 </div>
-                <div className="text-[15px] font-semibold text-[#1A1A1A]">{mockSite.settings.name}</div>
-                <div className="text-[12px] text-[#999] max-w-xs text-center">{mockSite.settings.description}</div>
+                <div className="text-[15px] font-semibold text-[#1A1A1A]">{site.settings.name}</div>
+                <div className="text-[12px] text-[#999] max-w-xs text-center">{site.settings.description}</div>
               </div>
             </div>
           </div>
@@ -252,78 +261,29 @@ export default function SiteWebApercu() {
                   <td className="px-5 py-3.5 text-[13px] text-[#999]">{order.date}</td>
                 </tr>
               ))}
+              {recentOrders.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-5 py-8 text-center text-[13px] text-[#BBB]">
+                    Aucune commande pour le moment.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </motion.div>
 
-      {/* Analytics — Événements récents */}
+      {/* Analytics link */}
       <motion.div
-        className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden mt-6"
+        className="bg-white rounded-xl border border-[#E6E6E4] p-5 mt-6 text-center"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.4 }}
       >
-        <div className="px-5 py-4 border-b border-[#E6E6E4]">
-          <h2 className="text-[14px] font-semibold text-[#1A1A1A]">Événements récents</h2>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-[#E6E6E4]">
-          {/* Recent events table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-[#EFEFEF]">
-                  {["Type", "Page", "Date"].map((h) => (
-                    <th key={h} className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-5 py-2.5">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.recentEvents.map((evt) => {
-                  const icons: Record<string, string> = {
-                    page_view: "👁",
-                    click_cta: "👆",
-                    form_submit: "📝",
-                    order_start: "🛒",
-                    order_complete: "✅",
-                  };
-                  return (
-                    <tr key={evt.id} className="border-b border-[#F8F8FA] last:border-b-0">
-                      <td className="px-5 py-2.5 text-[12px]">
-                        <span className="mr-1.5">{icons[evt.type] ?? "•"}</span>
-                        <span className="text-[#666]">{evt.type.replace("_", " ")}</span>
-                      </td>
-                      <td className="px-5 py-2.5 text-[12px] font-mono text-[#999]">{evt.page ?? "-"}</td>
-                      <td className="px-5 py-2.5 text-[11px] text-[#999]">{new Date(evt.timestamp).toLocaleString("fr-FR", { hour: "2-digit", minute: "2-digit" })}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Top pages bar chart */}
-          <div className="p-5">
-            <div className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-3">Top pages</div>
-            <div className="space-y-3">
-              {analytics.topPages.map((p) => (
-                <div key={p.page}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[12px] font-mono text-[#666]">{p.page}</span>
-                    <span className="text-[11px] font-semibold text-[#1A1A1A]">{p.count}</span>
-                  </div>
-                  <div className="w-full bg-[#EFEFEF] rounded-full h-2">
-                    <div
-                      className="bg-[#4F46E5] h-2 rounded-full transition-all"
-                      style={{ width: `${(p.count / maxPageCount) * 100}%` }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
+        <p className="text-[13px] text-[#999] mb-2">Consultez les analytics détaillés de votre site.</p>
+        <Link href="/site-web/analytics" className="text-[13px] font-medium text-[#4F46E5] hover:underline">
+          Voir les analytics
+        </Link>
       </motion.div>
     </div>
   );

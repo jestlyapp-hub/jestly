@@ -1,5 +1,4 @@
 import type { AnalyticsEventType } from "@/types";
-import { mockAnalyticsEvents } from "@/lib/mock-data";
 
 /**
  * Client-side analytics tracker for public sites.
@@ -62,31 +61,4 @@ export function trackFormSubmit(siteId: string, formType: string) {
  */
 export function trackOrderStart(siteId: string, productSlug: string) {
   trackEvent("order_start", { product_slug: productSlug }, siteId);
-}
-
-// ═══════════════════════════════════════════════
-// Server-side summary (for dashboard, uses mock for now)
-// ═══════════════════════════════════════════════
-
-export function getAnalyticsSummary() {
-  const events = mockAnalyticsEvents;
-
-  const totalViews = events.filter((e) => e.type === "page_view").length;
-  const totalConversions = events.filter((e) => e.type === "order_complete").length;
-
-  // Top pages by view count
-  const pageCounts: Record<string, number> = {};
-  for (const e of events) {
-    if (e.page) {
-      pageCounts[e.page] = (pageCounts[e.page] || 0) + 1;
-    }
-  }
-  const topPages = Object.entries(pageCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([page, count]) => ({ page, count }));
-
-  const recentEvents = events.slice(-5).reverse();
-
-  return { totalViews, totalConversions, topPages, recentEvents };
 }

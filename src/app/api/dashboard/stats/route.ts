@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/api-auth";
 
 // GET /api/dashboard/stats — aggregated dashboard stats
 export async function GET() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getAuthUser();
+  if (auth.error) return auth.error;
+  const { user, supabase } = auth;
 
   // Run queries in parallel
   const [ordersRes, clientsRes, servicesRes, recentOrdersRes] = await Promise.all([

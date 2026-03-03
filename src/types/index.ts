@@ -1,15 +1,116 @@
-export type OrderStatus = "pending" | "in_progress" | "delivered" | "cancelled";
+export type OrderStatus =
+  | "new"
+  | "brief_received"
+  | "in_progress"
+  | "in_review"
+  | "validated"
+  | "delivered"
+  | "invoiced"
+  | "paid"
+  | "cancelled"
+  | "refunded"
+  | "dispute";
+
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  done: boolean;
+}
 export type InvoiceStatus = "paid" | "pending" | "overdue";
 export type SubscriptionStatus = "active" | "cancelled" | "paused";
+export type ClientStatus = "active" | "inactive" | "archived";
+
+export interface ClientDetail {
+  id: string;
+  name: string;
+  email: string;
+  phone: string | null;
+  company: string | null;
+  website: string | null;
+  tags: string[];
+  notes: string | null;
+  totalRevenue: number;
+  ordersCount: number;
+  status: ClientStatus;
+  source: string | null;
+  lastOrderAt: string | null;
+  createdAt: string;
+  avatar: string;
+}
+
+export interface ClientNote {
+  id: string;
+  clientId: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ClientEvent {
+  id: string;
+  clientId: string;
+  type: string;
+  payload: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface ClientRevenueMonth {
+  month: string;
+  revenue: number;
+  orders: number;
+}
 
 export interface Order {
   id: string;
   client: string;
   clientEmail: string;
+  clientId?: string;
+  clientPhone?: string;
   product: string;
   price: number;
   status: OrderStatus;
+  statusId?: string;
   date: string;
+  priority: "low" | "normal" | "high" | "urgent";
+  deadline?: string;
+  paid: boolean;
+  tags: string[];
+  checklist: ChecklistItem[];
+  notes?: string;
+  customFields?: Record<string, unknown>;
+}
+
+/* ─── Board Config Types (dynamic workflow) ─── */
+
+export type StatusView = "production" | "cash";
+
+export interface BoardStatus {
+  id: string;
+  slug: string;
+  name: string;
+  color: string;
+  view: StatusView;
+  position: number;
+  isArchived: boolean;
+}
+
+export type BoardFieldType = "text" | "number" | "select" | "multi_select" | "date" | "url" | "money" | "boolean";
+
+export interface BoardField {
+  id: string;
+  key: string;
+  label: string;
+  fieldType: BoardFieldType;
+  options: string[];
+  isRequired: boolean;
+  isVisibleOnCard: boolean;
+  position: number;
+}
+
+export interface BoardConfig {
+  board: { id: string; name: string };
+  statuses: { production: BoardStatus[]; cash: BoardStatus[] };
+  fields: BoardField[];
 }
 
 export interface Client {

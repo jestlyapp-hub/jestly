@@ -10,14 +10,14 @@ import type {
 } from "@/types";
 
 export const orders: Order[] = [
-  { id: "CMD-001", client: "Marie Dupont", clientEmail: "marie@studio.fr", product: "Logo redesign", price: 450, status: "in_progress", date: "2025-03-15" },
-  { id: "CMD-002", client: "Lucas Martin", clientEmail: "lucas@agency.com", product: "Motion intro YouTube", price: 280, status: "delivered", date: "2025-03-14" },
-  { id: "CMD-003", client: "Sophie Bernard", clientEmail: "sophie@freelance.fr", product: "Pack réseaux sociaux", price: 150, status: "pending", date: "2025-03-13" },
-  { id: "CMD-004", client: "Thomas Petit", clientEmail: "thomas@startup.io", product: "Montage podcast #12", price: 120, status: "delivered", date: "2025-03-12" },
-  { id: "CMD-005", client: "Emma Leroy", clientEmail: "emma@brand.co", product: "Identité visuelle", price: 890, status: "in_progress", date: "2025-03-11" },
-  { id: "CMD-006", client: "Hugo Moreau", clientEmail: "hugo@media.fr", product: "Thumbnail YouTube x10", price: 200, status: "pending", date: "2025-03-10" },
-  { id: "CMD-007", client: "Léa Fournier", clientEmail: "lea@design.com", product: "Template Notion", price: 49, status: "cancelled", date: "2025-03-09" },
-  { id: "CMD-008", client: "Marie Dupont", clientEmail: "marie@studio.fr", product: "Charte graphique", price: 680, status: "delivered", date: "2025-03-08" },
+  { id: "CMD-001", client: "Marie Dupont", clientEmail: "marie@studio.fr", product: "Logo redesign", price: 450, status: "in_progress", date: "2025-03-15", priority: "normal", paid: false, tags: [], checklist: [] },
+  { id: "CMD-002", client: "Lucas Martin", clientEmail: "lucas@agency.com", product: "Motion intro YouTube", price: 280, status: "validated", date: "2025-03-14", priority: "normal", paid: true, tags: [], checklist: [] },
+  { id: "CMD-003", client: "Sophie Bernard", clientEmail: "sophie@freelance.fr", product: "Pack réseaux sociaux", price: 150, status: "new", date: "2025-03-13", priority: "normal", paid: false, tags: [], checklist: [] },
+  { id: "CMD-004", client: "Thomas Petit", clientEmail: "thomas@startup.io", product: "Montage podcast #12", price: 120, status: "validated", date: "2025-03-12", priority: "normal", paid: true, tags: [], checklist: [] },
+  { id: "CMD-005", client: "Emma Leroy", clientEmail: "emma@brand.co", product: "Identité visuelle", price: 890, status: "in_progress", date: "2025-03-11", priority: "high", paid: false, tags: [], checklist: [] },
+  { id: "CMD-006", client: "Hugo Moreau", clientEmail: "hugo@media.fr", product: "Thumbnail YouTube x10", price: 200, status: "new", date: "2025-03-10", priority: "normal", paid: false, tags: [], checklist: [] },
+  { id: "CMD-007", client: "Léa Fournier", clientEmail: "lea@design.com", product: "Template Notion", price: 49, status: "cancelled", date: "2025-03-09", priority: "low", paid: false, tags: [], checklist: [] },
+  { id: "CMD-008", client: "Marie Dupont", clientEmail: "marie@studio.fr", product: "Charte graphique", price: 680, status: "paid", date: "2025-03-08", priority: "normal", paid: true, tags: [], checklist: [] },
 ];
 
 export const clients: Client[] = [
