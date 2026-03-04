@@ -1,5 +1,6 @@
 import type { Site, SitePage, Block, BlockType } from "@/types";
 import { createClient } from "@/lib/supabase/server";
+import { migrateBlockLinks } from "@/lib/links";
 
 // Re-export pure utilities so server-side callers can still import from this module
 export { getPageByPath, resolvePageSlug, resolveLink } from "@/lib/site-utils";
@@ -62,14 +63,19 @@ function transformDbPageToFrontend(dbPage: any): SitePage {
 }
 
 function transformDbBlockToFrontend(dbBlock: any): Block {
-  return {
+  const block = {
     id: dbBlock.id,
     type: dbBlock.type as BlockType,
-    content: dbBlock.content || {},
+    content: dbBlock.content ? { ...dbBlock.content } : {},
     style: dbBlock.style || {},
     settings: dbBlock.settings || {},
     visible: dbBlock.visible ?? true,
   } as Block;
+
+  // Migrate old link fields → blockLink at read time
+  migrateBlockLinks(block);
+
+  return block;
 }
 
 /* eslint-enable @typescript-eslint/no-explicit-any */

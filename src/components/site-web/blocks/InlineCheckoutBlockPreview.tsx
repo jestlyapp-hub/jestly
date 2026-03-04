@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { useProductById } from "@/lib/product-context";
-import { getButtonInlineStyle } from "@/lib/block-style-engine";
+import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 interface InlineCheckoutBlockContent {
   productId: string;
@@ -51,12 +51,7 @@ function InlineCheckoutBlockPreviewInner({ content }: { content: InlineCheckoutB
                 votre@email.com
               </div>
             </div>
-            <span
-              className="btn-styled text-[12px] font-semibold px-5 py-2 cursor-pointer whitespace-nowrap"
-              style={getButtonInlineStyle()}
-            >
-              {content.ctaLabel}
-            </span>
+            <SmartLinkButton link={{ type: "product", productId: content.productId, mode: "checkout" }} label={content.ctaLabel} className="text-[12px] font-semibold px-5 py-2 cursor-pointer whitespace-nowrap" />
           </div>
         </div>
       </div>
@@ -99,12 +94,7 @@ function InlineCheckoutBlockPreviewInner({ content }: { content: InlineCheckoutB
               votre@email.com
             </div>
           </div>
-          <span
-            className="btn-styled block text-center text-[13px] font-semibold px-5 py-2.5 cursor-pointer mt-2"
-            style={getButtonInlineStyle()}
-          >
-            {content.ctaLabel}
-          </span>
+          <SmartLinkButton link={{ type: "product", productId: content.productId, mode: "checkout" }} label={content.ctaLabel} className="block text-center text-[13px] font-semibold px-5 py-2.5 cursor-pointer mt-2" />
         </div>
       </div>
     </div>

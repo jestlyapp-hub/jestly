@@ -2,7 +2,7 @@
 
 import { memo, useState } from "react";
 import { useProductsByIds } from "@/lib/product-context";
-import { getButtonInlineStyle } from "@/lib/block-style-engine";
+import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 interface BundleBuilderBlockContent {
   productIds: string[];
@@ -104,12 +104,7 @@ function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlo
 
       {/* CTA */}
       <div className="text-center">
-        <span
-          className="btn-styled inline-block text-[13px] font-semibold px-6 py-2.5 cursor-pointer"
-          style={getButtonInlineStyle()}
-        >
-          {content.ctaLabel}
-        </span>
+        <SmartLinkButton link={{ type: "none" }} label={content.ctaLabel} className="inline-block text-[13px] font-semibold px-6 py-2.5 cursor-pointer" />
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { PricingTableBlockContent } from "@/types";
-import { getButtonInlineStyle } from "@/lib/block-style-engine";
+import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 function PricingTableBlockPreviewInner({ content }: { content: PricingTableBlockContent }) {
   const cols = content.columns === 2 ? "grid-cols-2" : content.columns === 4 ? "grid-cols-4" : "grid-cols-3";
@@ -25,7 +25,7 @@ function PricingTableBlockPreviewInner({ content }: { content: PricingTableBlock
                 </li>
               ))}
             </ul>
-            <span className="btn-styled block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer" style={getButtonInlineStyle()}>{plan.ctaLabel}</span>
+            <SmartLinkButton link={plan.productId ? { type: "product", productId: plan.productId, mode: "checkout" } : { type: "none" }} label={plan.ctaLabel} className="block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer" />
           </div>
         ))}
       </div>

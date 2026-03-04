@@ -2,7 +2,7 @@
 
 import { memo, useState } from "react";
 import { useProductsByIds } from "@/lib/product-context";
-import { getButtonInlineStyle } from "@/lib/block-style-engine";
+import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 interface ProductCardsGridBlockContent {
   productIds: string[];
@@ -80,12 +80,7 @@ function ProductCardsGridBlockPreviewInner({ content }: { content: ProductCardsG
 
             <div className="text-lg font-bold text-[#1A1A1A] mb-3">{product.price} &euro;</div>
 
-            <span
-              className="btn-styled block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer"
-              style={getButtonInlineStyle()}
-            >
-              {content.ctaLabel}
-            </span>
+            <SmartLinkButton link={{ type: "product", productId: product.id, mode: "checkout" }} label={content.ctaLabel} className="block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer" />
           </div>
         ))}
       </div>

@@ -1,3 +1,7 @@
+/**
+ * @deprecated Use LinkEditor.tsx with the new BlockLink system instead.
+ * This component is kept for nav/footer which still use the old Link type.
+ */
 "use client";
 
 import { useState } from "react";
