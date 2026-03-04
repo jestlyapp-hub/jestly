@@ -67,31 +67,38 @@ export async function POST(
       candidate = `${base}-${Date.now().toString(36).slice(-4)}`;
     }
 
-    const { error: slugErr } = await (supabase.from("sites") as any)
-      .update({ slug: candidate })
-      .eq("id", id);
-
-    if (slugErr) {
-      if (slugErr.code === "23505") {
-        return NextResponse.json(
-          { error: "Sous-domaine indisponible. Réessayez." },
-          { status: 409 }
-        );
-      }
-      return NextResponse.json({ error: slugErr.message }, { status: 500 });
-    }
-
     subdomain = candidate;
   }
 
-  // 4. Mettre à jour le statut du site
+  // 4. Update atomique : status + published_at + subdomain
   const now = new Date().toISOString();
+  const siteUpdate: Record<string, unknown> = {
+    status: "published",
+    published_at: now,
+    slug: subdomain,
+  };
+
   const { error: updateSiteError } = await (supabase.from("sites") as any)
-    .update({ status: "published" })
+    .update(siteUpdate)
     .eq("id", id);
 
   if (updateSiteError) {
-    return NextResponse.json({ error: updateSiteError.message }, { status: 500 });
+    // Si published_at n'existe pas encore en DB, retry sans
+    if (updateSiteError.code === "42703") {
+      const { error: retryErr } = await (supabase.from("sites") as any)
+        .update({ status: "published", slug: subdomain })
+        .eq("id", id);
+      if (retryErr) {
+        return NextResponse.json({ error: retryErr.message }, { status: 500 });
+      }
+    } else if (updateSiteError.code === "23505") {
+      return NextResponse.json(
+        { error: "Sous-domaine indisponible. Réessayez." },
+        { status: 409 }
+      );
+    } else {
+      return NextResponse.json({ error: updateSiteError.message }, { status: 500 });
+    }
   }
 
   // 5. Publier chaque page + créer les snapshots

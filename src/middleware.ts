@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-const ROOT_DOMAINS = (process.env.ROOT_DOMAIN || "jestly.site,jestly.fr")
-  .split(",")
+const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || "jestly.fr";
+const ROOT_DOMAINS = [baseDomain, "jestly.site"]
   .map((d) => d.trim().toLowerCase());
 const RESERVED = new Set(["www", "app", "api", "admin", "dashboard"]);
 
