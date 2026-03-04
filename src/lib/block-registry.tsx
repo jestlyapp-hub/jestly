@@ -1,7 +1,7 @@
 import type { BlockType, BlockContentMap } from "@/types";
 import { defaultContent } from "@/lib/site-builder-context";
 
-export type BlockCategory = "layout" | "content" | "media" | "conversion" | "social";
+export type BlockCategory = "layout" | "content" | "media" | "conversion" | "vente" | "social";
 
 export interface BlockRegistryEntry {
   type: BlockType;
@@ -15,14 +15,15 @@ export const blockCategories: { id: BlockCategory; label: string }[] = [
   { id: "content", label: "Contenu" },
   { id: "media", label: "Médias" },
   { id: "conversion", label: "Conversion" },
+  { id: "vente", label: "Vente produit" },
   { id: "social", label: "Social" },
 ];
 
 export const blockRegistry: BlockRegistryEntry[] = [
   { type: "hero", name: "Hero", description: "Section d'en-tête avec titre, sous-titre et CTA", category: "layout" },
   { type: "portfolio-grid", name: "Portfolio", description: "Grille de projets avec catégories", category: "content" },
-  { type: "services-list", name: "Services", description: "Liste de prestations avec prix", category: "content" },
-  { type: "pack-premium", name: "Pack Premium", description: "Offre mise en avant avec features", category: "conversion" },
+  { type: "services-list", name: "Services", description: "Liste de prestations avec prix", category: "vente" },
+  { type: "pack-premium", name: "Pack Premium", description: "Offre mise en avant avec features", category: "vente" },
   { type: "testimonials", name: "Témoignages", description: "Avis clients avec avatar et rôle", category: "social" },
   { type: "timeline-process", name: "Timeline", description: "Processus en étapes numérotées", category: "content" },
   { type: "faq-accordion", name: "FAQ", description: "Questions/réponses en accordéon", category: "content" },
@@ -48,14 +49,14 @@ export const blockRegistry: BlockRegistryEntry[] = [
   { type: "blog-preview", name: "Blog", description: "Aperçu d'articles récents", category: "content" },
   { type: "video-text-split", name: "Vidéo + Texte", description: "Split vidéo et texte en 2 colonnes", category: "media" },
   { type: "before-after", name: "Avant / Après", description: "Slider comparatif avant/après", category: "media" },
-  { type: "service-cards", name: "Service cards", description: "Cartes services avec icône, prix et CTA", category: "conversion" },
+  { type: "service-cards", name: "Service cards", description: "Cartes services avec icône, prix et CTA", category: "vente" },
   { type: "lead-magnet", name: "Lead Magnet", description: "Téléchargement en échange d'un email", category: "conversion" },
   { type: "availability-banner", name: "Disponibilité", description: "Bannière de statut de disponibilité", category: "layout" },
-  { type: "product-hero-checkout", name: "Hero Produit", description: "Hero produit avec bénéfices et CTA Commander", category: "conversion" },
-  { type: "product-cards-grid", name: "Grille Produits", description: "Grille de produits avec filtres et CTA", category: "conversion" },
-  { type: "inline-checkout", name: "Checkout Inline", description: "Formulaire checkout embarqué dans la page", category: "conversion" },
-  { type: "bundle-builder", name: "Créateur de Pack", description: "Composer un pack de N produits avec prix dynamique", category: "conversion" },
-  { type: "pricing-table-real", name: "Table Prix (Produits)", description: "Table de prix reliée à de vrais produits", category: "conversion" },
+  { type: "product-hero-checkout", name: "Hero Produit", description: "Hero produit avec bénéfices et CTA Commander", category: "vente" },
+  { type: "product-cards-grid", name: "Grille Produits", description: "Grille de produits avec filtres et CTA", category: "vente" },
+  { type: "inline-checkout", name: "Checkout Inline", description: "Formulaire checkout embarqué dans la page", category: "vente" },
+  { type: "bundle-builder", name: "Créateur de Pack", description: "Composer un pack de N produits avec prix dynamique", category: "vente" },
+  { type: "pricing-table-real", name: "Table Prix (Produits)", description: "Table de prix reliée à de vrais produits", category: "vente" },
 ];
 
 export function getDefaultContent<T extends BlockType>(type: T): BlockContentMap[T] {

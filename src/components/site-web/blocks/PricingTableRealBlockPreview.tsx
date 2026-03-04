@@ -2,7 +2,7 @@
 
 import { memo } from "react";
 import { useProductsByIds } from "@/lib/product-context";
-import { getButtonInlineStyle } from "@/lib/block-style-engine";
+import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 interface PricingTableRealBlockContent {
   productIds: string[];
@@ -69,12 +69,7 @@ function PricingTableRealBlockPreviewInner({ content }: { content: PricingTableR
               )}
 
               {/* CTA */}
-              <span
-                className="btn-styled block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer mt-auto"
-                style={getButtonInlineStyle()}
-              >
-                {content.ctaLabel}
-              </span>
+              <SmartLinkButton link={{ type: "product", productId: product.id, mode: "checkout" }} label={content.ctaLabel} className="block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer mt-auto" />
             </div>
           );
         })}

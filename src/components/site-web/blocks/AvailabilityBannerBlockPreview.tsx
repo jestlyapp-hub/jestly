@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { AvailabilityBannerBlockContent } from "@/types";
-import { getButtonInlineStyle } from "@/lib/block-style-engine";
+import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 const statusColors: Record<string, { bg: string; ring: string }> = {
   open: { bg: "bg-emerald-400", ring: "ring-emerald-400/30" },
@@ -19,12 +19,7 @@ function AvailabilityBannerBlockPreviewInner({ content }: { content: Availabilit
           <span className="text-[13px] font-medium">{content.message}</span>
         </div>
         {content.ctaLabel && (
-          <span
-            className="btn-styled px-3 py-1.5 text-[12px] font-semibold cursor-pointer whitespace-nowrap flex-shrink-0"
-            style={getButtonInlineStyle()}
-          >
-            {content.ctaLabel}
-          </span>
+          <SmartLinkButton link={content.blockLink} label={content.ctaLabel!} className="px-3 py-1.5 text-[12px] font-semibold cursor-pointer whitespace-nowrap flex-shrink-0" />
         )}
       </div>
     </div>

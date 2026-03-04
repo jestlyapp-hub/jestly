@@ -3,7 +3,7 @@
 import { memo } from "react";
 import type { PackPremiumBlockContent } from "@/types";
 import { useProductById } from "@/lib/product-context";
-import { getButtonInlineStyle } from "@/lib/block-style-engine";
+import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 function PackPremiumBlockPreviewInner({ content }: { content: PackPremiumBlockContent }) {
   const product = useProductById(content.productId);
@@ -38,9 +38,7 @@ function PackPremiumBlockPreviewInner({ content }: { content: PackPremiumBlockCo
             ))}
           </ul>
         )}
-        <span className="btn-styled inline-block text-[13px] font-semibold px-5 py-2 cursor-pointer" style={getButtonInlineStyle()}>
-          {content.ctaLabel}
-        </span>
+        <SmartLinkButton link={{ type: "product", productId: content.productId, mode: "checkout" }} label={content.ctaLabel} className="inline-block text-[13px] font-semibold px-5 py-2 cursor-pointer" />
       </div>
     </div>
   );

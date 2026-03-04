@@ -11,6 +11,7 @@ import {
   computeThemeVars,
 } from "@/lib/block-style-engine";
 import { ProductProvider } from "@/lib/product-context";
+import { LinkProvider } from "@/lib/link-context";
 import AnimateOnScroll from "@/components/site-public/AnimateOnScroll";
 import SiteAnalyticsTracker from "@/components/site-public/SiteAnalyticsTracker";
 
@@ -327,21 +328,23 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
 
   return (
     <ProductProvider products={products}>
-      <div
-        className="min-h-screen flex flex-col bg-white"
-        style={{ fontFamily: site.theme.fontFamily, ...themeVars } as React.CSSProperties}
-      >
-        <SiteAnalyticsTracker siteId={site.id} pageSlug={page.slug} />
-        <SitePublicNav site={site} currentSlug={page.slug} />
+      <LinkProvider site={site}>
+        <div
+          className="min-h-screen flex flex-col bg-white"
+          style={{ fontFamily: site.theme.fontFamily, ...themeVars } as React.CSSProperties}
+        >
+          <SiteAnalyticsTracker siteId={site.id} pageSlug={page.slug} />
+          <SitePublicNav site={site} currentSlug={page.slug} />
 
-        <main className="flex-1">
-          {visibleBlocks.map((block) => (
-            <PublicBlockSection key={block.id} block={block} site={site} />
-          ))}
-        </main>
+          <main className="flex-1">
+            {visibleBlocks.map((block) => (
+              <PublicBlockSection key={block.id} block={block} site={site} />
+            ))}
+          </main>
 
-        <SitePublicFooter site={site} />
-      </div>
+          <SitePublicFooter site={site} />
+        </div>
+      </LinkProvider>
     </ProductProvider>
   );
 }

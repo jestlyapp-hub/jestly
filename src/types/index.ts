@@ -191,6 +191,16 @@ export interface Link {
   value: string;
 }
 
+/* ─── BlockLink (unified link system) ─── */
+
+export type BlockLinkType = "none" | "internal" | "external" | "product";
+
+export type BlockLink =
+  | { type: "none" }
+  | { type: "internal"; pageId: string; anchor?: string }
+  | { type: "external"; url: string; newTab: boolean }
+  | { type: "product"; productId: string; mode: "page" | "checkout" };
+
 export interface ButtonStyle {
   bg?: string;
   text?: string;
@@ -278,6 +288,7 @@ export interface HeroBlockContent {
   ctaLabel: string;
   ctaLink: string;
   link?: Link;
+  blockLink?: BlockLink;
   imageUrl?: string;
 }
 
@@ -351,6 +362,7 @@ export interface CenteredCtaBlockContent {
   ctaLabel: string;
   ctaLink: string;
   link?: Link;
+  blockLink?: BlockLink;
   productId?: string;
 }
 
@@ -447,8 +459,10 @@ export interface CtaPremiumBlockContent {
   description: string;
   primaryCtaLabel: string;
   primaryLink?: Link;
+  primaryBlockLink?: BlockLink;
   secondaryCtaLabel?: string;
   secondaryLink?: Link;
+  secondaryBlockLink?: BlockLink;
   backgroundImageUrl?: string;
 }
 
@@ -532,6 +546,7 @@ export interface VideoTextSplitBlockContent {
   description: string;
   ctaLabel?: string;
   link?: Link;
+  blockLink?: BlockLink;
 }
 
 export interface BeforeAfterBlockContent {
@@ -610,6 +625,7 @@ export interface AvailabilityBannerBlockContent {
   message: string;
   ctaLabel?: string;
   ctaLink?: Link;
+  blockLink?: BlockLink;
 }
 
 /* ─── Analytics Types ─── */

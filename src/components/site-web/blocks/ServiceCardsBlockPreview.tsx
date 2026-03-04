@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { ServiceCardsBlockContent } from "@/types";
-import { getButtonInlineStyle } from "@/lib/block-style-engine";
+import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 const iconMap: Record<string, React.ReactNode> = {
   zap: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" /></svg>,
@@ -37,7 +37,7 @@ function ServiceCardsBlockPreviewInner({ content }: { content: ServiceCardsBlock
               </ul>
             )}
             {s.price != null && <div className="text-lg font-bold mb-3">{s.price} €</div>}
-            <span className="btn-styled block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer mt-auto" style={getButtonInlineStyle()}>{s.ctaLabel}</span>
+            <SmartLinkButton link={s.productId ? { type: "product", productId: s.productId, mode: "checkout" } : { type: "none" }} label={s.ctaLabel} className="block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer mt-auto" />
           </div>
         ))}
       </div>

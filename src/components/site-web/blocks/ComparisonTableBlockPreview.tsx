@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { ComparisonTableBlockContent } from "@/types";
-import { getButtonInlineStyle } from "@/lib/block-style-engine";
+import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 function ComparisonTableBlockPreviewInner({ content }: { content: ComparisonTableBlockContent }) {
   return (
@@ -41,7 +41,7 @@ function ComparisonTableBlockPreviewInner({ content }: { content: ComparisonTabl
               <td />
               {content.plans.map((plan, i) => (
                 <td key={i} className="text-center pt-4 px-4">
-                  <span className="btn-styled inline-block text-[11px] font-semibold px-4 py-1.5 cursor-pointer" style={getButtonInlineStyle()}>{plan.ctaLabel}</span>
+                  <SmartLinkButton link={plan.productId ? { type: "product", productId: plan.productId, mode: "checkout" } : { type: "none" }} label={plan.ctaLabel} className="inline-block text-[11px] font-semibold px-4 py-1.5 cursor-pointer" />
                 </td>
               ))}
             </tr>
