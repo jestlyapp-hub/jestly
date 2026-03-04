@@ -446,5 +446,5 @@ export function useBuilder() {
   return useContext(BuilderContext);
 }
 
-export { defaultContent };
+export { defaultContent, serializeSiteForSave };
 export type { BuilderAction, Breakpoint, SaveStatus };

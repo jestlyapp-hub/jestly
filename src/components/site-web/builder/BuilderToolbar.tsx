@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useBuilder, type Breakpoint } from "@/lib/site-builder-context";
+import { useBuilder, serializeSiteForSave, type Breakpoint } from "@/lib/site-builder-context";
+import { useSite } from "@/lib/hooks/use-site";
 
 const breakpoints: { id: Breakpoint; label: string; icon: React.ReactNode }[] = [
   {
@@ -35,26 +36,47 @@ const breakpoints: { id: Breakpoint; label: string; icon: React.ReactNode }[] = 
 
 export default function BuilderToolbar() {
   const { state, dispatch, saveStatus } = useBuilder();
+  const { siteId } = useSite();
   const [publishStatus, setPublishStatus] = useState<"idle" | "publishing" | "published" | "error">("idle");
 
   const handleUndo = useCallback(() => dispatch({ type: "UNDO" }), [dispatch]);
   const handleRedo = useCallback(() => dispatch({ type: "REDO" }), [dispatch]);
 
   const handlePublish = useCallback(async () => {
+    if (!siteId) return;
     setPublishStatus("publishing");
     try {
-      // For now, open the public site preview (API publish requires auth)
-      const slug = state.site.domain?.subdomain;
-      if (slug) {
-        window.open(`/s/${slug}`, "_blank");
-      }
+      // 1. Flush pending changes to DB
+      const snapshot = serializeSiteForSave(state.site);
+      const saveRes = await fetch(`/api/sites/${siteId}/draft`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(snapshot),
+      });
+      if (!saveRes.ok) throw new Error("Erreur sauvegarde avant publication");
+
+      // 2. Call the publish API
+      const pubRes = await fetch(`/api/sites/${siteId}/publish`, { method: "POST" });
+      const pubData = await pubRes.json().catch(() => ({}));
+      if (!pubRes.ok) throw new Error(pubData.error || `Erreur ${pubRes.status}`);
+
+      // 3. Mark builder as clean to prevent autosave race
+      dispatch({ type: "MARK_CLEAN" });
       setPublishStatus("published");
+
+      // 4. Open public site
+      const subdomain = pubData.subdomain || state.site.domain?.subdomain;
+      if (subdomain) {
+        window.open(`/s/${subdomain}`, "_blank");
+      }
+
       setTimeout(() => setPublishStatus("idle"), 3000);
-    } catch {
+    } catch (err) {
+      console.error("[publish] error:", err);
       setPublishStatus("error");
-      setTimeout(() => setPublishStatus("idle"), 3000);
+      setTimeout(() => setPublishStatus("idle"), 5000);
     }
-  }, [state.site.domain]);
+  }, [siteId, state.site, dispatch]);
 
   // Keyboard shortcuts
   useEffect(() => {

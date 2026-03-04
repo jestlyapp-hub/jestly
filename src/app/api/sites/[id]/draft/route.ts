@@ -20,9 +20,9 @@ export async function POST(
     return NextResponse.json({ error: "Corps invalide." }, { status: 400 });
   }
 
-  // Verify ownership
+  // Verify ownership + get current status
   const { data: site, error: siteErr } = await (supabase.from("sites") as any)
-    .select("id")
+    .select("id, status")
     .eq("id", id)
     .eq("owner_id", user.id)
     .single();
@@ -30,6 +30,8 @@ export async function POST(
   if (siteErr || !site) {
     return NextResponse.json({ error: "Site introuvable." }, { status: 404 });
   }
+
+  const siteIsPublished = site.status === "published";
 
   // 1. Update site metadata
   const { error: updateErr } = await (supabase.from("sites") as any)
@@ -65,7 +67,7 @@ export async function POST(
       slug: p.slug || `page-${i}`,
       is_home: !!p.is_home,
       sort_order: p.sort_order ?? i,
-      status: p.status || "draft",
+      status: siteIsPublished ? "published" : (p.status || "draft"),
       seo_title: p.seo_title || null,
       seo_description: p.seo_description || null,
     }));
