@@ -335,7 +335,8 @@ const BuilderContext = createContext<{
   state: BuilderState;
   dispatch: React.Dispatch<BuilderAction>;
   saveStatus: SaveStatus;
-}>({ state: initialState, dispatch: () => {}, saveStatus: "idle" });
+  siteId: string;
+}>({ state: initialState, dispatch: () => {}, saveStatus: "idle", siteId: "" });
 
 export function BuilderProvider({ children }: { children: ReactNode }) {
   const { site: loadedSite, siteId, loading: siteLoading, error: siteError, mutate } = useSite();
@@ -436,7 +437,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <BuilderContext.Provider value={{ state, dispatch, saveStatus }}>
+    <BuilderContext.Provider value={{ state, dispatch, saveStatus, siteId: siteId || "" }}>
       {children}
     </BuilderContext.Provider>
   );
@@ -446,5 +447,5 @@ export function useBuilder() {
   return useContext(BuilderContext);
 }
 
-export { defaultContent };
+export { defaultContent, serializeSiteForSave };
 export type { BuilderAction, Breakpoint, SaveStatus };
