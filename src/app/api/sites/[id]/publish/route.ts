@@ -70,36 +70,28 @@ export async function POST(
     subdomain = candidate;
   }
 
-  // 4. Update atomique : status + published_at + subdomain
+  // 4. Update atomique : status + slug (+ published_at si la colonne existe)
   const now = new Date().toISOString();
-  const siteUpdate: Record<string, unknown> = {
-    status: "published",
-    published_at: now,
-    slug: subdomain,
-  };
-
   const { error: updateSiteError } = await (supabase.from("sites") as any)
-    .update(siteUpdate)
+    .update({ status: "published", slug: subdomain })
     .eq("id", id);
 
   if (updateSiteError) {
-    // Si published_at n'existe pas encore en DB, retry sans
-    if (updateSiteError.code === "42703") {
-      const { error: retryErr } = await (supabase.from("sites") as any)
-        .update({ status: "published", slug: subdomain })
-        .eq("id", id);
-      if (retryErr) {
-        return NextResponse.json({ error: retryErr.message }, { status: 500 });
-      }
-    } else if (updateSiteError.code === "23505") {
+    if (updateSiteError.code === "23505") {
       return NextResponse.json(
         { error: "Sous-domaine indisponible. Réessayez." },
         { status: 409 }
       );
-    } else {
-      return NextResponse.json({ error: updateSiteError.message }, { status: 500 });
     }
+    return NextResponse.json({ error: updateSiteError.message }, { status: 500 });
   }
+
+  // Tenter d'écrire published_at (ignore si la colonne n'existe pas)
+  await (supabase.from("sites") as any)
+    .update({ published_at: now })
+    .eq("id", id)
+    .then(() => {})
+    .catch(() => {});
 
   // 5. Publier chaque page + créer les snapshots
   const snapshots = [];
