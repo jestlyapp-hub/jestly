@@ -1,9 +1,11 @@
 "use client";
 
-import { createContext, useContext, useReducer, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useReducer, useEffect, useState, useRef, type ReactNode } from "react";
 import type { Site, Block, BlockType, BlockContentMap, BlockSettings, SitePage } from "@/types";
+import { useSite } from "@/lib/hooks/use-site";
 
 type Breakpoint = "desktop" | "tablet" | "mobile";
+type SaveStatus = "idle" | "saving" | "saved" | "error";
 
 interface BuilderState {
   site: Site;
@@ -17,6 +19,8 @@ interface BuilderState {
 }
 
 type BuilderAction =
+  | { type: "INIT_SITE"; site: Site }
+  | { type: "MARK_CLEAN" }
   | { type: "SET_ACTIVE_PAGE"; pageId: string }
   | { type: "SET_ACTIVE_BLOCK"; blockId: string | null }
   | { type: "UPDATE_BLOCK_CONTENT"; blockId: string; content: Record<string, unknown> }
@@ -98,6 +102,21 @@ function withHistory(state: BuilderState, site: Site): BuilderState {
 
 function builderReducer(state: BuilderState, action: BuilderAction): BuilderState {
   switch (action.type) {
+    case "INIT_SITE": {
+      return {
+        ...state,
+        site: action.site,
+        activePageId: action.site.pages[0]?.id ?? "",
+        activeBlockId: null,
+        isDirty: false,
+        history: [JSON.parse(JSON.stringify(action.site))],
+        historyIndex: 0,
+      };
+    }
+
+    case "MARK_CLEAN":
+      return { ...state, isDirty: false };
+
     case "SET_ACTIVE_PAGE":
       return { ...state, activePageId: action.pageId, activeBlockId: null };
 
@@ -273,102 +292,151 @@ const initialState: BuilderState = {
   historyIndex: 0,
 };
 
+// ── Serialize Site → draft payload for autosave ──
+function serializeSiteForSave(site: Site) {
+  return {
+    name: site.settings.name,
+    settings: {
+      description: site.settings.description,
+      logoUrl: site.settings.logoUrl,
+      maintenanceMode: site.settings.maintenanceMode,
+      socials: site.settings.socials,
+      i18n: site.settings.i18n,
+    },
+    theme: site.theme,
+    seo: {
+      globalTitle: site.seo.globalTitle,
+      globalDescription: site.seo.globalDescription,
+      ogImageUrl: site.seo.ogImageUrl,
+    },
+    nav: site.nav || null,
+    footer: site.footer || null,
+    pages: site.pages.map((p, i) => ({
+      title: p.name,
+      slug: p.slug === "/" ? "home" : p.slug.replace(/^\//, ""),
+      is_home: p.slug === "/",
+      sort_order: i,
+      status: p.status || "draft",
+      seo_title: p.seoTitle || null,
+      seo_description: p.seoDescription || null,
+      blocks: p.blocks.map((b, j) => ({
+        type: b.type,
+        sort_order: j,
+        content: b.content,
+        style: b.style,
+        settings: b.settings,
+        visible: b.visible,
+      })),
+    })),
+  };
+}
+
 const BuilderContext = createContext<{
   state: BuilderState;
   dispatch: React.Dispatch<BuilderAction>;
-}>({ state: initialState, dispatch: () => {} });
+  saveStatus: SaveStatus;
+}>({ state: initialState, dispatch: () => {}, saveStatus: "idle" });
 
 export function BuilderProvider({ children }: { children: ReactNode }) {
+  const { site: loadedSite, siteId, loading: siteLoading, error: siteError, mutate } = useSite();
   const [state, dispatch] = useReducer(builderReducer, initialState);
-  const [loaded, setLoaded] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const initializedRef = useRef(false);
+  const saveAbortRef = useRef<AbortController | null>(null);
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
-  // Load site from Supabase on mount, fallback to mockSite
+  // Initialize from SiteProvider's data (once per mount)
   useEffect(() => {
-    if (loaded) return;
-    let cancelled = false;
+    if (!siteLoading && loadedSite.id && !initializedRef.current) {
+      dispatch({ type: "INIT_SITE", site: loadedSite });
+      initializedRef.current = true;
+    }
+  }, [siteLoading, loadedSite]);
 
-    (async () => {
+  // Autosave: debounced 800ms after any dirty change
+  useEffect(() => {
+    if (!state.isDirty || !siteId || !initializedRef.current) return;
+
+    const timer = setTimeout(async () => {
+      saveAbortRef.current?.abort();
+      const ctrl = new AbortController();
+      saveAbortRef.current = ctrl;
+
+      setSaveStatus("saving");
       try {
-        const res = await fetch("/api/sites");
-        if (!res.ok) return;
-        const sites = await res.json();
-        if (cancelled) return;
+        const snapshot = serializeSiteForSave(state.site);
+        const res = await fetch(`/api/sites/${siteId}/draft`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(snapshot),
+          signal: ctrl.signal,
+        });
+        if (ctrl.signal.aborted) return;
+        if (!res.ok) throw new Error(`${res.status}`);
 
-        if (sites.length > 0) {
-          const dbSite = sites[0];
-          // Fetch pages with blocks
-          const pagesRes = await fetch(`/api/sites/${dbSite.id}/pages`);
-          const dbPages = pagesRes.ok ? await pagesRes.json() : [];
-          if (cancelled) return;
-
-          // Transform to frontend Site type
-          const site: Site = {
-            id: dbSite.id,
-            settings: {
-              name: dbSite.name,
-              description: dbSite.settings?.description || "",
-              logoUrl: dbSite.settings?.logoUrl,
-              maintenanceMode: dbSite.settings?.maintenanceMode || false,
-              socials: dbSite.settings?.socials || {},
-              i18n: dbSite.settings?.i18n,
-            },
-            theme: {
-              primaryColor: dbSite.theme?.primaryColor || "#4F46E5",
-              fontFamily: dbSite.theme?.fontFamily || "Inter, sans-serif",
-              borderRadius: dbSite.theme?.borderRadius || "rounded",
-              shadow: dbSite.theme?.shadow || "sm",
-            },
-            pages: (dbPages || []).map((p: Record<string, unknown>) => ({
-              id: p.id as string,
-              name: (p.title as string) || "",
-              slug: p.is_home ? "/" : `/${p.slug}`,
-              status: (p.status as string) || "draft",
-              blocks: (Array.isArray(p.site_blocks) ? p.site_blocks : [])
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                .map((b: any) => ({
-                  id: b.id,
-                  type: b.type,
-                  content: b.content || {},
-                  style: b.style || {},
-                  settings: b.settings || {},
-                  visible: b.visible ?? true,
-                })),
-              seoTitle: p.seo_title as string | undefined,
-              seoDescription: p.seo_description as string | undefined,
-            })),
-            domain: {
-              subdomain: dbSite.slug,
-              customDomain: dbSite.custom_domain || undefined,
-            },
-            seo: {
-              globalTitle: dbSite.seo?.globalTitle || dbSite.name,
-              globalDescription: dbSite.seo?.globalDescription || "",
-              ogImageUrl: dbSite.seo?.ogImageUrl,
-            },
-            nav: dbSite.nav || undefined,
-            footer: dbSite.footer || undefined,
-          };
-
-          dispatch({ type: "APPLY_TEMPLATE", pages: site.pages });
-          dispatch({ type: "UPDATE_SITE_SETTINGS", settings: site.settings });
-          dispatch({ type: "UPDATE_SITE_THEME", theme: site.theme });
-          dispatch({ type: "UPDATE_SITE_SEO", seo: site.seo });
-          dispatch({ type: "UPDATE_SITE_DOMAIN", domain: site.domain });
-        }
-      } catch {
-        // Fallback to mockSite (already loaded as initial state)
-      } finally {
-        if (!cancelled) setLoaded(true);
+        setSaveStatus("saved");
+        dispatch({ type: "MARK_CLEAN" });
+        // Refresh SiteProvider cache for other tabs (fire & forget)
+        mutate();
+      } catch (err: unknown) {
+        if (err instanceof Error && err.name === "AbortError") return;
+        console.error("[autosave] error:", err);
+        setSaveStatus("error");
       }
-    })();
+    }, 800);
 
-    return () => { cancelled = true; };
-  }, [loaded]);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.site, state.isDirty, siteId]);
+
+  // Flush pending changes on unmount (tab switch)
+  useEffect(() => {
+    return () => {
+      saveAbortRef.current?.abort();
+      if (stateRef.current.isDirty && siteId) {
+        const snapshot = serializeSiteForSave(stateRef.current.site);
+        fetch(`/api/sites/${siteId}/draft`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(snapshot),
+          keepalive: true,
+        }).catch(() => {});
+      }
+    };
+  }, [siteId]);
+
+  // Error state — SiteProvider failed (404, auth, network)
+  if (!siteLoading && siteError) {
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="text-center">
+          <p className="text-[13px] text-red-500 mb-2">{siteError}</p>
+          <button
+            onClick={() => mutate()}
+            className="text-[12px] font-medium text-[#4F46E5] border border-[#4F46E5]/20 px-3 py-1.5 rounded-lg hover:bg-[#EEF2FF] transition-colors"
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state — still fetching from API or waiting for initialization
+  if (siteLoading || !initializedRef.current) {
+    return (
+      <div className="flex items-center justify-center h-[400px]">
+        <div className="flex items-center gap-2 text-[#999]">
+          <div className="w-4 h-4 border-2 border-[#999] border-t-transparent rounded-full animate-spin" />
+          <span className="text-[13px]">Chargement du site...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <BuilderContext.Provider value={{ state, dispatch }}>
+    <BuilderContext.Provider value={{ state, dispatch, saveStatus }}>
       {children}
     </BuilderContext.Provider>
   );
@@ -379,4 +447,4 @@ export function useBuilder() {
 }
 
 export { defaultContent };
-export type { BuilderAction, Breakpoint };
+export type { BuilderAction, Breakpoint, SaveStatus };

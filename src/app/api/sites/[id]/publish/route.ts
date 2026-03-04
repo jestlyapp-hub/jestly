@@ -1,30 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/api-auth";
 
-// POST /api/sites/[id]/publish — publish all pages + create snapshots
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+// POST /api/sites/[id]/publish — publier le site + auto-réserver sous-domaine
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getAuthUser();
+  if (auth.error) return auth.error;
+  const { user, supabase } = auth;
 
-  // 1. Get the site
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // 1. Récupérer le site complet
   const { data: site, error: siteError } = await (supabase.from("sites") as any)
-    .select("id, owner_id")
+    .select("*")
     .eq("id", id)
     .eq("owner_id", user.id)
     .single();
 
   if (siteError || !site) {
-    return NextResponse.json({ error: "Site not found" }, { status: 404 });
+    return NextResponse.json({ error: "Site introuvable." }, { status: 404 });
   }
 
-  // 2. Get all pages with their blocks
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // 2. Récupérer pages + blocs
   const { data: pages, error: pagesError } = await (supabase.from("site_pages") as any)
     .select("*, site_blocks(*)")
     .eq("site_id", id)
@@ -34,8 +34,58 @@ export async function POST(
     return NextResponse.json({ error: pagesError.message }, { status: 500 });
   }
 
-  // 3. Update site status to published
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // 3. Auto-réserver sous-domaine si absent
+  let subdomain = site.slug;
+  const needsSubdomain = !subdomain || subdomain.startsWith("site-");
+
+  if (needsSubdomain) {
+    const base = (site.name || "mon-site")
+      .toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .substring(0, 30) || "mon-site";
+
+    let candidate = base;
+    let attempt = 0;
+    const maxAttempts = 10;
+
+    while (attempt < maxAttempts) {
+      const { data: existing } = await (supabase.from("sites") as any)
+        .select("id")
+        .eq("slug", candidate)
+        .neq("id", id)
+        .limit(1)
+        .maybeSingle();
+
+      if (!existing) break;
+      attempt++;
+      candidate = `${base}-${attempt + 1}`;
+    }
+
+    if (attempt >= maxAttempts) {
+      candidate = `${base}-${Date.now().toString(36).slice(-4)}`;
+    }
+
+    const { error: slugErr } = await (supabase.from("sites") as any)
+      .update({ slug: candidate })
+      .eq("id", id);
+
+    if (slugErr) {
+      if (slugErr.code === "23505") {
+        return NextResponse.json(
+          { error: "Sous-domaine indisponible. Réessayez." },
+          { status: 409 }
+        );
+      }
+      return NextResponse.json({ error: slugErr.message }, { status: 500 });
+    }
+
+    subdomain = candidate;
+  }
+
+  // 4. Mettre à jour le statut du site
+  const now = new Date().toISOString();
   const { error: updateSiteError } = await (supabase.from("sites") as any)
     .update({ status: "published" })
     .eq("id", id);
@@ -44,16 +94,13 @@ export async function POST(
     return NextResponse.json({ error: updateSiteError.message }, { status: 500 });
   }
 
-  // 4. Publish each page and create snapshots
+  // 5. Publier chaque page + créer les snapshots
   const snapshots = [];
   for (const page of pages || []) {
-    // Mark page as published
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (supabase.from("site_pages") as any)
-      .update({ status: "published", published_at: new Date().toISOString() })
+      .update({ status: "published", published_at: now })
       .eq("id", page.id);
 
-    // Create immutable snapshot
     snapshots.push({
       site_id: id,
       page_id: page.id,
@@ -81,33 +128,63 @@ export async function POST(
   }
 
   if (snapshots.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: snapError } = await (supabase.from("site_published_snapshots") as any)
-      .insert(snapshots);
-
-    if (snapError) {
-      return NextResponse.json({ error: snapError.message }, { status: 500 });
-    }
+    await (supabase.from("site_published_snapshots") as any).insert(snapshots);
   }
+
+  // 6. Versioning (optionnel — ignore si la table n'existe pas encore)
+  let nextVersion = 1;
+  try {
+    const { data: maxVer } = await (supabase.from("site_versions") as any)
+      .select("version")
+      .eq("site_id", id)
+      .order("version", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    nextVersion = (maxVer?.version || 0) + 1;
+
+    await (supabase.from("site_versions") as any).insert({
+      site_id: id,
+      version: nextVersion,
+      snapshot: {
+        site: { name: site.name, settings: site.settings, theme: site.theme, seo: site.seo, nav: site.nav, footer: site.footer },
+        pages: (pages || []).map((p: any) => ({
+          title: p.title,
+          slug: p.slug,
+          is_home: p.is_home,
+          blocks: (p.site_blocks || []).map((b: any) => ({
+            type: b.type, content: b.content, style: b.style, settings: b.settings, visible: b.visible,
+          })),
+        })),
+      },
+    });
+  } catch {
+    // site_versions n'existe pas encore — on continue sans
+    console.log("[publish] site_versions table not available, skipping version snapshot");
+  }
+
+  console.log(`[publish] site=${id} user=${user.id} subdomain=${subdomain}`);
 
   return NextResponse.json({
     ok: true,
+    subdomain,
+    url: `https://${subdomain}.jestly.site`,
+    version: nextVersion,
     published_pages: pages?.length || 0,
-    published_at: new Date().toISOString(),
+    published_at: now,
   });
 }
 
-// DELETE /api/sites/[id]/publish — unpublish site
+// DELETE /api/sites/[id]/publish — dépublier le site
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await getAuthUser();
+  if (auth.error) return auth.error;
+  const { user, supabase } = auth;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase.from("sites") as any)
     .update({ status: "draft" })
     .eq("id", id)

@@ -1,13 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import SiteWebNav from "@/components/site-web/SiteWebNav";
 
-export default function SiteWebLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function SiteWebLayout({ children }: { children: React.ReactNode }) {
   return (
     <div>
       <motion.h1
@@ -18,7 +13,6 @@ export default function SiteWebLayout({
       >
         Site web
       </motion.h1>
-      <SiteWebNav />
       {children}
     </div>
   );

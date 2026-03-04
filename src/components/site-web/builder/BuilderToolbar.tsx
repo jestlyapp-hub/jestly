@@ -34,7 +34,7 @@ const breakpoints: { id: Breakpoint; label: string; icon: React.ReactNode }[] = 
 ];
 
 export default function BuilderToolbar() {
-  const { state, dispatch } = useBuilder();
+  const { state, dispatch, saveStatus } = useBuilder();
   const [publishStatus, setPublishStatus] = useState<"idle" | "publishing" | "published" | "error">("idle");
 
   const handleUndo = useCallback(() => dispatch({ type: "UNDO" }), [dispatch]);
@@ -106,7 +106,16 @@ export default function BuilderToolbar() {
         <span className="text-[13px] font-semibold text-[#1A1A1A]">
           {state.site.pages.find((p) => p.id === state.activePageId)?.name || "Page"}
         </span>
-        {state.isDirty && (
+        {saveStatus === "saving" && (
+          <span className="text-[11px] text-[#8A8A88] animate-pulse">Sauvegarde…</span>
+        )}
+        {saveStatus === "saved" && (
+          <span className="text-[11px] text-emerald-600">Enregistré ✓</span>
+        )}
+        {saveStatus === "error" && (
+          <span className="text-[11px] text-red-500">Erreur sauvegarde</span>
+        )}
+        {saveStatus === "idle" && state.isDirty && (
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400" title="Modifications non sauvegardées" />
         )}
       </div>
