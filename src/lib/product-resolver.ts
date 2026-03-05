@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { serviceToProduct } from "@/lib/adapters";
+import { dbToProduct } from "@/lib/adapters";
 import type { Product } from "@/types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -12,13 +12,13 @@ export async function getPublicProductsByIds(ids: string[]): Promise<Product[]> 
 
   try {
     const supabase = await createClient();
-    const { data, error } = await (supabase.from("services") as any)
+    const { data, error } = await (supabase.from("products") as any)
       .select("*")
       .in("id", ids)
-      .eq("is_active", true);
+      .eq("status", "active");
 
     if (error || !data) return [];
-    return data.map((row: any) => serviceToProduct(row));
+    return data.map((row: any) => dbToProduct(row));
   } catch {
     return [];
   }
@@ -30,14 +30,14 @@ export async function getPublicProductsByIds(ids: string[]): Promise<Product[]> 
 export async function getPublicProductById(id: string): Promise<Product | null> {
   try {
     const supabase = await createClient();
-    const { data, error } = await (supabase.from("services") as any)
+    const { data, error } = await (supabase.from("products") as any)
       .select("*")
       .eq("id", id)
-      .eq("is_active", true)
+      .eq("status", "active")
       .single();
 
     if (error || !data) return null;
-    return serviceToProduct(data);
+    return dbToProduct(data);
   } catch {
     return null;
   }
@@ -49,15 +49,15 @@ export async function getPublicProductById(id: string): Promise<Product | null> 
 export async function getPublicProductBySlug(slug: string, siteOwnerId: string): Promise<Product | null> {
   try {
     const supabase = await createClient();
-    const { data, error } = await (supabase.from("services") as any)
+    const { data, error } = await (supabase.from("products") as any)
       .select("*")
       .eq("slug", slug)
-      .eq("user_id", siteOwnerId)
-      .eq("is_active", true)
+      .eq("owner_id", siteOwnerId)
+      .eq("status", "active")
       .single();
 
     if (error || !data) return null;
-    return serviceToProduct(data);
+    return dbToProduct(data);
   } catch {
     return null;
   }
@@ -78,14 +78,14 @@ export async function getPublicProductsBySiteId(siteId: string): Promise<Product
 
     if (!site) return [];
 
-    const { data, error } = await (supabase.from("services") as any)
+    const { data, error } = await (supabase.from("products") as any)
       .select("*")
-      .eq("user_id", site.owner_id)
-      .eq("is_active", true)
+      .eq("owner_id", site.owner_id)
+      .eq("status", "active")
       .order("created_at", { ascending: false });
 
     if (error || !data) return [];
-    return data.map((row: any) => serviceToProduct(row));
+    return data.map((row: any) => dbToProduct(row));
   } catch {
     return [];
   }

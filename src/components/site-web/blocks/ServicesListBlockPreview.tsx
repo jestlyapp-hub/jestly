@@ -3,6 +3,7 @@
 import { memo } from "react";
 import type { ServicesListBlockContent } from "@/types";
 import { useProductsByIds } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 
 function ServicesListBlockPreviewInner({ content }: { content: ServicesListBlockContent }) {
   const products = useProductsByIds(content.productIds);
@@ -48,7 +49,7 @@ function ServicesListBlockPreviewInner({ content }: { content: ServicesListBlock
             </div>
             {content.showPrice && (
               <span className={`text-[12px] font-medium text-[var(--site-primary)] whitespace-nowrap ${isGrid ? "block mt-2" : "ml-4"}`}>
-                {product.price} €
+                {formatPrice(product.priceCents)}
               </span>
             )}
           </div>

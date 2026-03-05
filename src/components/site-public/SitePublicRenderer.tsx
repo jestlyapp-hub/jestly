@@ -328,7 +328,7 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
 
   return (
     <ProductProvider products={products}>
-      <LinkProvider site={site}>
+      <LinkProvider site={site} products={products}>
         <div
           className="min-h-screen flex flex-col bg-white"
           style={{ fontFamily: site.theme.fontFamily, ...themeVars } as React.CSSProperties}

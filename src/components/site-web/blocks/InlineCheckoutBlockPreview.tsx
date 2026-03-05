@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { useProductById } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 interface InlineCheckoutBlockContent {
@@ -34,7 +35,7 @@ function InlineCheckoutBlockPreviewInner({ content }: { content: InlineCheckoutB
               <div className="text-[13px] font-semibold text-[#1A1A1A]">{product.name}</div>
               <div className="text-[11px] text-[#999]">{product.shortDescription}</div>
             </div>
-            <div className="text-lg font-bold text-[var(--site-primary)] whitespace-nowrap ml-4">{product.price} &euro;</div>
+            <div className="text-lg font-bold text-[var(--site-primary)] whitespace-nowrap ml-4">{formatPrice(product.priceCents)}</div>
           </div>
 
           {/* Compact horizontal form */}
@@ -66,7 +67,7 @@ function InlineCheckoutBlockPreviewInner({ content }: { content: InlineCheckoutB
         <div className="text-center mb-5">
           <div className="text-lg font-bold text-[#1A1A1A] mb-1">{product.name}</div>
           <p className="text-[12px] text-[#999] mb-3">{product.shortDescription}</p>
-          <div className="text-2xl font-bold text-[var(--site-primary)]">{product.price} &euro;</div>
+          <div className="text-2xl font-bold text-[var(--site-primary)]">{formatPrice(product.priceCents)}</div>
         </div>
 
         {product.features && product.features.length > 0 && (

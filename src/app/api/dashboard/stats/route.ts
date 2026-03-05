@@ -8,7 +8,7 @@ export async function GET() {
   const { user, supabase } = auth;
 
   // Run queries in parallel
-  const [ordersRes, clientsRes, servicesRes, recentOrdersRes] = await Promise.all([
+  const [ordersRes, clientsRes, productsRes, recentOrdersRes] = await Promise.all([
     // Total revenue + order count
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("orders") as any)
@@ -21,10 +21,10 @@ export async function GET() {
       .eq("user_id", user.id),
     // Active products count
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("services") as any)
+    (supabase.from("products") as any)
       .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .eq("is_active", true),
+      .eq("owner_id", user.id)
+      .eq("status", "active"),
     // Recent orders for activity feed
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("orders") as any)
@@ -62,7 +62,7 @@ export async function GET() {
     ordersCount,
     pendingOrders,
     clientsCount: clientsRes.count ?? 0,
-    activeProductsCount: servicesRes.count ?? 0,
+    activeProductsCount: productsRes.count ?? 0,
     monthlyRevenue,
     recentOrders: recentOrdersRes.data || [],
   });

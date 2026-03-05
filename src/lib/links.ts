@@ -60,7 +60,11 @@ export function migrateLegacyCtaLink(ctaLink: string | undefined): BlockLink {
 
 /* ─── Resolve BlockLink → href string ─── */
 
-export function resolveBlockLink(link: BlockLink, site: Site): string | null {
+export function resolveBlockLink(
+  link: BlockLink,
+  site: Site,
+  productSlugMap?: Map<string, string>,
+): string | null {
   switch (link.type) {
     case "none":
       return null;
@@ -74,7 +78,11 @@ export function resolveBlockLink(link: BlockLink, site: Site): string | null {
     case "product": {
       if (!link.productId) return null;
       const basePath = `/s/${site.domain.subdomain}`;
-      return `${basePath}/order/${link.productId}`;
+      const slug = productSlugMap?.get(link.productId) || link.productId;
+      if (link.mode === "page") {
+        return `${basePath}/p/${slug}`;
+      }
+      return `${basePath}/order/${slug}`;
     }
     default:
       return null;
@@ -85,9 +93,10 @@ export function resolveBlockLink(link: BlockLink, site: Site): string | null {
 
 export function getBlockLinkProps(
   link: BlockLink,
-  site: Site
+  site: Site,
+  productSlugMap?: Map<string, string>,
 ): { href: string; target?: string; rel?: string } | null {
-  const href = resolveBlockLink(link, site);
+  const href = resolveBlockLink(link, site, productSlugMap);
   if (!href) return null;
 
   if (link.type === "external" && link.newTab) {

@@ -29,7 +29,7 @@ export default function SmartLinkButton({ link, label, className = "", style }: 
     return <span className={baseClass} style={mergedStyle}>{label}</span>;
   }
 
-  const props = getBlockLinkProps(normalized, ctx.site);
+  const props = getBlockLinkProps(normalized, ctx.site, ctx.productSlugMap);
   if (!props) {
     return <span className={baseClass} style={mergedStyle}>{label}</span>;
   }

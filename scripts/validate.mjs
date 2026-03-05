@@ -57,7 +57,7 @@ const VALID_FIELD_TYPES = [
 
 // Columns that DO exist on the orders table (from migrations)
 const ORDERS_COLUMNS = [
-  "id", "user_id", "client_id", "service_id", "title", "description",
+  "id", "user_id", "client_id", "product_id", "title", "description",
   "amount", "status", "status_id", "priority", "deadline", "custom_fields",
   "created_at", "updated_at",
 ];

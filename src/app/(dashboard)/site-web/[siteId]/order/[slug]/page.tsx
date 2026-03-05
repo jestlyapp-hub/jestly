@@ -4,9 +4,10 @@ import { useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi } from "@/lib/hooks/use-api";
-import { serviceToProduct } from "@/lib/adapters";
+import { dbToProduct } from "@/lib/adapters";
+import { formatPrice } from "@/lib/productTypes";
 import type { Product } from "@/types";
-import type { Service } from "@/types/database";
+import type { ProductRow } from "@/types/database";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
@@ -14,8 +15,8 @@ const sectors = ["Tech / SaaS", "E-commerce", "Restauration", "Mode / Beauté", 
 
 export default function OrderPage() {
   const params = useParams<{ slug: string }>();
-  const { data: rawServices } = useApi<Service[]>("/api/products");
-  const products: Product[] = useMemo(() => rawServices ? rawServices.map(serviceToProduct) : [], [rawServices]);
+  const { data: rawProducts } = useApi<ProductRow[]>("/api/products");
+  const products: Product[] = useMemo(() => rawProducts ? rawProducts.map(dbToProduct) : [], [rawProducts]);
   const product = products.find((p) => p.slug === params.slug);
 
   const [form, setForm] = useState({
@@ -99,7 +100,7 @@ export default function OrderPage() {
               </div>
               <div className="flex justify-between text-[13px]">
                 <span className="text-[#999]">Montant</span>
-                <span className="font-bold text-[#4F46E5]">{product.price} &euro;</span>
+                <span className="font-bold text-[#4F46E5]">{formatPrice(product.priceCents)}</span>
               </div>
               {deliveryDate && (
                 <div className="flex justify-between text-[13px]">
@@ -138,7 +139,7 @@ export default function OrderPage() {
                   </div>
                   <p className="text-[12px] text-[#999]">{product.shortDescription}</p>
                 </div>
-                <div className="text-2xl font-bold text-[#4F46E5] ml-4">{product.price} &euro;</div>
+                <div className="text-2xl font-bold text-[#4F46E5] ml-4">{formatPrice(product.priceCents)}</div>
               </div>
               {product.features && product.features.length > 0 && (
                 <ul className="mt-3 space-y-1">
@@ -267,7 +268,7 @@ export default function OrderPage() {
                     : "bg-[#E6E6E4] text-[#999] cursor-not-allowed"
                 }`}
               >
-                Payer {product.price} &euro;
+                Payer {formatPrice(product.priceCents)}
               </button>
             </div>
           </motion.form>

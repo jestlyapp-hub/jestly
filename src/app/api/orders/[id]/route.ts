@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     // maybeSingle: returns null if 0 rows (no throw), errors only on real DB issues
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.from("orders") as any)
-      .select("*, clients(name, email, phone, company), services(title, price)")
+      .select("*, clients(name, email, phone, company), products(name, price_cents)")
       .eq("id", id)
       .eq("user_id", user.id)
       .maybeSingle();
@@ -64,7 +64,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         .update(fields)
         .eq("id", id)
         .eq("user_id", user.id)
-        .select("*, clients(name, email, phone), services(title)")
+        .select("*, clients(name, email, phone), products(name)")
         .single();
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

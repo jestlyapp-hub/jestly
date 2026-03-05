@@ -23,10 +23,10 @@ export async function GET(req: NextRequest) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("services") as any)
+  const { data, error } = await (supabase.from("products") as any)
     .select("*")
-    .eq("user_id", site.owner_id)
-    .eq("is_active", true)
+    .eq("owner_id", site.owner_id)
+    .eq("status", "active")
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

@@ -43,15 +43,16 @@ CREATE TABLE IF NOT EXISTS public.clients (
   updated_at    timestamptz not null default now()
 );
 
-CREATE TABLE IF NOT EXISTS public.services (
+CREATE TABLE IF NOT EXISTS public.products (
   id          uuid        primary key default gen_random_uuid(),
-  user_id     uuid        not null references public.profiles(id) on delete cascade,
-  title       text        not null,
+  owner_id    uuid        not null references public.profiles(id) on delete cascade,
+  name        text        not null,
   description text        not null default '',
-  price       numeric     not null,
+  price_cents integer     not null default 0,
   currency    text        not null default 'EUR',
-  type        text        not null check (type in ('service', 'pack', 'formation')),
-  is_active   boolean     not null default true,
+  type        text        not null check (type in ('service', 'pack', 'digital', 'lead_magnet')),
+  status      text        not null default 'draft' check (status in ('draft', 'active', 'archived')),
+  mode        text        not null default 'checkout' check (mode in ('checkout', 'contact')),
   image_url   text,
   created_at  timestamptz not null default now(),
   updated_at  timestamptz not null default now()
@@ -61,7 +62,7 @@ CREATE TABLE IF NOT EXISTS public.orders (
   id                uuid        primary key default gen_random_uuid(),
   user_id           uuid        not null references public.profiles(id) on delete cascade,
   client_id         uuid        not null references public.clients(id),
-  service_id        uuid        references public.services(id),
+  product_id        uuid        references public.products(id),
   title             text        not null,
   description       text        not null default '',
   amount            numeric     not null,
@@ -109,7 +110,7 @@ CREATE TABLE IF NOT EXISTS public.tasks (
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_clients_user_id   ON public.clients(user_id);
-CREATE INDEX IF NOT EXISTS idx_services_user_id  ON public.services(user_id);
+CREATE INDEX IF NOT EXISTS idx_products_owner_id  ON public.products(owner_id);
 CREATE INDEX IF NOT EXISTS idx_orders_user_id    ON public.orders(user_id);
 CREATE INDEX IF NOT EXISTS idx_orders_client_id  ON public.orders(client_id);
 CREATE INDEX IF NOT EXISTS idx_invoices_user_id  ON public.invoices(user_id);
@@ -151,19 +152,19 @@ DO $$ BEGIN
   END IF;
 END $$;
 
-ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.products ENABLE ROW LEVEL SECURITY;
 DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='services' AND policyname='Users can view own services') THEN
-    CREATE POLICY "Users can view own services" ON public.services FOR SELECT USING (user_id = auth.uid());
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='products' AND policyname='Users can view own products') THEN
+    CREATE POLICY "Users can view own products" ON public.products FOR SELECT USING (owner_id = auth.uid());
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='services' AND policyname='Users can insert own services') THEN
-    CREATE POLICY "Users can insert own services" ON public.services FOR INSERT WITH CHECK (user_id = auth.uid());
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='products' AND policyname='Users can insert own products') THEN
+    CREATE POLICY "Users can insert own products" ON public.products FOR INSERT WITH CHECK (owner_id = auth.uid());
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='services' AND policyname='Users can update own services') THEN
-    CREATE POLICY "Users can update own services" ON public.services FOR UPDATE USING (user_id = auth.uid());
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='products' AND policyname='Users can update own products') THEN
+    CREATE POLICY "Users can update own products" ON public.products FOR UPDATE USING (owner_id = auth.uid());
   END IF;
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='services' AND policyname='Users can delete own services') THEN
-    CREATE POLICY "Users can delete own services" ON public.services FOR DELETE USING (user_id = auth.uid());
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='products' AND policyname='Users can delete own products') THEN
+    CREATE POLICY "Users can delete own products" ON public.products FOR DELETE USING (owner_id = auth.uid());
   END IF;
 END $$;
 
@@ -231,8 +232,8 @@ CREATE TRIGGER set_profiles_updated_at BEFORE UPDATE ON public.profiles FOR EACH
 DROP TRIGGER IF EXISTS set_clients_updated_at ON public.clients;
 CREATE TRIGGER set_clients_updated_at BEFORE UPDATE ON public.clients FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
-DROP TRIGGER IF EXISTS set_services_updated_at ON public.services;
-CREATE TRIGGER set_services_updated_at BEFORE UPDATE ON public.services FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
+DROP TRIGGER IF EXISTS set_products_updated_at ON public.products;
+CREATE TRIGGER set_products_updated_at BEFORE UPDATE ON public.products FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
 DROP TRIGGER IF EXISTS set_orders_updated_at ON public.orders;
 CREATE TRIGGER set_orders_updated_at BEFORE UPDATE ON public.orders FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
@@ -341,7 +342,7 @@ CREATE TABLE IF NOT EXISTS public.site_assets (
 CREATE TABLE IF NOT EXISTS public.site_product_links (
   id             uuid        primary key default gen_random_uuid(),
   site_id        uuid        not null references public.sites(id) on delete cascade,
-  product_id     uuid        not null references public.services(id) on delete cascade,
+  product_id     uuid        not null references public.products(id) on delete cascade,
   display_config jsonb       not null default '{}',
   created_at     timestamptz not null default now()
 );
@@ -398,7 +399,7 @@ CREATE TRIGGER set_blocks_updated_at BEFORE UPDATE ON public.site_blocks FOR EAC
 
 -- ============ MIGRATION 003: Checkout Flow ============
 
-ALTER TABLE public.services
+ALTER TABLE public.products
   ADD COLUMN IF NOT EXISTS slug TEXT,
   ADD COLUMN IF NOT EXISTS short_description TEXT NOT NULL DEFAULT '',
   ADD COLUMN IF NOT EXISTS long_description TEXT,
@@ -413,7 +414,7 @@ ALTER TABLE public.services
 CREATE TABLE IF NOT EXISTS public.order_items (
   id         UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id   UUID        NOT NULL REFERENCES public.orders(id) ON DELETE CASCADE,
-  service_id UUID        NOT NULL REFERENCES public.services(id),
+  product_id UUID        NOT NULL REFERENCES public.products(id),
   quantity   INTEGER     NOT NULL DEFAULT 1,
   unit_price NUMERIC     NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -449,20 +450,20 @@ CREATE OR REPLACE FUNCTION public.fn_public_checkout(
   p_site_id UUID, p_product_id UUID, p_name TEXT, p_email TEXT,
   p_phone TEXT DEFAULT NULL, p_message TEXT DEFAULT NULL, p_form_data JSONB DEFAULT '{}'
 ) RETURNS JSON LANGUAGE plpgsql SECURITY DEFINER AS $$
-DECLARE v_owner_id UUID; v_service RECORD; v_client_id UUID; v_order_id UUID;
+DECLARE v_owner_id UUID; v_product RECORD; v_client_id UUID; v_order_id UUID;
 BEGIN
   SELECT owner_id INTO v_owner_id FROM public.sites WHERE id = p_site_id AND status = 'published';
   IF v_owner_id IS NULL THEN RAISE EXCEPTION 'Site not found'; END IF;
-  SELECT id, title, price INTO v_service FROM public.services WHERE id = p_product_id AND user_id = v_owner_id AND is_active = true;
-  IF v_service.id IS NULL THEN RAISE EXCEPTION 'Product not found'; END IF;
+  SELECT id, name, price_cents INTO v_product FROM public.products WHERE id = p_product_id AND owner_id = v_owner_id AND status = 'active';
+  IF v_product.id IS NULL THEN RAISE EXCEPTION 'Product not found'; END IF;
   v_client_id := public.fn_upsert_client(v_owner_id, p_name, p_email, p_phone);
-  INSERT INTO public.orders (user_id, client_id, service_id, title, description, amount, status, paid)
-  VALUES (v_owner_id, v_client_id, v_service.id, v_service.title, COALESCE(p_message, ''), v_service.price, 'new', false) RETURNING id INTO v_order_id;
-  INSERT INTO public.order_items (order_id, service_id, quantity, unit_price) VALUES (v_order_id, v_service.id, 1, v_service.price);
+  INSERT INTO public.orders (user_id, client_id, product_id, title, description, amount, status, paid)
+  VALUES (v_owner_id, v_client_id, v_product.id, v_product.name, COALESCE(p_message, ''), v_product.price_cents, 'new', false) RETURNING id INTO v_order_id;
+  INSERT INTO public.order_items (order_id, product_id, quantity, unit_price) VALUES (v_order_id, v_product.id, 1, v_product.price_cents);
   INSERT INTO public.order_submissions (order_id, form_data) VALUES (v_order_id, p_form_data);
-  UPDATE public.services SET sales_count = sales_count + 1 WHERE id = v_service.id;
-  UPDATE public.clients SET total_revenue = total_revenue + v_service.price WHERE id = v_client_id;
-  RETURN json_build_object('order_id', v_order_id, 'client_id', v_client_id, 'amount', v_service.price);
+  UPDATE public.products SET sales_count = sales_count + 1 WHERE id = v_product.id;
+  UPDATE public.clients SET total_revenue = total_revenue + v_product.price_cents WHERE id = v_client_id;
+  RETURN json_build_object('order_id', v_order_id, 'client_id', v_client_id, 'amount', v_product.price_cents);
 END; $$;
 
 

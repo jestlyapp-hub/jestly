@@ -1,35 +1,42 @@
 import type { Product, Order, Client, ClientDetail, ClientNote, ClientEvent } from "@/types";
-import type { Service, OrderRecord, ClientRecord } from "@/types/database";
+import type { ProductRow, OrderRecord, ClientRecord } from "@/types/database";
 
 /**
- * Convert a DB service row to the frontend Product type.
+ * Convert a DB product row to the frontend Product type.
  */
-export function serviceToProduct(row: Service): Product {
+export function dbToProduct(row: ProductRow): Product {
   return {
     id: row.id,
-    name: row.title,
-    price: Number(row.price),
-    active: row.is_active,
+    name: row.name,
+    priceCents: Number(row.price_cents),
+    status: row.status,
     sales: row.sales_count,
     category: row.category,
-    type: row.type === "formation" ? "service" : (row.type as Product["type"]),
+    type: row.type,
     slug: row.slug || row.id,
     shortDescription: row.short_description || row.description,
     longDescription: row.long_description ?? undefined,
     features: row.features ?? undefined,
     deliveryTimeDays: row.delivery_time_days ?? undefined,
     thumbnailUrl: row.thumbnail_url ?? row.image_url ?? undefined,
+    coverImageUrl: row.cover_image_url ?? undefined,
     featured: row.is_featured,
+    mode: row.mode ?? "checkout",
+    deliveryType: row.delivery_type ?? "none",
+    deliveryFileUrl: row.delivery_file_path ?? undefined,
+    deliveryUrl: row.delivery_url ?? undefined,
+    ctaLabel: row.cta_label ?? "Acheter",
+    stripePriceId: row.stripe_price_id ?? undefined,
   };
 }
 
 /**
- * Convert a DB order row (with joined client + service) to the frontend Order type.
+ * Convert a DB order row (with joined client + product) to the frontend Order type.
  */
 export function orderRecordToOrder(
   row: OrderRecord & {
     clients?: { name: string; email: string; phone?: string | null } | null;
-    services?: { title: string } | null;
+    products?: { name: string } | null;
   }
 ): Order {
   // Parse checklist safely
@@ -44,7 +51,7 @@ export function orderRecordToOrder(
     clientEmail: row.clients?.email ?? "",
     clientId: row.client_id,
     clientPhone: row.clients?.phone ?? undefined,
-    product: row.services?.title ?? row.title,
+    product: row.products?.name ?? row.title,
     price: Number(row.amount),
     status: row.status as Order["status"],
     date: row.created_at.split("T")[0],

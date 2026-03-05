@@ -7,8 +7,10 @@
 import { useState } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
 import { useApi } from "@/lib/hooks/use-api";
-import { serviceToProduct } from "@/lib/adapters";
+import { dbToProduct } from "@/lib/adapters";
+import { formatPrice } from "@/lib/productTypes";
 import type { Link, LinkType, Product } from "@/types";
+import type { ProductRow } from "@/types/database";
 
 interface LinkPickerProps {
   value: Link | undefined;
@@ -28,9 +30,8 @@ const linkTypes: { value: LinkType; label: string }[] = [
 
 export default function LinkPicker({ value, onChange, label }: LinkPickerProps) {
   const { state } = useBuilder();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: rawServices } = useApi<any[]>("/api/products");
-  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : [];
+  const { data: rawProducts } = useApi<ProductRow[]>("/api/products");
+  const products: Product[] = rawProducts ? rawProducts.map(dbToProduct) : [];
   const [productSearch, setProductSearch] = useState("");
   const [productOpen, setProductOpen] = useState(false);
 
@@ -108,7 +109,7 @@ export default function LinkPicker({ value, onChange, label }: LinkPickerProps) 
             <div className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg p-2 flex items-center justify-between">
               <div>
                 <div className="text-[12px] font-medium text-[#1A1A1A]">{selectedProduct.name}</div>
-                <div className="text-[10px] text-[#999]">{selectedProduct.price} € — {selectedProduct.category}</div>
+                <div className="text-[10px] text-[#999]">{formatPrice(selectedProduct.priceCents)} — {selectedProduct.category}</div>
               </div>
               <div className="flex gap-1.5">
                 <button onClick={() => setProductOpen(true)} className="text-[10px] font-medium text-[#4F46E5] hover:underline">Changer</button>
@@ -146,7 +147,7 @@ export default function LinkPicker({ value, onChange, label }: LinkPickerProps) 
                     className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-[#F7F7F5] transition-colors text-left"
                   >
                     <span className="text-[12px] text-[#1A1A1A]">{p.name}</span>
-                    <span className="text-[10px] text-[#4F46E5]">{p.price} €</span>
+                    <span className="text-[10px] text-[#4F46E5]">{formatPrice(p.priceCents)}</span>
                   </button>
                 ))}
               </div>

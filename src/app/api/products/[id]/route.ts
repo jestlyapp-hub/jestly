@@ -9,10 +9,10 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { user, supabase } = auth;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("services") as any)
+  const { data, error } = await (supabase.from("products") as any)
     .select("*")
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("owner_id", user.id)
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 404 });
@@ -28,9 +28,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   const body = await req.json();
   const allowed = [
-    "title", "description", "price", "type", "is_active", "slug",
+    "name", "description", "price_cents", "type", "status", "slug",
     "short_description", "long_description", "features", "delivery_time_days",
     "thumbnail_url", "is_featured", "category", "image_url", "form_schema_json",
+    "mode", "delivery_type", "delivery_file_path", "delivery_url",
+    "cta_label", "stripe_price_id", "cover_image_url",
   ];
   const updates: Record<string, unknown> = {};
   for (const key of allowed) {
@@ -38,10 +40,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("services") as any)
+  const { data, error } = await (supabase.from("products") as any)
     .update(updates)
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("owner_id", user.id)
     .select()
     .single();
 
@@ -57,10 +59,10 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const { user, supabase } = auth;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error } = await (supabase.from("services") as any)
+  const { error } = await (supabase.from("products") as any)
     .delete()
     .eq("id", id)
-    .eq("user_id", user.id);
+    .eq("owner_id", user.id);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

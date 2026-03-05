@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { formatPrice } from "@/lib/productTypes";
 import type { Product } from "@/types";
 
 const inputClass = "w-full px-3 py-2.5 text-sm border border-[#E6E6E4] rounded-md bg-[#F7F7F5] text-[#191919] focus:outline-none focus:ring-2 focus:ring-[var(--site-primary)]/20 focus:border-[var(--site-primary)] transition-all";
@@ -103,7 +104,7 @@ export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutS
         <div className="mb-8 pb-6 border-b border-[#E6E6E4]">
           <h1 className="text-2xl font-bold text-[#191919] mb-1">{product.name}</h1>
           <p className="text-sm text-[#5A5A58] mb-3">{product.shortDescription}</p>
-          <div className="text-2xl font-bold text-[var(--site-primary)]">{product.price} &euro;</div>
+          <div className="text-2xl font-bold text-[var(--site-primary)]">{formatPrice(product.priceCents)}</div>
         </div>
 
         {/* Step indicator */}
@@ -212,7 +213,7 @@ export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutS
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[#5A5A58]">Prix</span>
-                  <span className="font-bold text-[var(--site-primary)]">{product.price} &euro;</span>
+                  <span className="font-bold text-[var(--site-primary)]">{formatPrice(product.priceCents)}</span>
                 </div>
                 {deliveryDate && (
                   <div className="flex justify-between text-sm">
@@ -247,7 +248,7 @@ export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutS
                   disabled={loading}
                   className="flex-1 py-3 bg-[var(--site-primary)] text-white text-sm font-semibold rounded-md hover:bg-[var(--site-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-wait"
                 >
-                  {loading ? "Envoi..." : `Confirmer — ${product.price} €`}
+                  {loading ? "Envoi..." : `Confirmer — ${formatPrice(product.priceCents)}`}
                 </button>
               </div>
 
@@ -276,7 +277,7 @@ export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutS
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[#5A5A58]">Montant</span>
-                  <span className="font-bold text-[var(--site-primary)]">{product.price} &euro;</span>
+                  <span className="font-bold text-[var(--site-primary)]">{formatPrice(product.priceCents)}</span>
                 </div>
               </div>
               <a href={`/s/${siteSlug}`} className="inline-block mt-6 text-sm font-medium text-[var(--site-primary)] hover:underline">&larr; Retour au site</a>

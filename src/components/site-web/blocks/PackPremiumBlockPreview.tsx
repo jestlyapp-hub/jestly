@@ -3,6 +3,7 @@
 import { memo } from "react";
 import type { PackPremiumBlockContent } from "@/types";
 import { useProductById } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 function PackPremiumBlockPreviewInner({ content }: { content: PackPremiumBlockContent }) {
@@ -26,7 +27,7 @@ function PackPremiumBlockPreviewInner({ content }: { content: PackPremiumBlockCo
         <h3 className="text-xl font-bold mb-1">{product.name}</h3>
         <p className="text-[13px] opacity-60 mb-2">{product.shortDescription}</p>
         {content.showPrice && (
-          <div className="text-2xl font-bold text-[var(--site-primary)] mb-4">{product.price} €</div>
+          <div className="text-2xl font-bold text-[var(--site-primary)] mb-4">{formatPrice(product.priceCents)}</div>
         )}
         {content.showFeatures && product.features && (
           <ul className="space-y-1.5 mb-4 max-w-xs mx-auto">

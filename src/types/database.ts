@@ -94,16 +94,16 @@ export interface Database {
           updated_at?: string;
         };
       };
-      services: {
+      products: {
         Row: {
           id: string;
-          user_id: string;
-          title: string;
+          owner_id: string;
+          name: string;
           description: string;
-          price: number;
+          price_cents: number;
           currency: string;
-          type: "service" | "pack" | "formation";
-          is_active: boolean;
+          type: "service" | "pack" | "digital" | "lead_magnet";
+          status: "draft" | "active" | "archived";
           image_url: string | null;
           slug: string | null;
           short_description: string;
@@ -115,18 +115,25 @@ export interface Database {
           category: string;
           sales_count: number;
           form_schema_json: Json;
+          mode: "checkout" | "contact";
+          delivery_type: "file" | "url" | "message" | "none";
+          delivery_file_path: string | null;
+          delivery_url: string | null;
+          cta_label: string;
+          stripe_price_id: string | null;
+          cover_image_url: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
-          user_id: string;
-          title: string;
+          owner_id: string;
+          name: string;
           description?: string;
-          price: number;
+          price_cents: number;
           currency?: string;
-          type: "service" | "pack" | "formation";
-          is_active?: boolean;
+          type: "service" | "pack" | "digital" | "lead_magnet";
+          status?: "draft" | "active" | "archived";
           image_url?: string | null;
           slug?: string | null;
           short_description?: string;
@@ -138,18 +145,25 @@ export interface Database {
           category?: string;
           sales_count?: number;
           form_schema_json?: Json;
+          mode?: "checkout" | "contact";
+          delivery_type?: "file" | "url" | "message" | "none";
+          delivery_file_path?: string | null;
+          delivery_url?: string | null;
+          cta_label?: string;
+          stripe_price_id?: string | null;
+          cover_image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
-          user_id?: string;
-          title?: string;
+          owner_id?: string;
+          name?: string;
           description?: string;
-          price?: number;
+          price_cents?: number;
           currency?: string;
-          type?: "service" | "pack" | "formation";
-          is_active?: boolean;
+          type?: "service" | "pack" | "digital" | "lead_magnet";
+          status?: "draft" | "active" | "archived";
           image_url?: string | null;
           slug?: string | null;
           short_description?: string;
@@ -161,6 +175,13 @@ export interface Database {
           category?: string;
           sales_count?: number;
           form_schema_json?: Json;
+          mode?: "checkout" | "contact";
+          delivery_type?: "file" | "url" | "message" | "none";
+          delivery_file_path?: string | null;
+          delivery_url?: string | null;
+          cta_label?: string;
+          stripe_price_id?: string | null;
+          cover_image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -170,7 +191,7 @@ export interface Database {
           id: string;
           user_id: string;
           client_id: string;
-          service_id: string | null;
+          product_id: string | null;
           title: string;
           description: string;
           amount: number;
@@ -198,7 +219,7 @@ export interface Database {
           id?: string;
           user_id: string;
           client_id: string;
-          service_id?: string | null;
+          product_id?: string | null;
           title: string;
           description: string;
           amount: number;
@@ -226,7 +247,7 @@ export interface Database {
           id?: string;
           user_id?: string;
           client_id?: string;
-          service_id?: string | null;
+          product_id?: string | null;
           title?: string;
           description?: string;
           amount?: number;
@@ -349,7 +370,7 @@ export interface Database {
         Row: {
           id: string;
           order_id: string;
-          service_id: string;
+          product_id: string;
           quantity: number;
           unit_price: number;
           created_at: string;
@@ -357,7 +378,7 @@ export interface Database {
         Insert: {
           id?: string;
           order_id: string;
-          service_id: string;
+          product_id: string;
           quantity?: number;
           unit_price: number;
           created_at?: string;
@@ -740,7 +761,7 @@ export type UpdateTables<T extends keyof Database["public"]["Tables"]> =
 // Convenient aliases
 export type Profile = Tables<"profiles">;
 export type ClientRecord = Tables<"clients">;
-export type Service = Tables<"services">;
+export type ProductRow = Tables<"products">;
 export type OrderRecord = Tables<"orders">;
 export type InvoiceRecord = Tables<"invoices">;
 export type Task = Tables<"tasks">;

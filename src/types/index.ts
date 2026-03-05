@@ -137,13 +137,16 @@ export interface Client {
   avatar: string;
 }
 
-export type ProductType = "service" | "pack" | "digital";
+export type ProductType = "service" | "pack" | "digital" | "lead_magnet";
+export type ProductStatus = "draft" | "active" | "archived";
+export type ProductMode = "checkout" | "contact";
+export type DeliveryType = "file" | "url" | "message" | "none";
 
 export interface Product {
   id: string;
   name: string;
-  price: number;
-  active: boolean;
+  priceCents: number;
+  status: ProductStatus;
   sales: number;
   category: string;
   type: ProductType;
@@ -153,7 +156,14 @@ export interface Product {
   features?: string[];
   deliveryTimeDays?: number;
   thumbnailUrl?: string;
+  coverImageUrl?: string;
   featured?: boolean;
+  mode: ProductMode;
+  deliveryType: DeliveryType;
+  deliveryFileUrl?: string;
+  deliveryUrl?: string;
+  ctaLabel: string;
+  stripePriceId?: string;
 }
 
 export interface Invoice {
