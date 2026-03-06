@@ -7,7 +7,7 @@ import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 function HeroCenteredMeshBlockPreviewInner({ content }: { content: HeroCenteredMeshBlockContent }) {
   return (
     <section
-      className="relative overflow-hidden py-24 px-8"
+      className="relative overflow-hidden py-16 sm:py-24 px-4 sm:px-8"
       style={{ background: "var(--site-surface, #0a0a0a)" }}
     >
       {/* Mesh gradient background */}
@@ -47,7 +47,7 @@ function HeroCenteredMeshBlockPreviewInner({ content }: { content: HeroCenteredM
         )}
 
         <h1
-          className="text-5xl sm:text-6xl font-bold leading-[1.08] mb-6"
+          className="text-3xl sm:text-5xl md:text-6xl font-bold leading-[1.08] mb-6"
           style={{
             color: "var(--site-text, #fafafa)",
             fontFamily: "var(--site-heading-font, inherit)",
@@ -83,7 +83,7 @@ function HeroCenteredMeshBlockPreviewInner({ content }: { content: HeroCenteredM
             >
               Ils nous font confiance
             </p>
-            <div className="flex items-center justify-center gap-8 flex-wrap">
+            <div className="flex items-center justify-center gap-4 sm:gap-8 flex-wrap">
               {content.trustLogos.map((logo, i) => (
                 <div
                   key={i}

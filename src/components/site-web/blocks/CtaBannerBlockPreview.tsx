@@ -8,7 +8,7 @@ function CtaBannerBlockPreviewInner({ content }: { content: CtaBannerBlockConten
   return (
     <section className="py-16 px-4">
       <div
-        className="relative rounded-2xl overflow-hidden px-8 py-16 sm:py-20 text-center"
+        className="relative rounded-2xl overflow-hidden px-4 sm:px-8 py-16 sm:py-20 text-center"
         style={{
           background: "linear-gradient(135deg, var(--site-primary), var(--site-primary) 40%, color-mix(in srgb, var(--site-primary) 60%, #000))",
         }}

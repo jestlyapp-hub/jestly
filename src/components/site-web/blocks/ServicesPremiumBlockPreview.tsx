@@ -71,11 +71,13 @@ function getIcon(key: string): React.ReactNode {
 }
 
 function ServicesPremiumBlockPreviewInner({ content }: { content: ServicesPremiumBlockContent }) {
-  const cols = content.columns === 4 ? "grid-cols-4" : "grid-cols-3";
+  const cols = content.columns === 4
+    ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+    : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
 
   return (
     <section
-      className="relative py-20 px-8"
+      className="relative py-16 sm:py-20 px-4 sm:px-8"
       style={{ background: "var(--site-surface, #0a0a0a)" }}
     >
       <div className="max-w-6xl mx-auto">

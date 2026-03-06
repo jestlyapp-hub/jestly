@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { Block } from "@/types";
-import { computeSectionStyle, computeSectionClass, computeButtonVars, getButtonHoverCSS } from "@/lib/block-style-engine";
+import { computeSectionStyle, computePublicContainerClass, computeButtonVars, getButtonHoverCSS } from "@/lib/block-style-engine";
 import HeroBlockPreview from "./HeroBlockPreview";
 import PortfolioGridBlockPreview from "./PortfolioGridBlockPreview";
 import ServicesListBlockPreview from "./ServicesListBlockPreview";
@@ -51,12 +51,18 @@ import VideoShowcaseBlockPreview from "./VideoShowcaseBlockPreview";
 import TechStackBlockPreview from "./TechStackBlockPreview";
 import BeforeAfterProBlockPreview from "./BeforeAfterProBlockPreview";
 
+const FULL_BLEED_BLOCKS = new Set([
+  "full-image", "video", "hero", "availability-banner",
+  "hero-split-glow", "hero-centered-mesh", "cta-banner", "footer-block",
+]);
+
 function BlockPreviewInner({ block }: { block: Block }) {
   // Compute section styles from the style engine
   const sectionStyle = computeSectionStyle(block.style);
-  const sectionClass = computeSectionClass(block.style);
+  const containerClass = computePublicContainerClass(block.style);
   const buttonVars = computeButtonVars(block.style.buttonStyle);
   const hoverCSS = getButtonHoverCSS(block.id);
+  const isFullBleed = FULL_BLEED_BLOCKS.has(block.type);
 
   // Merge button CSS variables into section style
   const mergedStyle: React.CSSProperties = {
@@ -119,10 +125,10 @@ function BlockPreviewInner({ block }: { block: Block }) {
   })();
 
   return (
-    <div data-block={block.id} style={mergedStyle} className={`rounded-xl overflow-hidden ${sectionClass}`}>
+    <div data-block={block.id} style={mergedStyle} className="overflow-hidden">
       {/* Scoped hover CSS for buttons */}
       <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
-      <div className="px-6">{content}</div>
+      <div className={isFullBleed ? "" : `${containerClass} px-6`}>{content}</div>
     </div>
   );
 }

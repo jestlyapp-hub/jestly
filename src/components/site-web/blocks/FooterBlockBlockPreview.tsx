@@ -9,14 +9,14 @@ function FooterBlockBlockPreviewInner({ content }: { content: FooterBlockContent
 
   return (
     <footer
-      className="py-16 px-8"
+      className="py-12 sm:py-16 px-4 sm:px-8"
       style={{ backgroundColor: "var(--site-surface)", color: "var(--site-muted)" }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Top section: brand + columns */}
-        <div className="grid gap-12" style={{ gridTemplateColumns: `2fr ${content.columns.map(() => "1fr").join(" ")}` }}>
+        <div className="flex flex-col md:flex-row gap-8 sm:gap-12">
           {/* Brand column */}
-          <div className="space-y-4">
+          <div className="space-y-4 md:flex-[2]">
             <h3
               className="text-xl font-bold tracking-tight"
               style={{ color: "var(--site-text)", fontFamily: "var(--site-heading-font)" }}
@@ -77,7 +77,7 @@ function FooterBlockBlockPreviewInner({ content }: { content: FooterBlockContent
 
           {/* Link columns */}
           {content.columns.map((col, i) => (
-            <div key={i} className="space-y-4">
+            <div key={i} className="space-y-4 md:flex-1">
               <h4
                 className="text-[11px] font-semibold uppercase tracking-widest"
                 style={{ color: "var(--site-muted)" }}
