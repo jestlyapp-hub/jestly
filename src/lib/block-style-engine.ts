@@ -1,4 +1,5 @@
-import type { BlockStyle, ButtonStyle, SiteTheme, SiteDesign } from "@/types";
+import type { BlockStyle, ButtonStyle, SiteTheme, SiteDesign, DesignKey } from "@/types";
+import { getDesignPreset } from "@/lib/site-designs";
 
 const shadowMap: Record<string, string> = {
   none: "none",
@@ -82,6 +83,23 @@ function lightenHex(hex: string): string {
  * Compute CSS custom properties for site theme tokens.
  * Applied on the root of the public renderer so all blocks inherit.
  */
+/**
+ * Resolve a complete theme by filling in missing properties from the design preset.
+ * This ensures dark designs actually get dark colors even if the site theme is partial.
+ */
+export function resolveTheme(theme: SiteTheme, design?: SiteDesign): SiteTheme {
+  if (!design?.designKey) return theme;
+  const preset = getDesignPreset(design.designKey);
+  if (!preset) return theme;
+
+  return {
+    ...preset.theme,
+    ...Object.fromEntries(
+      Object.entries(theme).filter(([, v]) => v !== undefined && v !== null && v !== "")
+    ),
+  } as SiteTheme;
+}
+
 export function computeThemeVars(theme: SiteTheme): Record<string, string> {
   const vars: Record<string, string> = {};
   if (theme.primaryColor) {

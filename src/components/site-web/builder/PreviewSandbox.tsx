@@ -3,12 +3,13 @@
 import { memo } from "react";
 import type { Block, BlockType } from "@/types";
 import { defaultContent, useBuilder } from "@/lib/site-builder-context";
-import { computeThemeVars } from "@/lib/block-style-engine";
+import { computeThemeVars, resolveTheme } from "@/lib/block-style-engine";
 import BlockPreview from "@/components/site-web/blocks/BlockPreview";
 
 function PreviewSandboxInner({ type }: { type: BlockType | null }) {
   const { state } = useBuilder();
-  const themeStyle = computeThemeVars(state.site.theme) as React.CSSProperties;
+  const resolved = resolveTheme(state.site.theme, state.site.design);
+  const themeStyle = computeThemeVars(resolved) as React.CSSProperties;
 
   if (!type) {
     return (
@@ -38,7 +39,7 @@ function PreviewSandboxInner({ type }: { type: BlockType | null }) {
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-4">
-        <div className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden shadow-sm" style={themeStyle}>
+        <div className="rounded-xl border border-[#E6E6E4] overflow-hidden shadow-sm" style={{ ...themeStyle, backgroundColor: resolved.backgroundColor || "#ffffff" }}>
           <BlockPreview block={previewBlock} />
         </div>
       </div>

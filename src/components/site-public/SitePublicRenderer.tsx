@@ -9,6 +9,7 @@ import {
   computeButtonVars,
   getButtonHoverCSS,
   computeThemeVars,
+  resolveTheme,
 } from "@/lib/block-style-engine";
 import { getBackgroundCSS, getNavClass, getButtonClass } from "@/lib/site-designs";
 import { ProductProvider } from "@/lib/product-context";
@@ -358,7 +359,11 @@ interface SitePublicRendererProps {
 
 export default function SitePublicRenderer({ site, page, products = [] }: SitePublicRendererProps) {
   const visibleBlocks = page.blocks.filter((b) => b.visible);
-  const themeVars = computeThemeVars(site.theme);
+
+  // Resolve theme: fill in missing properties from design preset
+  const resolvedTheme = resolveTheme(site.theme, site.design);
+  const themeVars = computeThemeVars(resolvedTheme);
+  const isDark = resolvedTheme.mode === "dark";
 
   useEffect(() => {
     document.documentElement.classList.add("smooth-scroll");
@@ -369,30 +374,33 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
   const bgPreset = site.design?.backgroundPreset || "none";
   const { style: bgStyle, beforeCSS } = getBackgroundCSS(bgPreset);
 
+  // Use resolved theme for site-wide styling
+  const resolvedSite = { ...site, theme: resolvedTheme };
+
   return (
     <ProductProvider products={products} siteId={site.id}>
       <LinkProvider site={site} products={products}>
         <div
           className={`min-h-screen flex flex-col ${beforeCSS ? "site-bg-preset" : ""}`}
           style={{
-            fontFamily: site.theme.fontFamily,
-            backgroundColor: site.theme.backgroundColor || "#ffffff",
-            color: site.theme.textColor || "#191919",
+            fontFamily: resolvedTheme.fontFamily,
+            backgroundColor: resolvedTheme.backgroundColor || (isDark ? "#0A0A0F" : "#ffffff"),
+            color: resolvedTheme.textColor || (isDark ? "#FAFAFA" : "#191919"),
             ...themeVars,
             ...bgStyle,
           } as React.CSSProperties}
         >
           {beforeCSS && <style dangerouslySetInnerHTML={{ __html: beforeCSS }} />}
           <SiteAnalyticsTracker siteId={site.id} pageSlug={page.slug} />
-          <SitePublicNav site={site} currentSlug={page.slug} />
+          <SitePublicNav site={resolvedSite} currentSlug={page.slug} />
 
           <main className="flex-1">
             {visibleBlocks.map((block) => (
-              <PublicBlockSection key={block.id} block={block} site={site} />
+              <PublicBlockSection key={block.id} block={block} site={resolvedSite} />
             ))}
           </main>
 
-          <SitePublicFooter site={site} />
+          <SitePublicFooter site={resolvedSite} />
         </div>
       </LinkProvider>
     </ProductProvider>

@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
 import { getBlockEntry } from "@/lib/block-registry";
-import { computeThemeVars } from "@/lib/block-style-engine";
+import { computeThemeVars, resolveTheme } from "@/lib/block-style-engine";
 import BlockPreview from "@/components/site-web/blocks/BlockPreview";
 import AddBlockModal from "@/components/site-web/builder/AddBlockModal";
 import {
@@ -186,10 +186,11 @@ export default function BuilderCanvas() {
       >
         <div className={`${isPreview ? "" : "py-4 px-4"}`}>
           <div
-            className={`${isPreview ? "" : "bg-white rounded-xl shadow-sm border border-[#E6E6E4] overflow-hidden"}`}
+            className={`${isPreview ? "" : "rounded-xl shadow-sm border border-[#E6E6E4] overflow-hidden"}`}
             style={{
-              ...computeThemeVars(state.site.theme) as React.CSSProperties,
+              ...computeThemeVars(resolveTheme(state.site.theme, state.site.design)) as React.CSSProperties,
               fontFamily: state.site.theme.fontFamily || undefined,
+              backgroundColor: resolveTheme(state.site.theme, state.site.design).backgroundColor || "#ffffff",
             }}
           >
             {activePage.blocks.length === 0 && !isPreview && (

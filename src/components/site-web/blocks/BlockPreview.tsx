@@ -119,7 +119,7 @@ function BlockPreviewInner({ block }: { block: Block }) {
   })();
 
   return (
-    <div data-block={block.id} style={mergedStyle} className={`rounded-xl overflow-hidden bg-white ${sectionClass}`}>
+    <div data-block={block.id} style={mergedStyle} className={`rounded-xl overflow-hidden ${sectionClass}`}>
       {/* Scoped hover CSS for buttons */}
       <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
       <div className="px-6">{content}</div>
