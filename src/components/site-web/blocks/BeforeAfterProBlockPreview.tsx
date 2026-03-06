@@ -46,11 +46,13 @@ function BeforeAfterProBlockPreviewInner({ content }: { content: BeforeAfterProB
                     <div className="relative" style={{ borderRight: "1px solid var(--site-border)" }}>
                       <div className="aspect-[4/3] relative overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={item.beforeImageUrl}
-                          alt={`${item.label} - Avant`}
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
+                        {item.beforeImageUrl && (
+                          <img
+                            src={item.beforeImageUrl}
+                            alt={`${item.label} - Avant`}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        )}
                         {/* Subtle dark overlay */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                       </div>
@@ -71,11 +73,13 @@ function BeforeAfterProBlockPreviewInner({ content }: { content: BeforeAfterProB
                     <div className="relative">
                       <div className="aspect-[4/3] relative overflow-hidden">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={item.afterImageUrl}
-                          alt={`${item.label} - Apres`}
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
+                        {item.afterImageUrl && (
+                          <img
+                            src={item.afterImageUrl}
+                            alt={`${item.label} - Apres`}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                       </div>
                       <div
@@ -119,21 +123,25 @@ function BeforeAfterProBlockPreviewInner({ content }: { content: BeforeAfterProB
                   <div className="relative aspect-[16/9] overflow-hidden">
                     {/* After image (full) */}
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={item.afterImageUrl}
-                      alt={`${item.label} - Apres`}
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
+                    {item.afterImageUrl && (
+                      <img
+                        src={item.afterImageUrl}
+                        alt={`${item.label} - Apres`}
+                        className="absolute inset-0 w-full h-full object-cover"
+                      />
+                    )}
 
                     {/* Before image (left half, clipped) */}
                     <div className="absolute inset-0 w-1/2 overflow-hidden">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={item.beforeImageUrl}
-                        alt={`${item.label} - Avant`}
-                        className="absolute inset-0 w-[200%] h-full object-cover"
-                        style={{ maxWidth: "none" }}
-                      />
+                      {item.beforeImageUrl && (
+                        <img
+                          src={item.beforeImageUrl}
+                          alt={`${item.label} - Avant`}
+                          className="absolute inset-0 w-[200%] h-full object-cover"
+                          style={{ maxWidth: "none" }}
+                        />
+                      )}
                     </div>
 
                     {/* Divider line */}
