@@ -2,6 +2,7 @@
 
 import { memo, useState } from "react";
 import { useProductsByIds } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 interface BundleBuilderBlockContent {
@@ -10,6 +11,7 @@ interface BundleBuilderBlockContent {
   description: string;
   ctaLabel: string;
   discountPercent: number;
+  briefTemplateId?: string | null;
 }
 
 function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlockContent }) {
@@ -39,7 +41,7 @@ function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlo
 
   const totalPrice = products
     .filter((p) => checked.has(p.id))
-    .reduce((sum, p) => sum + p.price, 0);
+    .reduce((sum, p) => sum + p.priceCents, 0);
 
   const discountedPrice = Math.round(totalPrice * (1 - content.discountPercent / 100));
   const savings = totalPrice - discountedPrice;
@@ -78,7 +80,7 @@ function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlo
                 <div className="text-[11px] text-[#999] truncate">{product.shortDescription}</div>
               </div>
 
-              <div className="text-[13px] font-medium text-[#1A1A1A] whitespace-nowrap">{product.price} &euro;</div>
+              <div className="text-[13px] font-medium text-[#1A1A1A] whitespace-nowrap">{formatPrice(product.priceCents)}</div>
             </div>
           );
         })}
@@ -88,23 +90,32 @@ function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlo
       <div className="rounded-xl border border-[#E6E6E4] p-4 mb-5">
         <div className="flex items-center justify-between mb-1">
           <span className="text-[12px] text-[#999]">Sous-total</span>
-          <span className="text-[12px] text-[#999] line-through">{totalPrice} &euro;</span>
+          <span className="text-[12px] text-[#999] line-through">{formatPrice(totalPrice)}</span>
         </div>
         {content.discountPercent > 0 && (
           <div className="flex items-center justify-between mb-1">
             <span className="text-[12px] text-[var(--site-primary)] font-medium">Remise pack -{content.discountPercent}%</span>
-            <span className="text-[12px] text-[var(--site-primary)] font-medium">-{savings} &euro;</span>
+            <span className="text-[12px] text-[var(--site-primary)] font-medium">-{formatPrice(savings)}</span>
           </div>
         )}
         <div className="flex items-center justify-between pt-2 border-t border-[#E6E6E4]">
           <span className="text-[14px] font-bold text-[#1A1A1A]">Total</span>
-          <span className="text-xl font-bold text-[var(--site-primary)]">{discountedPrice} &euro;</span>
+          <span className="text-xl font-bold text-[var(--site-primary)]">{formatPrice(discountedPrice)}</span>
         </div>
       </div>
 
-      {/* CTA */}
+      {/* CTA — link to first checked product's checkout */}
       <div className="text-center">
-        <SmartLinkButton link={{ type: "none" }} label={content.ctaLabel} className="inline-block text-[13px] font-semibold px-6 py-2.5 cursor-pointer" />
+        {(() => {
+          const firstChecked = products.find((p) => checked.has(p.id));
+          return (
+            <SmartLinkButton
+              link={firstChecked ? { type: "product", productId: firstChecked.id, mode: "checkout", briefTemplateId: content.briefTemplateId ?? undefined } : { type: "none" }}
+              label={content.ctaLabel}
+              className="inline-block text-[13px] font-semibold px-6 py-2.5 cursor-pointer"
+            />
+          );
+        })()}
       </div>
     </div>
   );

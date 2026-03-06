@@ -1,10 +1,28 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
 import { getBlockEntry } from "@/lib/block-registry";
+import { computeThemeVars } from "@/lib/block-style-engine";
 import BlockPreview from "@/components/site-web/blocks/BlockPreview";
 import AddBlockModal from "@/components/site-web/builder/AddBlockModal";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import type { Block } from "@/types";
 
 const breakpointWidths = {
   desktop: "100%",
@@ -12,29 +30,145 @@ const breakpointWidths = {
   mobile: "375px",
 };
 
+/* ── Sortable block wrapper ── */
+function SortableBlock({
+  block,
+  isSelected,
+  isHovered,
+  isPreview,
+  onSelect,
+  onHover,
+  onLeave,
+  dispatch,
+}: {
+  block: Block;
+  isSelected: boolean;
+  isHovered: boolean;
+  isPreview: boolean;
+  onSelect: () => void;
+  onHover: () => void;
+  onLeave: () => void;
+  dispatch: ReturnType<typeof useBuilder>["dispatch"];
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: block.id, disabled: isPreview });
+
+  const entry = getBlockEntry(block.type);
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : !block.visible && !isPreview ? 0.3 : 1,
+    outline: isSelected
+      ? "2px solid #4F46E5"
+      : isHovered
+      ? "1px solid rgba(79,70,229,0.3)"
+      : "none",
+    outlineOffset: isSelected ? "-1px" : "0",
+    boxShadow: isSelected ? "0 0 0 4px rgba(79,70,229,0.08)" : "none",
+    zIndex: isDragging ? 50 : undefined,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={() => !isPreview && onSelect()}
+      onMouseEnter={() => !isPreview && onHover()}
+      onMouseLeave={onLeave}
+      className={`relative transition-shadow ${!isPreview ? "cursor-pointer" : ""}`}
+    >
+      {/* Block type label on hover/select */}
+      {(isSelected || isHovered) && (
+        <div className="absolute -top-5 left-2 z-20 flex items-center gap-1">
+          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+            isSelected ? "bg-[#4F46E5] text-white" : "bg-white text-[#999] border border-[#E6E6E4] shadow-sm"
+          }`}>
+            {entry?.name || block.type}
+          </span>
+        </div>
+      )}
+
+      {/* Floating actions on selected */}
+      {isSelected && (
+        <div className="absolute -top-5 right-2 z-20 flex items-center gap-0.5">
+          <button
+            onClick={(e) => { e.stopPropagation(); dispatch({ type: "DUPLICATE_BLOCK", blockId: block.id }); }}
+            className="bg-white border border-[#E6E6E4] rounded p-1 text-[#666] hover:text-[#4F46E5] shadow-sm"
+            title="Dupliquer"
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); dispatch({ type: "TOGGLE_BLOCK_VISIBILITY", blockId: block.id }); }}
+            className="bg-white border border-[#E6E6E4] rounded p-1 text-[#666] hover:text-[#4F46E5] shadow-sm"
+            title={block.visible ? "Masquer" : "Afficher"}
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); dispatch({ type: "REMOVE_BLOCK", blockId: block.id }); }}
+            className="bg-white border border-[#E6E6E4] rounded p-1 text-[#666] hover:text-red-500 shadow-sm"
+            title="Supprimer"
+          >
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+            </svg>
+          </button>
+        </div>
+      )}
+
+      <BlockPreview block={block} />
+    </div>
+  );
+}
+
+/* ── Main Canvas ── */
 export default function BuilderCanvas() {
   const { state, dispatch } = useBuilder();
   const [showAddModal, setShowAddModal] = useState(false);
   const [hoveredBlockId, setHoveredBlockId] = useState<string | null>(null);
-  const [dragState, setDragState] = useState<{ from: number; to: number } | null>(null);
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const activePage = state.site.pages.find((p) => p.id === state.activePageId);
   const isPreview = state.previewMode;
 
-  // Drag-and-drop: visual reorder on dragOver, commit only on dragEnd (single undo entry)
-  const handleDragStart = (idx: number) => setDragState({ from: idx, to: idx });
-  const handleDragOver = useCallback((e: React.DragEvent, idx: number) => {
-    e.preventDefault();
-    if (dragState === null) return;
-    setDragState((prev) => prev ? { ...prev, to: idx } : null);
-  }, [dragState]);
-  const handleDragEnd = useCallback(() => {
-    if (dragState && activePage && dragState.from !== dragState.to) {
-      dispatch({ type: "REORDER_BLOCKS", pageId: activePage.id, fromIndex: dragState.from, toIndex: dragState.to });
-    }
-    setDragState(null);
-  }, [dragState, activePage, dispatch]);
+  const blockIds = useMemo(
+    () => activePage?.blocks.map((b) => b.id) || [],
+    [activePage?.blocks],
+  );
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
+
+  const handleDragStart = useCallback((e: DragStartEvent) => {
+    setActiveId(e.active.id as string);
+  }, []);
+
+  const handleDragEnd = useCallback(
+    (e: DragEndEvent) => {
+      setActiveId(null);
+      if (!activePage) return;
+      const { active, over } = e;
+      if (!over || active.id === over.id) return;
+
+      const fromIndex = activePage.blocks.findIndex((b) => b.id === active.id);
+      const toIndex = activePage.blocks.findIndex((b) => b.id === over.id);
+      if (fromIndex === -1 || toIndex === -1) return;
+
+      dispatch({ type: "REORDER_BLOCKS", pageId: activePage.id, fromIndex, toIndex });
+    },
+    [activePage, dispatch],
+  );
+
+  const activeBlock = activeId ? activePage?.blocks.find((b) => b.id === activeId) : null;
 
   if (!activePage) {
     return (
@@ -45,13 +179,19 @@ export default function BuilderCanvas() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-[#F0F1F5]" ref={canvasRef}>
+    <div className="flex-1 overflow-y-auto bg-[#F0F1F5]">
       <div
         className="mx-auto transition-all duration-300"
         style={{ maxWidth: breakpointWidths[state.breakpoint] }}
       >
         <div className={`${isPreview ? "" : "py-4 px-4"}`}>
-          <div className={`${isPreview ? "" : "bg-white rounded-xl shadow-sm border border-[#E6E6E4] overflow-hidden"}`}>
+          <div
+            className={`${isPreview ? "" : "bg-white rounded-xl shadow-sm border border-[#E6E6E4] overflow-hidden"}`}
+            style={{
+              ...computeThemeVars(state.site.theme) as React.CSSProperties,
+              fontFamily: state.site.theme.fontFamily || undefined,
+            }}
+          >
             {activePage.blocks.length === 0 && !isPreview && (
               <div className="py-20 text-center">
                 <div className="w-12 h-12 rounded-xl bg-[#F7F7F5] flex items-center justify-center mx-auto mb-3">
@@ -71,82 +211,36 @@ export default function BuilderCanvas() {
               </div>
             )}
 
-            {activePage.blocks.map((block, idx) => {
-              const isSelected = state.activeBlockId === block.id && !isPreview;
-              const isHovered = hoveredBlockId === block.id && !isPreview && !isSelected;
-              const entry = getBlockEntry(block.type);
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext items={blockIds} strategy={verticalListSortingStrategy}>
+                {activePage.blocks.map((block) => (
+                  <SortableBlock
+                    key={block.id}
+                    block={block}
+                    isSelected={state.activeBlockId === block.id && !isPreview}
+                    isHovered={hoveredBlockId === block.id && !isPreview && state.activeBlockId !== block.id}
+                    isPreview={isPreview}
+                    onSelect={() => dispatch({ type: "SET_ACTIVE_BLOCK", blockId: block.id })}
+                    onHover={() => setHoveredBlockId(block.id)}
+                    onLeave={() => setHoveredBlockId(null)}
+                    dispatch={dispatch}
+                  />
+                ))}
+              </SortableContext>
 
-              return (
-                <div
-                  key={block.id}
-                  draggable={!isPreview}
-                  onDragStart={() => handleDragStart(idx)}
-                  onDragOver={(e) => handleDragOver(e, idx)}
-                  onDragEnd={handleDragEnd}
-                  onClick={() => !isPreview && dispatch({ type: "SET_ACTIVE_BLOCK", blockId: block.id })}
-                  onMouseEnter={() => !isPreview && setHoveredBlockId(block.id)}
-                  onMouseLeave={() => setHoveredBlockId(null)}
-                  className={`relative transition-all ${!isPreview ? "cursor-pointer" : ""} ${
-                    !block.visible && !isPreview ? "opacity-30" : ""
-                  } ${dragState?.from === idx ? "opacity-50" : ""} ${dragState?.to === idx && dragState.from !== idx ? "border-t-2 border-[#4F46E5]" : ""}`}
-                  style={{
-                    outline: isSelected
-                      ? "2px solid #4F46E5"
-                      : isHovered
-                      ? "1px solid rgba(79,70,229,0.3)"
-                      : "none",
-                    outlineOffset: isSelected ? "-1px" : "0",
-                    boxShadow: isSelected ? "0 0 0 4px rgba(79,70,229,0.08)" : "none",
-                  }}
-                >
-                  {/* Block type label on hover/select */}
-                  {(isSelected || isHovered) && (
-                    <div className="absolute -top-5 left-2 z-20 flex items-center gap-1">
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
-                        isSelected ? "bg-[#4F46E5] text-white" : "bg-white text-[#999] border border-[#E6E6E4] shadow-sm"
-                      }`}>
-                        {entry?.name || block.type}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Floating actions on selected */}
-                  {isSelected && (
-                    <div className="absolute -top-5 right-2 z-20 flex items-center gap-0.5">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); dispatch({ type: "DUPLICATE_BLOCK", blockId: block.id }); }}
-                        className="bg-white border border-[#E6E6E4] rounded p-1 text-[#666] hover:text-[#4F46E5] shadow-sm"
-                        title="Dupliquer"
-                      >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); dispatch({ type: "TOGGLE_BLOCK_VISIBILITY", blockId: block.id }); }}
-                        className="bg-white border border-[#E6E6E4] rounded p-1 text-[#666] hover:text-[#4F46E5] shadow-sm"
-                        title={block.visible ? "Masquer" : "Afficher"}
-                      >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" /><circle cx="12" cy="12" r="3" />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); dispatch({ type: "REMOVE_BLOCK", blockId: block.id }); }}
-                        className="bg-white border border-[#E6E6E4] rounded p-1 text-[#666] hover:text-red-500 shadow-sm"
-                        title="Supprimer"
-                      >
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-
-                  <BlockPreview block={block} />
-                </div>
-              );
-            })}
+              <DragOverlay>
+                {activeBlock ? (
+                  <div className="opacity-80 shadow-2xl rounded-lg overflow-hidden pointer-events-none">
+                    <BlockPreview block={activeBlock} />
+                  </div>
+                ) : null}
+              </DragOverlay>
+            </DndContext>
           </div>
 
           {/* Add block button */}

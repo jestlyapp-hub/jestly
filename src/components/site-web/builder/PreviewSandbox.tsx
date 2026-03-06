@@ -2,10 +2,14 @@
 
 import { memo } from "react";
 import type { Block, BlockType } from "@/types";
-import { defaultContent } from "@/lib/site-builder-context";
+import { defaultContent, useBuilder } from "@/lib/site-builder-context";
+import { computeThemeVars } from "@/lib/block-style-engine";
 import BlockPreview from "@/components/site-web/blocks/BlockPreview";
 
 function PreviewSandboxInner({ type }: { type: BlockType | null }) {
+  const { state } = useBuilder();
+  const themeStyle = computeThemeVars(state.site.theme) as React.CSSProperties;
+
   if (!type) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -34,7 +38,7 @@ function PreviewSandboxInner({ type }: { type: BlockType | null }) {
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-4">
-        <div className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden shadow-sm">
+        <div className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden shadow-sm" style={themeStyle}>
           <BlockPreview block={previewBlock} />
         </div>
       </div>

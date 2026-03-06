@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { serviceToProduct } from "@/lib/adapters";
+import { dbToProduct } from "@/lib/adapters";
 import type { Product } from "@/types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -18,7 +18,7 @@ export async function getPublicProductsByIds(ids: string[]): Promise<Product[]> 
       .eq("is_active", true);
 
     if (error || !data) return [];
-    return data.map((row: any) => serviceToProduct(row));
+    return data.map((row: any) => dbToProduct(row));
   } catch {
     return [];
   }
@@ -37,7 +37,7 @@ export async function getPublicProductById(id: string): Promise<Product | null> 
       .single();
 
     if (error || !data) return null;
-    return serviceToProduct(data);
+    return dbToProduct(data);
   } catch {
     return null;
   }
@@ -57,7 +57,7 @@ export async function getPublicProductBySlug(slug: string, siteOwnerId: string):
       .single();
 
     if (error || !data) return null;
-    return serviceToProduct(data);
+    return dbToProduct(data);
   } catch {
     return null;
   }
@@ -85,7 +85,7 @@ export async function getPublicProductsBySiteId(siteId: string): Promise<Product
       .order("created_at", { ascending: false });
 
     if (error || !data) return [];
-    return data.map((row: any) => serviceToProduct(row));
+    return data.map((row: any) => dbToProduct(row));
   } catch {
     return [];
   }

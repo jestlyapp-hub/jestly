@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { useProductById } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 interface ProductHeroCheckoutBlockContent {
@@ -10,6 +11,7 @@ interface ProductHeroCheckoutBlockContent {
   ctaLabel: string;
   showFeatures: boolean;
   layout: "left" | "center";
+  briefTemplateId?: string | null;
 }
 
 function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHeroCheckoutBlockContent }) {
@@ -31,7 +33,7 @@ function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHer
       <div className="py-8 text-center">
         <h2 className="text-2xl font-bold text-[#1A1A1A] mb-2">{product.name}</h2>
         <p className="text-[13px] text-[#999] mb-4 max-w-md mx-auto">{product.shortDescription}</p>
-        <div className="text-3xl font-bold text-[var(--site-primary)] mb-5">{product.price} &euro;</div>
+        <div className="text-3xl font-bold text-[var(--site-primary)] mb-5">{formatPrice(product.priceCents)}</div>
 
         {content.benefits.length > 0 && (
           <ul className="space-y-2 mb-5 max-w-sm mx-auto">
@@ -59,7 +61,7 @@ function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHer
         )}
 
         <div className="mt-6">
-          <SmartLinkButton link={{ type: "product", productId: content.productId, mode: "checkout" }} label={content.ctaLabel} className="inline-block text-[13px] font-semibold px-6 py-2.5 cursor-pointer" />
+          <SmartLinkButton link={{ type: "product", productId: content.productId, mode: "checkout", briefTemplateId: content.briefTemplateId || undefined }} label={content.ctaLabel} className="inline-block text-[13px] font-semibold px-6 py-2.5 cursor-pointer" />
         </div>
       </div>
     );
@@ -71,7 +73,7 @@ function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHer
       <div className="flex-1">
         <h2 className="text-2xl font-bold text-[#1A1A1A] mb-2">{product.name}</h2>
         <p className="text-[13px] text-[#999] mb-3">{product.shortDescription}</p>
-        <div className="text-3xl font-bold text-[var(--site-primary)] mb-4">{product.price} &euro;</div>
+        <div className="text-3xl font-bold text-[var(--site-primary)] mb-4">{formatPrice(product.priceCents)}</div>
 
         {content.benefits.length > 0 && (
           <ul className="space-y-2 mb-4">
@@ -99,7 +101,7 @@ function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHer
         )}
 
         <div className="mt-5">
-          <SmartLinkButton link={{ type: "product", productId: content.productId, mode: "checkout" }} label={content.ctaLabel} className="inline-block text-[13px] font-semibold px-6 py-2.5 cursor-pointer" />
+          <SmartLinkButton link={{ type: "product", productId: content.productId, mode: "checkout", briefTemplateId: content.briefTemplateId || undefined }} label={content.ctaLabel} className="inline-block text-[13px] font-semibold px-6 py-2.5 cursor-pointer" />
         </div>
       </div>
 

@@ -38,6 +38,18 @@ import ProductCardsGridBlockEditor from "./ProductCardsGridBlockEditor";
 import InlineCheckoutBlockEditor from "./InlineCheckoutBlockEditor";
 import BundleBuilderBlockEditor from "./BundleBuilderBlockEditor";
 import PricingTableRealBlockEditor from "./PricingTableRealBlockEditor";
+import HeroSplitGlowBlockEditor from "./HeroSplitGlowBlockEditor";
+import HeroCenteredMeshBlockEditor from "./HeroCenteredMeshBlockEditor";
+import ServicesPremiumBlockEditor from "./ServicesPremiumBlockEditor";
+import PortfolioMasonryBlockEditor from "./PortfolioMasonryBlockEditor";
+import PricingModernBlockEditor from "./PricingModernBlockEditor";
+import TestimonialsDarkBlockEditor from "./TestimonialsDarkBlockEditor";
+import CtaBannerBlockEditor from "./CtaBannerBlockEditor";
+import ContactPremiumBlockEditor from "./ContactPremiumBlockEditor";
+import FooterBlockEditor from "./FooterBlockEditor";
+import VideoShowcaseBlockEditor from "./VideoShowcaseBlockEditor";
+import TechStackBlockEditor from "./TechStackBlockEditor";
+import BeforeAfterProBlockEditor from "./BeforeAfterProBlockEditor";
 import { useBuilder } from "@/lib/site-builder-context";
 
 export default function BlockEditor({ block }: { block: Block }) {
@@ -83,5 +95,17 @@ export default function BlockEditor({ block }: { block: Block }) {
     case "inline-checkout": return <InlineCheckoutBlockEditor content={block.content} onChange={contentChange} />;
     case "bundle-builder": return <BundleBuilderBlockEditor content={block.content} onChange={contentChange} />;
     case "pricing-table-real": return <PricingTableRealBlockEditor content={block.content} onChange={contentChange} />;
+    case "hero-split-glow": return <HeroSplitGlowBlockEditor block={block} />;
+    case "hero-centered-mesh": return <HeroCenteredMeshBlockEditor block={block} />;
+    case "services-premium": return <ServicesPremiumBlockEditor block={block} />;
+    case "portfolio-masonry": return <PortfolioMasonryBlockEditor block={block} />;
+    case "pricing-modern": return <PricingModernBlockEditor block={block} />;
+    case "testimonials-dark": return <TestimonialsDarkBlockEditor block={block} />;
+    case "cta-banner": return <CtaBannerBlockEditor block={block} />;
+    case "contact-premium": return <ContactPremiumBlockEditor block={block} />;
+    case "footer-block": return <FooterBlockEditor block={block} />;
+    case "video-showcase": return <VideoShowcaseBlockEditor block={block} />;
+    case "tech-stack": return <TechStackBlockEditor block={block} />;
+    case "before-after-pro": return <BeforeAfterProBlockEditor block={block} />;
   }
 }

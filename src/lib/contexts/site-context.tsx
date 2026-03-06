@@ -57,6 +57,7 @@ function transformDbSite(raw: any): Site {
     },
     nav: raw.nav || undefined,
     footer: raw.footer || undefined,
+    design: raw.design || undefined,
   };
 }
 

@@ -2,6 +2,7 @@
 
 import { memo } from "react";
 import { useProductsByIds } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 interface PricingTableRealBlockContent {
@@ -10,6 +11,7 @@ interface PricingTableRealBlockContent {
   showFeatures: boolean;
   highlightIndex: number;
   ctaLabel: string;
+  briefTemplateId?: string | null;
 }
 
 function PricingTableRealBlockPreviewInner({ content }: { content: PricingTableRealBlockContent }) {
@@ -52,7 +54,7 @@ function PricingTableRealBlockPreviewInner({ content }: { content: PricingTableR
               <div className="text-[11px] text-[#999] mb-3">{product.shortDescription}</div>
 
               {/* Price */}
-              <div className="text-2xl font-bold text-[#1A1A1A] mb-4">{product.price} &euro;</div>
+              <div className="text-2xl font-bold text-[#1A1A1A] mb-4">{formatPrice(product.priceCents)}</div>
 
               {/* Features */}
               {content.showFeatures && product.features && product.features.length > 0 && (
@@ -69,7 +71,7 @@ function PricingTableRealBlockPreviewInner({ content }: { content: PricingTableR
               )}
 
               {/* CTA */}
-              <SmartLinkButton link={{ type: "product", productId: product.id, mode: "checkout" }} label={content.ctaLabel} className="block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer mt-auto" />
+              <SmartLinkButton link={{ type: "product", productId: product.id, mode: "checkout", briefTemplateId: content.briefTemplateId || undefined }} label={content.ctaLabel} className="block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer mt-auto" />
             </div>
           );
         })}

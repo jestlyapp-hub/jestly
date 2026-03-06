@@ -2,6 +2,7 @@
 
 import { memo, useState } from "react";
 import { useProductsByIds } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 interface ProductCardsGridBlockContent {
@@ -9,6 +10,7 @@ interface ProductCardsGridBlockContent {
   columns: 2 | 3 | 4;
   showFilter: boolean;
   ctaLabel: string;
+  briefTemplateId?: string | null;
 }
 
 function ProductCardsGridBlockPreviewInner({ content }: { content: ProductCardsGridBlockContent }) {
@@ -78,9 +80,9 @@ function ProductCardsGridBlockPreviewInner({ content }: { content: ProductCardsG
             <div className="text-[13px] font-semibold text-[#1A1A1A] mb-1">{product.name}</div>
             <p className="text-[11px] text-[#999] mb-3 flex-1">{product.shortDescription}</p>
 
-            <div className="text-lg font-bold text-[#1A1A1A] mb-3">{product.price} &euro;</div>
+            <div className="text-lg font-bold text-[#1A1A1A] mb-3">{formatPrice(product.priceCents)}</div>
 
-            <SmartLinkButton link={{ type: "product", productId: product.id, mode: "checkout" }} label={content.ctaLabel} className="block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer" />
+            <SmartLinkButton link={{ type: "product", productId: product.id, mode: "checkout", briefTemplateId: content.briefTemplateId || undefined }} label={content.ctaLabel} className="block text-center text-[12px] font-semibold px-4 py-2 cursor-pointer" />
           </div>
         ))}
       </div>

@@ -1,4 +1,4 @@
-import type { BlockStyle, ButtonStyle, SiteTheme } from "@/types";
+import type { BlockStyle, ButtonStyle, SiteTheme, SiteDesign } from "@/types";
 
 const shadowMap: Record<string, string> = {
   none: "none",
@@ -89,6 +89,18 @@ export function computeThemeVars(theme: SiteTheme): Record<string, string> {
     vars["--site-primary-hover"] = darkenHex(theme.primaryColor, 20);
     vars["--site-primary-light"] = lightenHex(theme.primaryColor);
   }
+  if (theme.secondaryColor) vars["--site-secondary"] = theme.secondaryColor;
+  if (theme.backgroundColor) vars["--site-bg"] = theme.backgroundColor;
+  if (theme.surfaceColor) vars["--site-surface"] = theme.surfaceColor;
+  if (theme.textColor) vars["--site-text"] = theme.textColor;
+  if (theme.mutedTextColor) vars["--site-muted"] = theme.mutedTextColor;
+  if (theme.borderColor) vars["--site-border"] = theme.borderColor;
+  if (theme.headingFont) vars["--site-heading-font"] = theme.headingFont;
+  if (theme.fontFamily) vars["--site-body-font"] = theme.fontFamily;
+  if (theme.buttonRadius) {
+    const brMap = { none: "0", sm: "4px", md: "8px", full: "999px" };
+    vars["--site-btn-radius"] = brMap[theme.buttonRadius] || "8px";
+  }
   return vars;
 }
 
@@ -112,6 +124,7 @@ export function computePublicSectionStyle(
 
 /**
  * Compute container className from a BlockStyle.
+ * Used in builder canvas where section = container.
  */
 export function computeSectionClass(style: BlockStyle): string {
   const classes: string[] = ["overflow-hidden"];
@@ -127,6 +140,22 @@ export function computeSectionClass(style: BlockStyle): string {
   }
 
   return classes.join(" ");
+}
+
+/**
+ * Compute inner container className for public site rendering.
+ * Section stays full-width (for backgrounds); only inner container is constrained.
+ */
+export function computePublicContainerClass(style: BlockStyle): string {
+  switch (style.containerWidth) {
+    case "narrow":
+      return "max-w-4xl mx-auto";
+    case "boxed":
+      return "max-w-6xl mx-auto";
+    default:
+      // "full" or undefined → wide container (1280px)
+      return "max-w-7xl mx-auto";
+  }
 }
 
 /**

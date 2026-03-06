@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { Site, SitePage, Block, Product } from "@/types";
 import { resolvePageSlug } from "@/lib/site-utils";
 import {
   computePublicSectionStyle,
-  computeSectionClass,
+  computePublicContainerClass,
   computeButtonVars,
   getButtonHoverCSS,
   computeThemeVars,
 } from "@/lib/block-style-engine";
+import { getBackgroundCSS, getNavClass, getButtonClass } from "@/lib/site-designs";
 import { ProductProvider } from "@/lib/product-context";
 import { LinkProvider } from "@/lib/link-context";
 import AnimateOnScroll from "@/components/site-public/AnimateOnScroll";
@@ -53,6 +54,18 @@ import ProductCardsGridBlockPreview from "@/components/site-web/blocks/ProductCa
 import InlineCheckoutBlockPreview from "@/components/site-web/blocks/InlineCheckoutBlockPreview";
 import BundleBuilderBlockPreview from "@/components/site-web/blocks/BundleBuilderBlockPreview";
 import PricingTableRealBlockPreview from "@/components/site-web/blocks/PricingTableRealBlockPreview";
+import HeroSplitGlowBlockPreview from "@/components/site-web/blocks/HeroSplitGlowBlockPreview";
+import HeroCenteredMeshBlockPreview from "@/components/site-web/blocks/HeroCenteredMeshBlockPreview";
+import ServicesPremiumBlockPreview from "@/components/site-web/blocks/ServicesPremiumBlockPreview";
+import PortfolioMasonryBlockPreview from "@/components/site-web/blocks/PortfolioMasonryBlockPreview";
+import PricingModernBlockPreview from "@/components/site-web/blocks/PricingModernBlockPreview";
+import TestimonialsDarkBlockPreview from "@/components/site-web/blocks/TestimonialsDarkBlockPreview";
+import CtaBannerBlockPreview from "@/components/site-web/blocks/CtaBannerBlockPreview";
+import ContactPremiumBlockPreview from "@/components/site-web/blocks/ContactPremiumBlockPreview";
+import FooterBlockBlockPreview from "@/components/site-web/blocks/FooterBlockBlockPreview";
+import VideoShowcaseBlockPreview from "@/components/site-web/blocks/VideoShowcaseBlockPreview";
+import TechStackBlockPreview from "@/components/site-web/blocks/TechStackBlockPreview";
+import BeforeAfterProBlockPreview from "@/components/site-web/blocks/BeforeAfterProBlockPreview";
 
 // ═══════════════════════════════════════════════
 // Block Content Renderer (same content, different wrapper)
@@ -97,12 +110,25 @@ function renderBlockContent(block: Block) {
     case "inline-checkout": return <InlineCheckoutBlockPreview content={block.content} />;
     case "bundle-builder": return <BundleBuilderBlockPreview content={block.content} />;
     case "pricing-table-real": return <PricingTableRealBlockPreview content={block.content} />;
+    case "hero-split-glow": return <HeroSplitGlowBlockPreview content={block.content} />;
+    case "hero-centered-mesh": return <HeroCenteredMeshBlockPreview content={block.content} />;
+    case "services-premium": return <ServicesPremiumBlockPreview content={block.content} />;
+    case "portfolio-masonry": return <PortfolioMasonryBlockPreview content={block.content} />;
+    case "pricing-modern": return <PricingModernBlockPreview content={block.content} />;
+    case "testimonials-dark": return <TestimonialsDarkBlockPreview content={block.content} />;
+    case "cta-banner": return <CtaBannerBlockPreview content={block.content} />;
+    case "contact-premium": return <ContactPremiumBlockPreview content={block.content} />;
+    case "footer-block": return <FooterBlockBlockPreview content={block.content} />;
+    case "video-showcase": return <VideoShowcaseBlockPreview content={block.content} />;
+    case "tech-stack": return <TechStackBlockPreview content={block.content} />;
+    case "before-after-pro": return <BeforeAfterProBlockPreview content={block.content} />;
   }
 }
 
 // Full-bleed blocks that should NOT get horizontal padding
 const FULL_BLEED_BLOCKS = new Set([
   "full-image", "video", "hero", "availability-banner",
+  "hero-split-glow", "hero-centered-mesh", "cta-banner", "footer-block",
 ]);
 
 // ═══════════════════════════════════════════════
@@ -111,7 +137,7 @@ const FULL_BLEED_BLOCKS = new Set([
 
 function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
   const sectionStyle = computePublicSectionStyle(block.style, site.theme);
-  const sectionClass = computeSectionClass(block.style);
+  const containerClass = computePublicContainerClass(block.style);
   const buttonVars = computeButtonVars(block.style.buttonStyle);
   const hoverCSS = getButtonHoverCSS(block.id);
 
@@ -127,11 +153,11 @@ function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
       id={block.settings?.anchorId || undefined}
       data-block={block.id}
       style={mergedStyle}
-      className={`w-full ${sectionClass}`}
+      className="w-full"
     >
       <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
       <AnimateOnScroll animation={block.settings?.animation}>
-        <div className={isFullBleed ? "" : "px-6"}>
+        <div className={isFullBleed ? "" : `${containerClass} px-6`}>
           {renderBlockContent(block)}
         </div>
       </AnimateOnScroll>
@@ -147,12 +173,17 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
   const [mobileOpen, setMobileOpen] = useState(false);
   const nav = site.nav;
   if (!nav) return null;
+  const isDark = site.theme.mode === "dark";
+  const navStyle = site.design?.navStyle;
+  const navClass = navStyle ? getNavClass(navStyle) : "";
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-[#EFEFEF]">
-      <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+    <nav className={`sticky top-0 z-50 border-b ${
+      navClass || (isDark ? "bg-[var(--site-bg,#0A0A0F)]/95 backdrop-blur-sm border-white/10" : "bg-white/95 backdrop-blur-sm border-[#EFEFEF]")
+    }`}>
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo / Site name */}
-        <a href="/" className="text-base font-bold text-[#191919] tracking-tight">
+        <a href="/" className={`text-base font-bold tracking-tight ${isDark ? "text-white" : "text-[#191919]"}`}>
           {site.settings.name}
         </a>
 
@@ -166,7 +197,9 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
                 key={i}
                 href={href}
                 className={`text-[13px] font-medium transition-colors ${
-                  isActive ? "text-[#191919]" : "text-[#5A5A58] hover:text-[#191919]"
+                  isActive
+                    ? isDark ? "text-white" : "text-[#191919]"
+                    : isDark ? "text-white/60 hover:text-white" : "text-[#5A5A58] hover:text-[#191919]"
                 }`}
               >
                 {link.label}
@@ -190,7 +223,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
           {/* Hamburger button (mobile) */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 text-[#5A5A58] hover:text-[#191919] transition-colors"
+            className={`md:hidden p-2 transition-colors ${isDark ? "text-white/60 hover:text-white" : "text-[#5A5A58] hover:text-[#191919]"}`}
             aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
           >
             {mobileOpen ? (
@@ -211,7 +244,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="md:hidden border-t border-[#EFEFEF] bg-white">
+        <div className={`md:hidden border-t ${isDark ? "border-white/10 bg-[var(--site-bg,#0A0A0F)]" : "border-[#EFEFEF] bg-white"}`}>
           <div className="px-6 py-4 space-y-3">
             {nav.links.map((link, i) => {
               const href = link.pageId ? resolvePageSlug(site, link.pageId) : "#";
@@ -220,7 +253,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
                   key={i}
                   href={href}
                   onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium text-[#5A5A58] hover:text-[#191919] transition-colors py-1"
+                  className={`block text-sm font-medium transition-colors py-1 ${isDark ? "text-white/60 hover:text-white" : "text-[#5A5A58] hover:text-[#191919]"}`}
                 >
                   {link.label}
                 </a>
@@ -249,10 +282,11 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
 function SitePublicFooter({ site }: { site: Site }) {
   const footer = site.footer;
   if (!footer) return null;
+  const isDark = site.theme.mode === "dark";
 
   return (
-    <footer className="bg-[#F7F7F5] border-t border-[#E6E6E4] py-12 px-6">
-      <div className="max-w-5xl mx-auto">
+    <footer className={`py-12 px-6 border-t ${isDark ? "bg-[var(--site-bg,#0A0A0F)] border-white/10" : "bg-[#F7F7F5] border-[#E6E6E4]"}`}>
+      <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-6">
@@ -262,7 +296,7 @@ function SitePublicFooter({ site }: { site: Site }) {
                 <a
                   key={i}
                   href={href}
-                  className="text-[13px] text-[#5A5A58] hover:text-[#191919] transition-colors"
+                  className={`text-[13px] transition-colors ${isDark ? "text-white/50 hover:text-white" : "text-[#5A5A58] hover:text-[#191919]"}`}
                 >
                   {link.label}
                 </a>
@@ -274,7 +308,7 @@ function SitePublicFooter({ site }: { site: Site }) {
           {footer.showSocials && site.settings.socials && (
             <div className="flex items-center gap-4">
               {site.settings.socials.instagram && (
-                <a href={site.settings.socials.instagram} target="_blank" rel="noopener noreferrer" className="text-[#8A8A88] hover:text-[#191919] transition-colors">
+                <a href={site.settings.socials.instagram} target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? "text-white/40 hover:text-white" : "text-[#8A8A88] hover:text-[#191919]"}`}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="2" width="20" height="20" rx="5" />
                     <circle cx="12" cy="12" r="5" />
@@ -283,14 +317,14 @@ function SitePublicFooter({ site }: { site: Site }) {
                 </a>
               )}
               {site.settings.socials.twitter && (
-                <a href={site.settings.socials.twitter} target="_blank" rel="noopener noreferrer" className="text-[#8A8A88] hover:text-[#191919] transition-colors">
+                <a href={site.settings.socials.twitter} target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? "text-white/40 hover:text-white" : "text-[#8A8A88] hover:text-[#191919]"}`}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
                   </svg>
                 </a>
               )}
               {site.settings.socials.linkedin && (
-                <a href={site.settings.socials.linkedin} target="_blank" rel="noopener noreferrer" className="text-[#8A8A88] hover:text-[#191919] transition-colors">
+                <a href={site.settings.socials.linkedin} target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? "text-white/40 hover:text-white" : "text-[#8A8A88] hover:text-[#191919]"}`}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
                     <rect x="2" y="9" width="4" height="12" />
@@ -303,8 +337,8 @@ function SitePublicFooter({ site }: { site: Site }) {
         </div>
 
         {footer.copyright && (
-          <div className="mt-8 pt-6 border-t border-[#E6E6E4]">
-            <p className="text-xs text-[#8A8A88] text-center">{footer.copyright}</p>
+          <div className={`mt-8 pt-6 border-t ${isDark ? "border-white/10" : "border-[#E6E6E4]"}`}>
+            <p className={`text-xs text-center ${isDark ? "text-white/30" : "text-[#8A8A88]"}`}>{footer.copyright}</p>
           </div>
         )}
       </div>
@@ -326,13 +360,29 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
   const visibleBlocks = page.blocks.filter((b) => b.visible);
   const themeVars = computeThemeVars(site.theme);
 
+  useEffect(() => {
+    document.documentElement.classList.add("smooth-scroll");
+    return () => document.documentElement.classList.remove("smooth-scroll");
+  }, []);
+
+  // Background preset
+  const bgPreset = site.design?.backgroundPreset || "none";
+  const { style: bgStyle, beforeCSS } = getBackgroundCSS(bgPreset);
+
   return (
-    <ProductProvider products={products}>
-      <LinkProvider site={site}>
+    <ProductProvider products={products} siteId={site.id}>
+      <LinkProvider site={site} products={products}>
         <div
-          className="min-h-screen flex flex-col bg-white"
-          style={{ fontFamily: site.theme.fontFamily, ...themeVars } as React.CSSProperties}
+          className={`min-h-screen flex flex-col ${beforeCSS ? "site-bg-preset" : ""}`}
+          style={{
+            fontFamily: site.theme.fontFamily,
+            backgroundColor: site.theme.backgroundColor || "#ffffff",
+            color: site.theme.textColor || "#191919",
+            ...themeVars,
+            ...bgStyle,
+          } as React.CSSProperties}
         >
+          {beforeCSS && <style dangerouslySetInnerHTML={{ __html: beforeCSS }} />}
           <SiteAnalyticsTracker siteId={site.id} pageSlug={page.slug} />
           <SitePublicNav site={site} currentSlug={page.slug} />
 

@@ -102,7 +102,7 @@ export interface Database {
           description: string;
           price: number;
           currency: string;
-          type: "service" | "pack" | "formation";
+          type: "service" | "pack" | "digital" | "lead_magnet";
           is_active: boolean;
           image_url: string | null;
           slug: string | null;
@@ -115,6 +115,13 @@ export interface Database {
           category: string;
           sales_count: number;
           form_schema_json: Json;
+          checkout_mode: "checkout" | "contact";
+          delivery_type: "file" | "url" | "message" | "none";
+          delivery_file_path: string | null;
+          delivery_url: string | null;
+          cta_label: string;
+          stripe_price_id: string | null;
+          cover_image_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -125,7 +132,7 @@ export interface Database {
           description?: string;
           price: number;
           currency?: string;
-          type: "service" | "pack" | "formation";
+          type: "service" | "pack" | "digital" | "lead_magnet";
           is_active?: boolean;
           image_url?: string | null;
           slug?: string | null;
@@ -138,6 +145,13 @@ export interface Database {
           category?: string;
           sales_count?: number;
           form_schema_json?: Json;
+          checkout_mode?: "checkout" | "contact";
+          delivery_type?: "file" | "url" | "message" | "none";
+          delivery_file_path?: string | null;
+          delivery_url?: string | null;
+          cta_label?: string;
+          stripe_price_id?: string | null;
+          cover_image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -148,7 +162,7 @@ export interface Database {
           description?: string;
           price?: number;
           currency?: string;
-          type?: "service" | "pack" | "formation";
+          type?: "service" | "pack" | "digital" | "lead_magnet";
           is_active?: boolean;
           image_url?: string | null;
           slug?: string | null;
@@ -161,6 +175,13 @@ export interface Database {
           category?: string;
           sales_count?: number;
           form_schema_json?: Json;
+          checkout_mode?: "checkout" | "contact";
+          delivery_type?: "file" | "url" | "message" | "none";
+          delivery_file_path?: string | null;
+          delivery_url?: string | null;
+          cta_label?: string;
+          stripe_price_id?: string | null;
+          cover_image_url?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -198,7 +219,7 @@ export interface Database {
           id?: string;
           user_id: string;
           client_id: string;
-          service_id?: string | null;
+          product_id?: string | null;
           title: string;
           description: string;
           amount: number;
@@ -226,7 +247,7 @@ export interface Database {
           id?: string;
           user_id?: string;
           client_id?: string;
-          service_id?: string | null;
+          product_id?: string | null;
           title?: string;
           description?: string;
           amount?: number;
@@ -550,14 +571,14 @@ export interface Database {
         Row: {
           id: string;
           site_id: string;
-          product_id: string;
+          service_id: string;
           display_config: Json;
           created_at: string;
         };
         Insert: {
           id?: string;
           site_id: string;
-          product_id: string;
+          service_id: string;
           display_config?: Json;
         };
         Update: {
@@ -618,6 +639,130 @@ export interface Database {
           page_slug?: string | null;
           data?: Json;
           visitor_id?: string | null;
+        };
+      };
+      // ── Brief / Questionnaire tables ──
+      brief_templates: {
+        Row: {
+          id: string;
+          owner_id: string;
+          name: string;
+          description: string | null;
+          version: number;
+          schema: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          name: string;
+          description?: string | null;
+          version?: number;
+          schema?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          name?: string;
+          description?: string | null;
+          version?: number;
+          schema?: Json;
+          updated_at?: string;
+        };
+      };
+      product_brief_settings: {
+        Row: {
+          product_id: string;
+          template_id: string | null;
+          is_required: boolean;
+          locked_version: number | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          product_id: string;
+          template_id?: string | null;
+          is_required?: boolean;
+          locked_version?: number | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          template_id?: string | null;
+          is_required?: boolean;
+          locked_version?: number | null;
+          updated_at?: string;
+        };
+      };
+      order_brief_responses: {
+        Row: {
+          order_id: string;
+          template_id: string | null;
+          template_version: number;
+          answers: Json;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          order_id: string;
+          template_id?: string | null;
+          template_version: number;
+          answers?: Json;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          template_id?: string | null;
+          template_version?: number;
+          answers?: Json;
+          updated_at?: string;
+        };
+      };
+      order_files: {
+        Row: {
+          id: string;
+          order_id: string;
+          field_id: string;
+          file_url: string;
+          file_name: string | null;
+          file_size: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          order_id: string;
+          field_id: string;
+          file_url: string;
+          file_name?: string | null;
+          file_size?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          file_url?: string;
+          file_name?: string | null;
+          file_size?: number | null;
+        };
+      };
+      product_briefs: {
+        Row: {
+          id: string;
+          owner_id: string;
+          product_id: string;
+          brief_template_id: string;
+          is_default: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          owner_id: string;
+          product_id: string;
+          brief_template_id: string;
+          is_default?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          is_default?: boolean;
         };
       };
       // ── Custom Workflow tables ──
@@ -740,7 +885,7 @@ export type UpdateTables<T extends keyof Database["public"]["Tables"]> =
 // Convenient aliases
 export type Profile = Tables<"profiles">;
 export type ClientRecord = Tables<"clients">;
-export type Service = Tables<"services">;
+export type ProductRow = Tables<"services">;
 export type OrderRecord = Tables<"orders">;
 export type InvoiceRecord = Tables<"invoices">;
 export type Task = Tables<"tasks">;
@@ -754,3 +899,7 @@ export type OrderItemRecord = Tables<"order_items">;
 export type OrderSubmissionRecord = Tables<"order_submissions">;
 export type LeadRecord = Tables<"leads">;
 export type AnalyticsEventRecord = Tables<"analytics_events">;
+export type BriefTemplateRecord = Tables<"brief_templates">;
+export type ProductBriefSettingsRecord = Tables<"product_brief_settings">;
+export type OrderBriefResponseRecord = Tables<"order_brief_responses">;
+export type OrderFileRecord = Tables<"order_files">;

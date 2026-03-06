@@ -6,6 +6,13 @@ import ButtonStyleEditor from "./ButtonStyleEditor";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const smallInputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+
+/** Sanitize a color value for <input type="color"> — must be #rrggbb */
+function toHexColor(value: string | undefined, fallback: string): string {
+  if (!value) return fallback;
+  if (/^#[0-9a-fA-F]{6}$/.test(value)) return value;
+  return fallback;
+}
 const sectionLabel = "text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-2 block";
 
 const shadowOptions: { value: NonNullable<BlockStyle["shadow"]>; label: string }[] = [
@@ -75,7 +82,7 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
             <div className="flex items-center gap-2">
               <input
                 type="color"
-                value={block.style.backgroundColor || "#ffffff"}
+                value={toHexColor(block.style.backgroundColor, "#ffffff")}
                 onChange={(e) => update({ backgroundColor: e.target.value })}
                 className="w-7 h-7 rounded border border-[#E6E6E4] cursor-pointer flex-shrink-0"
               />
@@ -93,7 +100,7 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
             <div className="flex items-center gap-2">
               <input
                 type="color"
-                value={block.style.textColor || "#1a1a1a"}
+                value={toHexColor(block.style.textColor, "#1a1a1a")}
                 onChange={(e) => update({ textColor: e.target.value })}
                 className="w-7 h-7 rounded border border-[#E6E6E4] cursor-pointer flex-shrink-0"
               />

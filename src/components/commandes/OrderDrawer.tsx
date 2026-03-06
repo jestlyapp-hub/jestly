@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import type { Order, ChecklistItem, BoardField, FieldOption } from "@/types";
+import type { Order, ChecklistItem, BoardField, FieldOption, BriefField, ResourceItem } from "@/types";
+import { urlToResourceItem } from "@/lib/brief-column-compat";
+import BriefAnswersDisplay from "@/components/briefs/BriefAnswersDisplay";
 import { useFieldSave } from "@/lib/hooks/use-field-save";
 import FieldSaveIndicator from "./FieldSaveIndicator";
 import EditableCell from "./EditableCell";
@@ -30,6 +32,15 @@ interface ClientOption {
   email: string;
 }
 
+interface BriefData {
+  answers: Record<string, unknown>;
+  fields: BriefField[];
+  brief_name?: string;
+  pinned?: string[];
+  template_version: number;
+  fieldSources?: Record<string, { target_kind: string; target_ref: string }>;
+}
+
 interface OrderDrawerProps {
   order: Order | null;
   onClose: () => void;
@@ -37,6 +48,7 @@ interface OrderDrawerProps {
   clients: ClientOption[];
   customFields?: BoardField[];
   onAddOption?: (fieldId: string, label: string) => Promise<FieldOption>;
+  briefData?: BriefData | null;
 }
 
 /* ─── Briefing sub-component ─── */
@@ -89,12 +101,42 @@ function DrawerBriefing({
 }
 
 /* ─── Resources sub-component ─── */
+
+function resourceIcon(item: ResourceItem) {
+  if (item.type === "transfer_link") {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    );
+  }
+  if (item.type === "file") {
+    return (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+      </svg>
+    );
+  }
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  );
+}
+
+function providerBadge(item: ResourceItem) {
+  if (item.provider === "wetransfer") return <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-medium shrink-0">WeTransfer</span>;
+  if (item.provider === "swisstransfer") return <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600 font-medium shrink-0">SwissTransfer</span>;
+  return null;
+}
+
 function DrawerResources({
   resources,
   getState,
   saveField,
 }: {
-  resources: string[];
+  resources: ResourceItem[];
   getState: (f: string) => "idle" | "saving" | "saved" | "error";
   saveField: (field: string, api: Record<string, unknown>, raw: Record<string, unknown>) => void;
 }) {
@@ -103,7 +145,8 @@ function DrawerResources({
   const addResource = () => {
     const url = newUrl.trim();
     if (!url) return;
-    const next = [...resources, url];
+    const item = urlToResourceItem(url);
+    const next = [...resources, item];
     saveField("resources", { resources: next }, { resources: next });
     setNewUrl("");
   };
@@ -123,19 +166,22 @@ function DrawerResources({
       </div>
       {resources.length > 0 && (
         <div className="space-y-1.5 mb-2">
-          {resources.map((url, idx) => (
-            <div key={idx} className="flex items-center gap-2 group">
+          {resources.map((item, idx) => (
+            <div key={item.id || idx} className="flex items-center gap-2 group bg-[#FAFAF9] rounded-md px-2.5 py-1.5 border border-[#F0F0EE]">
+              {resourceIcon(item)}
               <a
-                href={url}
+                href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 text-[12px] text-[#4F46E5] hover:underline truncate"
+                title={item.url}
               >
-                {url}
+                {item.label || item.url}
               </a>
+              {providerBadge(item)}
               <button
                 onClick={() => removeResource(idx)}
-                className="opacity-0 group-hover:opacity-100 text-[#8A8A88] hover:text-red-500 transition-opacity cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 text-[#8A8A88] hover:text-red-500 transition-opacity cursor-pointer shrink-0"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
@@ -152,7 +198,7 @@ function DrawerResources({
           value={newUrl}
           onChange={(e) => setNewUrl(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && addResource()}
-          placeholder="https://..."
+          placeholder="Lien WeTransfer, SwissTransfer ou URL..."
           className="flex-1 text-[12px] bg-[#F7F7F5] border border-[#E6E6E4] rounded px-2.5 py-1.5 text-[#191919] placeholder:text-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30"
         />
         <button
@@ -174,8 +220,67 @@ export default function OrderDrawer({
   clients,
   customFields = [],
   onAddOption,
+  briefData: briefDataProp,
 }: OrderDrawerProps) {
   const { getState, markSaving, markSaved, markError } = useFieldSave();
+
+  // Auto-fetch brief data when order has brief responses
+  const [fetchedBrief, setFetchedBrief] = useState<BriefData | null>(null);
+
+  useEffect(() => {
+    if (!order) { setFetchedBrief(null); return; }
+    // Fetch order detail to get brief responses
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/orders/${order.id}`);
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        const resp = data.order_brief_responses;
+        if (resp && !Array.isArray(resp)) {
+          // single object from maybeSingle-like join
+          setFetchedBrief({
+            answers: resp.answers ?? {},
+            fields: resp.fields_snapshot ?? resp.schema ?? [],
+            brief_name: resp.brief_name,
+            pinned: resp.pinned ?? [],
+            template_version: resp.template_version ?? 1,
+            fieldSources: resp.field_sources ?? undefined,
+          });
+        } else if (Array.isArray(resp) && resp.length > 0) {
+          const r = resp[0];
+          setFetchedBrief({
+            answers: r.answers ?? {},
+            fields: r.fields_snapshot ?? r.schema ?? [],
+            brief_name: r.brief_name,
+            pinned: r.pinned ?? [],
+            template_version: r.template_version ?? 1,
+            fieldSources: r.field_sources ?? undefined,
+          });
+        } else {
+          setFetchedBrief(null);
+        }
+      } catch {
+        setFetchedBrief(null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [order?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const briefData = briefDataProp ?? fetchedBrief;
+
+  const isFromBrief = (fieldName: string): boolean => {
+    if (!briefData?.fieldSources) return false;
+    return Object.values(briefData.fieldSources).some(
+      (s) => s.target_kind === "order_field" && s.target_ref === fieldName
+    );
+  };
+
+  const BriefBadge = () => (
+    <span className="text-[9px] px-1 py-0.5 rounded bg-purple-50 text-purple-600 font-medium ml-1">
+      Brief
+    </span>
+  );
 
   const saveField = async (field: string, apiBody: Record<string, unknown>, rawPatch: Record<string, unknown>) => {
     if (!order) return;
@@ -330,6 +435,7 @@ export default function OrderDrawer({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
                     <span className="text-[13px] text-[#5A5A58]">Deadline</span>
+                    {isFromBrief("deadline") && <BriefBadge />}
                     <FieldSaveIndicator state={getState("deadline")} />
                   </div>
                   <input
@@ -387,6 +493,7 @@ export default function OrderDrawer({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
                     <span className="text-[13px] text-[#5A5A58]">Categorie</span>
+                    {isFromBrief("category") && <BriefBadge />}
                     <FieldSaveIndicator state={getState("category")} />
                   </div>
                   <select
@@ -407,6 +514,7 @@ export default function OrderDrawer({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
                     <span className="text-[13px] text-[#5A5A58]">Ref. externe</span>
+                    {isFromBrief("external_ref") && <BriefBadge />}
                     <FieldSaveIndicator state={getState("external_ref")} />
                   </div>
                   <EditableCell
@@ -443,6 +551,53 @@ export default function OrderDrawer({
                         />
                       </div>
                     ))}
+                  </div>
+                </>
+              )}
+
+              {/* Brief client (questionnaire responses) */}
+              {briefData && briefData.fields.length > 0 && (
+                <>
+                  <div className="h-px bg-[#E6E6E4]" />
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider">
+                        {briefData.brief_name || "Brief client"}
+                      </span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 font-medium">
+                        Reçu
+                      </span>
+                    </div>
+                    {/* Pinned fields summary */}
+                    {briefData.fields.some((f) => f.pinned) && (
+                      <div className="bg-[#EEF2FF] rounded-lg p-3 mb-3">
+                        <BriefAnswersDisplay
+                          fields={briefData.fields}
+                          answers={briefData.answers}
+                          pinnedOnly
+                        />
+                      </div>
+                    )}
+                    {/* All fields (hide mapped to avoid duplication) */}
+                    <BriefAnswersDisplay
+                      fields={briefData.fields}
+                      answers={briefData.answers}
+                      fieldSources={briefData.fieldSources}
+                      hideMapped
+                    />
+                    {/* Copy answers */}
+                    <button
+                      onClick={() => {
+                        const text = briefData.fields
+                          .map((f) => `${f.label}: ${briefData.answers[f.key] ?? "—"}`)
+                          .join("\n");
+                        navigator.clipboard.writeText(text);
+                        toast.success("Réponses copiées");
+                      }}
+                      className="mt-3 text-[11px] text-[#4F46E5] hover:underline cursor-pointer"
+                    >
+                      Copier les réponses
+                    </button>
                   </div>
                 </>
               )}

@@ -12,7 +12,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     // maybeSingle: returns null if 0 rows (no throw), errors only on real DB issues
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.from("orders") as any)
-      .select("*, clients(name, email, phone, company), services(title, price)")
+      .select("*, clients(name, email, phone, company), services(title, price), order_brief_responses(*), order_files(*)")
       .eq("id", id)
       .eq("user_id", user.id)
       .maybeSingle();

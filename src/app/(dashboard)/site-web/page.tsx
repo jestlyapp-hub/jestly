@@ -24,16 +24,6 @@ export default async function SiteWebRedirectPage() {
     redirect(`/site-web/${sites[0].id}`);
   }
 
-  // No site — create a draft
-  const slug = `site-${Date.now().toString(36)}`;
-  const { data: newSite, error } = await (supabase.from("sites") as any)
-    .insert({ owner_id: user.id, slug, name: "Mon site", status: "draft" })
-    .select("id")
-    .single();
-
-  if (error || !newSite) {
-    redirect("/dashboard");
-  }
-
-  redirect(`/site-web/${newSite.id}`);
+  // No site — redirect to template selection
+  redirect("/site-web/nouveau");
 }

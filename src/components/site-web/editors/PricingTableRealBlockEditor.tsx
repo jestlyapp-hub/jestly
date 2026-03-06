@@ -1,6 +1,7 @@
 "use client";
 
 import ProductMultiSelect from "@/components/site-web/editors/ProductMultiSelect";
+import BriefSelect from "@/components/site-web/editors/BriefSelect";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-9 h-5 rounded-full transition-colors cursor-pointer";
@@ -12,6 +13,9 @@ interface PricingTableRealContent {
   showFeatures: boolean;
   highlightIndex: number;
   ctaLabel: string;
+  briefTemplateId?: string | null;
+  useProductDefaultBrief?: boolean;
+  briefRequired?: boolean;
 }
 
 interface PricingTableRealBlockEditorProps {
@@ -88,6 +92,13 @@ export default function PricingTableRealBlockEditor({ content, onChange }: Prici
           className={inputClass}
         />
       </div>
+      {/* Brief */}
+      <BriefSelect
+        briefTemplateId={content.briefTemplateId}
+        useProductDefaultBrief={content.useProductDefaultBrief}
+        briefRequired={content.briefRequired}
+        onChange={(s) => update(s as Partial<PricingTableRealContent>)}
+      />
     </div>
   );
 }

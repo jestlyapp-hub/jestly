@@ -105,6 +105,15 @@ async function main() {
     "011_order_freelance_fields.sql",
     "012_dynamic_columns.sql",
     "013_hide_default_seeded_fields.sql",
+    "014_subdomain_settings.sql",
+    "015_site_versions.sql",
+    "016_product_enhancements.sql",
+    "017_rename_services_to_products.sql",
+    "018_briefs.sql",
+    "019_briefs_v2.sql",
+    "020_briefs_public_access.sql",
+    "021_brief_field_mapping.sql",
+    "022_sites_design_column.sql",
   ];
 
   const migrationsDir = join(__dirname, "..", "supabase", "migrations");

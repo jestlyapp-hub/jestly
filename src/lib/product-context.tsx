@@ -6,6 +6,7 @@ import type { Product } from "@/types";
 interface ProductContextValue {
   products: Map<string, Product>;
   isPublic: boolean;
+  siteId?: string;
 }
 
 const ProductContext = createContext<ProductContextValue>({
@@ -15,6 +16,7 @@ const ProductContext = createContext<ProductContextValue>({
 
 interface ProductProviderProps {
   products: Product[];
+  siteId?: string;
   children: React.ReactNode;
 }
 
@@ -22,7 +24,7 @@ interface ProductProviderProps {
  * Provides prefetched products to block renderers in the public site.
  * In builder mode, this context is absent and blocks fall back to mock data.
  */
-export function ProductProvider({ products, children }: ProductProviderProps) {
+export function ProductProvider({ products, siteId, children }: ProductProviderProps) {
   const productMap = useMemo(() => {
     const map = new Map<string, Product>();
     for (const p of products) {
@@ -32,7 +34,7 @@ export function ProductProvider({ products, children }: ProductProviderProps) {
   }, [products]);
 
   return (
-    <ProductContext.Provider value={{ products: productMap, isPublic: true }}>
+    <ProductContext.Provider value={{ products: productMap, isPublic: true, siteId }}>
       {children}
     </ProductContext.Provider>
   );

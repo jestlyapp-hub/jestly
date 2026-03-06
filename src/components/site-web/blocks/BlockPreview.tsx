@@ -38,6 +38,18 @@ import ProductCardsGridBlockPreview from "./ProductCardsGridBlockPreview";
 import InlineCheckoutBlockPreview from "./InlineCheckoutBlockPreview";
 import BundleBuilderBlockPreview from "./BundleBuilderBlockPreview";
 import PricingTableRealBlockPreview from "./PricingTableRealBlockPreview";
+import HeroSplitGlowBlockPreview from "./HeroSplitGlowBlockPreview";
+import HeroCenteredMeshBlockPreview from "./HeroCenteredMeshBlockPreview";
+import ServicesPremiumBlockPreview from "./ServicesPremiumBlockPreview";
+import PortfolioMasonryBlockPreview from "./PortfolioMasonryBlockPreview";
+import PricingModernBlockPreview from "./PricingModernBlockPreview";
+import TestimonialsDarkBlockPreview from "./TestimonialsDarkBlockPreview";
+import CtaBannerBlockPreview from "./CtaBannerBlockPreview";
+import ContactPremiumBlockPreview from "./ContactPremiumBlockPreview";
+import FooterBlockBlockPreview from "./FooterBlockBlockPreview";
+import VideoShowcaseBlockPreview from "./VideoShowcaseBlockPreview";
+import TechStackBlockPreview from "./TechStackBlockPreview";
+import BeforeAfterProBlockPreview from "./BeforeAfterProBlockPreview";
 
 function BlockPreviewInner({ block }: { block: Block }) {
   // Compute section styles from the style engine
@@ -91,6 +103,18 @@ function BlockPreviewInner({ block }: { block: Block }) {
       case "inline-checkout": return <InlineCheckoutBlockPreview content={block.content} />;
       case "bundle-builder": return <BundleBuilderBlockPreview content={block.content} />;
       case "pricing-table-real": return <PricingTableRealBlockPreview content={block.content} />;
+      case "hero-split-glow": return <HeroSplitGlowBlockPreview content={block.content} />;
+      case "hero-centered-mesh": return <HeroCenteredMeshBlockPreview content={block.content} />;
+      case "services-premium": return <ServicesPremiumBlockPreview content={block.content} />;
+      case "portfolio-masonry": return <PortfolioMasonryBlockPreview content={block.content} />;
+      case "pricing-modern": return <PricingModernBlockPreview content={block.content} />;
+      case "testimonials-dark": return <TestimonialsDarkBlockPreview content={block.content} />;
+      case "cta-banner": return <CtaBannerBlockPreview content={block.content} />;
+      case "contact-premium": return <ContactPremiumBlockPreview content={block.content} />;
+      case "footer-block": return <FooterBlockBlockPreview content={block.content} />;
+      case "video-showcase": return <VideoShowcaseBlockPreview content={block.content} />;
+      case "tech-stack": return <TechStackBlockPreview content={block.content} />;
+      case "before-after-pro": return <BeforeAfterProBlockPreview content={block.content} />;
     }
   })();
 

@@ -19,6 +19,11 @@ export default function SmartLinkButton({ link, label, className = "", style }: 
   const baseClass = `btn-styled ${className}`.trim();
   const mergedStyle = { ...getButtonInlineStyle(), ...style };
 
+  // Product link without productId → disabled CTA
+  if (normalized.type === "product" && !normalized.productId) {
+    return <span className={baseClass} style={{ ...mergedStyle, opacity: 0.4, cursor: "not-allowed" }}>{label}</span>;
+  }
+
   // No LinkContext = inside builder → render as <span> (no navigation)
   if (!ctx) {
     return <span className={baseClass} style={mergedStyle}>{label}</span>;
@@ -29,7 +34,7 @@ export default function SmartLinkButton({ link, label, className = "", style }: 
     return <span className={baseClass} style={mergedStyle}>{label}</span>;
   }
 
-  const props = getBlockLinkProps(normalized, ctx.site);
+  const props = getBlockLinkProps(normalized, ctx.site, ctx.productSlugMap);
   if (!props) {
     return <span className={baseClass} style={mergedStyle}>{label}</span>;
   }

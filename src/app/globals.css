@@ -38,7 +38,7 @@
 }
 
 /* ─── Base ─── */
-html {
+html.smooth-scroll {
   scroll-behavior: smooth;
 }
 

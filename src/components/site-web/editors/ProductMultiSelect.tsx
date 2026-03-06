@@ -2,9 +2,10 @@
 
 import { useState, useRef } from "react";
 import { useApi } from "@/lib/hooks/use-api";
-import { serviceToProduct } from "@/lib/adapters";
+import { dbToProduct } from "@/lib/adapters";
+import { formatPrice } from "@/lib/productTypes";
 import type { Product, ProductType } from "@/types";
-import type { Service } from "@/types/database";
+import type { ProductRow } from "@/types/database";
 
 interface ProductMultiSelectProps {
   selectedIds: string[];
@@ -18,8 +19,8 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { data: rawServices } = useApi<Service[]>("/api/products");
-  const products: Product[] = rawServices ? rawServices.map(serviceToProduct) : [];
+  const { data: rawProducts } = useApi<ProductRow[]>("/api/products");
+  const products: Product[] = rawProducts ? rawProducts.map(dbToProduct) : [];
 
   const available = products.filter((p) => {
     if (filterType && p.type !== filterType) return false;
@@ -71,7 +72,7 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
               }`}
             >
               <span className="font-medium text-[#1A1A1A]">{p.name}</span>
-              <span className="text-[#999]">{p.price} €</span>
+              <span className="text-[#999]">{formatPrice(p.priceCents)}</span>
               <button
                 onClick={() => remove(p.id)}
                 className="ml-0.5 text-[#999] hover:text-red-500 transition-colors"
@@ -108,10 +109,10 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
                   <div className="text-[13px] font-medium text-[#1A1A1A]">{p.name}</div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="text-[10px] font-medium text-[#999] bg-[#F7F7F5] px-1.5 py-0.5 rounded">{p.category}</span>
-                    {!p.active && <span className="text-[10px] text-red-400">Inactif</span>}
+                    {p.status !== "active" && <span className="text-[10px] text-red-400">{p.status === "archived" ? "Archivé" : "Brouillon"}</span>}
                   </div>
                 </div>
-                <span className="text-[12px] font-semibold text-[#4F46E5]">{p.price} €</span>
+                <span className="text-[12px] font-semibold text-[#4F46E5]">{formatPrice(p.priceCents)}</span>
               </button>
             ))}
           </div>

@@ -1,30 +1,38 @@
 import type { Product, Order, Client, ClientDetail, ClientNote, ClientEvent } from "@/types";
-import type { Service, OrderRecord, ClientRecord } from "@/types/database";
+import type { ProductRow, OrderRecord, ClientRecord } from "@/types/database";
+import { normalizeResources } from "@/lib/brief-column-compat";
 
 /**
- * Convert a DB service row to the frontend Product type.
+ * Convert a DB product row to the frontend Product type.
  */
-export function serviceToProduct(row: Service): Product {
+export function dbToProduct(row: ProductRow): Product {
   return {
     id: row.id,
     name: row.title,
-    price: Number(row.price),
-    active: row.is_active,
+    priceCents: Math.round(Number(row.price) * 100),
+    status: row.is_active ? "active" : "draft",
     sales: row.sales_count,
     category: row.category,
-    type: row.type === "formation" ? "service" : (row.type as Product["type"]),
+    type: row.type,
     slug: row.slug || row.id,
     shortDescription: row.short_description || row.description,
     longDescription: row.long_description ?? undefined,
     features: row.features ?? undefined,
     deliveryTimeDays: row.delivery_time_days ?? undefined,
     thumbnailUrl: row.thumbnail_url ?? row.image_url ?? undefined,
+    coverImageUrl: row.cover_image_url ?? undefined,
     featured: row.is_featured,
+    mode: row.checkout_mode ?? "checkout",
+    deliveryType: row.delivery_type ?? "none",
+    deliveryFileUrl: row.delivery_file_path ?? undefined,
+    deliveryUrl: row.delivery_url ?? undefined,
+    ctaLabel: row.cta_label ?? "Acheter",
+    stripePriceId: row.stripe_price_id ?? undefined,
   };
 }
 
 /**
- * Convert a DB order row (with joined client + service) to the frontend Order type.
+ * Convert a DB order row (with joined client + product) to the frontend Order type.
  */
 export function orderRecordToOrder(
   row: OrderRecord & {
@@ -57,7 +65,7 @@ export function orderRecordToOrder(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     briefing: (row as any).briefing ?? undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resources: Array.isArray((row as any).resources) ? (row as any).resources : [],
+    resources: normalizeResources((row as any).resources),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     category: (row as any).category ?? undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import type { Product } from "@/types";
+import { formatPrice } from "@/lib/productTypes";
+import BriefFormRenderer from "@/components/briefs/BriefFormRenderer";
+import type { Product, BriefField } from "@/types";
 
 const inputClass = "w-full px-3 py-2.5 text-sm border border-[#E6E6E4] rounded-md bg-[#F7F7F5] text-[#191919] focus:outline-none focus:ring-2 focus:ring-[var(--site-primary)]/20 focus:border-[var(--site-primary)] transition-all";
 
@@ -10,60 +12,113 @@ interface CheckoutStepperProps {
   product: Product;
   siteId: string;
   siteSlug: string;
+  /** Block-level brief override (from sale block settings) */
+  briefTemplateId?: string | null;
+  /** Whether the block uses the product's default brief */
+  useProductDefaultBrief?: boolean;
+  /** Whether brief is required (from block settings) */
+  briefRequired?: boolean;
 }
 
-interface FormSchema {
-  label: string;
-  type: "text" | "textarea" | "select" | "email";
-  required?: boolean;
-  options?: string[];
-  placeholder?: string;
+interface BriefConfig {
+  template_id: string;
+  template_name: string;
+  template_version: number;
+  fields: BriefField[];
+  is_required: boolean;
 }
 
 type Step = "contact" | "briefing" | "recap" | "success";
 
-export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutStepperProps) {
+export default function CheckoutStepper({
+  product, siteId, siteSlug,
+  briefTemplateId,
+  useProductDefaultBrief = true,
+  briefRequired: blockBriefRequired,
+}: CheckoutStepperProps) {
   const [step, setStep] = useState<Step>("contact");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [orderRef, setOrderRef] = useState("");
 
   const [contact, setContact] = useState({ name: "", email: "", phone: "" });
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [briefAnswers, setBriefAnswers] = useState<Record<string, unknown>>({});
+  const [briefConfig, setBriefConfig] = useState<BriefConfig | null>(null);
   const [message, setMessage] = useState("");
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const formSchema: FormSchema[] = Array.isArray((product as any).formSchemaJson)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ? (product as any).formSchemaJson
-    : [];
-  const hasBriefing = formSchema.length > 0;
+  // Brief resolution: block.briefTemplateId > product default > none
+  useEffect(() => {
+    const params = new URLSearchParams({ product_id: product.id });
 
+    // If block specifies a direct brief template, use that
+    if (briefTemplateId) {
+      params.set("brief_template_id", briefTemplateId);
+    } else if (useProductDefaultBrief === false) {
+      // Block explicitly disables product default brief
+      return;
+    }
+
+    fetch(`/api/public/brief?${params}`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.fields && data.fields.length > 0) {
+          setBriefConfig({
+            ...data,
+            is_required: blockBriefRequired ?? data.is_required ?? true,
+          });
+        }
+      })
+      .catch(() => {});
+  }, [product.id, briefTemplateId, useProductDefaultBrief, blockBriefRequired]);
+
+  const hasBriefing = !!briefConfig;
   const stepIndex = step === "contact" ? 0 : step === "briefing" ? 1 : step === "recap" ? (hasBriefing ? 2 : 1) : 3;
   const totalSteps = hasBriefing ? 3 : 2;
+
+  const uploadFile = async (file: File) => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    if (!res.ok) throw new Error("Upload failed");
+    return res.json();
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const body: Record<string, any> = {
+        site_id: siteId,
+        product_id: product.id,
+        name: contact.name,
+        email: contact.email,
+        phone: contact.phone || undefined,
+        message: message || undefined,
+      };
+
+      // Include brief answers with snapshot data
+      if (briefConfig && Object.keys(briefAnswers).length > 0) {
+        body.brief_answers = briefAnswers;
+        body.template_id = briefConfig.template_id;
+        body.template_version = briefConfig.template_version;
+        body.template_name = briefConfig.template_name;
+        body.brief_fields = briefConfig.fields;
+        body.brief_pinned = briefConfig.fields
+          .filter((f) => f.pinned)
+          .map((f) => f.key);
+      }
+
       const res = await fetch("/api/public/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          site_id: siteId,
-          product_id: product.id,
-          name: contact.name,
-          email: contact.email,
-          phone: contact.phone || undefined,
-          message: message || undefined,
-          form_data: Object.keys(formData).length > 0 ? formData : undefined,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || "Erreur lors de la commande");
+        const respBody = await res.json().catch(() => ({}));
+        throw new Error(respBody.error || "Erreur lors de la commande");
       }
 
       const data = await res.json();
@@ -74,6 +129,17 @@ export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutS
     } finally {
       setLoading(false);
     }
+  };
+
+  const validateBrief = (): boolean => {
+    if (!briefConfig) return true;
+    for (const field of briefConfig.fields) {
+      if (field.required) {
+        const val = briefAnswers[field.key];
+        if (val === undefined || val === null || val === "") return false;
+      }
+    }
+    return true;
   };
 
   const goNext = () => {
@@ -103,7 +169,7 @@ export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutS
         <div className="mb-8 pb-6 border-b border-[#E6E6E4]">
           <h1 className="text-2xl font-bold text-[#191919] mb-1">{product.name}</h1>
           <p className="text-sm text-[#5A5A58] mb-3">{product.shortDescription}</p>
-          <div className="text-2xl font-bold text-[var(--site-primary)]">{product.price} &euro;</div>
+          <div className="text-2xl font-bold text-[var(--site-primary)]">{formatPrice(product.priceCents)}</div>
         </div>
 
         {/* Step indicator */}
@@ -149,52 +215,34 @@ export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutS
             </motion.div>
           )}
 
-          {/* Step 2: Briefing (dynamic form) */}
-          {step === "briefing" && (
+          {/* Step 2: Briefing */}
+          {step === "briefing" && briefConfig && (
             <motion.div key="briefing" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
               <h2 className="text-lg font-semibold text-[#191919]">Votre brief</h2>
-              {formSchema.map((field, i) => (
-                <div key={i}>
-                  <label className="block text-sm font-medium text-[#5A5A58] mb-1">
-                    {field.label} {field.required && "*"}
-                  </label>
-                  {field.type === "textarea" ? (
-                    <textarea
-                      value={formData[field.label] || ""}
-                      onChange={(e) => setFormData({ ...formData, [field.label]: e.target.value })}
-                      rows={4}
-                      placeholder={field.placeholder}
-                      className={inputClass + " resize-none"}
-                    />
-                  ) : field.type === "select" && field.options ? (
-                    <select
-                      value={formData[field.label] || ""}
-                      onChange={(e) => setFormData({ ...formData, [field.label]: e.target.value })}
-                      className={inputClass}
-                    >
-                      <option value="">Sélectionner...</option>
-                      {field.options.map((o) => <option key={o} value={o}>{o}</option>)}
-                    </select>
-                  ) : (
-                    <input
-                      type={field.type}
-                      value={formData[field.label] || ""}
-                      onChange={(e) => setFormData({ ...formData, [field.label]: e.target.value })}
-                      placeholder={field.placeholder}
-                      className={inputClass}
-                    />
-                  )}
-                </div>
-              ))}
+              <BriefFormRenderer
+                fields={briefConfig.fields}
+                answers={briefAnswers}
+                onChange={setBriefAnswers}
+                onUpload={uploadFile}
+              />
               <div>
                 <label className="block text-sm font-medium text-[#5A5A58] mb-1">Message (optionnel)</label>
-                <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={3} className={inputClass + " resize-none"} placeholder="Décrivez votre besoin..." />
+                <textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={3} className={inputClass + " resize-none"} placeholder="Précisions supplémentaires..." />
               </div>
               <div className="flex gap-3">
                 <button onClick={goBack} className="flex-1 py-3 border border-[#E6E6E4] text-[#666] text-sm font-semibold rounded-md hover:bg-[#F7F7F5] transition-colors">
                   Retour
                 </button>
-                <button onClick={goNext} className="flex-1 py-3 bg-[var(--site-primary)] text-white text-sm font-semibold rounded-md hover:bg-[var(--site-primary-hover)] transition-colors">
+                {!briefConfig.is_required && (
+                  <button onClick={() => setStep("recap")} className="flex-1 py-3 border border-[#E6E6E4] text-[#666] text-sm font-semibold rounded-md hover:bg-[#F7F7F5] transition-colors">
+                    Passer
+                  </button>
+                )}
+                <button
+                  onClick={goNext}
+                  disabled={briefConfig.is_required && !validateBrief()}
+                  className="flex-1 py-3 bg-[var(--site-primary)] text-white text-sm font-semibold rounded-md hover:bg-[var(--site-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
                   Continuer
                 </button>
               </div>
@@ -212,7 +260,7 @@ export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutS
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[#5A5A58]">Prix</span>
-                  <span className="font-bold text-[var(--site-primary)]">{product.price} &euro;</span>
+                  <span className="font-bold text-[var(--site-primary)]">{formatPrice(product.priceCents)}</span>
                 </div>
                 {deliveryDate && (
                   <div className="flex justify-between text-sm">
@@ -247,7 +295,7 @@ export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutS
                   disabled={loading}
                   className="flex-1 py-3 bg-[var(--site-primary)] text-white text-sm font-semibold rounded-md hover:bg-[var(--site-primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-wait"
                 >
-                  {loading ? "Envoi..." : `Confirmer — ${product.price} €`}
+                  {loading ? "Envoi..." : `Confirmer — ${formatPrice(product.priceCents)}`}
                 </button>
               </div>
 
@@ -276,7 +324,7 @@ export default function CheckoutStepper({ product, siteId, siteSlug }: CheckoutS
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-[#5A5A58]">Montant</span>
-                  <span className="font-bold text-[var(--site-primary)]">{product.price} &euro;</span>
+                  <span className="font-bold text-[var(--site-primary)]">{formatPrice(product.priceCents)}</span>
                 </div>
               </div>
               <a href={`/s/${siteSlug}`} className="inline-block mt-6 text-sm font-medium text-[var(--site-primary)] hover:underline">&larr; Retour au site</a>

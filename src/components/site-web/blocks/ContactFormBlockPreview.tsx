@@ -5,10 +5,11 @@ import type { ContactFormBlockContent } from "@/types";
 import { getButtonInlineStyle } from "@/lib/block-style-engine";
 import { useProducts } from "@/lib/product-context";
 
-const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[var(--site-primary)]/30 focus:ring-1 focus:ring-[var(--site-primary)]/20 transition-all";
+const inputClass = "w-full rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[var(--site-primary)]/20 transition-all border"
+  + " bg-[var(--site-surface,#F7F7F5)] border-[var(--site-border,#E6E6E4)] text-[var(--site-text,#1A1A1A)] placeholder:text-[var(--site-muted,#999)]";
 
 function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockContent }) {
-  const { isPublic } = useProducts();
+  const { isPublic, siteId } = useProducts();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -17,14 +18,25 @@ function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockCo
     if (!isPublic) return;
     setLoading(true);
     try {
+      // Build field mappings from mapTo attributes
+      const fieldMappings: Record<string, string> = {};
+      for (const field of content.fields) {
+        if (field.mapTo) {
+          fieldMappings[field.label] = field.mapTo;
+        }
+      }
+
       await fetch("/api/public/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          site_id: siteId,
           source: "contact-form",
           name: formData["Nom"] || formData["Name"] || "",
           email: formData["Email"] || "",
           fields: formData,
+          create_order: content.createOrder || false,
+          field_mappings: Object.keys(fieldMappings).length > 0 ? fieldMappings : undefined,
         }),
       });
       setSubmitted(true);
@@ -41,7 +53,7 @@ function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockCo
         <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-[var(--site-primary-light)] flex items-center justify-center">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--site-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
         </div>
-        <p className="text-sm text-[#5A5A58]">{content.successMessage}</p>
+        <p className="text-sm text-[var(--site-muted,#5A5A58)]">{content.successMessage}</p>
       </div>
     );
   }
@@ -55,7 +67,7 @@ function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockCo
         <div className="space-y-3">
           {content.fields.map((field, i) => (
             <div key={i}>
-              <label className="block text-[11px] font-medium text-[#666] mb-1">
+              <label className="block text-[11px] font-medium text-[var(--site-muted,#666)] mb-1">
                 {field.label}{field.required && <span className="text-red-400 ml-0.5">*</span>}
               </label>
               {field.type === "textarea" ? (
@@ -107,15 +119,15 @@ function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockCo
       <div className="space-y-3">
         {content.fields.map((field, i) => (
           <div key={i}>
-            <label className="block text-[11px] font-medium text-[#666] mb-1">
+            <label className="block text-[11px] font-medium text-[var(--site-muted,#666)] mb-1">
               {field.label}{field.required && <span className="text-red-400 ml-0.5">*</span>}
             </label>
             {field.type === "textarea" ? (
-              <div className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#999] h-20">{field.placeholder || ""}</div>
+              <div className="w-full bg-[var(--site-surface,#F7F7F5)] border border-[var(--site-border,#E6E6E4)] rounded-lg px-3 py-2 text-[12px] text-[var(--site-muted,#999)] h-20">{field.placeholder || ""}</div>
             ) : field.type === "select" ? (
-              <div className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#999]">{field.options?.[0] || "Sélectionner..."}</div>
+              <div className="w-full bg-[var(--site-surface,#F7F7F5)] border border-[var(--site-border,#E6E6E4)] rounded-lg px-3 py-2 text-[12px] text-[var(--site-muted,#999)]">{field.options?.[0] || "Sélectionner..."}</div>
             ) : (
-              <div className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#999]">{field.placeholder || ""}</div>
+              <div className="w-full bg-[var(--site-surface,#F7F7F5)] border border-[var(--site-border,#E6E6E4)] rounded-lg px-3 py-2 text-[12px] text-[var(--site-muted,#999)]">{field.placeholder || ""}</div>
             )}
           </div>
         ))}

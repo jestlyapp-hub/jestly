@@ -42,6 +42,7 @@ function transformDbSiteToFrontend(dbSite: any, dbPages: any[]): Site {
     },
     nav: dbSite.nav || undefined,
     footer: dbSite.footer || undefined,
+    design: dbSite.design || undefined,
   };
 }
 
@@ -95,7 +96,7 @@ export async function getSiteBySlug(slug: string): Promise<Site | null> {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: dbSite, error } = await (supabase.from("sites") as any)
-      .select("id, slug, name, theme, settings, seo, nav, footer, custom_domain")
+      .select("id, slug, name, theme, settings, seo, nav, footer, design, custom_domain")
       .eq("slug", slug)
       .eq("status", "published")
       .eq("is_private", false)
@@ -128,7 +129,7 @@ export async function getSiteByCustomDomain(domain: string): Promise<Site | null
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: dbSite, error } = await (supabase.from("sites") as any)
-      .select("id, slug, name, theme, settings, seo, nav, footer, custom_domain")
+      .select("id, slug, name, theme, settings, seo, nav, footer, design, custom_domain")
       .eq("custom_domain", domain)
       .eq("status", "published")
       .eq("is_private", false)

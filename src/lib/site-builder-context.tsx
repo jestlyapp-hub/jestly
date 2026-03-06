@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useReducer, useEffect, useState, useRef, type ReactNode } from "react";
 import type { Site, Block, BlockType, BlockContentMap, BlockSettings, SitePage } from "@/types";
+import { getVariant } from "@/lib/block-variants";
 import { useSite } from "@/lib/hooks/use-site";
 
 type Breakpoint = "desktop" | "tablet" | "mobile";
@@ -29,12 +30,17 @@ type BuilderAction =
   | { type: "TOGGLE_BLOCK_VISIBILITY"; blockId: string }
   | { type: "DUPLICATE_BLOCK"; blockId: string }
   | { type: "REORDER_BLOCKS"; pageId: string; fromIndex: number; toIndex: number }
-  | { type: "ADD_BLOCK"; pageId: string; blockType: BlockType }
+  | { type: "ADD_BLOCK"; pageId: string; blockType: BlockType; variantKey?: string }
+  | { type: "UPDATE_NAV"; nav: Site["nav"] }
+  | { type: "UPDATE_FOOTER"; footer: Site["footer"] }
+  | { type: "UPDATE_DESIGN"; design: Partial<Site["design"]> }
+  | { type: "APPLY_DESIGN"; theme: Site["theme"]; design: Site["design"]; nav?: Site["nav"]; footer?: Site["footer"] }
   | { type: "REMOVE_BLOCK"; blockId: string }
   | { type: "ADD_PAGE"; page: SitePage }
   | { type: "REMOVE_PAGE"; pageId: string }
   | { type: "UPDATE_PAGE"; pageId: string; updates: Partial<SitePage> }
   | { type: "APPLY_TEMPLATE"; pages: SitePage[] }
+  | { type: "APPLY_FULL_TEMPLATE"; theme: Site["theme"]; design: Site["design"]; nav: Site["nav"]; footer: Site["footer"]; pages: SitePage[] }
   | { type: "UPDATE_SITE_SETTINGS"; settings: Partial<Site["settings"]> }
   | { type: "UPDATE_SITE_THEME"; theme: Partial<Site["theme"]> }
   | { type: "UPDATE_SITE_SEO"; seo: Partial<Site["seo"]> }
@@ -74,7 +80,7 @@ const defaultContent: { [K in BlockType]: BlockContentMap[K] } = {
   "blog-preview": { title: "Articles récents", posts: [{ title: "Article 1", excerpt: "Résumé de l'article...", date: "2025-03-15" }], columns: 3 },
   "video-text-split": { videoUrl: "", videoPosition: "left" as const, title: "Découvrez notre approche", description: "Description de la vidéo.", ctaLabel: "En savoir plus", blockLink: { type: "none" as const } },
   "before-after": { beforeImageUrl: "", afterImageUrl: "", beforeLabel: "Avant", afterLabel: "Après", initialPosition: 50 },
-  "service-cards": { title: "Nos services", services: [{ icon: "palette", name: "Service 1", description: "Description", features: ["Feature 1"], ctaLabel: "Commander" }], columns: 3 },
+  "service-cards": { title: "Nos services", mode: "static" as const, services: [{ icon: "palette", name: "Service 1", description: "Description", features: ["Feature 1"], ctaLabel: "Commander" }], productIds: [], columns: 3, showPrice: true, ctaMode: "product_checkout" as const },
   "lead-magnet": { title: "Téléchargez notre guide", description: "Un guide complet pour lancer votre marque.", fileUrl: "", buttonLabel: "Télécharger", successMessage: "Merci ! Vérifiez votre boîte mail." },
   "availability-banner": { status: "open" as const, message: "Actuellement disponible pour de nouveaux projets", blockLink: { type: "none" as const } },
   "product-hero-checkout": { productId: "", benefits: ["Résultat professionnel", "Livraison rapide", "Révisions incluses"], ctaLabel: "Commander", showFeatures: true, layout: "center" as const },
@@ -82,6 +88,18 @@ const defaultContent: { [K in BlockType]: BlockContentMap[K] } = {
   "inline-checkout": { productId: "", layout: "detailed" as const, ctaLabel: "Commander maintenant" },
   "bundle-builder": { productIds: [], title: "Créez votre pack sur-mesure", description: "Sélectionnez les services qui vous intéressent", ctaLabel: "Commander le pack", discountPercent: 10 },
   "pricing-table-real": { productIds: [], columns: 3 as const, showFeatures: true, highlightIndex: 1, ctaLabel: "Choisir" },
+  "hero-split-glow": { title: "Creez des experiences memorables", subtitle: "Solution complete pour freelances creatifs. Design, developpement et strategie.", primaryCtaLabel: "Demarrer", primaryBlockLink: { type: "none" as const }, secondaryCtaLabel: "En savoir plus", secondaryBlockLink: { type: "none" as const }, badge: "Nouveau" },
+  "hero-centered-mesh": { title: "Construisez le futur", subtitle: "Plateforme tout-en-un pour transformer vos idees en produits exceptionnels.", ctaLabel: "Commencer gratuitement", blockLink: { type: "none" as const }, badge: "Open Beta", trustLogos: [{ name: "Figma" }, { name: "Notion" }, { name: "Linear" }, { name: "Vercel" }] },
+  "services-premium": { title: "Nos services", subtitle: "Tout ce dont vous avez besoin pour reussir.", services: [{ icon: "palette", title: "Design", description: "Direction artistique et identite visuelle sur mesure.", features: ["Logo & branding", "UI/UX design", "Motion design"] }, { icon: "code", title: "Developpement", description: "Sites et applications performants et modernes.", features: ["Sites vitrine", "Web apps", "E-commerce"] }, { icon: "zap", title: "Strategie", description: "Conseil et accompagnement pour booster votre croissance.", features: ["Audit", "SEO", "Growth"] }], columns: 3 },
+  "portfolio-masonry": { title: "Realisations", subtitle: "Une selection de nos meilleurs projets.", items: [{ imageUrl: "", title: "Projet Alpha", category: "Branding", description: "Refonte complete de l'identite visuelle" }, { imageUrl: "", title: "Projet Beta", category: "Web", description: "Application SaaS moderne" }, { imageUrl: "", title: "Projet Gamma", category: "Video", description: "Showreel et motion design" }, { imageUrl: "", title: "Projet Delta", category: "Design", description: "Direction artistique premium" }], columns: 2 },
+  "pricing-modern": { title: "Tarifs transparents", subtitle: "Choisissez la formule qui vous convient.", mode: "manual" as const, productIds: [], plans: [{ name: "Starter", price: "490", period: "par projet", description: "Ideal pour demarrer", features: ["1 page de vente", "Design responsive", "Livraison 7 jours", "1 revision"], isPopular: false, ctaLabel: "Choisir" }, { name: "Pro", price: "990", period: "par projet", description: "Pour les ambitieux", features: ["Jusqu'a 5 pages", "Design premium", "Livraison 5 jours", "3 revisions", "SEO optimise"], isPopular: true, ctaLabel: "Choisir" }, { name: "Premium", price: "1 990", period: "par projet", description: "L'excellence", features: ["Pages illimitees", "Design sur-mesure", "Livraison 3 jours", "Revisions illimitees", "SEO avance", "Support prioritaire"], isPopular: false, ctaLabel: "Choisir" }] },
+  "testimonials-dark": { title: "Ce que disent nos clients", testimonials: [{ name: "Sophie Martin", role: "CEO", company: "Studio Bloom", text: "Un travail exceptionnel. Le resultat depasse toutes nos attentes.", rating: 5 }, { name: "Thomas Durand", role: "Fondateur", company: "TechFlow", text: "Professionnel, reactif et creatif. Je recommande a 100%.", rating: 5 }, { name: "Julie Lefebvre", role: "Directrice", company: "Agence Neon", text: "La qualite de travail est remarquable. Un vrai partenaire.", rating: 5 }] },
+  "cta-banner": { title: "Pret a transformer votre vision en realite ?", description: "Lancez votre projet des aujourd'hui et rejoignez des centaines de clients satisfaits.", ctaLabel: "Demarrer maintenant", blockLink: { type: "none" as const }, secondaryLabel: "Prendre rendez-vous", secondaryBlockLink: { type: "none" as const } },
+  "contact-premium": { title: "Parlons de votre projet", subtitle: "Remplissez le formulaire et nous revenons vers vous sous 24h.", fields: [{ label: "Nom", type: "text" as const, required: true, placeholder: "Votre nom" }, { label: "Email", type: "email" as const, required: true, placeholder: "votre@email.com" }, { label: "Telephone", type: "phone" as const, required: false, placeholder: "+33 6 00 00 00 00" }, { label: "Message", type: "textarea" as const, required: true, placeholder: "Decrivez votre projet..." }], submitLabel: "Envoyer", successMessage: "Merci ! Nous revenons vers vous rapidement.", saveAsLead: true },
+  "footer-block": { siteName: "Mon Studio", description: "Design, developpement et strategie pour freelances creatifs.", columns: [{ title: "Services", links: [{ label: "Design" }, { label: "Developpement" }, { label: "Strategie" }] }, { title: "Ressources", links: [{ label: "Blog" }, { label: "Portfolio" }, { label: "FAQ" }] }, { title: "Legal", links: [{ label: "Mentions legales" }, { label: "CGV" }, { label: "Confidentialite" }] }], copyright: "Tous droits reserves.", showSocials: true, socials: { instagram: "#", twitter: "#", linkedin: "#" } },
+  "video-showcase": { title: "Showreel 2025", subtitle: "Decouvrez notre univers creatif en 60 secondes.", videoUrl: "", stats: [{ value: "200+", label: "Projets" }, { value: "50+", label: "Clients" }, { value: "98%", label: "Satisfaction" }], ctaLabel: "Voir nos realisations", blockLink: { type: "none" as const } },
+  "tech-stack": { title: "Notre stack technique", subtitle: "Les technologies que nous maitrisons.", categories: [{ name: "Frontend", items: [{ name: "React" }, { name: "Next.js" }, { name: "TypeScript" }, { name: "Tailwind" }] }, { name: "Backend", items: [{ name: "Node.js" }, { name: "PostgreSQL" }, { name: "Supabase" }, { name: "Stripe" }] }, { name: "Outils", items: [{ name: "Figma" }, { name: "GitHub" }, { name: "Vercel" }, { name: "Linear" }] }] },
+  "before-after-pro": { title: "Avant / Apres", subtitle: "La difference est dans les details.", items: [{ beforeImageUrl: "", afterImageUrl: "", label: "Refonte site web" }, { beforeImageUrl: "", afterImageUrl: "", label: "Identite visuelle" }], layout: "side-by-side" as const },
 };
 
 let blockCounter = 100;
@@ -208,12 +226,13 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
 
     case "ADD_BLOCK": {
       blockCounter++;
+      const variant = action.variantKey ? getVariant(action.blockType, action.variantKey) : undefined;
       const newBlock = {
         id: `BLK-NEW-${blockCounter}`,
         type: action.blockType,
-        content: { ...defaultContent[action.blockType] },
-        style: { paddingTop: 40, paddingBottom: 40 },
-        settings: {},
+        content: { ...defaultContent[action.blockType], ...(variant?.contentOverrides || {}) },
+        style: { paddingTop: 40, paddingBottom: 40, ...(variant?.style || {}) },
+        settings: { variantKey: action.variantKey },
         visible: true,
       } as Block;
       const site = { ...state.site, pages: state.site.pages.map((p) =>
@@ -255,6 +274,18 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
       return { ...withHistory(state, site), activePageId: action.pages[0]?.id ?? "", activeBlockId: null };
     }
 
+    case "APPLY_FULL_TEMPLATE": {
+      const site = {
+        ...state.site,
+        theme: action.theme,
+        design: action.design,
+        nav: action.nav,
+        footer: action.footer,
+        pages: action.pages,
+      };
+      return { ...withHistory(state, site), activePageId: action.pages[0]?.id ?? "", activeBlockId: null };
+    }
+
     case "UPDATE_SITE_SETTINGS":
       return withHistory(state, { ...state.site, settings: { ...state.site.settings, ...action.settings } });
 
@@ -266,6 +297,26 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
 
     case "UPDATE_SITE_DOMAIN":
       return withHistory(state, { ...state.site, domain: { ...state.site.domain, ...action.domain } });
+
+    case "UPDATE_NAV":
+      return withHistory(state, { ...state.site, nav: action.nav });
+
+    case "UPDATE_FOOTER":
+      return withHistory(state, { ...state.site, footer: action.footer });
+
+    case "UPDATE_DESIGN":
+      return withHistory(state, { ...state.site, design: { ...state.site.design, ...action.design } as Site["design"] });
+
+    case "APPLY_DESIGN": {
+      const site = {
+        ...state.site,
+        theme: action.theme,
+        design: action.design,
+        ...(action.nav ? { nav: action.nav } : {}),
+        ...(action.footer ? { footer: action.footer } : {}),
+      };
+      return withHistory(state, site);
+    }
 
     default:
       return state;
@@ -304,6 +355,7 @@ function serializeSiteForSave(site: Site) {
       i18n: site.settings.i18n,
     },
     theme: site.theme,
+    design: site.design || null,
     seo: {
       globalTitle: site.seo.globalTitle,
       globalDescription: site.seo.globalDescription,
@@ -374,7 +426,11 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
           signal: ctrl.signal,
         });
         if (ctrl.signal.aborted) return;
-        if (!res.ok) throw new Error(`${res.status}`);
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => null);
+          console.error("[autosave] server error:", res.status, errBody);
+          throw new Error(`${res.status}`);
+        }
 
         setSaveStatus("saved");
         dispatch({ type: "MARK_CLEAN" });

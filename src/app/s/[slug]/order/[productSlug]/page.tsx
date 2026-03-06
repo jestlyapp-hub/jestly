@@ -7,10 +7,13 @@ export const revalidate = 60;
 
 export default async function PublicOrderPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string; productSlug: string }>;
+  searchParams: Promise<{ brief?: string }>;
 }) {
   const { slug, productSlug } = await params;
+  const { brief: briefTemplateId } = await searchParams;
   const site = await getSiteBySlug(slug);
 
   if (!site) {
@@ -63,5 +66,13 @@ export default async function PublicOrderPage({
     );
   }
 
-  return <CheckoutStepper product={product} siteId={siteId} siteSlug={slug} />;
+  return (
+    <CheckoutStepper
+      product={product}
+      siteId={siteId}
+      siteSlug={slug}
+      briefTemplateId={briefTemplateId || null}
+      useProductDefaultBrief={!briefTemplateId}
+    />
+  );
 }

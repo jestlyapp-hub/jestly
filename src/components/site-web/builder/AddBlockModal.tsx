@@ -5,6 +5,7 @@ import { useBuilder } from "@/lib/site-builder-context";
 import { blockRegistry, blockCategories, type BlockCategory } from "@/lib/block-registry";
 import BlockThumbnail from "./BlockThumbnail";
 import PreviewSandbox from "./PreviewSandbox";
+import { getVariantsForBlock } from "@/lib/block-variants";
 import type { BlockType } from "@/types";
 
 export default function AddBlockModal({ onClose, pageId }: { onClose: () => void; pageId: string }) {
@@ -12,6 +13,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<BlockCategory | "all">("all");
   const [hoveredType, setHoveredType] = useState<BlockType | null>(null);
+  const [selectedType, setSelectedType] = useState<BlockType | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleHover = useCallback((type: BlockType | null) => {
@@ -19,10 +21,13 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
     debounceRef.current = setTimeout(() => setHoveredType(type), 120);
   }, []);
 
-  const handleAdd = (type: BlockType) => {
-    dispatch({ type: "ADD_BLOCK", pageId, blockType: type });
+  const handleAdd = (type: BlockType, variantKey?: string) => {
+    dispatch({ type: "ADD_BLOCK", pageId, blockType: type, variantKey });
     onClose();
   };
+
+  const previewType = selectedType || hoveredType;
+  const variants = previewType ? getVariantsForBlock(previewType) : [];
 
   const filtered = blockRegistry.filter((b) => {
     const matchCategory = activeCategory === "all" || b.category === activeCategory;
@@ -103,7 +108,10 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
                 {filtered.map((entry) => (
                   <button
                     key={entry.type}
-                    onClick={() => handleAdd(entry.type)}
+                    onClick={() => {
+                      const v = getVariantsForBlock(entry.type);
+                      if (v.length > 0) { setSelectedType(entry.type); } else { handleAdd(entry.type); }
+                    }}
                     onMouseEnter={() => handleHover(entry.type)}
                     onMouseLeave={() => handleHover(null)}
                     className={`group flex flex-col p-3 rounded-xl border transition-all text-left ${
@@ -127,14 +135,53 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
           </div>
         </div>
 
-        {/* RIGHT — Live Preview */}
+        {/* RIGHT — Variants or Live Preview */}
         <div className="w-[300px] flex-shrink-0 border-l border-[#E6E6E4] bg-[#F7F7F5] flex flex-col">
-          <div className="px-4 py-3.5 border-b border-[#E6E6E4] bg-white">
-            <span className="text-[12px] font-semibold text-[#999] uppercase tracking-wider">Aperçu</span>
-          </div>
-          <div className="flex-1 overflow-hidden">
-            <PreviewSandbox type={hoveredType} />
-          </div>
+          {selectedType && variants.length > 0 ? (
+            <>
+              <div className="px-4 py-3.5 border-b border-[#E6E6E4] bg-white flex items-center justify-between">
+                <span className="text-[12px] font-semibold text-[#1A1A1A]">Choisir un style</span>
+                <button onClick={() => setSelectedType(null)} className="text-[#999] hover:text-[#666]">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {/* Default (no variant) */}
+                <button
+                  onClick={() => handleAdd(selectedType)}
+                  className="w-full p-3 rounded-lg border border-[#E6E6E4] bg-white hover:border-[#4F46E5]/40 transition-all text-left"
+                >
+                  <div className="text-[12px] font-semibold text-[#1A1A1A] mb-0.5">Par défaut</div>
+                  <div className="text-[10px] text-[#999]">Style standard</div>
+                </button>
+                {/* Variants */}
+                {variants.map((v) => (
+                  <button
+                    key={v.key}
+                    onClick={() => handleAdd(selectedType, v.key)}
+                    className="w-full p-3 rounded-lg border border-[#E6E6E4] bg-white hover:border-[#4F46E5]/40 transition-all text-left"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {v.style.backgroundColor && (
+                        <div className="w-4 h-4 rounded border border-black/10 flex-shrink-0" style={{ background: v.style.backgroundColor }} />
+                      )}
+                      <div className="text-[12px] font-semibold text-[#1A1A1A]">{v.name}</div>
+                    </div>
+                    <div className="text-[10px] text-[#999]">{v.description}</div>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="px-4 py-3.5 border-b border-[#E6E6E4] bg-white">
+                <span className="text-[12px] font-semibold text-[#999] uppercase tracking-wider">Aperçu</span>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <PreviewSandbox type={previewType} />
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

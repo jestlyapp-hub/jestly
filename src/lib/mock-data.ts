@@ -29,48 +29,51 @@ export const clients: Client[] = [
   { id: "CLI-006", name: "Hugo Moreau", email: "hugo@media.fr", totalRevenue: 600, ordersCount: 2, lastOrder: "2025-03-10", avatar: "HM" },
 ];
 
+const defaultProductFields = { mode: "checkout" as const, deliveryType: "none" as const, ctaLabel: "Acheter", status: "active" as const };
+
 export const products: Product[] = [
   {
-    id: "PRD-001", name: "Logo redesign", price: 450, active: true, sales: 12, category: "Design",
+    id: "PRD-001", name: "Logo redesign", priceCents: 45000, sales: 12, category: "Design",
     type: "service", slug: "logo-redesign", shortDescription: "Refonte complète de votre logo avec 3 propositions et révisions illimitées.",
     features: ["3 propositions créatives", "Révisions illimitées", "Fichiers sources (AI, SVG, PNG)", "Déclinaisons couleur"],
-    deliveryTimeDays: 7, featured: true,
+    deliveryTimeDays: 7, featured: true, ...defaultProductFields,
   },
   {
-    id: "PRD-002", name: "Motion intro YouTube", price: 280, active: true, sales: 8, category: "Motion",
+    id: "PRD-002", name: "Motion intro YouTube", priceCents: 28000, sales: 8, category: "Motion",
     type: "service", slug: "motion-intro-youtube", shortDescription: "Animation d'intro professionnelle pour votre chaîne YouTube (5-15s).",
     features: ["Animation sur-mesure", "Musique libre de droits", "Format optimisé YouTube", "1 révision incluse"],
-    deliveryTimeDays: 5,
+    deliveryTimeDays: 5, ...defaultProductFields,
   },
   {
-    id: "PRD-003", name: "Pack réseaux sociaux", price: 150, active: true, sales: 23, category: "Design",
+    id: "PRD-003", name: "Pack réseaux sociaux", priceCents: 15000, sales: 23, category: "Design",
     type: "service", slug: "pack-reseaux-sociaux", shortDescription: "10 templates personnalisés pour vos réseaux sociaux (Instagram, LinkedIn, TikTok).",
     features: ["10 templates Canva/Figma", "Charte graphique respectée", "Stories + Posts + Carrousels", "Guide d'utilisation"],
-    deliveryTimeDays: 5,
+    deliveryTimeDays: 5, ...defaultProductFields,
   },
   {
-    id: "PRD-004", name: "Montage podcast", price: 120, active: true, sales: 15, category: "Montage",
+    id: "PRD-004", name: "Montage podcast", priceCents: 12000, sales: 15, category: "Montage",
     type: "service", slug: "montage-podcast", shortDescription: "Montage audio professionnel de votre épisode de podcast avec nettoyage et mastering.",
     features: ["Nettoyage audio", "Suppression des blancs", "Ajout intro/outro", "Export multi-format"],
-    deliveryTimeDays: 3,
+    deliveryTimeDays: 3, ...defaultProductFields,
   },
   {
-    id: "PRD-005", name: "Identité visuelle", price: 890, active: true, sales: 4, category: "Design",
+    id: "PRD-005", name: "Identité visuelle", priceCents: 89000, sales: 4, category: "Design",
     type: "pack", slug: "identite-visuelle", shortDescription: "Pack complet : logo, charte graphique, templates et guide de marque.", featured: true,
     longDescription: "L'offre tout-en-un pour lancer ou refondre votre marque. Inclut le logo, la charte graphique complète, les templates réseaux sociaux, et un guide d'utilisation détaillé.",
     features: ["Logo + déclinaisons", "Charte graphique complète", "Templates réseaux sociaux", "Motion intro 15s", "Guide d'utilisation", "Support 30 jours"],
-    deliveryTimeDays: 21,
+    deliveryTimeDays: 21, ...defaultProductFields,
   },
   {
-    id: "PRD-006", name: "Thumbnail YouTube x10", price: 200, active: true, sales: 31, category: "Design",
+    id: "PRD-006", name: "Thumbnail YouTube x10", priceCents: 20000, sales: 31, category: "Design",
     type: "service", slug: "thumbnail-youtube-x10", shortDescription: "Lot de 10 thumbnails YouTube optimisées pour le CTR.",
     features: ["10 visuels sur-mesure", "Tests A/B inclus", "Optimisation CTR", "Livraison sous 48h"],
-    deliveryTimeDays: 2,
+    deliveryTimeDays: 2, ...defaultProductFields,
   },
   {
-    id: "PRD-007", name: "Template Notion", price: 49, active: true, sales: 67, category: "Digital",
+    id: "PRD-007", name: "Template Notion", priceCents: 4900, sales: 67, category: "Digital",
     type: "digital", slug: "template-notion", shortDescription: "Template Notion tout-en-un pour gérer votre activité freelance.",
     features: ["Dashboard activité", "Suivi clients & projets", "Facturation intégrée", "Tutoriel vidéo inclus"],
+    ...defaultProductFields,
   },
 ];
 
@@ -168,7 +171,7 @@ export const mockAnalyticsEvents: AnalyticsEvent[] = [
 
 /* ─── Site Builder Mock Data ─── */
 
-import type { Site, SiteOrder, SiteTemplate, NavConfig, FooterConfig } from "@/types";
+import type { Site, SiteOrder, NavConfig, FooterConfig } from "@/types";
 
 export const mockSite: Site = {
   id: "SITE-001",
@@ -527,26 +530,4 @@ export const siteStats = {
   ctaRate: "12,5 %",
 };
 
-export const siteTemplates: SiteTemplate[] = [
-  {
-    id: "TPL-001",
-    name: "Creator Pro",
-    description: "Template moderne pour créateurs de contenu avec portfolio en grille et prise de commande intégrée.",
-    gradient: "from-purple-600 to-indigo-600",
-    pages: [],
-  },
-  {
-    id: "TPL-002",
-    name: "Studio Minimal",
-    description: "Design épuré et minimaliste, idéal pour les studios de design et photographes.",
-    gradient: "from-gray-800 to-gray-600",
-    pages: [],
-  },
-  {
-    id: "TPL-003",
-    name: "Agency Dark",
-    description: "Thème sombre premium pour agences créatives et consultants haut de gamme.",
-    gradient: "from-violet-900 to-black",
-    pages: [],
-  },
-];
+// Templates moved to src/lib/site-templates.ts

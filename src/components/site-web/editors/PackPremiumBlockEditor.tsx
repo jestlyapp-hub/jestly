@@ -3,6 +3,7 @@
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
 import ProductSingleSelect from "./ProductSingleSelect";
+import BriefSelect from "./BriefSelect";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-9 h-5 rounded-full transition-colors cursor-pointer";
@@ -63,6 +64,13 @@ export default function PackPremiumBlockEditor({ block }: { block: Extract<Block
           className={inputClass}
         />
       </div>
+      {/* Brief */}
+      <BriefSelect
+        briefTemplateId={block.content.briefTemplateId}
+        useProductDefaultBrief={block.content.useProductDefaultBrief}
+        briefRequired={block.content.briefRequired}
+        onChange={(s) => update(s)}
+      />
     </div>
   );
 }

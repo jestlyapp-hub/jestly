@@ -16,6 +16,15 @@ export interface ChecklistItem {
   label: string;
   done: boolean;
 }
+
+export interface ResourceItem {
+  id: string;
+  type: "transfer_link" | "file" | "url";
+  label: string;
+  url: string;
+  provider?: "wetransfer" | "swisstransfer" | "other";
+  createdAt: string;
+}
 export type InvoiceStatus = "paid" | "pending" | "overdue";
 export type SubscriptionStatus = "active" | "cancelled" | "paused";
 export type ClientStatus = "active" | "inactive" | "archived";
@@ -78,7 +87,7 @@ export interface Order {
   checklist: ChecklistItem[];
   notes?: string;
   briefing?: string;
-  resources?: string[];
+  resources?: ResourceItem[];
   category?: string;
   externalRef?: string;
   groupId?: string;
@@ -137,13 +146,16 @@ export interface Client {
   avatar: string;
 }
 
-export type ProductType = "service" | "pack" | "digital";
+export type ProductType = "service" | "pack" | "digital" | "lead_magnet";
+export type ProductStatus = "draft" | "active" | "archived";
+export type ProductMode = "checkout" | "contact";
+export type DeliveryType = "file" | "url" | "message" | "none";
 
 export interface Product {
   id: string;
   name: string;
-  price: number;
-  active: boolean;
+  priceCents: number;
+  status: ProductStatus;
   sales: number;
   category: string;
   type: ProductType;
@@ -153,7 +165,14 @@ export interface Product {
   features?: string[];
   deliveryTimeDays?: number;
   thumbnailUrl?: string;
+  coverImageUrl?: string;
   featured?: boolean;
+  mode: ProductMode;
+  deliveryType: DeliveryType;
+  deliveryFileUrl?: string;
+  deliveryUrl?: string;
+  ctaLabel: string;
+  stripePriceId?: string;
 }
 
 export interface Invoice {
@@ -199,7 +218,7 @@ export type BlockLink =
   | { type: "none" }
   | { type: "internal"; pageId: string; anchor?: string }
   | { type: "external"; url: string; newTab: boolean }
-  | { type: "product"; productId: string; mode: "page" | "checkout" };
+  | { type: "product"; productId: string; mode: "page" | "checkout"; briefTemplateId?: string };
 
 export interface ButtonStyle {
   bg?: string;
@@ -251,7 +270,19 @@ export type BlockType =
   | "product-cards-grid"
   | "inline-checkout"
   | "bundle-builder"
-  | "pricing-table-real";
+  | "pricing-table-real"
+  | "hero-split-glow"
+  | "hero-centered-mesh"
+  | "services-premium"
+  | "portfolio-masonry"
+  | "pricing-modern"
+  | "testimonials-dark"
+  | "cta-banner"
+  | "contact-premium"
+  | "footer-block"
+  | "video-showcase"
+  | "tech-stack"
+  | "before-after-pro";
 
 export interface BlockStyle {
   backgroundColor?: string;
@@ -280,6 +311,7 @@ export type BlockAnimation = "none" | "fade-up" | "fade-in" | "slide-left";
 export interface BlockSettings {
   anchorId?: string;
   animation?: BlockAnimation;
+  variantKey?: string;
 }
 
 export interface HeroBlockContent {
@@ -292,17 +324,22 @@ export interface HeroBlockContent {
   imageUrl?: string;
 }
 
+export interface PortfolioProject {
+  title: string;
+  imageUrl: string;
+  category: string;
+  link?: Link;
+  slug?: string;
+  description?: string;
+  images?: string[];
+  featured?: boolean;
+  clientName?: string;
+  result?: string;
+  externalUrl?: string;
+}
+
 export interface PortfolioGridBlockContent {
-  items: {
-    title: string;
-    imageUrl: string;
-    category: string;
-    link?: Link;
-    slug?: string;
-    description?: string;
-    images?: string[];
-    featured?: boolean;
-  }[];
+  items: PortfolioProject[];
   columns: 2 | 3 | 4;
   categories: string[];
   showFilter: boolean;
@@ -310,7 +347,7 @@ export interface PortfolioGridBlockContent {
   showSearch?: boolean;
 }
 
-export interface ServicesListBlockContent {
+export interface ServicesListBlockContent extends SaleBlockBriefSettings {
   title?: string;
   layout?: "list" | "grid";
   productIds: string[];
@@ -319,7 +356,7 @@ export interface ServicesListBlockContent {
   ctaMode: "product_page" | "product_checkout" | "modal";
 }
 
-export interface PackPremiumBlockContent {
+export interface PackPremiumBlockContent extends SaleBlockBriefSettings {
   productId: string;
   highlight: boolean;
   showFeatures: boolean;
@@ -520,11 +557,15 @@ export interface ContactFormBlockContent {
     required: boolean;
     options?: string[];
     placeholder?: string;
+    mapTo?: "briefing" | "deadline" | "resources" | "notes" | "category";
   }[];
   submitLabel: string;
   successMessage: string;
   notifyEmail?: string;
   saveAsLead: boolean;
+  createOrder?: boolean;
+  productId?: string;
+  briefTemplateId?: string;
 }
 
 export interface BlogPreviewBlockContent {
@@ -557,8 +598,9 @@ export interface BeforeAfterBlockContent {
   initialPosition: number;
 }
 
-export interface ServiceCardsBlockContent {
+export interface ServiceCardsBlockContent extends SaleBlockBriefSettings {
   title?: string;
+  mode: "static" | "product_reference";
   services: {
     icon: string;
     name: string;
@@ -568,7 +610,10 @@ export interface ServiceCardsBlockContent {
     productId?: string;
     ctaLabel: string;
   }[];
+  productIds: string[];
   columns: 2 | 3;
+  showPrice: boolean;
+  ctaMode: "product_page" | "product_checkout";
 }
 
 export interface LeadMagnetBlockContent {
@@ -581,7 +626,7 @@ export interface LeadMagnetBlockContent {
 
 /* ─── V1.5 Sale Block Content Types ─── */
 
-export interface ProductHeroCheckoutBlockContent {
+export interface ProductHeroCheckoutBlockContent extends SaleBlockBriefSettings {
   productId: string;
   benefits: string[];
   ctaLabel: string;
@@ -589,20 +634,20 @@ export interface ProductHeroCheckoutBlockContent {
   layout: "left" | "center";
 }
 
-export interface ProductCardsGridBlockContent {
+export interface ProductCardsGridBlockContent extends SaleBlockBriefSettings {
   productIds: string[];
   columns: 2 | 3 | 4;
   showFilter: boolean;
   ctaLabel: string;
 }
 
-export interface InlineCheckoutBlockContent {
+export interface InlineCheckoutBlockContent extends SaleBlockBriefSettings {
   productId: string;
   layout: "compact" | "detailed";
   ctaLabel: string;
 }
 
-export interface BundleBuilderBlockContent {
+export interface BundleBuilderBlockContent extends SaleBlockBriefSettings {
   productIds: string[];
   title: string;
   description: string;
@@ -610,7 +655,7 @@ export interface BundleBuilderBlockContent {
   discountPercent: number;
 }
 
-export interface PricingTableRealBlockContent {
+export interface PricingTableRealBlockContent extends SaleBlockBriefSettings {
   productIds: string[];
   columns: 2 | 3;
   showFeatures: boolean;
@@ -626,6 +671,246 @@ export interface AvailabilityBannerBlockContent {
   ctaLabel?: string;
   ctaLink?: Link;
   blockLink?: BlockLink;
+}
+
+/* ─── Premium Block Content Types (Phase 4) ─── */
+
+export interface HeroSplitGlowBlockContent {
+  badge?: string;
+  title: string;
+  subtitle: string;
+  primaryCtaLabel: string;
+  primaryBlockLink?: BlockLink;
+  secondaryCtaLabel?: string;
+  secondaryBlockLink?: BlockLink;
+  imageUrl?: string;
+  glowColor?: string;
+}
+
+export interface HeroCenteredMeshBlockContent {
+  badge?: string;
+  title: string;
+  subtitle: string;
+  ctaLabel: string;
+  blockLink?: BlockLink;
+  trustLogos?: { name: string; imageUrl?: string }[];
+}
+
+export interface ServicesPremiumBlockContent {
+  title?: string;
+  subtitle?: string;
+  services: {
+    icon: string;
+    title: string;
+    description: string;
+    features?: string[];
+  }[];
+  columns: 3 | 4;
+}
+
+export interface PortfolioMasonryBlockContent {
+  title?: string;
+  subtitle?: string;
+  items: {
+    imageUrl: string;
+    title: string;
+    category: string;
+    description?: string;
+  }[];
+  columns: 2 | 3;
+}
+
+export interface PricingModernBlockContent extends SaleBlockBriefSettings {
+  title?: string;
+  subtitle?: string;
+  mode: "manual" | "product";
+  plans: {
+    name: string;
+    price: string;
+    period?: string;
+    description: string;
+    features: string[];
+    isPopular: boolean;
+    ctaLabel: string;
+    productId?: string;
+    blockLink?: BlockLink;
+  }[];
+  productIds: string[];
+  highlightProductId?: string;
+}
+
+export interface TestimonialsDarkBlockContent {
+  title?: string;
+  testimonials: {
+    name: string;
+    role: string;
+    company?: string;
+    text: string;
+    avatar?: string;
+    rating?: number;
+  }[];
+}
+
+export interface CtaBannerBlockContent {
+  title: string;
+  description: string;
+  ctaLabel: string;
+  blockLink?: BlockLink;
+  secondaryLabel?: string;
+  secondaryBlockLink?: BlockLink;
+}
+
+export interface ContactPremiumBlockContent {
+  title?: string;
+  subtitle?: string;
+  fields: {
+    label: string;
+    type: "text" | "email" | "textarea" | "phone" | "select";
+    required: boolean;
+    placeholder?: string;
+    options?: string[];
+  }[];
+  submitLabel: string;
+  successMessage: string;
+  saveAsLead: boolean;
+  productId?: string;
+  briefTemplateId?: string;
+}
+
+export interface FooterBlockContent {
+  siteName: string;
+  description?: string;
+  columns: {
+    title: string;
+    links: { label: string; url?: string }[];
+  }[];
+  copyright: string;
+  showSocials: boolean;
+  socials?: {
+    instagram?: string;
+    twitter?: string;
+    linkedin?: string;
+    youtube?: string;
+    github?: string;
+  };
+}
+
+export interface VideoShowcaseBlockContent {
+  title?: string;
+  subtitle?: string;
+  videoUrl: string;
+  thumbnailUrl?: string;
+  stats?: { value: string; label: string }[];
+  ctaLabel?: string;
+  blockLink?: BlockLink;
+}
+
+export interface TechStackBlockContent {
+  title?: string;
+  subtitle?: string;
+  categories: {
+    name: string;
+    items: { name: string; icon?: string; description?: string }[];
+  }[];
+}
+
+export interface BeforeAfterProBlockContent {
+  title?: string;
+  subtitle?: string;
+  items: {
+    beforeImageUrl: string;
+    afterImageUrl: string;
+    label: string;
+  }[];
+  layout: "slider" | "side-by-side";
+}
+
+/* ─── Brief / Questionnaire Types ─── */
+
+export type BriefFieldType =
+  | "text" | "textarea" | "number" | "date"
+  | "select" | "checkbox" | "radio"
+  | "file" | "url" | "email" | "phone";
+
+export interface BriefField {
+  key: string;
+  label: string;
+  type: BriefFieldType;
+  required?: boolean;
+  placeholder?: string;
+  options?: string[];
+  multiple?: boolean;
+  accept?: string;
+  pinned?: boolean;
+  help?: string;
+  target_kind?: 'custom_answer' | 'order_field' | 'order_custom_property';
+  target_ref?: string;
+  destinationType?: 'brief_only' | 'column_default' | 'detail_field' | 'column_custom';
+  destinationKey?: string;
+  destinationColumnId?: string;
+  destinationColumnLabel?: string;
+}
+
+export interface BriefTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  version: number;
+  fields: BriefField[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductBrief {
+  id: string;
+  productId: string;
+  briefTemplateId: string;
+  isDefault: boolean;
+}
+
+export interface OrderBriefResponse {
+  orderId: string;
+  briefTemplateId: string | null;
+  briefName: string;
+  briefVersion: number;
+  answers: Record<string, unknown>;
+  pinned: string[];
+  fieldsSnapshot: BriefField[];
+  fieldSources?: Record<string, { target_kind: string; target_ref: string }>;
+}
+
+/** @deprecated Use ORDER_DETAIL_FIELDS instead */
+export const MAPPABLE_ORDER_FIELDS = [
+  { value: 'deadline', label: 'Deadline', briefTypes: ['date'] },
+  { value: 'notes', label: 'Notes', briefTypes: ['text', 'textarea'] },
+  { value: 'briefing', label: 'Briefing', briefTypes: ['text', 'textarea'] },
+  { value: 'category', label: 'Catégorie', briefTypes: ['text', 'select'] },
+  { value: 'external_ref', label: 'Réf. externe', briefTypes: ['text'] },
+  { value: 'tags', label: 'Tags', briefTypes: ['checkbox'] },
+] as const;
+
+/**
+ * Order detail fields — fields on the order record (drawer / detail view)
+ * that are NOT system board columns (title/client/price/status/deadline/date).
+ */
+export const ORDER_DETAIL_FIELDS = [
+  { key: 'priority',     label: 'Priorite',      briefTypes: ['select', 'radio', 'text'] },
+  { key: 'paid',         label: 'Paye',           briefTypes: ['checkbox'] },
+  { key: 'notes',        label: 'Notes',          briefTypes: ['text', 'textarea'] },
+  { key: 'briefing',     label: 'Briefing',       briefTypes: ['text', 'textarea'] },
+  { key: 'resources',    label: 'Ressources',     briefTypes: ['file', 'url', 'text'] },
+  { key: 'category',     label: 'Categorie',      briefTypes: ['text', 'select'] },
+  { key: 'external_ref', label: 'Ref. externe',   briefTypes: ['text'] },
+  { key: 'tags',         label: 'Tags',           briefTypes: ['checkbox'] },
+  { key: 'checklist',    label: 'Checklist',      briefTypes: ['checkbox'] },
+] as const;
+
+/* ─── Sale block brief settings (shared across all sale blocks) ─── */
+
+export interface SaleBlockBriefSettings {
+  briefTemplateId?: string | null;
+  useProductDefaultBrief?: boolean;
+  briefRequired?: boolean;
 }
 
 /* ─── Analytics Types ─── */
@@ -710,6 +995,18 @@ export type BlockContentMap = {
   "inline-checkout": InlineCheckoutBlockContent;
   "bundle-builder": BundleBuilderBlockContent;
   "pricing-table-real": PricingTableRealBlockContent;
+  "hero-split-glow": HeroSplitGlowBlockContent;
+  "hero-centered-mesh": HeroCenteredMeshBlockContent;
+  "services-premium": ServicesPremiumBlockContent;
+  "portfolio-masonry": PortfolioMasonryBlockContent;
+  "pricing-modern": PricingModernBlockContent;
+  "testimonials-dark": TestimonialsDarkBlockContent;
+  "cta-banner": CtaBannerBlockContent;
+  "contact-premium": ContactPremiumBlockContent;
+  "footer-block": FooterBlockContent;
+  "video-showcase": VideoShowcaseBlockContent;
+  "tech-stack": TechStackBlockContent;
+  "before-after-pro": BeforeAfterProBlockContent;
 };
 
 export type Block = {
@@ -738,9 +1035,33 @@ export interface SitePage {
 
 export interface SiteTheme {
   primaryColor: string;
+  secondaryColor?: string;
+  backgroundColor?: string;
+  surfaceColor?: string;
+  textColor?: string;
+  mutedTextColor?: string;
+  borderColor?: string;
   fontFamily: string;
+  headingFont?: string;
   borderRadius: "none" | "rounded" | "pill";
   shadow: "none" | "sm" | "md" | "lg";
+  mode?: "light" | "dark";
+  containerWidth?: "narrow" | "default" | "wide";
+  buttonRadius?: "none" | "sm" | "md" | "full";
+}
+
+export type BackgroundPreset = "none" | "glow" | "mesh" | "grid-tech" | "noise" | "dots" | "gradient-radial";
+
+export type DesignKey = "creator" | "product" | "cinema" | "custom";
+
+export interface SiteDesign {
+  designKey: DesignKey;
+  backgroundPreset: BackgroundPreset;
+  heroVariant: string;
+  cardStyle: "flat" | "bordered" | "elevated" | "glass";
+  buttonVariant: "solid" | "outline" | "ghost" | "gradient";
+  navStyle: "transparent" | "solid" | "blur";
+  footerStyle: "minimal" | "columns" | "centered";
 }
 
 export interface SiteDomainSettings {
@@ -773,6 +1094,7 @@ export interface Site {
   id: string;
   settings: SiteSettings;
   theme: SiteTheme;
+  design?: SiteDesign;
   pages: SitePage[];
   domain: SiteDomainSettings;
   seo: SiteSeoSettings;
