@@ -395,16 +395,25 @@ export default function TasksWorkspace() {
     apiFetch("/api/tasks", { method: "DELETE", body: { id } }).catch((e) => console.error("Task sync error:", e));
   }
 
-  function handleArchive(id: string) {
+  async function handleArchive(id: string) {
+    // Optimistic update
     setData((prev) =>
       (prev || []).map((t) =>
         t.id === id ? { ...t, archived: true, updatedAt: new Date().toISOString() } : t
       )
     );
     setDrawerOpen(false);
-    apiFetch("/api/tasks", { method: "PATCH", body: { id, archived: true } }).catch(
-      (e) => console.error("Task sync error:", e)
-    );
+    try {
+      await apiFetch("/api/tasks", { method: "PATCH", body: { id, archived: true } });
+    } catch (e) {
+      console.error("Archive error:", e);
+      // Rollback optimistic update — archive failed
+      setData((prev) =>
+        (prev || []).map((t) =>
+          t.id === id ? { ...t, archived: false } : t
+        )
+      );
+    }
   }
 
   function handleStatusChange(taskId: string, status: TaskStatus) {

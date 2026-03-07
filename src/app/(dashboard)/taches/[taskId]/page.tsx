@@ -210,11 +210,16 @@ export default function TaskDetailPage() {
 
   async function handleArchive() {
     if (!task) return;
-    await apiFetch("/api/tasks", {
-      method: "PATCH",
-      body: { id: task.id, archived: true },
-    });
-    router.push("/taches");
+    try {
+      await apiFetch("/api/tasks", {
+        method: "PATCH",
+        body: { id: task.id, archived: true },
+      });
+      router.push("/taches");
+    } catch (e) {
+      console.error("Archive error:", e);
+      alert("Erreur lors de l'archivage. Verifiez que la migration 024 est appliquee.");
+    }
   }
 
   async function handleDelete() {

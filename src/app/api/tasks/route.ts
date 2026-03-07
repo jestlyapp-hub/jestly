@@ -28,6 +28,15 @@ export async function GET(req: NextRequest) {
   // If query fails (likely missing archived_at column), retry without archive filter
   if (error) {
     console.error("[/api/tasks] Primary query failed:", error.code, error.message);
+
+    // If requesting archived tasks but column doesn't exist, return empty array
+    // (nothing can be archived if the column doesn't exist)
+    if (showArchived) {
+      console.warn("[/api/tasks] Cannot query archived tasks — archived_at column missing (migration 024)");
+      return NextResponse.json([]);
+    }
+
+    // For active tasks, fall back to unfiltered query (all tasks are active pre-migration)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fallback = await (supabase.from("tasks") as any)
       .select("*")
@@ -162,11 +171,22 @@ export async function PATCH(req: NextRequest) {
     .select()
     .single();
 
-  // If update fails (likely column doesn't exist), strip migration-024-only fields and retry
+  // If update fails (likely column doesn't exist), handle based on operation type
   if (error) {
     console.error("[/api/tasks PATCH] Full update failed:", error.code, error.message);
+
+    // If this was an archive/restore operation, do NOT silently drop it
+    // The archive column must exist for archive to work
+    if (fields.archived !== undefined) {
+      console.error("[/api/tasks PATCH] Archive operation failed — archived_at column likely missing (migration 024)");
+      return NextResponse.json(
+        { error: "L'archivage necessite la migration 024. Executez-la dans Supabase." },
+        { status: 500 }
+      );
+    }
+
+    // For non-archive updates, strip migration-024-only fields and retry
     const safeUpdate = { ...update };
-    // Remove fields that may not exist pre-migration 024
     delete safeUpdate.client_id;
     delete safeUpdate.client_name;
     delete safeUpdate.order_title;
