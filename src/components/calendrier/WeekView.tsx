@@ -14,8 +14,9 @@ import {
   type CalendarEvent,
 } from "@/lib/calendar-utils";
 
-const START_HOUR = 7;
-const END_HOUR = 22;
+const START_HOUR = 6;
+const END_HOUR = 24;
+const HOUR_RANGE = END_HOUR - START_HOUR;
 
 interface WeekViewProps {
   date: Date;
@@ -32,11 +33,10 @@ type InteractionMode =
 
 export default function WeekView({ date, events, onSelectEvent, onCreateEvent, onMoveEvent }: WeekViewProps) {
   const weekDays = useMemo(() => getWeekDays(date), [date]);
-  const timeSlots = useMemo(() => generateTimeSlots(START_HOUR, END_HOUR), []);
+  const timeSlots = useMemo(() => generateTimeSlots(START_HOUR, END_HOUR - 1), []);
   const [currentTimeTop, setCurrentTimeTop] = useState<number | null>(null);
   const [interaction, setInteraction] = useState<InteractionMode>(null);
 
-  // Pointer tracking refs (avoid re-renders during drag)
   const pointerStart = useRef<{
     x: number; y: number;
     target: "event" | "slot";
@@ -46,13 +46,12 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
   } | null>(null);
   const hasMoved = useRef(false);
 
-  // Current time indicator
   useEffect(() => {
     function update() {
       const now = new Date();
       const h = now.getHours();
       const m = now.getMinutes();
-      if (h >= START_HOUR && h <= END_HOUR) {
+      if (h >= START_HOUR && h < END_HOUR) {
         setCurrentTimeTop(getEventTopPercent(`${h}:${m}`, START_HOUR, END_HOUR));
       } else {
         setCurrentTimeTop(null);
@@ -83,7 +82,6 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     return map;
   }, [events]);
 
-  // Resolve target slot from pointer position
   const getSlotFromPoint = useCallback((clientX: number, clientY: number): { date: string; time: string } | null => {
     const el = document.elementFromPoint(clientX, clientY);
     if (!el) return null;
@@ -92,7 +90,6 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     return { date: slotEl.dataset.slotDate, time: slotEl.dataset.slotTime };
   }, []);
 
-  // Pointer handlers
   const handlePointerDown = useCallback((
     e: React.PointerEvent,
     target: "event" | "slot",
@@ -100,7 +97,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     targetTime: string,
     eventId?: string
   ) => {
-    if (e.button !== 0) return; // left click only
+    if (e.button !== 0) return;
     pointerStart.current = { x: e.clientX, y: e.clientY, target, eventId, date: targetDate, time: targetTime };
     hasMoved.current = false;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
@@ -110,7 +107,6 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     if (!pointerStart.current) return;
     const dx = e.clientX - pointerStart.current.x;
     const dy = e.clientY - pointerStart.current.y;
-
     if (Math.abs(dx) + Math.abs(dy) < 5) return;
     hasMoved.current = true;
 
@@ -122,7 +118,6 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     } else if (pointerStart.current.target === "slot") {
       const startTime = pointerStart.current.time;
       const endTime = slot.time;
-      // Ensure start <= end
       const [sH] = startTime.split(":").map(Number);
       const [eH] = endTime.split(":").map(Number);
       if (eH >= sH) {
@@ -161,263 +156,246 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
 
   const hasAllDay = weekDays.some((d) => (allDayByDate[toDateStr(d)] || []).length > 0);
 
+  const pct = (hour: number) => ((hour - START_HOUR) / HOUR_RANGE) * 100;
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden flex flex-col h-full"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white rounded-xl border border-[#EAEAEA] overflow-hidden flex flex-col h-full"
     >
-      <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-x-auto">
-        <div className="min-w-[700px] flex flex-col flex-1 min-h-0">
-          {/* Day headers */}
-          <div className="grid grid-cols-[52px_repeat(7,1fr)] border-b border-[#E6E6E4] flex-shrink-0">
-            <div className="border-r border-[#E0E0DE]" />
-            {weekDays.map((d) => {
-              const td = isToday(d);
+      {/* ─── Day headers ─── */}
+      <div className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-[#EAEAEA] flex-shrink-0">
+        <div />
+        {weekDays.map((d) => {
+          const td = isToday(d);
+          return (
+            <div
+              key={toDateStr(d)}
+              className="text-center py-2.5"
+            >
+              <div className={`text-[10px] font-medium uppercase tracking-wide ${td ? "text-[#4F46E5]" : "text-[#AEAEAC]"}`}>
+                {formatDayNameShort(d)}
+              </div>
+              <div className="mt-0.5 flex justify-center">
+                <span className={`inline-flex items-center justify-center w-7 h-7 text-[13px] font-semibold rounded-full ${
+                  td ? "bg-[#4F46E5] text-white" : "text-[#1A1A1A]"
+                }`}>
+                  {d.getDate()}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ─── All-day strip ─── */}
+      {hasAllDay && (
+        <div className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-[#EAEAEA] flex-shrink-0">
+          <div className="flex items-center justify-center">
+            <span className="text-[8px] text-[#CCCCC9] font-medium uppercase tracking-wider">All</span>
+          </div>
+          {weekDays.map((d) => {
+            const dateStr = toDateStr(d);
+            const dayAllDay = allDayByDate[dateStr] || [];
+            return (
+              <div key={dateStr} className="px-0.5 py-1 space-y-0.5 min-h-[28px]">
+                {dayAllDay.map((evt) => {
+                  const bgColor = getEventDisplayColor(evt);
+                  return (
+                    <button
+                      key={evt.id}
+                      onClick={() => onSelectEvent(evt)}
+                      className="w-full text-left px-1.5 py-[3px] rounded text-[9px] font-semibold text-white truncate hover:brightness-110 transition-all cursor-pointer"
+                      style={{ backgroundColor: bgColor }}
+                    >
+                      {evt.title}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ─── Time grid ─── */}
+      <div
+        className="flex-1 min-h-0 relative overflow-hidden"
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        style={{ userSelect: interaction ? "none" : undefined }}
+      >
+        <div className="absolute inset-0 grid grid-cols-[44px_repeat(7,1fr)]">
+          {/* Time labels column */}
+          <div className="relative">
+            {timeSlots.map((slot) => {
+              const hour = parseInt(slot);
               return (
                 <div
-                  key={toDateStr(d)}
-                  className={`text-center py-2 border-r border-[#E0E0DE] last:border-r-0 ${td ? "bg-[#EEF2FF]" : ""}`}
+                  key={slot}
+                  className="absolute right-2 text-[9px] text-[#C0C0BE] font-normal tabular-nums -translate-y-1/2 select-none"
+                  style={{ top: `${pct(hour)}%` }}
                 >
-                  <div className="text-[10px] font-semibold text-[#999] uppercase tracking-wider">
-                    {formatDayNameShort(d)}
-                  </div>
-                  <div className={`text-[14px] font-bold mt-0.5 ${td ? "text-[#4F46E5]" : "text-[#1A1A1A]"}`}>
-                    {d.getDate()}
-                  </div>
+                  {hour}h
                 </div>
               );
             })}
           </div>
 
-          {/* All-day events row */}
-          {hasAllDay && (
-            <div className="grid grid-cols-[52px_repeat(7,1fr)] border-b-2 border-[#E6E6E4] flex-shrink-0 bg-[#FAFAF9]">
-              <div className="border-r border-[#E0E0DE] text-[9px] text-[#999] font-bold text-right pr-1.5 py-1.5 uppercase tracking-wider">
-                Jour
-              </div>
-              {weekDays.map((d) => {
-                const dateStr = toDateStr(d);
-                const dayAllDay = allDayByDate[dateStr] || [];
-                return (
-                  <div key={dateStr} className="border-r border-[#E0E0DE] last:border-r-0 px-0.5 py-1 space-y-0.5">
-                    {dayAllDay.map((evt) => {
-                      const bgColor = getEventDisplayColor(evt);
-                      const isOrder = evt.source === "order";
-                      return (
-                        <button
-                          key={evt.id}
-                          onClick={() => onSelectEvent(evt)}
-                          className="w-full text-left px-1.5 py-1 rounded-md text-[10px] font-bold text-white truncate hover:brightness-110 hover:shadow-sm transition-all cursor-pointer flex items-center gap-1"
-                          style={{ backgroundColor: bgColor }}
-                        >
-                          {isOrder && (
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                              <circle cx="12" cy="12" r="10" />
-                              <polyline points="12 6 12 12 16 14" />
-                            </svg>
-                          )}
-                          <span className="truncate">{evt.title}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
-          )}
+          {/* Day columns */}
+          {weekDays.map((d, di) => {
+            const dateStr = toDateStr(d);
+            const dayEvents = (eventsByDate[dateStr] || []).filter((e) => !e.allDay && e.startTime);
+            const td = isToday(d);
 
-          {/* Time grid — fills remaining space, NO scroll */}
-          <div
-            className="flex-1 min-h-0 relative overflow-hidden"
-            onPointerMove={handlePointerMove}
-            onPointerUp={handlePointerUp}
-            style={{ userSelect: interaction ? "none" : undefined }}
-          >
-            <div className="absolute inset-0 grid grid-cols-[52px_repeat(7,1fr)]">
-              {/* Time labels */}
-              <div className="border-r border-[#E0E0DE] relative">
-                {timeSlots.map((slot) => (
+            return (
+              <div
+                key={dateStr}
+                className={`relative ${td ? "bg-[#4F46E5]/[0.015]" : ""} ${di < 6 ? "border-r border-[#F5F5F3]" : ""}`}
+              >
+                {/* Hour gridlines + interaction targets */}
+                {timeSlots.map((slot) => {
+                  const hour = parseInt(slot);
+                  const isSelected =
+                    interaction?.type === "select" &&
+                    interaction.date === dateStr &&
+                    hour >= parseInt(interaction.startTime) &&
+                    hour < parseInt(interaction.endTime);
+
+                  const isDragTarget =
+                    interaction?.type === "drag" &&
+                    interaction.hoverDate === dateStr &&
+                    interaction.hoverTime === slot;
+
+                  return (
+                    <div
+                      key={slot}
+                      data-slot-date={dateStr}
+                      data-slot-time={slot}
+                      className={`absolute left-0 right-0 border-t transition-colors ${
+                        hour === 12 ? "border-[#E5E5E3]" :
+                        hour % 3 === 0 ? "border-[#EDEDEB]" :
+                        "border-[#F5F5F3]"
+                      } ${
+                        isSelected ? "bg-[#4F46E5]/[0.06]" :
+                        isDragTarget ? "bg-[#4F46E5]/[0.03]" :
+                        "hover:bg-[#FAFAF9]"
+                      }`}
+                      style={{
+                        top: `${pct(hour)}%`,
+                        height: `${100 / HOUR_RANGE}%`,
+                      }}
+                      onPointerDown={(e) => handlePointerDown(e, "slot", dateStr, slot)}
+                    />
+                  );
+                })}
+
+                {/* Current time indicator */}
+                {td && currentTimeTop !== null && (
                   <div
-                    key={slot}
-                    className="absolute right-1.5 text-[10px] text-[#999] font-semibold -translate-y-1/2"
-                    style={{
-                      top: `${((parseInt(slot) - START_HOUR) / (END_HOUR - START_HOUR)) * 100}%`,
-                    }}
+                    className="absolute left-0 right-0 z-20 pointer-events-none"
+                    style={{ top: `${currentTimeTop}%` }}
                   >
-                    {slot}
+                    <div className="relative">
+                      <div className="absolute -left-[4px] -top-[4px] w-[8px] h-[8px] rounded-full bg-[#4F46E5]" />
+                      <div className="h-[1.5px] bg-[#4F46E5] w-full" />
+                    </div>
                   </div>
-                ))}
-              </div>
+                )}
 
-              {/* Day columns */}
-              {weekDays.map((d) => {
-                const dateStr = toDateStr(d);
-                const dayEvents = (eventsByDate[dateStr] || []).filter((e) => !e.allDay && e.startTime);
-                const td = isToday(d);
+                {/* Events */}
+                {dayEvents.map((evt) => {
+                  const bgColor = getEventDisplayColor(evt);
+                  const topPct = getEventTopPercent(evt.startTime!, START_HOUR, END_HOUR);
+                  const heightPct = evt.endTime
+                    ? getEventHeightPercent(evt.startTime!, evt.endTime, START_HOUR, END_HOUR)
+                    : (30 / (HOUR_RANGE * 60)) * 100;
 
-                return (
-                  <div
-                    key={dateStr}
-                    className={`relative border-r border-[#E0E0DE] last:border-r-0 ${td ? "bg-[#EEF2FF]/20" : ""}`}
-                  >
-                    {/* Hour slot targets */}
-                    {timeSlots.map((slot) => {
-                      const isSelected =
-                        interaction?.type === "select" &&
-                        interaction.date === dateStr &&
-                        parseInt(slot) >= parseInt(interaction.startTime) &&
-                        parseInt(slot) < parseInt(interaction.endTime);
+                  const isDragging = interaction?.type === "drag" && interaction.eventId === evt.id;
+                  if (isDragging) return null;
+                  const isOrder = evt.source === "order";
 
-                      const isDragTarget =
-                        interaction?.type === "drag" &&
-                        interaction.hoverDate === dateStr &&
-                        interaction.hoverTime === slot;
-
-                      return (
-                        <div
-                          key={slot}
-                          data-slot-date={dateStr}
-                          data-slot-time={slot}
-                          className={`absolute left-0 right-0 border-t border-[#D5D5D3] transition-colors ${
-                            isSelected ? "bg-[#4F46E5]/10" :
-                            isDragTarget ? "bg-[#4F46E5]/5" :
-                            "hover:bg-[#F7F7F5]/60"
-                          }`}
-                          style={{
-                            top: `${((parseInt(slot) - START_HOUR) / (END_HOUR - START_HOUR)) * 100}%`,
-                            height: `${(1 / (END_HOUR - START_HOUR)) * 100}%`,
-                          }}
-                          onPointerDown={(e) => handlePointerDown(e, "slot", dateStr, slot)}
-                        >
-                          {/* Half-hour dashed line */}
-                          <div className="absolute left-0 right-0 border-t border-dashed border-[#ECECEA] pointer-events-none" style={{ top: "50%" }} />
+                  return (
+                    <div
+                      key={evt.id}
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        if (isOrder) return;
+                        handlePointerDown(e, "event", dateStr, evt.startTime || "09:00", evt.id);
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!hasMoved.current) onSelectEvent(evt);
+                      }}
+                      className={`absolute left-[2px] right-[2px] z-10 rounded px-1.5 py-[2px] overflow-hidden text-white transition-all text-left hover:brightness-105 hover:shadow-sm ${
+                        isOrder ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
+                      }`}
+                      style={{
+                        top: `${topPct}%`,
+                        height: `${heightPct}%`,
+                        minHeight: 16,
+                        backgroundColor: bgColor,
+                      }}
+                    >
+                      <div className="text-[9px] font-semibold truncate leading-tight">{evt.title}</div>
+                      {heightPct > 3.5 && (
+                        <div className="text-[8px] opacity-75 truncate">
+                          {evt.startTime}{evt.endTime ? `–${evt.endTime}` : ""}
                         </div>
-                      );
-                    })}
+                      )}
+                    </div>
+                  );
+                })}
 
-                    {/* Current time indicator */}
-                    {td && currentTimeTop !== null && (
-                      <div
-                        className="absolute left-0 right-0 z-20 pointer-events-none"
-                        style={{ top: `${currentTimeTop}%` }}
-                      >
-                        <div className="relative">
-                          <div className="absolute -left-[5px] -top-[5px] w-[10px] h-[10px] rounded-full bg-[#4F46E5]" />
-                          <div className="h-[2px] bg-[#4F46E5] w-full" />
-                        </div>
+                {/* Drag ghost */}
+                {interaction?.type === "drag" && interaction.hoverDate === dateStr && (() => {
+                  const draggedEvent = events.find(ev => ev.id === interaction.eventId);
+                  if (!draggedEvent) return null;
+                  const bgColor = getEventDisplayColor(draggedEvent);
+                  const topPct = getEventTopPercent(interaction.hoverTime, START_HOUR, END_HOUR);
+                  const duration = draggedEvent.startTime && draggedEvent.endTime
+                    ? getEventHeightPercent(draggedEvent.startTime, draggedEvent.endTime, START_HOUR, END_HOUR)
+                    : (60 / (HOUR_RANGE * 60)) * 100;
+
+                  return (
+                    <div
+                      className="absolute left-[2px] right-[2px] z-30 rounded px-1.5 py-1 text-white shadow-md opacity-75 pointer-events-none ring-2 ring-white/40"
+                      style={{
+                        top: `${topPct}%`,
+                        height: `${duration}%`,
+                        minHeight: 16,
+                        backgroundColor: bgColor,
+                      }}
+                    >
+                      <div className="text-[9px] font-semibold truncate">{draggedEvent.title}</div>
+                    </div>
+                  );
+                })()}
+
+                {/* Selection highlight */}
+                {interaction?.type === "select" && interaction.date === dateStr && (() => {
+                  const topPct = getEventTopPercent(interaction.startTime, START_HOUR, END_HOUR);
+                  const bottomPct = getEventTopPercent(interaction.endTime, START_HOUR, END_HOUR);
+                  return (
+                    <div
+                      className="absolute left-[2px] right-[2px] z-15 rounded bg-[#4F46E5]/10 border border-[#4F46E5]/25 border-dashed pointer-events-none"
+                      style={{
+                        top: `${topPct}%`,
+                        height: `${Math.max(2, bottomPct - topPct)}%`,
+                        minHeight: 16,
+                      }}
+                    >
+                      <div className="text-[9px] font-medium text-[#4F46E5] px-1.5 pt-0.5">
+                        {interaction.startTime}–{interaction.endTime}
                       </div>
-                    )}
-
-                    {/* Events — solid colored blocks */}
-                    {dayEvents.map((evt) => {
-                      const bgColor = getEventDisplayColor(evt);
-                      const topPct = getEventTopPercent(evt.startTime!, START_HOUR, END_HOUR);
-                      const heightPct = evt.endTime
-                        ? getEventHeightPercent(evt.startTime!, evt.endTime, START_HOUR, END_HOUR)
-                        : (30 / ((END_HOUR - START_HOUR) * 60)) * 100;
-
-                      // If this event is being dragged, show it at hover position instead
-                      const isDragging = interaction?.type === "drag" && interaction.eventId === evt.id;
-                      if (isDragging) return null;
-
-                      const isOrder = evt.source === "order";
-
-                      return (
-                        <div
-                          key={evt.id}
-                          data-event-id={evt.id}
-                          onPointerDown={(e) => {
-                            e.stopPropagation();
-                            if (isOrder) return; // Order events are not draggable
-                            handlePointerDown(e, "event", dateStr, evt.startTime || "09:00", evt.id);
-                          }}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!hasMoved.current) onSelectEvent(evt);
-                          }}
-                          className={`absolute left-0.5 right-0.5 z-10 rounded-md px-1.5 py-0.5 overflow-hidden text-white shadow-sm hover:shadow-md hover:brightness-110 transition-all text-left ${
-                            isOrder ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-                          }`}
-                          style={{
-                            top: `${topPct}%`,
-                            height: `${heightPct}%`,
-                            minHeight: 18,
-                            backgroundColor: bgColor,
-                          }}
-                        >
-                          <div className="text-[10px] font-bold truncate leading-tight">
-                            {evt.title}
-                          </div>
-                          {heightPct > 4 && (
-                            <div className="text-[9px] opacity-80 truncate">
-                              {evt.startTime}{evt.endTime ? ` - ${evt.endTime}` : ""}
-                            </div>
-                          )}
-                          {heightPct > 8 && evt.clientName && (
-                            <div className="text-[9px] opacity-70 truncate">
-                              {evt.clientName}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-
-                    {/* Drag ghost — show dragged event at hover position */}
-                    {interaction?.type === "drag" && interaction.hoverDate === dateStr && (() => {
-                      const draggedEvent = events.find(ev => ev.id === interaction.eventId);
-                      if (!draggedEvent) return null;
-                      const bgColor = getEventDisplayColor(draggedEvent);
-                      const topPct = getEventTopPercent(interaction.hoverTime, START_HOUR, END_HOUR);
-                      const duration = draggedEvent.startTime && draggedEvent.endTime
-                        ? getEventHeightPercent(draggedEvent.startTime, draggedEvent.endTime, START_HOUR, END_HOUR)
-                        : (60 / ((END_HOUR - START_HOUR) * 60)) * 100;
-
-                      return (
-                        <div
-                          className="absolute left-0.5 right-0.5 z-30 rounded-md px-1.5 py-1 text-white shadow-lg opacity-80 pointer-events-none ring-2 ring-white/50"
-                          style={{
-                            top: `${topPct}%`,
-                            height: `${duration}%`,
-                            minHeight: 18,
-                            backgroundColor: bgColor,
-                          }}
-                        >
-                          <div className="text-[10px] font-bold truncate">
-                            {draggedEvent.title}
-                          </div>
-                          <div className="text-[9px] opacity-80">
-                            {interaction.hoverTime}
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* Selection highlight overlay */}
-                    {interaction?.type === "select" && interaction.date === dateStr && (() => {
-                      const topPct = getEventTopPercent(interaction.startTime, START_HOUR, END_HOUR);
-                      const bottomPct = getEventTopPercent(interaction.endTime, START_HOUR, END_HOUR);
-                      return (
-                        <div
-                          className="absolute left-0.5 right-0.5 z-15 rounded-md bg-[#4F46E5]/15 border-2 border-[#4F46E5]/30 border-dashed pointer-events-none"
-                          style={{
-                            top: `${topPct}%`,
-                            height: `${Math.max(2, bottomPct - topPct)}%`,
-                            minHeight: 20,
-                          }}
-                        >
-                          <div className="text-[10px] font-semibold text-[#4F46E5] px-1.5 pt-0.5">
-                            {interaction.startTime} - {interaction.endTime}
-                          </div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            );
+          })}
         </div>
       </div>
     </motion.div>
@@ -426,5 +404,5 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
 
 function addOneHour(time: string): string {
   const [h] = time.split(":").map(Number);
-  return `${Math.min(h + 1, 22).toString().padStart(2, "0")}:00`;
+  return `${Math.min(h + 1, 23).toString().padStart(2, "0")}:00`;
 }

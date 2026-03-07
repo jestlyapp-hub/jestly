@@ -28,7 +28,6 @@ export default function CalendarWorkspace() {
   const [view, setView] = useState<ViewType>("week");
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Event states
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
@@ -37,13 +36,11 @@ export default function CalendarWorkspace() {
   const [formDefaultStartTime, setFormDefaultStartTime] = useState<string | undefined>();
   const [formDefaultEndTime, setFormDefaultEndTime] = useState<string | undefined>();
 
-  // Fetch events
   const { data: events, loading, error, mutate, setData: setEvents } = useApi<CalendarEvent[]>(
     "/api/calendar/events",
     []
   );
 
-  // Navigation
   const goToday = () => setCurrentDate(new Date());
 
   const goPrev = () => {
@@ -62,7 +59,6 @@ export default function CalendarWorkspace() {
     setCurrentDate(d);
   };
 
-  // Title
   const getTitle = () => {
     if (view === "month") {
       return `${formatMonthName(currentDate)} ${currentDate.getFullYear()}`;
@@ -78,7 +74,6 @@ export default function CalendarWorkspace() {
     return formatDateFr(currentDate);
   };
 
-  // Event handlers
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
     setSelectedEvent(event);
     setDrawerOpen(true);
@@ -118,7 +113,6 @@ export default function CalendarWorkspace() {
       const event = (events || []).find((e) => e.id === eventId);
       if (!event || event.source !== "manual") return;
 
-      // Calculate duration to preserve endTime
       let newEndTime: string | undefined;
       if (event.startTime && event.endTime) {
         const [sh, sm] = event.startTime.split(":").map(Number);
@@ -126,12 +120,11 @@ export default function CalendarWorkspace() {
         const durationMin = (eh * 60 + em) - (sh * 60 + sm);
         const [nh, nm] = newStartTime.split(":").map(Number);
         const endMin = nh * 60 + nm + durationMin;
-        const endH = Math.min(22, Math.floor(endMin / 60));
+        const endH = Math.min(23, Math.floor(endMin / 60));
         const endM = endMin % 60;
         newEndTime = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`;
       }
 
-      // Optimistic update
       setEvents((prev) =>
         (prev || []).map((e) =>
           e.id === eventId
@@ -140,7 +133,6 @@ export default function CalendarWorkspace() {
         )
       );
 
-      // Persist
       apiFetch("/api/calendar/events", {
         method: "PATCH",
         body: { id: eventId, date: newDate, startTime: newStartTime, endTime: newEndTime },
@@ -152,26 +144,22 @@ export default function CalendarWorkspace() {
   const handleFormSubmit = useCallback(
     async (eventData: Partial<CalendarEvent>) => {
       if (editingEvent) {
-        // Optimistic update
         setEvents((prev) =>
           (prev || []).map((e) =>
             e.id === editingEvent.id ? { ...e, ...eventData } as CalendarEvent : e
           )
         );
-        // Persist edit
         apiFetch("/api/calendar/events", {
           method: "PATCH",
           body: { id: editingEvent.id, ...eventData },
         }).catch((e) => console.error("Calendar edit error:", e));
       } else {
-        // Create via API
         try {
           const newEvent = await apiFetch<CalendarEvent>("/api/calendar/events", {
             body: eventData,
           });
           setEvents((prev) => [...(prev || []), newEvent]);
         } catch {
-          // Fallback: add locally with temp id
           const tempEvent: CalendarEvent = {
             id: `temp-${Date.now()}`,
             title: eventData.title || "Sans titre",
@@ -206,11 +194,11 @@ export default function CalendarWorkspace() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="h-8 w-40 bg-[#F7F7F5] rounded animate-pulse mb-4" />
-        <div className="bg-white rounded-xl border border-[#E6E6E4] p-4 space-y-3">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-14 bg-[#F7F7F5] rounded animate-pulse" />
+      <div className="flex flex-col" style={{ height: "calc(100vh - 100px)" }}>
+        <div className="h-10 w-48 bg-[#F7F7F5] rounded-lg animate-pulse mb-3" />
+        <div className="flex-1 bg-white rounded-xl border border-[#EAEAEA] p-6 space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-10 bg-[#F7F7F5] rounded animate-pulse" />
           ))}
         </div>
       </div>
@@ -219,9 +207,9 @@ export default function CalendarWorkspace() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto py-12 text-center">
-        <p className="text-[14px] text-red-500 mb-2">Erreur : {error}</p>
-        <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline cursor-pointer">
+      <div className="flex flex-col items-center justify-center" style={{ height: "calc(100vh - 100px)" }}>
+        <p className="text-[13px] text-red-500 mb-2">Erreur : {error}</p>
+        <button onClick={mutate} className="text-[12px] text-[#4F46E5] hover:underline cursor-pointer">
           Reessayer
         </button>
       </div>
@@ -231,17 +219,47 @@ export default function CalendarWorkspace() {
   const safeEvents = events || [];
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col" style={{ height: "calc(100vh - 100px)" }}>
-      {/* Compact toolbar */}
-      <motion.div
-        className="flex items-center justify-between gap-3 mb-3 flex-shrink-0"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold text-[#1A1A1A]">Calendrier</h1>
+    <div className="flex flex-col" style={{ height: "calc(100vh - 100px)" }}>
+      {/* ─── Toolbar ─── */}
+      <div className="flex items-center justify-between mb-3 flex-shrink-0">
+        <div className="flex items-center gap-4">
+          <h1 className="text-lg font-bold text-[#1A1A1A]">Calendrier</h1>
 
+          {/* Navigation */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={goPrev}
+              className="p-1 rounded-md hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+              aria-label="Precedent"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <button
+              onClick={goToday}
+              className="px-2.5 py-1 rounded-md text-[11px] font-medium text-[#666] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+            >
+              Aujourd&apos;hui
+            </button>
+            <button
+              onClick={goNext}
+              className="p-1 rounded-md hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+              aria-label="Suivant"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+            </button>
+          </div>
+
+          {/* Date title */}
+          <span className="text-[13px] font-medium text-[#666] hidden sm:block">
+            {getTitle()}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
           {/* View toggle */}
           <div className="flex bg-[#F7F7F5] rounded-lg p-0.5">
             {(["day", "week", "month"] as ViewType[]).map((v) => (
@@ -251,69 +269,34 @@ export default function CalendarWorkspace() {
                 className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
                   view === v
                     ? "bg-white text-[#1A1A1A] shadow-sm"
-                    : "text-[#999] hover:text-[#666]"
+                    : "text-[#AAA] hover:text-[#666]"
                 }`}
               >
                 {VIEW_LABELS[v]}
               </button>
             ))}
           </div>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {/* Date navigation */}
-          <button
-            onClick={goPrev}
-            className="p-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors cursor-pointer"
-            aria-label="Precedent"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-
-          <button
-            onClick={goToday}
-            className="px-2.5 py-1 rounded-md border border-[#E6E6E4] text-[11px] font-medium text-[#666] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
-          >
-            Aujourd&apos;hui
-          </button>
-
-          <button
-            onClick={goNext}
-            className="p-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors cursor-pointer"
-            aria-label="Suivant"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </button>
-
-          {/* Date title */}
-          <span className="text-[13px] font-semibold text-[#1A1A1A] min-w-[160px] text-center hidden sm:block">
-            {getTitle()}
-          </span>
 
           {/* Quick add */}
           <button
             onClick={handleQuickAdd}
-            className="bg-[#4F46E5] text-white rounded-lg px-3 py-1.5 text-[12px] font-medium hover:bg-[#4338CA] transition-colors cursor-pointer flex items-center gap-1"
+            className="bg-[#4F46E5] text-white rounded-lg px-3 py-1.5 text-[11px] font-medium hover:bg-[#4338CA] transition-colors cursor-pointer flex items-center gap-1"
           >
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             Nouveau
           </button>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Mobile date title */}
-      <div className="text-[13px] font-semibold text-[#1A1A1A] mb-2 sm:hidden flex-shrink-0">
+      {/* Mobile title */}
+      <div className="text-[12px] font-medium text-[#666] mb-2 sm:hidden flex-shrink-0">
         {getTitle()}
       </div>
 
-      {/* Calendar view — fills remaining space */}
+      {/* ─── Calendar view ─── */}
       <div className="flex-1 min-h-0">
         <AnimatePresence mode="wait">
           {view === "month" && (
@@ -349,7 +332,6 @@ export default function CalendarWorkspace() {
         </AnimatePresence>
       </div>
 
-      {/* Event detail drawer */}
       <EventDetailDrawer
         event={selectedEvent}
         open={drawerOpen}
@@ -361,7 +343,6 @@ export default function CalendarWorkspace() {
         onDelete={handleDeleteEvent}
       />
 
-      {/* Event form modal */}
       <EventFormModal
         open={formOpen}
         onClose={() => {
