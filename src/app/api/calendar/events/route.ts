@@ -1,9 +1,147 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
-import { MOCK_CALENDAR_EVENTS } from "@/lib/calendar-utils";
 import type { CalendarEvent, EventCategory, EventPriority } from "@/lib/calendar-utils";
 
-// GET /api/calendar/events — list calendar events (manual + order deadlines)
+// ─── Auto-migration: create calendar_events table if missing ───
+
+let migrationAttempted = false;
+
+async function ensureCalendarTable(): Promise<boolean> {
+  if (migrationAttempted) return true;
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const dbPassword = process.env.DATABASE_PASSWORD;
+  if (!supabaseUrl || !dbPassword) {
+    console.warn("[calendar] Cannot auto-migrate: missing DATABASE_PASSWORD");
+    return false;
+  }
+
+  const ref = new URL(supabaseUrl).hostname.split(".")[0];
+
+  try {
+    // Dynamic import — postgres.js
+    const postgres = (await import("postgres")).default;
+    const sql = postgres({
+      host: `db.${ref}.supabase.co`,
+      port: 5432,
+      database: "postgres",
+      username: "postgres",
+      password: dbPassword,
+      ssl: "require",
+      connect_timeout: 15,
+      idle_timeout: 5,
+      max: 1,
+    });
+
+    try {
+      await sql`
+        CREATE TABLE IF NOT EXISTS public.calendar_events (
+          id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id     uuid        NOT NULL,
+          title       text        NOT NULL,
+          category    text        NOT NULL DEFAULT 'personnel',
+          date        date        NOT NULL,
+          start_time  text,
+          end_time    text,
+          all_day     boolean     NOT NULL DEFAULT true,
+          notes       text,
+          priority    text        NOT NULL DEFAULT 'medium'
+                                  CHECK (priority IN ('low', 'medium', 'high', 'urgent')),
+          color       text,
+          client_id   uuid,
+          client_name text,
+          client_email text,
+          order_id    uuid,
+          created_at  timestamptz NOT NULL DEFAULT now(),
+          updated_at  timestamptz NOT NULL DEFAULT now()
+        )
+      `;
+
+      await sql`CREATE INDEX IF NOT EXISTS idx_calendar_events_user_id ON public.calendar_events(user_id)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_calendar_events_date ON public.calendar_events(user_id, date)`;
+      await sql`ALTER TABLE public.calendar_events ENABLE ROW LEVEL SECURITY`;
+
+      // Idempotent RLS policies
+      await sql.unsafe(`
+        DO $$ BEGIN
+          IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_events' AND policyname = 'calendar_events_select') THEN
+            CREATE POLICY calendar_events_select ON public.calendar_events FOR SELECT USING (user_id = auth.uid());
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_events' AND policyname = 'calendar_events_insert') THEN
+            CREATE POLICY calendar_events_insert ON public.calendar_events FOR INSERT WITH CHECK (user_id = auth.uid());
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_events' AND policyname = 'calendar_events_update') THEN
+            CREATE POLICY calendar_events_update ON public.calendar_events FOR UPDATE USING (user_id = auth.uid());
+          END IF;
+          IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'calendar_events' AND policyname = 'calendar_events_delete') THEN
+            CREATE POLICY calendar_events_delete ON public.calendar_events FOR DELETE USING (user_id = auth.uid());
+          END IF;
+        END $$
+      `);
+
+      await sql`NOTIFY pgrst, 'reload schema'`;
+      console.log("[calendar] Auto-migration: calendar_events table created successfully");
+      migrationAttempted = true;
+      return true;
+    } finally {
+      await sql.end();
+    }
+  } catch (e) {
+    console.error("[calendar] Auto-migration failed:", e instanceof Error ? e.message : e);
+    migrationAttempted = true; // Don't retry on every request
+    return false;
+  }
+}
+
+// ─── Helpers ───
+
+function isTableMissingError(error: { code?: string; message?: string }): boolean {
+  return error.code === "42P01" || (error.message || "").includes("does not exist");
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function rowToEvent(row: any): CalendarEvent {
+  return {
+    id: row.id,
+    title: row.title || "Sans titre",
+    category: (row.category || "personnel") as EventCategory,
+    date: typeof row.date === "string" ? row.date.substring(0, 10) : row.date,
+    startTime: row.start_time || undefined,
+    endTime: row.end_time || undefined,
+    allDay: row.all_day ?? true,
+    notes: row.notes || undefined,
+    priority: (row.priority || "medium") as EventPriority,
+    source: "manual" as const,
+    color: row.color || undefined,
+    clientId: row.client_id || undefined,
+    clientName: row.client_name || undefined,
+    clientEmail: row.client_email || undefined,
+    orderId: row.order_id || undefined,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildInsertPayload(userId: string, body: any) {
+  return {
+    user_id: userId,
+    title: body.title,
+    category: body.category,
+    date: body.date,
+    start_time: body.startTime || null,
+    end_time: body.endTime || null,
+    all_day: body.allDay ?? (!body.startTime),
+    notes: body.notes || null,
+    priority: body.priority || "medium",
+    color: body.color || null,
+    client_id: body.clientId || null,
+    client_name: body.clientName || null,
+    client_email: body.clientEmail || null,
+    order_id: body.orderId || null,
+  };
+}
+
+// ─── GET ───
+
 export async function GET() {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
@@ -11,39 +149,35 @@ export async function GET() {
 
   let manualEvents: CalendarEvent[] = [];
 
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.from("calendar_events") as any)
-      .select("*")
-      .eq("user_id", user.id)
-      .order("date", { ascending: true });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let result = await (supabase.from("calendar_events") as any)
+    .select("*")
+    .eq("user_id", user.id)
+    .order("date", { ascending: true });
 
-    if (!error && data) {
+  // If table missing → auto-migrate and retry
+  if (result.error && isTableMissingError(result.error)) {
+    console.warn("[calendar GET] Table missing, attempting auto-migration...");
+    const migrated = await ensureCalendarTable();
+    if (migrated) {
+      // Wait briefly for PostgREST schema cache to refresh
+      await new Promise((r) => setTimeout(r, 1000));
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      manualEvents = data.map((row: any) => ({
-        id: row.id,
-        title: row.title,
-        category: row.category as EventCategory,
-        date: typeof row.date === "string" ? row.date.substring(0, 10) : row.date,
-        startTime: row.start_time || undefined,
-        endTime: row.end_time || undefined,
-        allDay: row.all_day ?? true,
-        notes: row.notes || undefined,
-        priority: (row.priority || "medium") as EventPriority,
-        source: "manual" as const,
-        color: row.color || undefined,
-        clientId: row.client_id || undefined,
-        clientName: row.client_name || undefined,
-        clientEmail: row.client_email || undefined,
-        orderId: row.order_id || undefined,
-      }));
+      result = await (supabase.from("calendar_events") as any)
+        .select("*")
+        .eq("user_id", user.id)
+        .order("date", { ascending: true });
     }
-  } catch {
-    // Table doesn't exist yet — fallback to mock
   }
 
-  // Fetch orders — use services(title) to match actual DB schema
-  // (migration 017 renamed services→products but was not applied to production)
+  if (result.error) {
+    console.warn("[calendar GET] calendar_events query failed:", result.error.code, result.error.message);
+  } else if (result.data) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    manualEvents = result.data.map((row: any) => rowToEvent(row));
+  }
+
+  // Fetch orders
   let orderEvents: CalendarEvent[] = [];
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,42 +185,33 @@ export async function GET() {
       .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email), services(title)")
       .eq("user_id", user.id);
 
-    // Fallback: if services join fails (migration 017 WAS applied), try products
     if (ordersResult.error || !ordersResult.data) {
       ordersResult = await (supabase.from("orders") as any)
         .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email), products(name)")
         .eq("user_id", user.id);
     }
 
-    // Last resort: no joins at all — just get order data
     if (ordersResult.error || !ordersResult.data) {
       ordersResult = await (supabase.from("orders") as any)
         .select("id, title, deadline, status, amount, priority, notes, created_at")
         .eq("user_id", user.id);
     }
 
-    const orders = ordersResult.data;
-
-    if (orders) {
+    if (ordersResult.data) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      orderEvents = orders.filter((o: any) => o.deadline || o.created_at).map((o: any) => {
-        // Use deadline if available, otherwise fall back to created_at
+      orderEvents = ordersResult.data.filter((o: any) => o.deadline || o.created_at).map((o: any) => {
         const hasDeadline = !!o.deadline;
         const rawDate = hasDeadline ? o.deadline : o.created_at;
-        // Extract YYYY-MM-DD from timestamptz string, avoiding UTC timezone shift
         const eventDate = typeof rawDate === "string"
           ? rawDate.substring(0, 10)
           : new Date(rawDate).toISOString().substring(0, 10);
 
-        // Product name: services join (old schema) or products join (new schema) or order title
         const productName = o.services?.title || o.products?.name || o.title || "Commande";
         const clientName = o.clients?.name || "Client";
 
         return {
           id: `order-${o.id}`,
-          title: hasDeadline
-            ? `${productName} — ${clientName}`
-            : `Commande: ${productName} — ${clientName}`,
+          title: hasDeadline ? `${productName} — ${clientName}` : `Commande: ${productName} — ${clientName}`,
           category: "deadline" as EventCategory,
           date: eventDate,
           allDay: true,
@@ -103,98 +228,72 @@ export async function GET() {
       });
     }
   } catch {
-    // No orders table or connection issue
+    // No orders table
   }
 
-  const allEvents = [...manualEvents, ...orderEvents];
-
-  // If no data from DB at all, return mock
-  if (allEvents.length === 0) {
-    return NextResponse.json(MOCK_CALENDAR_EVENTS);
-  }
-
-  return NextResponse.json(allEvents);
+  return NextResponse.json([...manualEvents, ...orderEvents]);
 }
 
-// POST /api/calendar/events — create a manual calendar event
+// ─── POST ───
+
 export async function POST(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
 
   const body = await req.json();
-  const { title, category, date, startTime, endTime, allDay, notes, priority, color, clientId, clientName, clientEmail, orderId } = body;
 
-  if (!title || !date || !category) {
-    return NextResponse.json({ error: "title, date et category sont requis" }, { status: 400 });
+  if (!body.title || !body.date || !body.category) {
+    return NextResponse.json(
+      { error: "title, date et category sont requis", code: "VALIDATION" },
+      { status: 400 }
+    );
   }
 
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.from("calendar_events") as any)
-      .insert({
-        user_id: user.id,
-        title,
-        category,
-        date,
-        start_time: startTime || null,
-        end_time: endTime || null,
-        all_day: allDay ?? (!startTime),
-        notes: notes || null,
-        priority: priority || "medium",
-        color: color || null,
-        client_id: clientId || null,
-        client_name: clientName || null,
-        client_email: clientEmail || null,
-        order_id: orderId || null,
-      })
-      .select()
-      .single();
+  const payload = buildInsertPayload(user.id, body);
+  console.log("[calendar POST] Inserting event:", { title: payload.title, date: payload.date, category: payload.category, allDay: payload.all_day });
 
-    if (error) throw error;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let result = await (supabase.from("calendar_events") as any)
+    .insert(payload)
+    .select()
+    .single();
 
-    const event: CalendarEvent = {
-      id: data.id,
-      title: data.title,
-      category: data.category,
-      date: typeof data.date === "string" ? data.date.substring(0, 10) : data.date,
-      startTime: data.start_time || undefined,
-      endTime: data.end_time || undefined,
-      allDay: data.all_day,
-      notes: data.notes || undefined,
-      priority: data.priority || "medium",
-      source: "manual",
-      color: data.color || undefined,
-      clientId: data.client_id || undefined,
-      clientName: data.client_name || undefined,
-      clientEmail: data.client_email || undefined,
-      orderId: data.order_id || undefined,
-    };
-
-    return NextResponse.json(event, { status: 201 });
-  } catch {
-    // Table doesn't exist — return mock-like response
-    const mockEvent: CalendarEvent = {
-      id: `evt-${Date.now()}`,
-      title,
-      category,
-      date,
-      startTime: startTime || undefined,
-      endTime: endTime || undefined,
-      allDay: allDay ?? (!startTime),
-      notes: notes || undefined,
-      priority: priority || "medium",
-      source: "manual",
-      color: color || undefined,
-      clientId: clientId || undefined,
-      clientName: clientName || undefined,
-      clientEmail: clientEmail || undefined,
-    };
-    return NextResponse.json(mockEvent, { status: 201 });
+  // If table missing → auto-migrate and retry
+  if (result.error && isTableMissingError(result.error)) {
+    console.warn("[calendar POST] Table missing, attempting auto-migration...");
+    const migrated = await ensureCalendarTable();
+    if (migrated) {
+      await new Promise((r) => setTimeout(r, 1000));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      result = await (supabase.from("calendar_events") as any)
+        .insert(payload)
+        .select()
+        .single();
+    }
   }
+
+  if (result.error) {
+    console.error("[calendar POST] Insert failed:", result.error.code, result.error.message);
+    const isTableError = isTableMissingError(result.error);
+    return NextResponse.json(
+      {
+        error: isTableError
+          ? "Table calendar_events introuvable. La migration automatique a echoue. Executez la migration 023 manuellement dans Supabase SQL Editor."
+          : `Impossible de creer l'evenement: ${result.error.message}`,
+        code: isTableError ? "TABLE_MISSING" : "INSERT_FAILED",
+        detail: result.error.message,
+      },
+      { status: 500 }
+    );
+  }
+
+  console.log("[calendar POST] Event created:", result.data.id);
+  return NextResponse.json(rowToEvent(result.data), { status: 201 });
 }
 
-// PATCH /api/calendar/events — update a manual calendar event (drag reschedule, edit)
+// ─── PATCH ───
+
 export async function PATCH(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
@@ -204,10 +303,9 @@ export async function PATCH(req: NextRequest) {
   const { id, ...updates } = body;
 
   if (!id) {
-    return NextResponse.json({ error: "Missing event id" }, { status: 400 });
+    return NextResponse.json({ error: "Missing event id", code: "VALIDATION" }, { status: 400 });
   }
 
-  // Map camelCase to snake_case for DB
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dbUpdates: Record<string, any> = {};
   if (updates.title !== undefined) dbUpdates.title = updates.title;
@@ -224,61 +322,51 @@ export async function PATCH(req: NextRequest) {
   if (updates.clientEmail !== undefined) dbUpdates.client_email = updates.clientEmail || null;
 
   if (Object.keys(dbUpdates).length === 0) {
-    return NextResponse.json({ error: "No updates provided" }, { status: 400 });
+    return NextResponse.json({ error: "No updates provided", code: "VALIDATION" }, { status: 400 });
   }
 
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.from("calendar_events") as any)
-      .update(dbUpdates)
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .select()
-      .single();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.from("calendar_events") as any)
+    .update(dbUpdates)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select()
+    .single();
 
-    if (error) throw error;
-
-    const event: CalendarEvent = {
-      id: data.id,
-      title: data.title,
-      category: data.category,
-      date: typeof data.date === "string" ? data.date.substring(0, 10) : data.date,
-      startTime: data.start_time || undefined,
-      endTime: data.end_time || undefined,
-      allDay: data.all_day,
-      notes: data.notes || undefined,
-      priority: data.priority || "medium",
-      source: "manual",
-      color: data.color || undefined,
-      clientId: data.client_id || undefined,
-      clientName: data.client_name || undefined,
-      clientEmail: data.client_email || undefined,
-      orderId: data.order_id || undefined,
-    };
-
-    return NextResponse.json(event);
-  } catch {
-    return NextResponse.json({ ok: true });
+  if (error) {
+    console.error("[calendar PATCH] Update failed:", error.code, error.message);
+    return NextResponse.json(
+      { error: `Impossible de modifier l'evenement: ${error.message}`, code: "UPDATE_FAILED" },
+      { status: 500 }
+    );
   }
+
+  return NextResponse.json(rowToEvent(data));
 }
 
-// DELETE /api/calendar/events — delete a manual calendar event
+// ─── DELETE ───
+
 export async function DELETE(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
+
   const body = await req.json();
   const { id } = body;
-  if (!id) return NextResponse.json({ error: "Missing event id" }, { status: 400 });
+  if (!id) return NextResponse.json({ error: "Missing event id", code: "VALIDATION" }, { status: 400 });
 
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("calendar_events") as any)
-      .delete()
-      .eq("id", id)
-      .eq("user_id", user.id);
-  } catch {
-    // Table may not exist
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.from("calendar_events") as any)
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("[calendar DELETE] Delete failed:", error.code, error.message);
+    return NextResponse.json(
+      { error: `Impossible de supprimer l'evenement: ${error.message}`, code: "DELETE_FAILED" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json({ ok: true });

@@ -98,14 +98,19 @@ export default function CalendarWorkspace() {
 
   const handleDeleteEvent = useCallback(
     async (eventId: string) => {
+      const backup = events || [];
       setEvents((prev) => (prev || []).filter((e) => e.id !== eventId));
       setDrawerOpen(false);
       setSelectedEvent(null);
-      apiFetch("/api/calendar/events", { method: "DELETE", body: { id: eventId } }).catch(
-        (e) => console.error("Calendar delete error:", e)
-      );
+      try {
+        await apiFetch("/api/calendar/events", { method: "DELETE", body: { id: eventId } });
+      } catch (e) {
+        console.error("Calendar delete error:", e);
+        setEvents(backup);
+        setSaveError(e instanceof Error ? e.message : "Erreur lors de la suppression");
+      }
     },
-    [setEvents]
+    [events, setEvents]
   );
 
   const handleMoveEvent = useCallback(
@@ -136,46 +141,60 @@ export default function CalendarWorkspace() {
       apiFetch("/api/calendar/events", {
         method: "PATCH",
         body: { id: eventId, date: newDate, startTime: newStartTime, endTime: newEndTime },
-      }).catch((e) => console.error("Calendar move error:", e));
+      }).catch((e) => {
+        console.error("Calendar move error:", e);
+        // Rollback move
+        setEvents((prev) =>
+          (prev || []).map((ev) => {
+            const original = (events || []).find((o) => o.id === eventId);
+            return ev.id === eventId && original ? original : ev;
+          })
+        );
+      });
     },
     [events, setEvents]
   );
 
+  const [saveError, setSaveError] = useState<string | null>(null);
+
   const handleFormSubmit = useCallback(
     async (eventData: Partial<CalendarEvent>) => {
+      setSaveError(null);
+
       if (editingEvent) {
+        // Optimistic update for edit
         setEvents((prev) =>
           (prev || []).map((e) =>
             e.id === editingEvent.id ? { ...e, ...eventData } as CalendarEvent : e
           )
         );
-        apiFetch("/api/calendar/events", {
-          method: "PATCH",
-          body: { id: editingEvent.id, ...eventData },
-        }).catch((e) => console.error("Calendar edit error:", e));
+        try {
+          await apiFetch("/api/calendar/events", {
+            method: "PATCH",
+            body: { id: editingEvent.id, ...eventData },
+          });
+        } catch (e) {
+          console.error("Calendar edit error:", e);
+          // Rollback
+          setEvents((prev) =>
+            (prev || []).map((ev) =>
+              ev.id === editingEvent.id ? editingEvent : ev
+            )
+          );
+          setSaveError(e instanceof Error ? e.message : "Erreur lors de la modification");
+          return;
+        }
       } else {
+        // Create — NO fake temp event. Wait for real DB response.
         try {
           const newEvent = await apiFetch<CalendarEvent>("/api/calendar/events", {
             body: eventData,
           });
           setEvents((prev) => [...(prev || []), newEvent]);
-        } catch {
-          const tempEvent: CalendarEvent = {
-            id: `temp-${Date.now()}`,
-            title: eventData.title || "Sans titre",
-            category: eventData.category || "personnel",
-            date: eventData.date || toDateStr(new Date()),
-            startTime: eventData.startTime,
-            endTime: eventData.endTime,
-            allDay: eventData.allDay ?? true,
-            notes: eventData.notes,
-            priority: eventData.priority || "medium",
-            source: "manual",
-            color: eventData.color,
-            clientId: eventData.clientId,
-            clientName: eventData.clientName,
-          };
-          setEvents((prev) => [...(prev || []), tempEvent]);
+        } catch (e) {
+          console.error("Calendar create error:", e);
+          setSaveError(e instanceof Error ? e.message : "Erreur lors de la creation de l'evenement");
+          return;
         }
       }
       setFormOpen(false);
@@ -359,6 +378,34 @@ export default function CalendarWorkspace() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Save error toast */}
+      <AnimatePresence>
+        {saveError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white rounded-xl px-5 py-3 shadow-xl max-w-md flex items-center gap-3"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="15" y1="9" x2="9" y2="15" />
+              <line x1="9" y1="9" x2="15" y2="15" />
+            </svg>
+            <span className="text-[13px] font-semibold">{saveError}</span>
+            <button
+              onClick={() => setSaveError(null)}
+              className="ml-2 text-white/70 hover:text-white transition-colors cursor-pointer"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <EventDetailDrawer
         event={selectedEvent}

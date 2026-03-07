@@ -24,7 +24,7 @@ interface Client {
 interface EventFormModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (event: Partial<CalendarEvent>) => void;
+  onSubmit: (event: Partial<CalendarEvent>) => void | Promise<void>;
   initialEvent?: CalendarEvent | null;
   defaultDate?: string;
   defaultStartTime?: string;
@@ -148,25 +148,34 @@ export default function EventFormModal({
     setShowClientDropdown(false);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  const [saving, setSaving] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!title.trim() || !date) return;
-    onSubmit({
-      id: initialEvent?.id,
-      title: title.trim(),
-      category,
-      date,
-      startTime: allDay ? undefined : startTime || undefined,
-      endTime: allDay ? undefined : endTime || undefined,
-      allDay,
-      notes: notes.trim() || undefined,
-      priority,
-      source: "manual",
-      color: color || undefined,
-      clientId: clientId || undefined,
-      clientName: clientName.trim() || clientSearch.trim() || undefined,
-    });
-    onClose();
+    if (!title.trim() || !date || saving) return;
+    setSaving(true);
+    try {
+      await onSubmit({
+        id: initialEvent?.id,
+        title: title.trim(),
+        category,
+        date,
+        startTime: allDay ? undefined : startTime || undefined,
+        endTime: allDay ? undefined : endTime || undefined,
+        allDay,
+        notes: notes.trim() || undefined,
+        priority,
+        source: "manual",
+        color: color || undefined,
+        clientId: clientId || undefined,
+        clientName: clientName.trim() || clientSearch.trim() || undefined,
+      });
+      // onSubmit closes the modal on success via setFormOpen(false)
+    } catch {
+      // Error handled by CalendarWorkspace (toast)
+    } finally {
+      setSaving(false);
+    }
   }
 
   const previewColor = color || CATEGORY_SOLID[category];
@@ -531,15 +540,15 @@ export default function EventFormModal({
                   </button>
                   <button
                     type="submit"
-                    disabled={!canSubmit}
+                    disabled={!canSubmit || saving}
                     className={`flex-1 text-white rounded-lg px-4 py-2.5 text-[12px] font-bold transition-all cursor-pointer ${
-                      canSubmit
+                      canSubmit && !saving
                         ? "hover:brightness-110 shadow-sm"
                         : "opacity-35 cursor-not-allowed"
                     }`}
                     style={{ backgroundColor: previewColor }}
                   >
-                    {isEditing ? "Enregistrer" : "Creer l'evenement"}
+                    {saving ? "Enregistrement..." : isEditing ? "Enregistrer" : "Creer l'evenement"}
                   </button>
                 </div>
               </form>
