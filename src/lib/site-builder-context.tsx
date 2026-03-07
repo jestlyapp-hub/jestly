@@ -428,7 +428,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
         if (ctrl.signal.aborted) return;
         if (!res.ok) {
           const errBody = await res.json().catch(() => null);
-          console.error("[autosave] server error:", res.status, errBody);
+          console.error("[autosave] server error:", res.status, JSON.stringify(errBody));
           throw new Error(`${res.status}`);
         }
 

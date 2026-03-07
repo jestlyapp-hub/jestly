@@ -66,8 +66,8 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
       });
       if (!saveRes.ok) {
         const errBody = await saveRes.json().catch(() => ({}));
-        console.error("[publish] save error:", saveRes.status, errBody);
-        throw new Error(errBody.error || `Erreur sauvegarde (${saveRes.status})`);
+        console.error("[publish] save error:", saveRes.status, JSON.stringify(errBody));
+        throw new Error(errBody.error || `Erreur sauvegarde (${saveRes.status}) — step: ${errBody.step || "unknown"}`);
       }
 
       const pubRes = await fetch(`/api/sites/${siteId}/publish`, { method: "POST" });

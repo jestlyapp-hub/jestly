@@ -54,7 +54,7 @@ export async function POST(
       .eq("id", id);
 
     if (updateErr) {
-      console.error("[draft] site update error:", updateErr.message, updateErr.details, updateErr.hint);
+      console.error("[draft] site update error:", updateErr.message, updateErr.details, updateErr.hint, "payload keys:", Object.keys(siteUpdate));
       return NextResponse.json({ error: updateErr.message, step: "site_update" }, { status: 500 });
     }
 
