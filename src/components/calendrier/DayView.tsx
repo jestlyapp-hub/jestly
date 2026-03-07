@@ -15,7 +15,7 @@ import {
 } from "@/lib/calendar-utils";
 import OrderDots from "./OrderDots";
 
-const START_HOUR = 6;
+const START_HOUR = 0;
 const END_HOUR = 24;
 const HOUR_RANGE = END_HOUR - START_HOUR;
 
@@ -53,11 +53,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
       const now = new Date();
       const h = now.getHours();
       const m = now.getMinutes();
-      if (h >= START_HOUR && h < END_HOUR) {
-        setCurrentTimeTop(getEventTopPercent(`${h}:${m}`, START_HOUR, END_HOUR));
-      } else {
-        setCurrentTimeTop(null);
-      }
+      setCurrentTimeTop(getEventTopPercent(`${h}:${m}`, START_HOUR, END_HOUR));
     }
     update();
     const interval = setInterval(update, 60000);
@@ -141,12 +137,12 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="bg-white rounded-xl border border-[#EAEAEA] overflow-hidden flex flex-col h-full"
+      className="bg-[#FAFAF9] rounded-xl border border-[#E0E0DE] overflow-hidden flex flex-col h-full"
     >
       {/* ─── Day header ─── */}
-      <div className={`px-5 py-3 border-b border-[#EAEAEA] flex-shrink-0 flex items-center gap-3 ${today ? "bg-[#4F46E5]/[0.02]" : ""}`}>
+      <div className={`px-5 py-3 border-b border-[#E0E0DE] flex-shrink-0 flex items-center gap-3 bg-[#F7F7F5] ${today ? "bg-[#4F46E5]/[0.03]" : ""}`}>
         <span className={`inline-flex items-center justify-center w-9 h-9 rounded-full text-[16px] font-bold ${
-          today ? "bg-[#4F46E5] text-white" : "text-[#1A1A1A] bg-[#F7F7F5]"
+          today ? "bg-[#4F46E5] text-white" : "text-[#1A1A1A] bg-[#EEEEED]"
         }`}>
           {date.getDate()}
         </span>
@@ -154,39 +150,35 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
           <div className={`text-[14px] font-semibold ${today ? "text-[#4F46E5]" : "text-[#1A1A1A]"}`}>
             {formatDayName(date)}
           </div>
-          <div className="text-[11px] text-[#AEAEAC]">{formatMonthName(date)} {date.getFullYear()}</div>
+          <div className="text-[11px] text-[#999]">{formatMonthName(date)} {date.getFullYear()}</div>
         </div>
       </div>
 
-      {/* ─── All-day events + order dots ─── */}
+      {/* ─── All-day events + order markers ─── */}
       {(manualAllDay.length > 0 || orderEvents.length > 0) && (
-        <div className="px-4 py-2 border-b border-[#EAEAEA] flex-shrink-0">
-          <div className="flex items-center gap-3">
+        <div className="px-4 py-2.5 border-b border-[#E0E0DE] flex-shrink-0 bg-[#F7F7F5]/60">
+          <div className="flex items-center gap-3 flex-wrap">
             {/* Manual all-day events: pills */}
-            {manualAllDay.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {manualAllDay.map((evt) => {
-                  const bgColor = getEventDisplayColor(evt);
-                  return (
-                    <button
-                      key={evt.id}
-                      onClick={() => onSelectEvent(evt)}
-                      className="text-left px-3 py-1.5 rounded-md text-[12px] font-semibold text-white hover:brightness-105 transition-all cursor-pointer truncate max-w-[200px]"
-                      style={{ backgroundColor: bgColor }}
-                    >
-                      {evt.title}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            {/* Order events: dots */}
+            {manualAllDay.map((evt) => {
+              const bgColor = getEventDisplayColor(evt);
+              return (
+                <button
+                  key={evt.id}
+                  onClick={() => onSelectEvent(evt)}
+                  className="text-left px-3 py-1.5 rounded-md text-[12px] font-semibold text-white hover:brightness-105 transition-all cursor-pointer truncate max-w-[200px]"
+                  style={{ backgroundColor: bgColor }}
+                >
+                  {evt.title}
+                </button>
+              );
+            })}
+            {/* Order markers with client initials */}
             {orderEvents.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-[9px] font-medium text-[#AEAEAC] uppercase tracking-wider select-none">
+                <span className="text-[9px] font-semibold text-[#B0B0AE] uppercase tracking-wider select-none">
                   Cmd
                 </span>
-                <OrderDots orders={orderEvents} maxDots={5} onSelect={onSelectEvent} />
+                <OrderDots orders={orderEvents} onSelect={onSelectEvent} />
               </div>
             )}
           </div>
@@ -202,16 +194,21 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
       >
         <div className="absolute inset-0 grid grid-cols-[52px_1fr]">
           {/* Time labels */}
-          <div className="relative">
+          <div className="relative bg-[#F7F7F5]/50">
             {timeSlots.map((slot) => {
               const hour = parseInt(slot);
+              const isMajor = hour === 0 || hour === 6 || hour === 12 || hour === 18;
               return (
                 <div
                   key={slot}
-                  className="absolute right-3 text-[10px] text-[#C0C0BE] font-normal tabular-nums -translate-y-1/2 select-none"
+                  className={`absolute right-3 tabular-nums -translate-y-1/2 select-none ${
+                    isMajor
+                      ? "text-[10px] font-semibold text-[#888]"
+                      : "text-[9px] font-normal text-[#B8B8B6]"
+                  }`}
                   style={{ top: `${pct(hour)}%` }}
                 >
-                  {hour}h
+                  {hour.toString().padStart(2, "0")}h
                 </div>
               );
             })}
@@ -227,16 +224,28 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                 hour >= parseInt(interaction.startTime) &&
                 hour < parseInt(interaction.endTime);
 
+              const isMidnight = hour === 0;
+              const isNoon = hour === 12;
+              const is6h = hour === 6 || hour === 18;
+              const is3h = hour % 3 === 0;
+
+              let borderClass: string;
+              if (isMidnight || isNoon) {
+                borderClass = "border-[#D4D4D2]";
+              } else if (is6h) {
+                borderClass = "border-[#DDDCDA]";
+              } else if (is3h) {
+                borderClass = "border-[#E5E5E3]";
+              } else {
+                borderClass = "border-[#EDEDEB]";
+              }
+
               return (
                 <div
                   key={slot}
                   data-slot-time={slot}
-                  className={`absolute left-0 right-0 border-t transition-colors ${
-                    hour === 12 ? "border-[#E5E5E3]" :
-                    hour % 3 === 0 ? "border-[#EDEDEB]" :
-                    "border-[#F5F5F3]"
-                  } ${
-                    isSelected ? "bg-[#4F46E5]/[0.06]" : "hover:bg-[#FAFAF9]"
+                  className={`absolute left-0 right-0 border-t transition-colors ${borderClass} ${
+                    isSelected ? "bg-[#4F46E5]/[0.06]" : "hover:bg-[#F5F5F3]"
                   }`}
                   style={{
                     top: `${pct(hour)}%`,

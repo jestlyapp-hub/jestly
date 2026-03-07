@@ -106,7 +106,7 @@ export default function MonthView({ year, month, events, onSelectEvent, onCreate
                         {/* Order dots */}
                         {orderEvts.length > 0 && (
                           <div className="px-0.5 py-[2px]">
-                            <OrderDots orders={orderEvts} maxDots={3} onSelect={onSelectEvent} />
+                            <OrderDots orders={orderEvts} onSelect={onSelectEvent} compact />
                           </div>
                         )}
                         {/* Manual events: pills */}

@@ -15,7 +15,7 @@ import {
 } from "@/lib/calendar-utils";
 import OrderDots from "./OrderDots";
 
-const START_HOUR = 6;
+const START_HOUR = 0;
 const END_HOUR = 24;
 const HOUR_RANGE = END_HOUR - START_HOUR;
 
@@ -52,11 +52,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
       const now = new Date();
       const h = now.getHours();
       const m = now.getMinutes();
-      if (h >= START_HOUR && h < END_HOUR) {
-        setCurrentTimeTop(getEventTopPercent(`${h}:${m}`, START_HOUR, END_HOUR));
-      } else {
-        setCurrentTimeTop(null);
-      }
+      setCurrentTimeTop(getEventTopPercent(`${h}:${m}`, START_HOUR, END_HOUR));
     }
     update();
     const interval = setInterval(update, 60000);
@@ -173,23 +169,23 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="bg-white rounded-xl border border-[#EAEAEA] overflow-hidden flex flex-col h-full"
+      className="bg-[#FAFAF9] rounded-xl border border-[#E0E0DE] overflow-hidden flex flex-col h-full"
     >
       {/* ─── Day headers ─── */}
-      <div className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-[#EAEAEA] flex-shrink-0">
+      <div className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-[#E0E0DE] flex-shrink-0 bg-[#F7F7F5]">
         <div />
         {weekDays.map((d) => {
           const td = isToday(d);
           return (
             <div
               key={toDateStr(d)}
-              className="text-center py-2.5"
+              className={`text-center py-2.5 ${td ? "bg-[#4F46E5]/[0.04]" : ""}`}
             >
-              <div className={`text-[10px] font-medium uppercase tracking-wide ${td ? "text-[#4F46E5]" : "text-[#AEAEAC]"}`}>
+              <div className={`text-[10px] font-semibold uppercase tracking-wide ${td ? "text-[#4F46E5]" : "text-[#999]"}`}>
                 {formatDayNameShort(d)}
               </div>
               <div className="mt-0.5 flex justify-center">
-                <span className={`inline-flex items-center justify-center w-7 h-7 text-[13px] font-semibold rounded-full ${
+                <span className={`inline-flex items-center justify-center w-7 h-7 text-[13px] font-bold rounded-full ${
                   td ? "bg-[#4F46E5] text-white" : "text-[#1A1A1A]"
                 }`}>
                   {d.getDate()}
@@ -202,16 +198,16 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
 
       {/* ─── All-day strip ─── */}
       {hasAllDay && (
-        <div className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-[#EAEAEA] flex-shrink-0">
+        <div className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-[#E0E0DE] flex-shrink-0 bg-[#F7F7F5]/60">
           <div className="flex items-center justify-center">
-            <span className="text-[8px] text-[#CCCCC9] font-medium uppercase tracking-wider">All</span>
+            <span className="text-[8px] text-[#B0B0AE] font-semibold uppercase tracking-wider">All</span>
           </div>
           {weekDays.map((d) => {
             const dateStr = toDateStr(d);
             const dayManual = manualAllDayByDate[dateStr] || [];
             const dayOrders = ordersByDate[dateStr] || [];
             return (
-              <div key={dateStr} className="px-0.5 py-1 space-y-0.5 min-h-[28px] flex flex-col justify-center">
+              <div key={dateStr} className="px-0.5 py-1.5 space-y-1 min-h-[32px] flex flex-col justify-center border-l border-[#ECECEA]">
                 {/* Manual all-day events: pills */}
                 {dayManual.map((evt) => {
                   const bgColor = getEventDisplayColor(evt);
@@ -226,10 +222,10 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                     </button>
                   );
                 })}
-                {/* Order events: dots */}
+                {/* Order markers with client initials */}
                 {dayOrders.length > 0 && (
-                  <div className="px-1">
-                    <OrderDots orders={dayOrders} maxDots={3} onSelect={onSelectEvent} />
+                  <div className="px-0.5">
+                    <OrderDots orders={dayOrders} onSelect={onSelectEvent} compact />
                   </div>
                 )}
               </div>
@@ -247,23 +243,28 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
       >
         <div className="absolute inset-0 grid grid-cols-[44px_repeat(7,1fr)]">
           {/* Time labels column */}
-          <div className="relative">
+          <div className="relative bg-[#F7F7F5]/50">
             {timeSlots.map((slot) => {
               const hour = parseInt(slot);
+              const isMajor = hour === 0 || hour === 6 || hour === 12 || hour === 18;
               return (
                 <div
                   key={slot}
-                  className="absolute right-2 text-[9px] text-[#C0C0BE] font-normal tabular-nums -translate-y-1/2 select-none"
+                  className={`absolute right-2 tabular-nums -translate-y-1/2 select-none ${
+                    isMajor
+                      ? "text-[9px] font-semibold text-[#888]"
+                      : "text-[8px] font-normal text-[#B8B8B6]"
+                  }`}
                   style={{ top: `${pct(hour)}%` }}
                 >
-                  {hour}h
+                  {hour.toString().padStart(2, "0")}h
                 </div>
               );
             })}
           </div>
 
           {/* Day columns */}
-          {weekDays.map((d, di) => {
+          {weekDays.map((d) => {
             const dateStr = toDateStr(d);
             const dayEvents = (eventsByDate[dateStr] || []).filter((e) => !e.allDay && e.startTime);
             const td = isToday(d);
@@ -271,7 +272,9 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
             return (
               <div
                 key={dateStr}
-                className={`relative ${td ? "bg-[#4F46E5]/[0.015]" : ""} ${di < 6 ? "border-r border-[#F5F5F3]" : ""}`}
+                className={`relative border-l ${
+                  td ? "bg-[#4F46E5]/[0.02] border-l-[#DDDCDA]" : "border-l-[#EAEAE8]"
+                }`}
               >
                 {/* Hour gridlines + interaction targets */}
                 {timeSlots.map((slot) => {
@@ -287,19 +290,32 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                     interaction.hoverDate === dateStr &&
                     interaction.hoverTime === slot;
 
+                  // Grid line hierarchy
+                  const isMidnight = hour === 0;
+                  const isNoon = hour === 12;
+                  const is6h = hour === 6 || hour === 18;
+                  const is3h = hour % 3 === 0;
+
+                  let borderClass: string;
+                  if (isMidnight || isNoon) {
+                    borderClass = "border-[#D4D4D2]";
+                  } else if (is6h) {
+                    borderClass = "border-[#DDDCDA]";
+                  } else if (is3h) {
+                    borderClass = "border-[#E5E5E3]";
+                  } else {
+                    borderClass = "border-[#EDEDEB]";
+                  }
+
                   return (
                     <div
                       key={slot}
                       data-slot-date={dateStr}
                       data-slot-time={slot}
-                      className={`absolute left-0 right-0 border-t transition-colors ${
-                        hour === 12 ? "border-[#E5E5E3]" :
-                        hour % 3 === 0 ? "border-[#EDEDEB]" :
-                        "border-[#F5F5F3]"
-                      } ${
+                      className={`absolute left-0 right-0 border-t transition-colors ${borderClass} ${
                         isSelected ? "bg-[#4F46E5]/[0.06]" :
                         isDragTarget ? "bg-[#4F46E5]/[0.03]" :
-                        "hover:bg-[#FAFAF9]"
+                        "hover:bg-[#F5F5F3]"
                       }`}
                       style={{
                         top: `${pct(hour)}%`,
