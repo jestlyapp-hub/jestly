@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import type { NavConfig, NavLink, NavSocialLink, Site } from "@/types";
+import type { NavConfig, NavLink, NavSocialLink } from "@/types";
 
 // ═══════════════════════════════════════════════
 // NAVBAR RENDERER — 8 premium variants
+// All variants respect user config via NavWrapper
 // ═══════════════════════════════════════════════
 
 interface NavbarProps {
@@ -39,7 +40,6 @@ export function defaultNavConfig(): NavConfig {
     showShadow: false,
     density: "default",
     containerWidth: "boxed",
-    alignment: "center",
   };
 }
 
@@ -269,7 +269,11 @@ function MobileMenu({
                 <a
                   href="#"
                   className="block text-center text-[14px] font-semibold py-3 rounded-lg transition-colors"
-                  style={{ backgroundColor: "var(--btn-bg, var(--site-primary, #4F46E5))", color: "var(--btn-text, #fff)", borderRadius: "var(--site-btn-radius, 8px)" }}
+                  style={{
+                    backgroundColor: nav.ctaBgColor || "var(--btn-bg, var(--site-primary, #4F46E5))",
+                    color: nav.ctaTextColor || "var(--btn-text, #fff)",
+                    borderRadius: nav.ctaBorderRadius || "var(--site-btn-radius, 8px)",
+                  }}
                 >
                   {nav.ctaLabel}
                 </a>
@@ -309,50 +313,69 @@ function NavItem({ item, resolveHref, isBuilder }: { item: NavLink; resolveHref:
   );
 }
 
-// ─── CTA Button ───
+// ─── CTA Button (reads nav config for custom styles) ───
 
-function CtaButton({ label, variant }: { label: string; variant?: "primary" | "secondary" | "outline" | "ghost" }) {
-  const v = variant || "primary";
+function CtaButton({ label, isPrimary, nav }: { label: string; isPrimary?: boolean; nav?: NavConfig }) {
   const base = "text-[13px] font-semibold px-5 py-2 transition-all";
-  if (v === "primary") {
+  const style = isPrimary !== false
+    ? (nav?.ctaStyle || "filled")
+    : "outline";
+
+  if (style === "filled") {
     return (
       <a href="#" className={`${base} hover:opacity-90`} style={{
-        backgroundColor: "var(--btn-bg, var(--site-primary, #4F46E5))",
-        color: "var(--btn-text, #fff)",
-        borderRadius: "var(--site-btn-radius, 8px)",
+        backgroundColor: nav?.ctaBgColor || "var(--btn-bg, var(--site-primary, #4F46E5))",
+        color: nav?.ctaTextColor || "var(--btn-text, #fff)",
+        borderRadius: nav?.ctaBorderRadius || "var(--site-btn-radius, 8px)",
       }}>
         {label}
       </a>
     );
   }
-  if (v === "secondary" || v === "outline") {
+  if (style === "outline") {
     return (
       <a href="#" className={`${base} border hover:opacity-80`} style={{
-        color: "var(--site-text, #1A1A1A)",
-        borderColor: "var(--site-border, #E6E6E4)",
-        borderRadius: "var(--site-btn-radius, 8px)",
+        color: nav?.ctaBgColor || "var(--site-text, #1A1A1A)",
+        borderColor: nav?.ctaBgColor || "var(--site-border, #E6E6E4)",
+        borderRadius: nav?.ctaBorderRadius || "var(--site-btn-radius, 8px)",
       }}>
         {label}
       </a>
     );
   }
+  if (style === "soft") {
+    return (
+      <a href="#" className={`${base} hover:opacity-80`} style={{
+        backgroundColor: nav?.ctaBgColor
+          ? `color-mix(in srgb, ${nav.ctaBgColor} 15%, transparent)`
+          : "var(--site-primary-light, #EEF2FF)",
+        color: nav?.ctaBgColor || "var(--site-primary, #4F46E5)",
+        borderRadius: nav?.ctaBorderRadius || "var(--site-btn-radius, 8px)",
+      }}>
+        {label}
+      </a>
+    );
+  }
+  // ghost
   return (
-    <a href="#" className={`${base} hover:opacity-70`} style={{ color: "var(--site-primary, #4F46E5)" }}>
+    <a href="#" className={`${base} hover:opacity-70`} style={{
+      color: nav?.ctaBgColor || "var(--site-primary, #4F46E5)",
+    }}>
       {label}
     </a>
   );
 }
 
 // ═══════════════════════════════════════════════
-// SHARED NAV WRAPPER
+// SHARED NAV WRAPPER (outer shell — sticky, bg, border, shadow)
+// All 8 variants MUST use this for consistency
 // ═══════════════════════════════════════════════
 
 function NavWrapper({ nav, children, className }: { nav: NavConfig; children: React.ReactNode; className?: string }) {
-  const h = heightMap[nav.density || "default"];
   const hPx = nav.density === "compact" ? 56 : nav.density === "spacious" ? 80 : 64;
 
   let bgStyle: React.CSSProperties = {};
-  if (nav.bgMode === "transparent" || nav.transparent) {
+  if (nav.bgMode === "transparent") {
     bgStyle.backgroundColor = "transparent";
   } else if (nav.bgMode === "blur") {
     bgStyle.backgroundColor = "color-mix(in srgb, var(--site-bg, #fff) 85%, transparent)";
@@ -373,10 +396,18 @@ function NavWrapper({ nav, children, className }: { nav: NavConfig; children: Re
         ["--nav-h" as any]: `${hPx}px`,
       }}
     >
-      <div className={`${containerMap[nav.containerWidth || "boxed"]} ${h} flex items-center`}>
-        {children}
-      </div>
+      {children}
     </nav>
+  );
+}
+
+// Container row inside NavWrapper
+function NavContainer({ nav, children, className }: { nav: NavConfig; children: React.ReactNode; className?: string }) {
+  const h = heightMap[nav.density || "default"];
+  return (
+    <div className={`${containerMap[nav.containerWidth || "boxed"]} ${h} flex items-center ${className || ""}`}>
+      {children}
+    </div>
   );
 }
 
@@ -387,19 +418,21 @@ function NavWrapper({ nav, children, className }: { nav: NavConfig; children: Re
 function NavClassicFloating(props: NavbarProps) {
   const { nav, siteName, logoUrl, resolveHref, isBuilder } = props;
   return (
-    <NavWrapper nav={{ ...nav, showShadow: true, showBorder: false }} className="mx-4 mt-3 rounded-2xl" >
-      <div className="flex items-center justify-between w-full">
-        <NavLogo siteName={siteName} logoUrl={logoUrl} />
-        <div className="hidden md:flex items-center gap-7">
-          {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
+    <NavWrapper nav={nav} className="mx-4 mt-3 rounded-2xl">
+      <NavContainer nav={nav}>
+        <div className="flex items-center justify-between w-full">
+          <NavLogo siteName={siteName} logoUrl={logoUrl} />
+          <div className="hidden md:flex items-center gap-7">
+            {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
+          </div>
+          <div className="flex items-center gap-3">
+            {nav.showCta && nav.ctaLabel && (
+              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+            )}
+            <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          {nav.showCta && nav.ctaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} /></div>
-          )}
-          <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
-        </div>
-      </div>
+      </NavContainer>
     </NavWrapper>
   );
 }
@@ -411,28 +444,20 @@ function NavClassicFloating(props: NavbarProps) {
 function NavDarkPremium(props: NavbarProps) {
   const { nav, siteName, logoUrl, resolveHref, isBuilder } = props;
   return (
-    <nav
-      className={`${nav.sticky ? "sticky top-0" : "relative"} z-50`}
-      style={{
-        backgroundColor: "var(--site-surface, #0F0F14)",
-        borderBottom: "1px solid color-mix(in srgb, var(--site-border, #27272A) 40%, transparent)",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ["--nav-h" as any]: "64px",
-      }}
-    >
-      <div className={`${containerMap[nav.containerWidth || "boxed"]} h-16 flex items-center justify-between`}>
+    <NavWrapper nav={nav}>
+      <NavContainer nav={nav} className="justify-between">
         <NavLogo siteName={siteName} logoUrl={logoUrl} />
         <div className="hidden md:flex items-center gap-7">
           {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
         </div>
         <div className="flex items-center gap-3">
           {nav.showCta && nav.ctaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} /></div>
+            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
           )}
           <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
         </div>
-      </div>
-    </nav>
+      </NavContainer>
+    </NavWrapper>
   );
 }
 
@@ -443,53 +468,55 @@ function NavDarkPremium(props: NavbarProps) {
 function NavCapsule(props: NavbarProps) {
   const { nav, siteName, logoUrl, resolveHref, isBuilder } = props;
   return (
-    <NavWrapper nav={{ ...nav, showBorder: false, showShadow: false, bgMode: "transparent" }}>
-      <div className="flex items-center justify-between w-full">
-        <NavLogo siteName={siteName} logoUrl={logoUrl} />
+    <NavWrapper nav={nav}>
+      <NavContainer nav={nav}>
+        <div className="flex items-center justify-between w-full">
+          <NavLogo siteName={siteName} logoUrl={logoUrl} />
 
-        {/* Capsule pill in center */}
-        <div
-          className="hidden md:flex items-center gap-1 px-1.5 py-1.5 rounded-full"
-          style={{
-            backgroundColor: "var(--site-surface, #F3F3F1)",
-            border: "1px solid var(--site-border, #E6E6E4)",
-          }}
-        >
-          {nav.links.map(item => {
-            if (item.children && item.children.length > 0) {
-              return <NavDropdown key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />;
-            }
-            return (
-              <a
-                key={item.id || item.label}
-                href={isBuilder ? undefined : resolveHref(item)}
-                onClick={e => { if (isBuilder) e.preventDefault(); }}
-                className="text-[12px] font-medium px-3.5 py-1.5 rounded-full transition-all"
-                style={{ color: "var(--site-muted, #666)" }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.color = "var(--site-text, #1A1A1A)";
-                  e.currentTarget.style.backgroundColor = "var(--site-bg, #fff)";
-                  e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.color = "var(--site-muted, #666)";
-                  e.currentTarget.style.backgroundColor = "transparent";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              >
-                {item.label}
-              </a>
-            );
-          })}
-        </div>
+          {/* Capsule pill in center */}
+          <div
+            className="hidden md:flex items-center gap-1 px-1.5 py-1.5 rounded-full"
+            style={{
+              backgroundColor: "var(--site-surface, #F3F3F1)",
+              border: "1px solid var(--site-border, #E6E6E4)",
+            }}
+          >
+            {nav.links.map(item => {
+              if (item.children && item.children.length > 0) {
+                return <NavDropdown key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />;
+              }
+              return (
+                <a
+                  key={item.id || item.label}
+                  href={isBuilder ? undefined : resolveHref(item)}
+                  onClick={e => { if (isBuilder) e.preventDefault(); }}
+                  className="text-[12px] font-medium px-3.5 py-1.5 rounded-full transition-all"
+                  style={{ color: "var(--site-muted, #666)" }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.color = "var(--site-text, #1A1A1A)";
+                    e.currentTarget.style.backgroundColor = "var(--site-bg, #fff)";
+                    e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.color = "var(--site-muted, #666)";
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                >
+                  {item.label}
+                </a>
+              );
+            })}
+          </div>
 
-        <div className="flex items-center gap-3">
-          {nav.showCta && nav.ctaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} /></div>
-          )}
-          <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
+          <div className="flex items-center gap-3">
+            {nav.showCta && nav.ctaLabel && (
+              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+            )}
+            <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
+          </div>
         </div>
-      </div>
+      </NavContainer>
     </NavWrapper>
   );
 }
@@ -501,42 +528,44 @@ function NavCapsule(props: NavbarProps) {
 function NavBrandHeavy(props: NavbarProps) {
   const { nav, siteName, logoUrl, resolveHref, isBuilder } = props;
   return (
-    <NavWrapper nav={{ ...nav, density: "spacious" }}>
-      <div className="flex items-center justify-between w-full">
-        {/* Larger brand presence */}
-        <div className="flex items-center gap-3">
-          {logoUrl ? (
-            <img src={logoUrl} alt={siteName} className="h-9 w-auto" />
-          ) : (
-            <span className="text-lg font-extrabold tracking-tight" style={{ color: "var(--site-text, #1A1A1A)" }}>
-              {siteName}
-            </span>
-          )}
-          <div
-            className="hidden sm:block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-widest"
-            style={{
-              backgroundColor: "var(--site-primary-light, #EEF2FF)",
-              color: "var(--site-primary, #4F46E5)",
-            }}
-          >
-            Studio
+    <NavWrapper nav={nav}>
+      <NavContainer nav={nav}>
+        <div className="flex items-center justify-between w-full">
+          {/* Larger brand presence */}
+          <div className="flex items-center gap-3">
+            {logoUrl ? (
+              <img src={logoUrl} alt={siteName} className="h-9 w-auto" />
+            ) : (
+              <span className="text-lg font-extrabold tracking-tight" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                {siteName}
+              </span>
+            )}
+            <div
+              className="hidden sm:block px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-widest"
+              style={{
+                backgroundColor: "var(--site-primary-light, #EEF2FF)",
+                color: "var(--site-primary, #4F46E5)",
+              }}
+            >
+              Studio
+            </div>
+          </div>
+
+          <div className="hidden md:flex items-center gap-6">
+            {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
+          </div>
+
+          <div className="flex items-center gap-3">
+            {nav.showSocials && nav.socials && nav.socials.length > 0 && (
+              <div className="hidden lg:flex"><SocialIcons socials={nav.socials} /></div>
+            )}
+            {nav.showCta && nav.ctaLabel && (
+              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+            )}
+            <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
           </div>
         </div>
-
-        <div className="hidden md:flex items-center gap-6">
-          {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
-        </div>
-
-        <div className="flex items-center gap-3">
-          {nav.showSocials && nav.socials && nav.socials.length > 0 && (
-            <div className="hidden lg:flex"><SocialIcons socials={nav.socials} /></div>
-          )}
-          {nav.showCta && nav.ctaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} /></div>
-          )}
-          <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
-        </div>
-      </div>
+      </NavContainer>
     </NavWrapper>
   );
 }
@@ -549,23 +578,25 @@ function NavDualCta(props: NavbarProps) {
   const { nav, siteName, logoUrl, resolveHref, isBuilder } = props;
   return (
     <NavWrapper nav={nav}>
-      <div className="flex items-center justify-between w-full">
-        <NavLogo siteName={siteName} logoUrl={logoUrl} />
+      <NavContainer nav={nav}>
+        <div className="flex items-center justify-between w-full">
+          <NavLogo siteName={siteName} logoUrl={logoUrl} />
 
-        <div className="hidden md:flex items-center gap-7">
-          {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
-        </div>
+          <div className="hidden md:flex items-center gap-7">
+            {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
+          </div>
 
-        <div className="flex items-center gap-2">
-          {nav.showSecondaryCta && nav.secondaryCtaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} variant="outline" /></div>
-          )}
-          {nav.showCta && nav.ctaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} /></div>
-          )}
-          <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
+          <div className="flex items-center gap-2">
+            {nav.showSecondaryCta && nav.secondaryCtaLabel && (
+              <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} /></div>
+            )}
+            {nav.showCta && nav.ctaLabel && (
+              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+            )}
+            <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
+          </div>
         </div>
-      </div>
+      </NavContainer>
     </NavWrapper>
   );
 }
@@ -578,26 +609,28 @@ function NavDropdownRich(props: NavbarProps) {
   const { nav, siteName, logoUrl, resolveHref, isBuilder } = props;
   return (
     <NavWrapper nav={nav}>
-      <div className="flex items-center justify-between w-full">
-        <NavLogo siteName={siteName} logoUrl={logoUrl} />
+      <NavContainer nav={nav}>
+        <div className="flex items-center justify-between w-full">
+          <NavLogo siteName={siteName} logoUrl={logoUrl} />
 
-        <div className="hidden md:flex items-center gap-6">
-          {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
-        </div>
+          <div className="hidden md:flex items-center gap-6">
+            {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
+          </div>
 
-        <div className="flex items-center gap-3">
-          {nav.showSocials && nav.socials && nav.socials.length > 0 && (
-            <div className="hidden lg:flex"><SocialIcons socials={nav.socials} /></div>
-          )}
-          {nav.showSecondaryCta && nav.secondaryCtaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} variant="ghost" /></div>
-          )}
-          {nav.showCta && nav.ctaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} /></div>
-          )}
-          <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
+          <div className="flex items-center gap-3">
+            {nav.showSocials && nav.socials && nav.socials.length > 0 && (
+              <div className="hidden lg:flex"><SocialIcons socials={nav.socials} /></div>
+            )}
+            {nav.showSecondaryCta && nav.secondaryCtaLabel && (
+              <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} /></div>
+            )}
+            {nav.showCta && nav.ctaLabel && (
+              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+            )}
+            <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
+          </div>
         </div>
-      </div>
+      </NavContainer>
     </NavWrapper>
   );
 }
@@ -613,16 +646,9 @@ function NavCreativeSplit(props: NavbarProps) {
   const rightLinks = nav.links.slice(midpoint);
 
   return (
-    <nav
-      className={`${nav.sticky ? "sticky top-0" : "relative"} z-50`}
-      style={{
-        backgroundColor: "var(--site-bg, #fff)",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ["--nav-h" as any]: "72px",
-      }}
-    >
-      <div className={`${containerMap[nav.containerWidth || "boxed"]} h-[72px] flex items-center`}>
-        {/* Left nav group with accent line */}
+    <NavWrapper nav={nav}>
+      <NavContainer nav={nav}>
+        {/* Left nav group */}
         <div className="hidden md:flex items-center gap-5 flex-1">
           {leftLinks.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
         </div>
@@ -643,19 +669,19 @@ function NavCreativeSplit(props: NavbarProps) {
         {/* Right nav group */}
         <div className="hidden md:flex items-center gap-5 flex-1 justify-end">
           {rightLinks.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
-          {nav.showCta && nav.ctaLabel && <CtaButton label={nav.ctaLabel} />}
+          {nav.showCta && nav.ctaLabel && <CtaButton label={nav.ctaLabel} nav={nav} />}
         </div>
 
         <div className="md:hidden ml-auto">
           <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
         </div>
-      </div>
+      </NavContainer>
       {/* Subtle gradient line under nav */}
       <div className="h-px w-full" style={{
         background: `linear-gradient(90deg, transparent 0%, var(--site-primary, #4F46E5) 50%, transparent 100%)`,
         opacity: 0.2,
       }} />
-    </nav>
+    </NavWrapper>
   );
 }
 
@@ -667,13 +693,7 @@ function NavSignature(props: NavbarProps) {
   const { nav, siteName, logoUrl, resolveHref, isBuilder } = props;
 
   return (
-    <nav
-      className={`${nav.sticky ? "sticky top-0" : "relative"} z-50`}
-      style={{
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ["--nav-h" as any]: "80px",
-      }}
-    >
+    <NavWrapper nav={nav}>
       {/* Top micro-bar with socials or tagline */}
       <div
         className="h-8 flex items-center justify-between text-[10px] tracking-widest uppercase font-medium"
@@ -693,83 +713,62 @@ function NavSignature(props: NavbarProps) {
         </div>
       </div>
 
-      {/* Main nav */}
-      <div
-        className="backdrop-blur-md"
-        style={{
-          backgroundColor: "color-mix(in srgb, var(--site-bg, #fff) 90%, transparent)",
-          borderBottom: "1px solid var(--site-border, #E6E6E4)",
-        }}
-      >
-        <div className={`${containerMap[nav.containerWidth || "boxed"]} h-16 flex items-center justify-between`}>
-          {/* Logo with accent dot */}
-          <div className="flex items-center gap-2">
-            {logoUrl ? (
-              <img src={logoUrl} alt={siteName} className="h-8 w-auto" />
-            ) : (
-              <>
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--site-primary, #4F46E5)" }} />
-                <span className="text-[15px] font-bold tracking-tight" style={{ color: "var(--site-text, #1A1A1A)" }}>
-                  {siteName}
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Nav links with active indicator system */}
-          <div className="hidden md:flex items-center gap-0.5">
-            {nav.links.map(item => {
-              if (item.children && item.children.length > 0) {
-                return <NavDropdown key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />;
-              }
-              return (
-                <a
-                  key={item.id || item.label}
-                  href={isBuilder ? undefined : resolveHref(item)}
-                  onClick={e => { if (isBuilder) e.preventDefault(); }}
-                  className="relative text-[12px] font-medium px-4 py-2 rounded-lg transition-all group"
-                  style={{ color: "var(--site-muted, #666)" }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.color = "var(--site-text, #1A1A1A)";
-                    e.currentTarget.style.backgroundColor = "var(--site-surface, #F7F7F5)";
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.color = "var(--site-muted, #666)";
-                    e.currentTarget.style.backgroundColor = "transparent";
-                  }}
-                >
-                  {item.label}
-                </a>
-              );
-            })}
-          </div>
-
-          {/* Right section with premium CTA treatment */}
-          <div className="flex items-center gap-2">
-            {nav.showSecondaryCta && nav.secondaryCtaLabel && (
-              <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} variant="ghost" /></div>
-            )}
-            {nav.showCta && nav.ctaLabel && (
-              <div className="hidden md:block">
-                <a
-                  href="#"
-                  className="text-[12px] font-semibold px-5 py-2.5 transition-all group relative overflow-hidden"
-                  style={{
-                    backgroundColor: "var(--btn-bg, var(--site-primary, #4F46E5))",
-                    color: "var(--btn-text, #fff)",
-                    borderRadius: "var(--site-btn-radius, 10px)",
-                    boxShadow: "0 1px 2px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.1)",
-                  }}
-                >
-                  <span className="relative z-10">{nav.ctaLabel}</span>
-                </a>
-              </div>
-            )}
-            <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
-          </div>
+      {/* Main nav row */}
+      <NavContainer nav={nav} className="justify-between">
+        {/* Logo with accent dot */}
+        <div className="flex items-center gap-2">
+          {logoUrl ? (
+            <img src={logoUrl} alt={siteName} className="h-8 w-auto" />
+          ) : (
+            <>
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--site-primary, #4F46E5)" }} />
+              <span className="text-[15px] font-bold tracking-tight" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                {siteName}
+              </span>
+            </>
+          )}
         </div>
-      </div>
-    </nav>
+
+        {/* Nav links */}
+        <div className="hidden md:flex items-center gap-0.5">
+          {nav.links.map(item => {
+            if (item.children && item.children.length > 0) {
+              return <NavDropdown key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />;
+            }
+            return (
+              <a
+                key={item.id || item.label}
+                href={isBuilder ? undefined : resolveHref(item)}
+                onClick={e => { if (isBuilder) e.preventDefault(); }}
+                className="relative text-[12px] font-medium px-4 py-2 rounded-lg transition-all"
+                style={{ color: "var(--site-muted, #666)" }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = "var(--site-text, #1A1A1A)";
+                  e.currentTarget.style.backgroundColor = "var(--site-surface, #F7F7F5)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = "var(--site-muted, #666)";
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+                {item.label}
+              </a>
+            );
+          })}
+        </div>
+
+        {/* Right section */}
+        <div className="flex items-center gap-2">
+          {nav.showSecondaryCta && nav.secondaryCtaLabel && (
+            <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} /></div>
+          )}
+          {nav.showCta && nav.ctaLabel && (
+            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+          )}
+          <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
+        </div>
+      </NavContainer>
+    </NavWrapper>
   );
 }
 
@@ -803,12 +802,12 @@ export default function NavbarRenderer({
 // ─── Variant metadata for editor ───
 
 export const NAVBAR_VARIANTS = [
-  { key: "classic-floating", name: "Classique Flottant", description: "Blanc, arrondi, ombre subtile — idéal SaaS / freelance" },
+  { key: "classic-floating", name: "Classique Flottant", description: "Blanc, arrondi, ombre subtile — ideal SaaS / freelance" },
   { key: "dark-premium", name: "Dark Premium", description: "Sombre et minimaliste — portfolio haut de gamme" },
   { key: "capsule", name: "Capsule", description: "Liens dans une pilule centrale — startup moderne" },
-  { key: "brand-heavy", name: "Brand Studio", description: "Logo fort, badge créateur — studio / créatif" },
+  { key: "brand-heavy", name: "Brand Studio", description: "Logo fort, badge createur — studio / creatif" },
   { key: "dual-cta", name: "Double CTA", description: "Deux boutons d'action — pages de vente" },
   { key: "dropdown-rich", name: "Menus Riches", description: "Support dropdown natif — sites de contenu" },
-  { key: "creative-split", name: "Split Créatif", description: "Logo centré, liens séparés — éditorial premium" },
+  { key: "creative-split", name: "Split Creatif", description: "Logo centre, liens separes — editorial premium" },
   { key: "signature", name: "Signature", description: "Micro-bar + nav principale — le plus premium et original" },
 ] as const;

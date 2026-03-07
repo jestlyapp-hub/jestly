@@ -324,6 +324,113 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                     />
                   )}
                 </div>
+
+                {/* CTA Style */}
+                {nav.showCta && (
+                  <>
+                    <div>
+                      <label className={sectionLabel}>Style du bouton</label>
+                      <div className="grid grid-cols-4 gap-1">
+                        {([
+                          { value: "filled", label: "Plein" },
+                          { value: "outline", label: "Contour" },
+                          { value: "soft", label: "Doux" },
+                          { value: "ghost", label: "Texte" },
+                        ] as const).map(opt => (
+                          <button
+                            key={opt.value}
+                            onClick={() => updateNav({ ctaStyle: opt.value })}
+                            className={`py-1.5 text-[9px] font-semibold rounded-md border transition-all ${
+                              (nav.ctaStyle || "filled") === opt.value
+                                ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                                : "border-[#E6E6E4] text-[#999] hover:border-[#C5C5C3]"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* CTA Colors */}
+                    <div>
+                      <label className={sectionLabel}>Couleur du bouton</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={nav.ctaBgColor || "#4F46E5"}
+                          onChange={(e) => updateNav({ ctaBgColor: e.target.value })}
+                          className="w-8 h-8 rounded-md border border-[#E6E6E4] cursor-pointer p-0.5"
+                        />
+                        <input
+                          type="text"
+                          value={nav.ctaBgColor || ""}
+                          onChange={(e) => updateNav({ ctaBgColor: e.target.value || undefined })}
+                          className={smallInputClass}
+                          placeholder="Couleur (ex: #4F46E5)"
+                        />
+                        <button
+                          onClick={() => updateNav({ ctaBgColor: undefined })}
+                          className="text-[9px] text-[#999] hover:text-[#666] whitespace-nowrap"
+                          title="Réinitialiser"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className={sectionLabel}>Couleur du texte</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="color"
+                          value={nav.ctaTextColor || "#FFFFFF"}
+                          onChange={(e) => updateNav({ ctaTextColor: e.target.value })}
+                          className="w-8 h-8 rounded-md border border-[#E6E6E4] cursor-pointer p-0.5"
+                        />
+                        <input
+                          type="text"
+                          value={nav.ctaTextColor || ""}
+                          onChange={(e) => updateNav({ ctaTextColor: e.target.value || undefined })}
+                          className={smallInputClass}
+                          placeholder="Couleur texte (ex: #FFFFFF)"
+                        />
+                        <button
+                          onClick={() => updateNav({ ctaTextColor: undefined })}
+                          className="text-[9px] text-[#999] hover:text-[#666] whitespace-nowrap"
+                          title="Réinitialiser"
+                        >
+                          Reset
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Border radius */}
+                    <div>
+                      <label className={sectionLabel}>Arrondi du bouton</label>
+                      <div className="grid grid-cols-4 gap-1">
+                        {([
+                          { value: "4px", label: "Carré" },
+                          { value: "8px", label: "Normal" },
+                          { value: "12px", label: "Arrondi" },
+                          { value: "9999px", label: "Pilule" },
+                        ] as const).map(opt => (
+                          <button
+                            key={opt.value}
+                            onClick={() => updateNav({ ctaBorderRadius: opt.value })}
+                            className={`py-1.5 text-[9px] font-semibold rounded-md border transition-all ${
+                              (nav.ctaBorderRadius || "8px") === opt.value
+                                ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                                : "border-[#E6E6E4] text-[#999] hover:border-[#C5C5C3]"
+                            }`}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
 

@@ -978,14 +978,16 @@ export interface NavConfig {
   showSocials?: boolean;
   socials?: NavSocialLink[];
   sticky?: boolean;
-  transparent?: boolean;      // transparent over hero
-  logoPosition?: "left" | "center";
-  alignment?: "left" | "center" | "right";
   containerWidth?: "full" | "boxed" | "narrow";
   bgMode?: "solid" | "blur" | "transparent";
   showBorder?: boolean;
   showShadow?: boolean;
   density?: "compact" | "default" | "spacious";
+  // CTA button customization
+  ctaStyle?: "filled" | "outline" | "ghost" | "soft";
+  ctaBgColor?: string;
+  ctaTextColor?: string;
+  ctaBorderRadius?: string;
 }
 
 export interface FooterConfig {
