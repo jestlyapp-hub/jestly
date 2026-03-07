@@ -6,6 +6,7 @@ import {
   getMonthDays,
   toDateStr,
   getEventDisplayColor,
+  getEventBgColor,
   type CalendarEvent,
   type MonthDay,
 } from "@/lib/calendar-utils";
@@ -47,15 +48,15 @@ export default function MonthView({ year, month, events, onSelectEvent, onCreate
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="bg-white rounded-xl border border-[#E2E2E0] shadow-sm overflow-hidden h-full flex flex-col"
+      className="bg-white rounded-xl border border-[#D8D8D6] shadow-sm overflow-hidden h-full flex flex-col"
     >
       {/* Week day headers */}
-      <div className="grid grid-cols-7 border-b border-[#E8E8E6] flex-shrink-0 bg-[#FAFAF9]">
+      <div className="grid grid-cols-7 border-b border-[#DDDDD9] flex-shrink-0 bg-[#FAFAF9]">
         {WEEK_HEADERS.map((d, i) => (
           <div
             key={d}
             className={`text-center text-[10px] font-bold text-[#A0A09E] uppercase tracking-widest py-2.5 ${
-              i < 6 ? "border-r border-[#F0F0EE]" : ""
+              i < 6 ? "border-r border-[#E4E4E2]" : ""
             }`}
           >
             {d}
@@ -66,7 +67,7 @@ export default function MonthView({ year, month, events, onSelectEvent, onCreate
       {/* Calendar grid */}
       <div className="flex-1 flex flex-col">
         {weeks.map((week, wi) => (
-          <div key={wi} className={`grid grid-cols-7 flex-1 ${wi < weeks.length - 1 ? "border-b border-[#F0F0EE]" : ""}`}>
+          <div key={wi} className={`grid grid-cols-7 flex-1 ${wi < weeks.length - 1 ? "border-b border-[#E4E4E2]" : ""}`}>
             {week.map((day, di) => {
               const dateStr = toDateStr(day.date);
               const dayEvents = eventsByDate[dateStr] || [];
@@ -76,7 +77,7 @@ export default function MonthView({ year, month, events, onSelectEvent, onCreate
                   key={dateStr}
                   onClick={() => onCreateEvent(dateStr)}
                   className={`p-1.5 cursor-pointer transition-colors group ${
-                    di < 6 ? "border-r border-[#F0F0EE]" : ""
+                    di < 6 ? "border-r border-[#E4E4E2]" : ""
                   } ${
                     !day.isCurrentMonth ? "bg-[#FAFAF9]" : "hover:bg-[#FCFCFB]"
                   } ${
@@ -121,15 +122,14 @@ export default function MonthView({ year, month, events, onSelectEvent, onCreate
                                 e.stopPropagation();
                                 onSelectEvent(evt);
                               }}
-                              className="w-full text-left px-1.5 py-[3px] rounded-[4px] text-[10px] font-bold truncate transition-all cursor-pointer hover:shadow-sm"
+                              className="w-full text-left px-1.5 py-[3px] rounded-[4px] text-[10px] font-bold truncate transition-all cursor-pointer hover:shadow-sm text-white"
                               style={{
-                                backgroundColor: `${accentColor}12`,
-                                color: accentColor,
+                                backgroundColor: getEventBgColor(evt, 0.85),
                                 borderLeft: `2px solid ${accentColor}`,
                               }}
                             >
                               {!evt.allDay && evt.startTime && (
-                                <span className="opacity-60 mr-0.5 font-semibold">{evt.startTime}</span>
+                                <span className="opacity-75 mr-0.5 font-semibold">{evt.startTime}</span>
                               )}
                               {evt.title}
                             </button>

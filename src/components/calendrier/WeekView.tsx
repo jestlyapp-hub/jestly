@@ -11,6 +11,7 @@ import {
   getEventTopPercent,
   getEventHeightPercent,
   getEventDisplayColor,
+  getEventBgColor,
   type CalendarEvent,
 } from "@/lib/calendar-utils";
 import OrderDots from "./OrderDots";
@@ -169,17 +170,17 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="bg-white rounded-xl border border-[#E2E2E0] shadow-sm overflow-hidden flex flex-col h-full"
+      className="bg-white rounded-xl border border-[#D8D8D6] shadow-sm overflow-hidden flex flex-col h-full"
     >
       {/* ─── Day headers ─── */}
-      <div className="grid grid-cols-[48px_repeat(7,1fr)] border-b border-[#E8E8E6] flex-shrink-0">
+      <div className="grid grid-cols-[48px_repeat(7,1fr)] border-b border-[#DDDDD9] flex-shrink-0">
         <div className="bg-[#FAFAF9]" />
         {weekDays.map((d, di) => {
           const td = isToday(d);
           return (
             <div
               key={toDateStr(d)}
-              className={`text-center py-3 ${di < 6 ? "border-r border-[#F0F0EE]" : ""} ${td ? "bg-[#4F46E5]/[0.03]" : "bg-[#FAFAF9]"}`}
+              className={`text-center py-3 ${di < 6 ? "border-r border-[#E4E4E2]" : ""} ${td ? "bg-[#4F46E5]/[0.03]" : "bg-[#FAFAF9]"}`}
             >
               <div className={`text-[10px] font-bold uppercase tracking-widest ${td ? "text-[#4F46E5]" : "text-[#A0A09E]"}`}>
                 {formatDayNameShort(d)}
@@ -200,7 +201,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
 
       {/* ─── All-day strip ─── */}
       {hasAllDay && (
-        <div className="grid grid-cols-[48px_repeat(7,1fr)] border-b border-[#E8E8E6] flex-shrink-0 bg-[#FCFCFB]">
+        <div className="grid grid-cols-[48px_repeat(7,1fr)] border-b border-[#DDDDD9] flex-shrink-0 bg-[#FCFCFB]">
           <div className="flex items-center justify-center bg-[#FAFAF9]">
             <span className="text-[8px] text-[#BBBBB9] font-bold uppercase tracking-widest">All</span>
           </div>
@@ -209,7 +210,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
             const dayManual = manualAllDayByDate[dateStr] || [];
             const dayOrders = ordersByDate[dateStr] || [];
             return (
-              <div key={dateStr} className={`px-1 py-2 space-y-1 min-h-[36px] flex flex-col justify-center ${di < 6 ? "border-r border-[#F0F0EE]" : ""}`}>
+              <div key={dateStr} className={`px-1 py-2 space-y-1 min-h-[36px] flex flex-col justify-center ${di < 6 ? "border-r border-[#E4E4E2]" : ""}`}>
                 {dayManual.map((evt) => {
                   const bgColor = getEventDisplayColor(evt);
                   return (
@@ -274,7 +275,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
             return (
               <div
                 key={dateStr}
-                className={`relative ${di < 6 ? "border-r border-[#F0F0EE]" : ""} ${
+                className={`relative ${di < 6 ? "border-r border-[#E4E4E2]" : ""} ${
                   td ? "bg-[#4F46E5]/[0.015]" : ""
                 }`}
               >
@@ -297,11 +298,11 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
 
                   let borderClass: string;
                   if (isMajor) {
-                    borderClass = "border-[#D8D8D6]";
+                    borderClass = "border-[#CCCCC9]";
                   } else if (is3h) {
-                    borderClass = "border-[#E4E4E2]";
+                    borderClass = "border-[#DCDCDA]";
                   } else {
-                    borderClass = "border-[#F0F0EE]";
+                    borderClass = "border-[#EAEAE8]";
                   }
 
                   return (
@@ -362,21 +363,21 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                       }}
                       className={`absolute left-[3px] right-[3px] z-10 rounded-[5px] overflow-hidden transition-all text-left group ${
                         isOrder ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-                      } hover:shadow-md hover:z-20`}
+                      } hover:shadow-md hover:z-20 hover:brightness-95`}
                       style={{
                         top: `${topPct}%`,
                         height: `${heightPct}%`,
                         minHeight: 18,
-                        backgroundColor: `${accentColor}12`,
+                        backgroundColor: getEventBgColor(evt, 0.85),
                         borderLeft: `3px solid ${accentColor}`,
                       }}
                     >
                       <div className="px-1.5 py-[2px] h-full">
-                        <div className="text-[9px] font-bold truncate leading-tight" style={{ color: accentColor }}>
+                        <div className="text-[9px] font-bold truncate leading-tight text-white drop-shadow-sm">
                           {evt.title}
                         </div>
                         {heightPct > 3 && (
-                          <div className="text-[8px] font-medium truncate" style={{ color: `${accentColor}99` }}>
+                          <div className="text-[8px] font-semibold truncate text-white/80">
                             {evt.startTime}{evt.endTime ? `–${evt.endTime}` : ""}
                           </div>
                         )}
@@ -397,16 +398,16 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
 
                   return (
                     <div
-                      className="absolute left-[3px] right-[3px] z-30 rounded-[5px] px-1.5 py-1 shadow-lg opacity-80 pointer-events-none"
+                      className="absolute left-[3px] right-[3px] z-30 rounded-[5px] px-1.5 py-1 shadow-lg opacity-90 pointer-events-none"
                       style={{
                         top: `${topPct}%`,
                         height: `${duration}%`,
                         minHeight: 18,
-                        backgroundColor: `${accentColor}18`,
+                        backgroundColor: getEventBgColor({ ...draggedEvent } as CalendarEvent, 0.9),
                         borderLeft: `3px solid ${accentColor}`,
                       }}
                     >
-                      <div className="text-[9px] font-bold truncate" style={{ color: accentColor }}>
+                      <div className="text-[9px] font-bold truncate text-white drop-shadow-sm">
                         {draggedEvent.title}
                       </div>
                     </div>

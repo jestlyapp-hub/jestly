@@ -11,6 +11,7 @@ import {
   getEventTopPercent,
   getEventHeightPercent,
   getEventDisplayColor,
+  getEventBgColor,
   type CalendarEvent,
 } from "@/lib/calendar-utils";
 import OrderDots from "./OrderDots";
@@ -137,10 +138,10 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="bg-white rounded-xl border border-[#E2E2E0] shadow-sm overflow-hidden flex flex-col h-full"
+      className="bg-white rounded-xl border border-[#D8D8D6] shadow-sm overflow-hidden flex flex-col h-full"
     >
       {/* ─── Day header ─── */}
-      <div className={`px-6 py-4 border-b border-[#E8E8E6] flex-shrink-0 flex items-center gap-4 ${today ? "bg-[#4F46E5]/[0.02]" : "bg-[#FAFAF9]"}`}>
+      <div className={`px-6 py-4 border-b border-[#DDDDD9] flex-shrink-0 flex items-center gap-4 ${today ? "bg-[#4F46E5]/[0.02]" : "bg-[#FAFAF9]"}`}>
         <span className={`inline-flex items-center justify-center w-11 h-11 rounded-full text-[18px] font-bold ${
           today
             ? "bg-[#4F46E5] text-white shadow-sm shadow-[#4F46E5]/25"
@@ -158,7 +159,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
 
       {/* ─── All-day events + order markers ─── */}
       {(manualAllDay.length > 0 || orderEvents.length > 0) && (
-        <div className="px-6 py-3 border-b border-[#E8E8E6] flex-shrink-0 bg-[#FCFCFB]">
+        <div className="px-6 py-3 border-b border-[#DDDDD9] flex-shrink-0 bg-[#FCFCFB]">
           <div className="flex items-center gap-3 flex-wrap">
             {manualAllDay.map((evt) => {
               const bgColor = getEventDisplayColor(evt);
@@ -231,11 +232,11 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
 
               let borderClass: string;
               if (isMajor) {
-                borderClass = "border-[#D8D8D6]";
+                borderClass = "border-[#CCCCC9]";
               } else if (is3h) {
-                borderClass = "border-[#E4E4E2]";
+                borderClass = "border-[#DCDCDA]";
               } else {
-                borderClass = "border-[#F0F0EE]";
+                borderClass = "border-[#EAEAE8]";
               }
 
               return (
@@ -290,24 +291,24 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                   }}
                   className={`absolute left-3 right-4 z-10 rounded-[6px] overflow-hidden transition-all text-left group ${
                     isOrder ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-                  } hover:shadow-md hover:z-20`}
+                  } hover:shadow-md hover:z-20 hover:brightness-95`}
                   style={{
                     top: `${topPct}%`,
                     height: `${heightPct}%`,
                     minHeight: 24,
-                    backgroundColor: `${accentColor}12`,
+                    backgroundColor: getEventBgColor(evt, 0.85),
                     borderLeft: `3px solid ${accentColor}`,
                   }}
                 >
                   <div className="px-3 py-1 h-full">
-                    <div className="text-[12px] font-bold truncate" style={{ color: accentColor }}>
+                    <div className="text-[12px] font-bold truncate text-white drop-shadow-sm">
                       {evt.title}
                     </div>
-                    <div className="text-[10px] font-medium truncate" style={{ color: `${accentColor}88` }}>
+                    <div className="text-[10px] font-semibold truncate text-white/80">
                       {evt.startTime}–{evt.endTime || "..."}
                     </div>
                     {heightPct > 5 && evt.clientName && (
-                      <div className="text-[10px] font-medium mt-0.5 truncate" style={{ color: `${accentColor}66` }}>
+                      <div className="text-[10px] font-semibold mt-0.5 truncate text-white/65">
                         {evt.clientName}
                       </div>
                     )}
@@ -328,19 +329,19 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
 
               return (
                 <div
-                  className="absolute left-3 right-4 z-30 rounded-[6px] px-3 py-1 shadow-lg opacity-80 pointer-events-none"
+                  className="absolute left-3 right-4 z-30 rounded-[6px] px-3 py-1 shadow-lg opacity-90 pointer-events-none"
                   style={{
                     top: `${topPct}%`,
                     height: `${duration}%`,
                     minHeight: 24,
-                    backgroundColor: `${accentColor}18`,
+                    backgroundColor: getEventBgColor(draggedEvent as CalendarEvent, 0.9),
                     borderLeft: `3px solid ${accentColor}`,
                   }}
                 >
-                  <div className="text-[12px] font-bold truncate" style={{ color: accentColor }}>
+                  <div className="text-[12px] font-bold truncate text-white drop-shadow-sm">
                     {draggedEvent.title}
                   </div>
-                  <div className="text-[10px] font-medium" style={{ color: `${accentColor}88` }}>
+                  <div className="text-[10px] font-semibold text-white/80">
                     {interaction.hoverTime}
                   </div>
                 </div>
