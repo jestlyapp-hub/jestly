@@ -47,23 +47,28 @@ export async function GET() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: orders } = await (supabase.from("orders") as any)
-      .select("id, title, deadline, status, amount, priority, notes, clients(name, email), products(name)")
-      .eq("user_id", user.id)
-      .not("deadline", "is", null);
+      .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email), products(name)")
+      .eq("user_id", user.id);
 
     if (orders) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      orderEvents = orders.map((o: any) => {
-        // Extract YYYY-MM-DD from timestamptz deadline
-        const deadlineStr = typeof o.deadline === "string"
-          ? o.deadline.substring(0, 10)
-          : new Date(o.deadline).toISOString().substring(0, 10);
+      orderEvents = orders.filter((o: any) => o.deadline || o.created_at).map((o: any) => {
+        // Use deadline if available, otherwise fall back to created_at
+        const hasDeadline = !!o.deadline;
+        const eventDate = hasDeadline
+          ? (typeof o.deadline === "string" ? o.deadline.substring(0, 10) : new Date(o.deadline).toISOString().substring(0, 10))
+          : (typeof o.created_at === "string" ? o.created_at.substring(0, 10) : new Date(o.created_at).toISOString().substring(0, 10));
+
+        const productName = o.products?.name || o.title || "Commande";
+        const clientName = o.clients?.name || "Client";
 
         return {
           id: `order-${o.id}`,
-          title: `${o.products?.name || o.title} — ${o.clients?.name || "Client"}`,
+          title: hasDeadline
+            ? `${productName} — ${clientName}`
+            : `Commande: ${productName} — ${clientName}`,
           category: "deadline" as EventCategory,
-          date: deadlineStr,
+          date: eventDate,
           allDay: true,
           notes: o.notes || undefined,
           priority: o.priority === "urgent" ? "urgent" : o.priority === "high" ? "high" : "medium",

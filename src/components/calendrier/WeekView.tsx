@@ -11,13 +11,11 @@ import {
   getEventTopPercent,
   getEventHeightPercent,
   getEventDisplayColor,
-  CATEGORY_CONFIG,
   type CalendarEvent,
 } from "@/lib/calendar-utils";
 
 const START_HOUR = 7;
 const END_HOUR = 22;
-const SLOT_HEIGHT_PX = 48; // px per hour — compact
 
 interface WeekViewProps {
   date: Date;
@@ -37,7 +35,6 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
   const timeSlots = useMemo(() => generateTimeSlots(START_HOUR, END_HOUR), []);
   const [currentTimeTop, setCurrentTimeTop] = useState<number | null>(null);
   const [interaction, setInteraction] = useState<InteractionMode>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   // Pointer tracking refs (avoid re-renders during drag)
   const pointerStart = useRef<{
@@ -66,18 +63,6 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-scroll to current time on mount
-  useEffect(() => {
-    if (scrollRef.current) {
-      const now = new Date();
-      const h = now.getHours();
-      if (h >= START_HOUR && h <= END_HOUR) {
-        const scrollTarget = Math.max(0, (h - START_HOUR - 1) * SLOT_HEIGHT_PX);
-        scrollRef.current.scrollTop = scrollTarget;
-      }
-    }
-  }, []);
-
   const eventsByDate = useMemo(() => {
     const map: Record<string, CalendarEvent[]> = {};
     for (const evt of events) {
@@ -97,8 +82,6 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     }
     return map;
   }, [events]);
-
-  const totalHeight = (END_HOUR - START_HOUR) * SLOT_HEIGHT_PX;
 
   // Resolve target slot from pointer position
   const getSlotFromPoint = useCallback((clientX: number, clientY: number): { date: string; time: string } | null => {
@@ -183,20 +166,19 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden flex flex-col"
-      style={{ height: "calc(100vh - 180px)", minHeight: 500 }}
+      className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden flex flex-col h-full"
     >
-      <div className="overflow-x-auto flex flex-col flex-1 min-w-0">
-        <div className="min-w-[700px] flex flex-col flex-1">
+      <div className="flex flex-col flex-1 min-w-0 min-h-0 overflow-x-auto">
+        <div className="min-w-[700px] flex flex-col flex-1 min-h-0">
           {/* Day headers */}
           <div className="grid grid-cols-[52px_repeat(7,1fr)] border-b border-[#E6E6E4] flex-shrink-0">
-            <div className="border-r border-[#EFEFEF]" />
+            <div className="border-r border-[#E0E0DE]" />
             {weekDays.map((d) => {
               const td = isToday(d);
               return (
                 <div
                   key={toDateStr(d)}
-                  className={`text-center py-2 border-r border-[#EFEFEF] last:border-r-0 ${td ? "bg-[#EEF2FF]" : ""}`}
+                  className={`text-center py-2 border-r border-[#E0E0DE] last:border-r-0 ${td ? "bg-[#EEF2FF]" : ""}`}
                 >
                   <div className="text-[10px] font-semibold text-[#999] uppercase tracking-wider">
                     {formatDayNameShort(d)}
@@ -211,25 +193,32 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
 
           {/* All-day events row */}
           {hasAllDay && (
-            <div className="grid grid-cols-[52px_repeat(7,1fr)] border-b border-[#E6E6E4] flex-shrink-0">
-              <div className="border-r border-[#EFEFEF] text-[9px] text-[#999] text-right pr-1.5 py-1">
-                Journee
+            <div className="grid grid-cols-[52px_repeat(7,1fr)] border-b-2 border-[#E6E6E4] flex-shrink-0 bg-[#FAFAF9]">
+              <div className="border-r border-[#E0E0DE] text-[9px] text-[#999] font-bold text-right pr-1.5 py-1.5 uppercase tracking-wider">
+                Jour
               </div>
               {weekDays.map((d) => {
                 const dateStr = toDateStr(d);
                 const dayAllDay = allDayByDate[dateStr] || [];
                 return (
-                  <div key={dateStr} className="border-r border-[#EFEFEF] last:border-r-0 p-0.5 space-y-0.5">
+                  <div key={dateStr} className="border-r border-[#E0E0DE] last:border-r-0 px-0.5 py-1 space-y-0.5">
                     {dayAllDay.map((evt) => {
                       const bgColor = getEventDisplayColor(evt);
+                      const isOrder = evt.source === "order";
                       return (
                         <button
                           key={evt.id}
                           onClick={() => onSelectEvent(evt)}
-                          className="w-full text-left px-1.5 py-0.5 rounded text-[10px] font-semibold text-white truncate hover:brightness-110 transition-all cursor-pointer"
+                          className="w-full text-left px-1.5 py-1 rounded-md text-[10px] font-bold text-white truncate hover:brightness-110 hover:shadow-sm transition-all cursor-pointer flex items-center gap-1"
                           style={{ backgroundColor: bgColor }}
                         >
-                          {evt.title}
+                          {isOrder && (
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                              <circle cx="12" cy="12" r="10" />
+                              <polyline points="12 6 12 12 16 14" />
+                            </svg>
+                          )}
+                          <span className="truncate">{evt.title}</span>
                         </button>
                       );
                     })}
@@ -239,21 +228,20 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
             </div>
           )}
 
-          {/* Time grid */}
+          {/* Time grid — fills remaining space, NO scroll */}
           <div
-            ref={scrollRef}
-            className="flex-1 overflow-y-auto"
+            className="flex-1 min-h-0 relative overflow-hidden"
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             style={{ userSelect: interaction ? "none" : undefined }}
           >
-            <div className="grid grid-cols-[52px_repeat(7,1fr)] relative" style={{ minHeight: totalHeight }}>
+            <div className="absolute inset-0 grid grid-cols-[52px_repeat(7,1fr)]">
               {/* Time labels */}
-              <div className="border-r border-[#EFEFEF] relative">
+              <div className="border-r border-[#E0E0DE] relative">
                 {timeSlots.map((slot) => (
                   <div
                     key={slot}
-                    className="absolute right-1.5 text-[10px] text-[#999] font-medium -translate-y-1/2"
+                    className="absolute right-1.5 text-[10px] text-[#999] font-semibold -translate-y-1/2"
                     style={{
                       top: `${((parseInt(slot) - START_HOUR) / (END_HOUR - START_HOUR)) * 100}%`,
                     }}
@@ -272,10 +260,9 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                 return (
                   <div
                     key={dateStr}
-                    className={`relative border-r border-[#EFEFEF] last:border-r-0 ${td ? "bg-[#EEF2FF]/20" : ""}`}
-                    style={{ height: totalHeight }}
+                    className={`relative border-r border-[#E0E0DE] last:border-r-0 ${td ? "bg-[#EEF2FF]/20" : ""}`}
                   >
-                    {/* Hour slot targets (for drag-drop and slot selection) */}
+                    {/* Hour slot targets */}
                     {timeSlots.map((slot) => {
                       const isSelected =
                         interaction?.type === "select" &&
@@ -293,7 +280,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                           key={slot}
                           data-slot-date={dateStr}
                           data-slot-time={slot}
-                          className={`absolute left-0 right-0 border-t border-[#EFEFEF] transition-colors ${
+                          className={`absolute left-0 right-0 border-t border-[#D5D5D3] transition-colors ${
                             isSelected ? "bg-[#4F46E5]/10" :
                             isDragTarget ? "bg-[#4F46E5]/5" :
                             "hover:bg-[#F7F7F5]/60"
@@ -303,7 +290,10 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                             height: `${(1 / (END_HOUR - START_HOUR)) * 100}%`,
                           }}
                           onPointerDown={(e) => handlePointerDown(e, "slot", dateStr, slot)}
-                        />
+                        >
+                          {/* Half-hour dashed line */}
+                          <div className="absolute left-0 right-0 border-t border-dashed border-[#ECECEA] pointer-events-none" style={{ top: "50%" }} />
+                        </div>
                       );
                     })}
 
@@ -347,13 +337,13 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                             e.stopPropagation();
                             if (!hasMoved.current) onSelectEvent(evt);
                           }}
-                          className={`absolute left-0.5 right-0.5 z-10 rounded-md px-1.5 py-1 overflow-hidden text-white shadow-sm hover:shadow-md hover:brightness-110 transition-all text-left ${
+                          className={`absolute left-0.5 right-0.5 z-10 rounded-md px-1.5 py-0.5 overflow-hidden text-white shadow-sm hover:shadow-md hover:brightness-110 transition-all text-left ${
                             isOrder ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
                           }`}
                           style={{
                             top: `${topPct}%`,
                             height: `${heightPct}%`,
-                            minHeight: 22,
+                            minHeight: 18,
                             backgroundColor: bgColor,
                           }}
                         >
@@ -390,7 +380,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                           style={{
                             top: `${topPct}%`,
                             height: `${duration}%`,
-                            minHeight: 22,
+                            minHeight: 18,
                             backgroundColor: bgColor,
                           }}
                         >

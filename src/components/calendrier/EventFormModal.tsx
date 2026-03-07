@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi } from "@/lib/hooks/use-api";
 import {
@@ -9,6 +9,7 @@ import {
   PRIORITY_CONFIG,
   EVENT_PALETTE,
   CATEGORY_SOLID,
+  toDateStr,
   type CalendarEvent,
   type EventCategory,
   type EventPriority,
@@ -28,6 +29,13 @@ interface EventFormModalProps {
   defaultDate?: string;
   defaultStartTime?: string;
   defaultEndTime?: string;
+}
+
+/* ─── Time options: 07:00 to 22:00 in 30-min steps ─── */
+const TIME_OPTIONS: string[] = [];
+for (let h = 7; h <= 22; h++) {
+  TIME_OPTIONS.push(`${h.toString().padStart(2, "0")}:00`);
+  if (h < 22) TIME_OPTIONS.push(`${h.toString().padStart(2, "0")}:30`);
 }
 
 export default function EventFormModal({
@@ -54,6 +62,11 @@ export default function EventFormModal({
   const [clientName, setClientName] = useState("");
   const [clientSearch, setClientSearch] = useState("");
   const [showClientDropdown, setShowClientDropdown] = useState(false);
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+
+  const startPickerRef = useRef<HTMLDivElement>(null);
+  const endPickerRef = useRef<HTMLDivElement>(null);
 
   // Fetch clients for the searchable picker
   const { data: clients } = useApi<Client[]>(open ? "/api/clients" : null);
@@ -65,6 +78,15 @@ export default function EventFormModal({
       (c) => c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q)
     );
   }, [clients, clientSearch]);
+
+  // Date quick-select helpers
+  const todayStr = useMemo(() => toDateStr(new Date()), []);
+  const tomorrowStr = useMemo(() => {
+    const d = new Date(); d.setDate(d.getDate() + 1); return toDateStr(d);
+  }, []);
+  const dayAfterStr = useMemo(() => {
+    const d = new Date(); d.setDate(d.getDate() + 2); return toDateStr(d);
+  }, []);
 
   // Reset form when modal opens
   useEffect(() => {
@@ -85,7 +107,7 @@ export default function EventFormModal({
       } else {
         setTitle("");
         setCategory("appel");
-        setDate(defaultDate || new Date().toISOString().split("T")[0]);
+        setDate(defaultDate || todayStr);
         setStartTime(defaultStartTime || "");
         setEndTime(defaultEndTime || (defaultStartTime ? addOneHour(defaultStartTime) : ""));
         setAllDay(!defaultStartTime);
@@ -97,8 +119,26 @@ export default function EventFormModal({
         setClientSearch("");
       }
       setShowClientDropdown(false);
+      setShowStartPicker(false);
+      setShowEndPicker(false);
     }
-  }, [open, initialEvent, defaultDate, defaultStartTime, defaultEndTime]);
+  }, [open, initialEvent, defaultDate, defaultStartTime, defaultEndTime, todayStr]);
+
+  // Close pickers on outside click
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (startPickerRef.current && !startPickerRef.current.contains(e.target as Node)) {
+        setShowStartPicker(false);
+      }
+      if (endPickerRef.current && !endPickerRef.current.contains(e.target as Node)) {
+        setShowEndPicker(false);
+      }
+    }
+    if (showStartPicker || showEndPicker) {
+      document.addEventListener("mousedown", handleClick);
+      return () => document.removeEventListener("mousedown", handleClick);
+    }
+  }, [showStartPicker, showEndPicker]);
 
   function addOneHour(time: string): string {
     const [h, m] = time.split(":").map(Number);
@@ -261,62 +301,139 @@ export default function EventFormModal({
                   </div>
                 </div>
 
-                {/* Row: Date + All-day toggle */}
-                <div className="flex items-end gap-3">
-                  <div className="flex-1">
-                    <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
-                      Date *
-                    </label>
+                {/* Date with quick-select chips */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
+                    Date *
+                  </label>
+                  <div className="flex gap-1.5 mb-2">
+                    {[
+                      { label: "Aujourd'hui", value: todayStr },
+                      { label: "Demain", value: tomorrowStr },
+                      { label: "Apres-demain", value: dayAfterStr },
+                    ].map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setDate(opt.value)}
+                        className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer border ${
+                          date === opt.value
+                            ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                            : "border-[#E6E6E4] bg-white text-[#666] hover:bg-[#F7F7F5]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-3">
                     <input
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
                       required
-                      className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                      className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
                     />
-                  </div>
-                  <div className="flex items-center gap-2 pb-2">
-                    <button
-                      type="button"
-                      onClick={() => setAllDay(!allDay)}
-                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
-                        allDay ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${
-                          allDay ? "translate-x-4" : "translate-x-0.5"
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAllDay(!allDay)}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
+                          allDay ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"
                         }`}
-                      />
-                    </button>
-                    <span className="text-[12px] text-[#666] whitespace-nowrap">Journee</span>
+                      >
+                        <span
+                          className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform shadow-sm ${
+                            allDay ? "translate-x-4" : "translate-x-0.5"
+                          }`}
+                        />
+                      </button>
+                      <span className="text-[12px] text-[#666] whitespace-nowrap">Journee</span>
+                    </div>
                   </div>
                 </div>
 
-                {/* Time fields */}
+                {/* Time fields — custom chip picker */}
                 {!allDay && (
                   <div className="grid grid-cols-2 gap-3">
-                    <div>
+                    {/* Start time */}
+                    <div ref={startPickerRef} className="relative">
                       <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
                         Debut
                       </label>
-                      <input
-                        type="time"
-                        value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
-                        className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => { setShowStartPicker(!showStartPicker); setShowEndPicker(false); }}
+                        className={`w-full text-left bg-white border rounded-lg px-3 py-2 text-[13px] transition-all cursor-pointer ${
+                          showStartPicker
+                            ? "border-[#4F46E5] ring-1 ring-[#4F46E5]/20"
+                            : "border-[#E6E6E4] hover:border-[#CCC]"
+                        } ${startTime ? "text-[#1A1A1A] font-medium" : "text-[#BBB]"}`}
+                      >
+                        {startTime || "Choisir l'heure"}
+                      </button>
+                      {showStartPicker && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg z-30 p-2 max-h-[200px] overflow-y-auto">
+                          <div className="grid grid-cols-4 gap-1">
+                            {TIME_OPTIONS.map((t) => (
+                              <button
+                                key={t}
+                                type="button"
+                                onClick={() => {
+                                  setStartTime(t);
+                                  if (!endTime || endTime <= t) setEndTime(addOneHour(t));
+                                  setShowStartPicker(false);
+                                }}
+                                className={`px-1 py-1.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                                  startTime === t
+                                    ? "bg-[#4F46E5] text-white"
+                                    : "text-[#666] hover:bg-[#F7F7F5]"
+                                }`}
+                              >
+                                {t}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <div>
+
+                    {/* End time */}
+                    <div ref={endPickerRef} className="relative">
                       <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
                         Fin
                       </label>
-                      <input
-                        type="time"
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
-                      />
+                      <button
+                        type="button"
+                        onClick={() => { setShowEndPicker(!showEndPicker); setShowStartPicker(false); }}
+                        className={`w-full text-left bg-white border rounded-lg px-3 py-2 text-[13px] transition-all cursor-pointer ${
+                          showEndPicker
+                            ? "border-[#4F46E5] ring-1 ring-[#4F46E5]/20"
+                            : "border-[#E6E6E4] hover:border-[#CCC]"
+                        } ${endTime ? "text-[#1A1A1A] font-medium" : "text-[#BBB]"}`}
+                      >
+                        {endTime || "Choisir l'heure"}
+                      </button>
+                      {showEndPicker && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg z-30 p-2 max-h-[200px] overflow-y-auto">
+                          <div className="grid grid-cols-4 gap-1">
+                            {TIME_OPTIONS.filter((t) => !startTime || t > startTime).map((t) => (
+                              <button
+                                key={t}
+                                type="button"
+                                onClick={() => { setEndTime(t); setShowEndPicker(false); }}
+                                className={`px-1 py-1.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                                  endTime === t
+                                    ? "bg-[#4F46E5] text-white"
+                                    : "text-[#666] hover:bg-[#F7F7F5]"
+                                }`}
+                              >
+                                {t}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

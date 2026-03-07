@@ -11,13 +11,11 @@ import {
   getEventTopPercent,
   getEventHeightPercent,
   getEventDisplayColor,
-  CATEGORY_CONFIG,
   type CalendarEvent,
 } from "@/lib/calendar-utils";
 
 const START_HOUR = 7;
 const END_HOUR = 22;
-const SLOT_HEIGHT_PX = 56; // px per hour
 
 interface DayViewProps {
   date: Date;
@@ -37,7 +35,6 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
   const timeSlots = useMemo(() => generateTimeSlots(START_HOUR, END_HOUR), []);
   const [currentTimeTop, setCurrentTimeTop] = useState<number | null>(null);
   const [interaction, setInteraction] = useState<InteractionMode>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const today = isToday(date);
 
   const pointerStart = useRef<{
@@ -65,21 +62,9 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
     return () => clearInterval(interval);
   }, [today]);
 
-  // Auto-scroll to current time
-  useEffect(() => {
-    if (scrollRef.current && today) {
-      const now = new Date();
-      const h = now.getHours();
-      if (h >= START_HOUR && h <= END_HOUR) {
-        scrollRef.current.scrollTop = Math.max(0, (h - START_HOUR - 1) * SLOT_HEIGHT_PX);
-      }
-    }
-  }, [today]);
-
   const dayEvents = useMemo(() => events.filter((e) => e.date === dateStr), [events, dateStr]);
   const allDayEvents = dayEvents.filter((e) => e.allDay);
   const timedEvents = dayEvents.filter((e) => !e.allDay && e.startTime);
-  const totalHeight = (END_HOUR - START_HOUR) * SLOT_HEIGHT_PX;
 
   const getSlotFromPoint = useCallback((clientX: number, clientY: number): string | null => {
     const el = document.elementFromPoint(clientX, clientY);
@@ -151,11 +136,10 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden flex flex-col"
-      style={{ height: "calc(100vh - 180px)", minHeight: 500 }}
+      className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden flex flex-col h-full"
     >
       {/* Day header */}
-      <div className={`px-5 py-2.5 border-b border-[#E6E6E4] flex-shrink-0 ${today ? "bg-[#EEF2FF]" : ""}`}>
+      <div className={`px-5 py-2 border-b border-[#E6E6E4] flex-shrink-0 ${today ? "bg-[#EEF2FF]" : ""}`}>
         <div className="text-[10px] font-semibold text-[#999] uppercase tracking-wider">
           {formatDayName(date)}
         </div>
@@ -166,22 +150,33 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
 
       {/* All-day events */}
       {allDayEvents.length > 0 && (
-        <div className="px-4 py-1.5 border-b border-[#E6E6E4] bg-[#F7F7F5] flex-shrink-0">
-          <div className="text-[9px] text-[#999] font-semibold uppercase tracking-wider mb-1">
+        <div className="px-4 py-2 border-b-2 border-[#E6E6E4] bg-[#FAFAF9] flex-shrink-0">
+          <div className="text-[9px] text-[#999] font-bold uppercase tracking-wider mb-1">
             Toute la journee
           </div>
-          <div className="space-y-0.5">
+          <div className="space-y-1">
             {allDayEvents.map((evt) => {
               const bgColor = getEventDisplayColor(evt);
+              const isOrder = evt.source === "order";
               return (
                 <button
                   key={evt.id}
                   onClick={() => onSelectEvent(evt)}
-                  className="w-full text-left px-3 py-1.5 rounded-md text-[12px] font-semibold text-white hover:brightness-110 transition-all cursor-pointer"
+                  className="w-full text-left px-3 py-1.5 rounded-md text-[12px] font-bold text-white hover:brightness-110 hover:shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
                   style={{ backgroundColor: bgColor }}
                 >
-                  <span className="inline-block w-2 h-2 rounded-full bg-white/30 mr-2" />
-                  {evt.title}
+                  {isOrder && (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                      <circle cx="12" cy="12" r="10" />
+                      <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                  )}
+                  <span className="truncate">{evt.title}</span>
+                  {isOrder && evt.orderStatus && (
+                    <span className="ml-auto text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                      {evt.orderStatus}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -189,21 +184,20 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
         </div>
       )}
 
-      {/* Time grid */}
+      {/* Time grid — fills remaining space, NO scroll */}
       <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 min-h-0 relative overflow-hidden"
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         style={{ userSelect: interaction ? "none" : undefined }}
       >
-        <div className="grid grid-cols-[64px_1fr] relative" style={{ minHeight: totalHeight }}>
+        <div className="absolute inset-0 grid grid-cols-[64px_1fr]">
           {/* Time labels */}
-          <div className="border-r border-[#EFEFEF] relative">
+          <div className="border-r border-[#E0E0DE] relative">
             {timeSlots.map((slot) => (
               <div
                 key={slot}
-                className="absolute right-2.5 text-[11px] text-[#999] font-medium -translate-y-1/2"
+                className="absolute right-2.5 text-[11px] text-[#999] font-semibold -translate-y-1/2"
                 style={{
                   top: `${((parseInt(slot) - START_HOUR) / (END_HOUR - START_HOUR)) * 100}%`,
                 }}
@@ -214,7 +208,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
           </div>
 
           {/* Event column */}
-          <div className="relative" style={{ height: totalHeight }}>
+          <div className="relative">
             {/* Hour gridlines + slot targets */}
             {timeSlots.map((slot) => {
               const isSelected =
@@ -226,7 +220,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                 <div
                   key={slot}
                   data-slot-time={slot}
-                  className={`absolute left-0 right-0 border-t border-[#EFEFEF] transition-colors ${
+                  className={`absolute left-0 right-0 border-t border-[#D5D5D3] transition-colors ${
                     isSelected ? "bg-[#4F46E5]/10" : "hover:bg-[#F7F7F5]/60"
                   }`}
                   style={{
@@ -234,7 +228,10 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                     height: `${(1 / (END_HOUR - START_HOUR)) * 100}%`,
                   }}
                   onPointerDown={(e) => handlePointerDown(e, "slot", slot)}
-                />
+                >
+                  {/* Half-hour dashed line */}
+                  <div className="absolute left-0 right-0 border-t border-dashed border-[#ECECEA] pointer-events-none" style={{ top: "50%" }} />
+                </div>
               );
             })}
 
@@ -273,13 +270,13 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                     e.stopPropagation();
                     if (!hasMoved.current) onSelectEvent(evt);
                   }}
-                  className={`absolute left-2 right-2 z-10 rounded-lg px-3 py-2 overflow-hidden text-white shadow-sm hover:shadow-md hover:brightness-110 transition-all text-left ${
+                  className={`absolute left-2 right-2 z-10 rounded-lg px-3 py-1.5 overflow-hidden text-white shadow-sm hover:shadow-md hover:brightness-110 transition-all text-left ${
                     isOrder ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
                   }`}
                   style={{
                     top: `${topPct}%`,
                     height: `${heightPct}%`,
-                    minHeight: 28,
+                    minHeight: 24,
                     backgroundColor: bgColor,
                   }}
                 >
@@ -313,7 +310,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                   style={{
                     top: `${topPct}%`,
                     height: `${duration}%`,
-                    minHeight: 28,
+                    minHeight: 24,
                     backgroundColor: bgColor,
                   }}
                 >
