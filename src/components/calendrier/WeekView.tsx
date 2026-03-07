@@ -169,24 +169,26 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="bg-[#FAFAF9] rounded-xl border border-[#E0E0DE] overflow-hidden flex flex-col h-full"
+      className="bg-white rounded-xl border border-[#E2E2E0] shadow-sm overflow-hidden flex flex-col h-full"
     >
       {/* ─── Day headers ─── */}
-      <div className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-[#E0E0DE] flex-shrink-0 bg-[#F7F7F5]">
-        <div />
-        {weekDays.map((d) => {
+      <div className="grid grid-cols-[48px_repeat(7,1fr)] border-b border-[#E8E8E6] flex-shrink-0">
+        <div className="bg-[#FAFAF9]" />
+        {weekDays.map((d, di) => {
           const td = isToday(d);
           return (
             <div
               key={toDateStr(d)}
-              className={`text-center py-2.5 ${td ? "bg-[#4F46E5]/[0.04]" : ""}`}
+              className={`text-center py-3 ${di < 6 ? "border-r border-[#F0F0EE]" : ""} ${td ? "bg-[#4F46E5]/[0.03]" : "bg-[#FAFAF9]"}`}
             >
-              <div className={`text-[10px] font-semibold uppercase tracking-wide ${td ? "text-[#4F46E5]" : "text-[#999]"}`}>
+              <div className={`text-[10px] font-bold uppercase tracking-widest ${td ? "text-[#4F46E5]" : "text-[#A0A09E]"}`}>
                 {formatDayNameShort(d)}
               </div>
-              <div className="mt-0.5 flex justify-center">
-                <span className={`inline-flex items-center justify-center w-7 h-7 text-[13px] font-bold rounded-full ${
-                  td ? "bg-[#4F46E5] text-white" : "text-[#1A1A1A]"
+              <div className="mt-1 flex justify-center">
+                <span className={`inline-flex items-center justify-center w-8 h-8 text-[14px] font-bold rounded-full transition-colors ${
+                  td
+                    ? "bg-[#4F46E5] text-white shadow-sm shadow-[#4F46E5]/25"
+                    : "text-[#333]"
                 }`}>
                   {d.getDate()}
                 </span>
@@ -198,31 +200,29 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
 
       {/* ─── All-day strip ─── */}
       {hasAllDay && (
-        <div className="grid grid-cols-[44px_repeat(7,1fr)] border-b border-[#E0E0DE] flex-shrink-0 bg-[#F7F7F5]/60">
-          <div className="flex items-center justify-center">
-            <span className="text-[8px] text-[#B0B0AE] font-semibold uppercase tracking-wider">All</span>
+        <div className="grid grid-cols-[48px_repeat(7,1fr)] border-b border-[#E8E8E6] flex-shrink-0 bg-[#FCFCFB]">
+          <div className="flex items-center justify-center bg-[#FAFAF9]">
+            <span className="text-[8px] text-[#BBBBB9] font-bold uppercase tracking-widest">All</span>
           </div>
-          {weekDays.map((d) => {
+          {weekDays.map((d, di) => {
             const dateStr = toDateStr(d);
             const dayManual = manualAllDayByDate[dateStr] || [];
             const dayOrders = ordersByDate[dateStr] || [];
             return (
-              <div key={dateStr} className="px-0.5 py-1.5 space-y-1 min-h-[32px] flex flex-col justify-center border-l border-[#ECECEA]">
-                {/* Manual all-day events: pills */}
+              <div key={dateStr} className={`px-1 py-2 space-y-1 min-h-[36px] flex flex-col justify-center ${di < 6 ? "border-r border-[#F0F0EE]" : ""}`}>
                 {dayManual.map((evt) => {
                   const bgColor = getEventDisplayColor(evt);
                   return (
                     <button
                       key={evt.id}
                       onClick={() => onSelectEvent(evt)}
-                      className="w-full text-left px-1.5 py-[3px] rounded text-[9px] font-semibold text-white truncate hover:brightness-110 transition-all cursor-pointer"
+                      className="w-full text-left px-1.5 py-[3px] rounded-[4px] text-[9px] font-bold text-white truncate hover:brightness-110 transition-all cursor-pointer"
                       style={{ backgroundColor: bgColor }}
                     >
                       {evt.title}
                     </button>
                   );
                 })}
-                {/* Order markers with client initials */}
                 {dayOrders.length > 0 && (
                   <div className="px-0.5">
                     <OrderDots orders={dayOrders} onSelect={onSelectEvent} compact />
@@ -241,30 +241,32 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
         onPointerUp={handlePointerUp}
         style={{ userSelect: interaction ? "none" : undefined }}
       >
-        <div className="absolute inset-0 grid grid-cols-[44px_repeat(7,1fr)]">
+        <div className="absolute inset-0 grid grid-cols-[48px_repeat(7,1fr)]">
           {/* Time labels column */}
-          <div className="relative bg-[#F7F7F5]/50">
+          <div className="relative bg-[#FAFAF9]">
             {timeSlots.map((slot) => {
               const hour = parseInt(slot);
-              const isMajor = hour === 0 || hour === 6 || hour === 12 || hour === 18;
+              const isMajor = hour % 6 === 0;
               return (
                 <div
                   key={slot}
-                  className={`absolute right-2 tabular-nums -translate-y-1/2 select-none ${
+                  className={`absolute right-3 tabular-nums -translate-y-1/2 select-none ${
                     isMajor
-                      ? "text-[9px] font-semibold text-[#888]"
-                      : "text-[8px] font-normal text-[#B8B8B6]"
+                      ? "text-[10px] font-bold text-[#777]"
+                      : hour % 3 === 0
+                        ? "text-[9px] font-semibold text-[#999]"
+                        : "text-[8px] font-medium text-[#C0C0BE]"
                   }`}
                   style={{ top: `${pct(hour)}%` }}
                 >
-                  {hour.toString().padStart(2, "0")}h
+                  {hour.toString().padStart(2, "0")}
                 </div>
               );
             })}
           </div>
 
           {/* Day columns */}
-          {weekDays.map((d) => {
+          {weekDays.map((d, di) => {
             const dateStr = toDateStr(d);
             const dayEvents = (eventsByDate[dateStr] || []).filter((e) => !e.allDay && e.startTime);
             const td = isToday(d);
@@ -272,8 +274,8 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
             return (
               <div
                 key={dateStr}
-                className={`relative border-l ${
-                  td ? "bg-[#4F46E5]/[0.02] border-l-[#DDDCDA]" : "border-l-[#EAEAE8]"
+                className={`relative ${di < 6 ? "border-r border-[#F0F0EE]" : ""} ${
+                  td ? "bg-[#4F46E5]/[0.015]" : ""
                 }`}
               >
                 {/* Hour gridlines + interaction targets */}
@@ -290,21 +292,16 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                     interaction.hoverDate === dateStr &&
                     interaction.hoverTime === slot;
 
-                  // Grid line hierarchy
-                  const isMidnight = hour === 0;
-                  const isNoon = hour === 12;
-                  const is6h = hour === 6 || hour === 18;
+                  const isMajor = hour % 6 === 0;
                   const is3h = hour % 3 === 0;
 
                   let borderClass: string;
-                  if (isMidnight || isNoon) {
-                    borderClass = "border-[#D4D4D2]";
-                  } else if (is6h) {
-                    borderClass = "border-[#DDDCDA]";
+                  if (isMajor) {
+                    borderClass = "border-[#D8D8D6]";
                   } else if (is3h) {
-                    borderClass = "border-[#E5E5E3]";
+                    borderClass = "border-[#E4E4E2]";
                   } else {
-                    borderClass = "border-[#EDEDEB]";
+                    borderClass = "border-[#F0F0EE]";
                   }
 
                   return (
@@ -315,7 +312,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                       className={`absolute left-0 right-0 border-t transition-colors ${borderClass} ${
                         isSelected ? "bg-[#4F46E5]/[0.06]" :
                         isDragTarget ? "bg-[#4F46E5]/[0.03]" :
-                        "hover:bg-[#F5F5F3]"
+                        "hover:bg-[#F8F8F6]"
                       }`}
                       style={{
                         top: `${pct(hour)}%`,
@@ -333,15 +330,15 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                     style={{ top: `${currentTimeTop}%` }}
                   >
                     <div className="relative">
-                      <div className="absolute -left-[4px] -top-[4px] w-[8px] h-[8px] rounded-full bg-[#4F46E5]" />
-                      <div className="h-[1.5px] bg-[#4F46E5] w-full" />
+                      <div className="absolute -left-[5px] -top-[5px] w-[10px] h-[10px] rounded-full bg-[#4F46E5] shadow-sm shadow-[#4F46E5]/30" />
+                      <div className="h-[2px] bg-[#4F46E5] w-full shadow-sm shadow-[#4F46E5]/20" />
                     </div>
                   </div>
                 )}
 
-                {/* Events */}
+                {/* Events — left-accent premium cards */}
                 {dayEvents.map((evt) => {
-                  const bgColor = getEventDisplayColor(evt);
+                  const accentColor = getEventDisplayColor(evt);
                   const topPct = getEventTopPercent(evt.startTime!, START_HOUR, END_HOUR);
                   const heightPct = evt.endTime
                     ? getEventHeightPercent(evt.startTime!, evt.endTime, START_HOUR, END_HOUR)
@@ -363,22 +360,27 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                         e.stopPropagation();
                         if (!hasMoved.current) onSelectEvent(evt);
                       }}
-                      className={`absolute left-[2px] right-[2px] z-10 rounded px-1.5 py-[2px] overflow-hidden text-white transition-all text-left hover:brightness-105 hover:shadow-sm ${
+                      className={`absolute left-[3px] right-[3px] z-10 rounded-[5px] overflow-hidden transition-all text-left group ${
                         isOrder ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-                      }`}
+                      } hover:shadow-md hover:z-20`}
                       style={{
                         top: `${topPct}%`,
                         height: `${heightPct}%`,
-                        minHeight: 16,
-                        backgroundColor: bgColor,
+                        minHeight: 18,
+                        backgroundColor: `${accentColor}12`,
+                        borderLeft: `3px solid ${accentColor}`,
                       }}
                     >
-                      <div className="text-[9px] font-semibold truncate leading-tight">{evt.title}</div>
-                      {heightPct > 3.5 && (
-                        <div className="text-[8px] opacity-75 truncate">
-                          {evt.startTime}{evt.endTime ? `–${evt.endTime}` : ""}
+                      <div className="px-1.5 py-[2px] h-full">
+                        <div className="text-[9px] font-bold truncate leading-tight" style={{ color: accentColor }}>
+                          {evt.title}
                         </div>
-                      )}
+                        {heightPct > 3 && (
+                          <div className="text-[8px] font-medium truncate" style={{ color: `${accentColor}99` }}>
+                            {evt.startTime}{evt.endTime ? `–${evt.endTime}` : ""}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
@@ -387,7 +389,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                 {interaction?.type === "drag" && interaction.hoverDate === dateStr && (() => {
                   const draggedEvent = events.find(ev => ev.id === interaction.eventId);
                   if (!draggedEvent) return null;
-                  const bgColor = getEventDisplayColor(draggedEvent);
+                  const accentColor = getEventDisplayColor(draggedEvent);
                   const topPct = getEventTopPercent(interaction.hoverTime, START_HOUR, END_HOUR);
                   const duration = draggedEvent.startTime && draggedEvent.endTime
                     ? getEventHeightPercent(draggedEvent.startTime, draggedEvent.endTime, START_HOUR, END_HOUR)
@@ -395,15 +397,18 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
 
                   return (
                     <div
-                      className="absolute left-[2px] right-[2px] z-30 rounded px-1.5 py-1 text-white shadow-md opacity-75 pointer-events-none ring-2 ring-white/40"
+                      className="absolute left-[3px] right-[3px] z-30 rounded-[5px] px-1.5 py-1 shadow-lg opacity-80 pointer-events-none"
                       style={{
                         top: `${topPct}%`,
                         height: `${duration}%`,
-                        minHeight: 16,
-                        backgroundColor: bgColor,
+                        minHeight: 18,
+                        backgroundColor: `${accentColor}18`,
+                        borderLeft: `3px solid ${accentColor}`,
                       }}
                     >
-                      <div className="text-[9px] font-semibold truncate">{draggedEvent.title}</div>
+                      <div className="text-[9px] font-bold truncate" style={{ color: accentColor }}>
+                        {draggedEvent.title}
+                      </div>
                     </div>
                   );
                 })()}
@@ -414,14 +419,14 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                   const bottomPct = getEventTopPercent(interaction.endTime, START_HOUR, END_HOUR);
                   return (
                     <div
-                      className="absolute left-[2px] right-[2px] z-15 rounded bg-[#4F46E5]/10 border border-[#4F46E5]/25 border-dashed pointer-events-none"
+                      className="absolute left-[3px] right-[3px] z-15 rounded-[5px] bg-[#4F46E5]/8 border-2 border-[#4F46E5]/20 border-dashed pointer-events-none"
                       style={{
                         top: `${topPct}%`,
                         height: `${Math.max(2, bottomPct - topPct)}%`,
-                        minHeight: 16,
+                        minHeight: 18,
                       }}
                     >
-                      <div className="text-[9px] font-medium text-[#4F46E5] px-1.5 pt-0.5">
+                      <div className="text-[9px] font-bold text-[#4F46E5] px-1.5 pt-0.5">
                         {interaction.startTime}–{interaction.endTime}
                       </div>
                     </div>

@@ -31,7 +31,6 @@ interface EventFormModalProps {
   defaultEndTime?: string;
 }
 
-/* ─── Time options: 07:00 to 22:00 in 30-min steps ─── */
 const TIME_OPTIONS: string[] = [];
 for (let h = 7; h <= 22; h++) {
   TIME_OPTIONS.push(`${h.toString().padStart(2, "0")}:00`);
@@ -68,7 +67,6 @@ export default function EventFormModal({
   const startPickerRef = useRef<HTMLDivElement>(null);
   const endPickerRef = useRef<HTMLDivElement>(null);
 
-  // Fetch clients for the searchable picker
   const { data: clients } = useApi<Client[]>(open ? "/api/clients" : null);
 
   const filteredClients = useMemo(() => {
@@ -79,7 +77,6 @@ export default function EventFormModal({
     );
   }, [clients, clientSearch]);
 
-  // Date quick-select helpers
   const todayStr = useMemo(() => toDateStr(new Date()), []);
   const tomorrowStr = useMemo(() => {
     const d = new Date(); d.setDate(d.getDate() + 1); return toDateStr(d);
@@ -88,7 +85,6 @@ export default function EventFormModal({
     const d = new Date(); d.setDate(d.getDate() + 2); return toDateStr(d);
   }, []);
 
-  // Reset form when modal opens
   useEffect(() => {
     if (open) {
       if (initialEvent) {
@@ -124,7 +120,6 @@ export default function EventFormModal({
     }
   }, [open, initialEvent, defaultDate, defaultStartTime, defaultEndTime, todayStr]);
 
-  // Close pickers on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (startPickerRef.current && !startPickerRef.current.contains(e.target as Node)) {
@@ -174,15 +169,15 @@ export default function EventFormModal({
     onClose();
   }
 
-  // Preview color for the header
   const previewColor = color || CATEGORY_SOLID[category];
+  const canSubmit = title.trim() && date;
 
   return (
     <AnimatePresence>
       {open && (
         <>
           <motion.div
-            className="fixed inset-0 bg-black/25 z-50"
+            className="fixed inset-0 bg-black/30 backdrop-blur-[2px] z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -191,45 +186,45 @@ export default function EventFormModal({
 
           <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
+            initial={{ opacity: 0, scale: 0.96, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
           >
             <div
               role="dialog"
               aria-modal="true"
               aria-label={isEditing ? "Modifier l'evenement" : "Nouvel evenement"}
-              className="bg-white rounded-xl border border-[#E6E6E4] shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-2xl border border-[#E2E2E0] shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Color preview header */}
+              {/* Accent bar */}
               <div
-                className="h-2 rounded-t-xl transition-colors"
+                className="h-1.5 rounded-t-2xl transition-colors"
                 style={{ backgroundColor: previewColor }}
               />
 
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-[#E6E6E4]">
-                <h2 className="text-[14px] font-semibold text-[#1A1A1A]">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[#F0F0EE]">
+                <h2 className="text-[15px] font-bold text-[#1A1A1A] tracking-[-0.01em]">
                   {isEditing ? "Modifier l'evenement" : "Nouvel evenement"}
                 </h2>
                 <button
                   onClick={onClose}
                   aria-label="Fermer"
-                  className="p-1 rounded-lg hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-[#F4F4F2] transition-colors cursor-pointer"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18" />
                     <line x1="6" y1="6" x2="18" y2="18" />
                   </svg>
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="p-5 space-y-4">
+              <form onSubmit={handleSubmit} className="px-6 py-5 space-y-5">
                 {/* Title */}
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
                     Titre *
                   </label>
                   <input
@@ -239,18 +234,17 @@ export default function EventFormModal({
                     placeholder="Ex: Appel decouverte avec Marie"
                     required
                     autoFocus
-                    className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                    className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#1A1A1A] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
                   />
                 </div>
 
-                {/* Row: Category + Color */}
-                <div className="grid grid-cols-[1fr_auto] gap-4">
-                  {/* Category chips */}
+                {/* Category + Color row */}
+                <div className="grid grid-cols-[1fr_auto] gap-5">
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
                       Categorie
                     </label>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {ALL_CATEGORIES.filter((c) => c !== "deadline").map((cat) => {
                         const config = CATEGORY_CONFIG[cat];
                         const selected = category === cat;
@@ -260,19 +254,21 @@ export default function EventFormModal({
                             type="button"
                             onClick={() => {
                               setCategory(cat);
-                              if (!color) setColor(""); // Reset to use category default
+                              if (!color) setColor("");
                             }}
-                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold transition-all cursor-pointer ${
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
                               selected
-                                ? "ring-2 ring-offset-1 ring-[#4F46E5]/30 text-white"
-                                : "bg-[#F7F7F5] text-[#999] hover:bg-[#EFEFEF]"
+                                ? "text-white shadow-sm"
+                                : "bg-[#F4F4F2] text-[#888] hover:bg-[#EEEEED] hover:text-[#666]"
                             }`}
                             style={selected ? { backgroundColor: CATEGORY_SOLID[cat] } : undefined}
                           >
-                            <span
-                              className="w-2 h-2 rounded-full"
-                              style={{ backgroundColor: selected ? "rgba(255,255,255,0.5)" : CATEGORY_SOLID[cat] }}
-                            />
+                            {!selected && (
+                              <span
+                                className="w-2 h-2 rounded-full"
+                                style={{ backgroundColor: CATEGORY_SOLID[cat] }}
+                              />
+                            )}
                             {config.label}
                           </button>
                         );
@@ -280,19 +276,18 @@ export default function EventFormModal({
                     </div>
                   </div>
 
-                  {/* Color picker */}
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
                       Couleur
                     </label>
-                    <div className="flex flex-wrap gap-1 max-w-[120px]">
+                    <div className="flex flex-wrap gap-1.5 max-w-[120px]">
                       {EVENT_PALETTE.map((c) => (
                         <button
                           key={c}
                           type="button"
                           onClick={() => setColor(color === c ? "" : c)}
                           className={`w-5 h-5 rounded-full transition-all cursor-pointer ${
-                            color === c ? "ring-2 ring-offset-1 ring-[#1A1A1A] scale-110" : "hover:scale-110"
+                            color === c ? "ring-2 ring-offset-2 ring-[#1A1A1A]/30 scale-110" : "hover:scale-110"
                           }`}
                           style={{ backgroundColor: c }}
                         />
@@ -301,12 +296,15 @@ export default function EventFormModal({
                   </div>
                 </div>
 
-                {/* Date with quick-select chips */}
+                {/* Separator */}
+                <div className="h-px bg-[#F0F0EE]" />
+
+                {/* Date */}
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
                     Date *
                   </label>
-                  <div className="flex gap-1.5 mb-2">
+                  <div className="flex gap-1.5 mb-2.5">
                     {[
                       { label: "Aujourd'hui", value: todayStr },
                       { label: "Demain", value: tomorrowStr },
@@ -316,30 +314,30 @@ export default function EventFormModal({
                         key={opt.value}
                         type="button"
                         onClick={() => setDate(opt.value)}
-                        className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer border ${
+                        className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${
                           date === opt.value
-                            ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
-                            : "border-[#E6E6E4] bg-white text-[#666] hover:bg-[#F7F7F5]"
+                            ? "border-[#4F46E5] bg-[#4F46E5]/[0.06] text-[#4F46E5]"
+                            : "border-[#E6E6E4] bg-[#FAFAF9] text-[#888] hover:bg-[#F4F4F2] hover:text-[#666]"
                         }`}
                       >
                         {opt.label}
                       </button>
                     ))}
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-4">
                     <input
                       type="date"
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
                       required
-                      className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                      className="flex-1 bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
                     />
-                    <div className="flex items-center gap-2">
+                    <label className="flex items-center gap-2.5 cursor-pointer">
                       <button
                         type="button"
                         onClick={() => setAllDay(!allDay)}
                         className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors cursor-pointer ${
-                          allDay ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"
+                          allDay ? "bg-[#4F46E5]" : "bg-[#E0E0DE]"
                         }`}
                       >
                         <span
@@ -348,32 +346,31 @@ export default function EventFormModal({
                           }`}
                         />
                       </button>
-                      <span className="text-[12px] text-[#666] whitespace-nowrap">Journee</span>
-                    </div>
+                      <span className="text-[12px] font-semibold text-[#666] whitespace-nowrap">Journee</span>
+                    </label>
                   </div>
                 </div>
 
-                {/* Time fields — custom chip picker */}
+                {/* Time pickers */}
                 {!allDay && (
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Start time */}
                     <div ref={startPickerRef} className="relative">
-                      <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
+                      <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
                         Debut
                       </label>
                       <button
                         type="button"
                         onClick={() => { setShowStartPicker(!showStartPicker); setShowEndPicker(false); }}
-                        className={`w-full text-left bg-white border rounded-lg px-3 py-2 text-[13px] transition-all cursor-pointer ${
+                        className={`w-full text-left bg-[#FAFAF9] border rounded-lg px-3.5 py-2.5 text-[13px] font-medium transition-all cursor-pointer ${
                           showStartPicker
-                            ? "border-[#4F46E5] ring-1 ring-[#4F46E5]/20"
-                            : "border-[#E6E6E4] hover:border-[#CCC]"
-                        } ${startTime ? "text-[#1A1A1A] font-medium" : "text-[#BBB]"}`}
+                            ? "border-[#4F46E5] ring-2 ring-[#4F46E5]/10 bg-white"
+                            : "border-[#E6E6E4] hover:border-[#D0D0CE]"
+                        } ${startTime ? "text-[#1A1A1A]" : "text-[#C0C0BE]"}`}
                       >
                         {startTime || "Choisir l'heure"}
                       </button>
                       {showStartPicker && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg z-30 p-2 max-h-[200px] overflow-y-auto">
+                        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E2E2E0] rounded-xl shadow-xl z-30 p-2 max-h-[200px] overflow-y-auto">
                           <div className="grid grid-cols-4 gap-1">
                             {TIME_OPTIONS.map((t) => (
                               <button
@@ -384,10 +381,10 @@ export default function EventFormModal({
                                   if (!endTime || endTime <= t) setEndTime(addOneHour(t));
                                   setShowStartPicker(false);
                                 }}
-                                className={`px-1 py-1.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                                className={`px-1.5 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                                   startTime === t
-                                    ? "bg-[#4F46E5] text-white"
-                                    : "text-[#666] hover:bg-[#F7F7F5]"
+                                    ? "bg-[#4F46E5] text-white shadow-sm"
+                                    : "text-[#666] hover:bg-[#F4F4F2]"
                                 }`}
                               >
                                 {t}
@@ -398,34 +395,33 @@ export default function EventFormModal({
                       )}
                     </div>
 
-                    {/* End time */}
                     <div ref={endPickerRef} className="relative">
-                      <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
+                      <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
                         Fin
                       </label>
                       <button
                         type="button"
                         onClick={() => { setShowEndPicker(!showEndPicker); setShowStartPicker(false); }}
-                        className={`w-full text-left bg-white border rounded-lg px-3 py-2 text-[13px] transition-all cursor-pointer ${
+                        className={`w-full text-left bg-[#FAFAF9] border rounded-lg px-3.5 py-2.5 text-[13px] font-medium transition-all cursor-pointer ${
                           showEndPicker
-                            ? "border-[#4F46E5] ring-1 ring-[#4F46E5]/20"
-                            : "border-[#E6E6E4] hover:border-[#CCC]"
-                        } ${endTime ? "text-[#1A1A1A] font-medium" : "text-[#BBB]"}`}
+                            ? "border-[#4F46E5] ring-2 ring-[#4F46E5]/10 bg-white"
+                            : "border-[#E6E6E4] hover:border-[#D0D0CE]"
+                        } ${endTime ? "text-[#1A1A1A]" : "text-[#C0C0BE]"}`}
                       >
                         {endTime || "Choisir l'heure"}
                       </button>
                       {showEndPicker && (
-                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg z-30 p-2 max-h-[200px] overflow-y-auto">
+                        <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E2E2E0] rounded-xl shadow-xl z-30 p-2 max-h-[200px] overflow-y-auto">
                           <div className="grid grid-cols-4 gap-1">
                             {TIME_OPTIONS.filter((t) => !startTime || t > startTime).map((t) => (
                               <button
                                 key={t}
                                 type="button"
                                 onClick={() => { setEndTime(t); setShowEndPicker(false); }}
-                                className={`px-1 py-1.5 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                                className={`px-1.5 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
                                   endTime === t
-                                    ? "bg-[#4F46E5] text-white"
-                                    : "text-[#666] hover:bg-[#F7F7F5]"
+                                    ? "bg-[#4F46E5] text-white shadow-sm"
+                                    : "text-[#666] hover:bg-[#F4F4F2]"
                                 }`}
                               >
                                 {t}
@@ -438,11 +434,13 @@ export default function EventFormModal({
                   </div>
                 )}
 
-                {/* Row: Priority + Client */}
-                <div className="grid grid-cols-2 gap-3">
-                  {/* Priority */}
+                {/* Separator */}
+                <div className="h-px bg-[#F0F0EE]" />
+
+                {/* Priority + Client row */}
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
                       Priorite
                     </label>
                     <div className="flex gap-1">
@@ -454,10 +452,10 @@ export default function EventFormModal({
                             key={p}
                             type="button"
                             onClick={() => setPriority(p)}
-                            className={`flex-1 flex items-center justify-center gap-1 px-1.5 py-1.5 rounded-md text-[11px] font-medium transition-all cursor-pointer border ${
+                            className={`flex-1 flex items-center justify-center gap-1 px-1.5 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${
                               selected
-                                ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
-                                : "border-[#E6E6E4] bg-white text-[#666] hover:bg-[#F7F7F5]"
+                                ? "border-[#4F46E5] bg-[#4F46E5]/[0.06] text-[#4F46E5]"
+                                : "border-[#E6E6E4] bg-[#FAFAF9] text-[#888] hover:bg-[#F4F4F2]"
                             }`}
                           >
                             <span
@@ -471,9 +469,8 @@ export default function EventFormModal({
                     </div>
                   </div>
 
-                  {/* Client picker */}
                   <div className="relative">
-                    <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
+                    <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
                       Client
                     </label>
                     <input
@@ -487,22 +484,21 @@ export default function EventFormModal({
                       }}
                       onFocus={() => setShowClientDropdown(true)}
                       placeholder="Rechercher..."
-                      className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                      className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#1A1A1A] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
                     />
-                    {/* Client dropdown */}
                     {showClientDropdown && filteredClients.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg z-20 max-h-[150px] overflow-y-auto">
+                      <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E2E2E0] rounded-xl shadow-xl z-20 max-h-[150px] overflow-y-auto py-1">
                         {filteredClients.slice(0, 8).map((c) => (
                           <button
                             key={c.id}
                             type="button"
                             onClick={() => handleSelectClient(c)}
-                            className={`w-full text-left px-3 py-2 text-[12px] hover:bg-[#F7F7F5] transition-colors cursor-pointer ${
-                              clientId === c.id ? "bg-[#EEF2FF]" : ""
+                            className={`w-full text-left px-3.5 py-2 text-[12px] hover:bg-[#F7F7F5] transition-colors cursor-pointer ${
+                              clientId === c.id ? "bg-[#4F46E5]/[0.04]" : ""
                             }`}
                           >
-                            <div className="font-medium text-[#1A1A1A]">{c.name}</div>
-                            <div className="text-[10px] text-[#999]">{c.email}</div>
+                            <div className="font-bold text-[#1A1A1A]">{c.name}</div>
+                            <div className="text-[10px] text-[#999] font-medium">{c.email}</div>
                           </button>
                         ))}
                       </div>
@@ -512,7 +508,7 @@ export default function EventFormModal({
 
                 {/* Notes */}
                 <div>
-                  <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">
+                  <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
                     Notes
                   </label>
                   <textarea
@@ -520,23 +516,27 @@ export default function EventFormModal({
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Ajouter des notes..."
                     rows={2}
-                    className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none"
+                    className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#1A1A1A] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all resize-none"
                   />
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 pt-1">
+                {/* Footer actions */}
+                <div className="flex gap-2.5 pt-2 border-t border-[#F0F0EE]">
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 px-3 py-2 rounded-md border border-[#E6E6E4] text-[12px] font-medium text-[#666] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+                    className="flex-1 px-4 py-2.5 rounded-lg border border-[#E2E2E0] text-[12px] font-bold text-[#666] hover:bg-[#F7F7F5] hover:text-[#444] transition-all cursor-pointer"
                   >
                     Annuler
                   </button>
                   <button
                     type="submit"
-                    disabled={!title.trim() || !date}
-                    className="flex-1 text-white rounded-md px-3 py-2 text-[12px] font-semibold transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-110"
+                    disabled={!canSubmit}
+                    className={`flex-1 text-white rounded-lg px-4 py-2.5 text-[12px] font-bold transition-all cursor-pointer ${
+                      canSubmit
+                        ? "hover:brightness-110 shadow-sm"
+                        : "opacity-35 cursor-not-allowed"
+                    }`}
                     style={{ backgroundColor: previewColor }}
                   >
                     {isEditing ? "Enregistrer" : "Creer l'evenement"}

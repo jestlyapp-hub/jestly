@@ -137,45 +137,45 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2 }}
-      className="bg-[#FAFAF9] rounded-xl border border-[#E0E0DE] overflow-hidden flex flex-col h-full"
+      className="bg-white rounded-xl border border-[#E2E2E0] shadow-sm overflow-hidden flex flex-col h-full"
     >
       {/* ─── Day header ─── */}
-      <div className={`px-5 py-3 border-b border-[#E0E0DE] flex-shrink-0 flex items-center gap-3 bg-[#F7F7F5] ${today ? "bg-[#4F46E5]/[0.03]" : ""}`}>
-        <span className={`inline-flex items-center justify-center w-9 h-9 rounded-full text-[16px] font-bold ${
-          today ? "bg-[#4F46E5] text-white" : "text-[#1A1A1A] bg-[#EEEEED]"
+      <div className={`px-6 py-4 border-b border-[#E8E8E6] flex-shrink-0 flex items-center gap-4 ${today ? "bg-[#4F46E5]/[0.02]" : "bg-[#FAFAF9]"}`}>
+        <span className={`inline-flex items-center justify-center w-11 h-11 rounded-full text-[18px] font-bold ${
+          today
+            ? "bg-[#4F46E5] text-white shadow-sm shadow-[#4F46E5]/25"
+            : "text-[#333] bg-[#F0F0EE]"
         }`}>
           {date.getDate()}
         </span>
         <div>
-          <div className={`text-[14px] font-semibold ${today ? "text-[#4F46E5]" : "text-[#1A1A1A]"}`}>
+          <div className={`text-[16px] font-bold tracking-[-0.01em] ${today ? "text-[#4F46E5]" : "text-[#1A1A1A]"}`}>
             {formatDayName(date)}
           </div>
-          <div className="text-[11px] text-[#999]">{formatMonthName(date)} {date.getFullYear()}</div>
+          <div className="text-[12px] font-medium text-[#999]">{formatMonthName(date)} {date.getFullYear()}</div>
         </div>
       </div>
 
       {/* ─── All-day events + order markers ─── */}
       {(manualAllDay.length > 0 || orderEvents.length > 0) && (
-        <div className="px-4 py-2.5 border-b border-[#E0E0DE] flex-shrink-0 bg-[#F7F7F5]/60">
+        <div className="px-6 py-3 border-b border-[#E8E8E6] flex-shrink-0 bg-[#FCFCFB]">
           <div className="flex items-center gap-3 flex-wrap">
-            {/* Manual all-day events: pills */}
             {manualAllDay.map((evt) => {
               const bgColor = getEventDisplayColor(evt);
               return (
                 <button
                   key={evt.id}
                   onClick={() => onSelectEvent(evt)}
-                  className="text-left px-3 py-1.5 rounded-md text-[12px] font-semibold text-white hover:brightness-105 transition-all cursor-pointer truncate max-w-[200px]"
+                  className="text-left px-3 py-1.5 rounded-md text-[12px] font-bold text-white hover:brightness-110 hover:shadow-sm transition-all cursor-pointer truncate max-w-[220px]"
                   style={{ backgroundColor: bgColor }}
                 >
                   {evt.title}
                 </button>
               );
             })}
-            {/* Order markers with client initials */}
             {orderEvents.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-[9px] font-semibold text-[#B0B0AE] uppercase tracking-wider select-none">
+              <div className="flex items-center gap-2.5">
+                <span className="text-[9px] font-bold text-[#BBBBB9] uppercase tracking-widest select-none">
                   Cmd
                 </span>
                 <OrderDots orders={orderEvents} onSelect={onSelectEvent} />
@@ -192,23 +192,25 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
         onPointerUp={handlePointerUp}
         style={{ userSelect: interaction ? "none" : undefined }}
       >
-        <div className="absolute inset-0 grid grid-cols-[52px_1fr]">
+        <div className="absolute inset-0 grid grid-cols-[56px_1fr]">
           {/* Time labels */}
-          <div className="relative bg-[#F7F7F5]/50">
+          <div className="relative bg-[#FAFAF9]">
             {timeSlots.map((slot) => {
               const hour = parseInt(slot);
-              const isMajor = hour === 0 || hour === 6 || hour === 12 || hour === 18;
+              const isMajor = hour % 6 === 0;
               return (
                 <div
                   key={slot}
-                  className={`absolute right-3 tabular-nums -translate-y-1/2 select-none ${
+                  className={`absolute right-4 tabular-nums -translate-y-1/2 select-none ${
                     isMajor
-                      ? "text-[10px] font-semibold text-[#888]"
-                      : "text-[9px] font-normal text-[#B8B8B6]"
+                      ? "text-[11px] font-bold text-[#777]"
+                      : hour % 3 === 0
+                        ? "text-[10px] font-semibold text-[#999]"
+                        : "text-[9px] font-medium text-[#C0C0BE]"
                   }`}
                   style={{ top: `${pct(hour)}%` }}
                 >
-                  {hour.toString().padStart(2, "0")}h
+                  {hour.toString().padStart(2, "0")}
                 </div>
               );
             })}
@@ -224,20 +226,16 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                 hour >= parseInt(interaction.startTime) &&
                 hour < parseInt(interaction.endTime);
 
-              const isMidnight = hour === 0;
-              const isNoon = hour === 12;
-              const is6h = hour === 6 || hour === 18;
+              const isMajor = hour % 6 === 0;
               const is3h = hour % 3 === 0;
 
               let borderClass: string;
-              if (isMidnight || isNoon) {
-                borderClass = "border-[#D4D4D2]";
-              } else if (is6h) {
-                borderClass = "border-[#DDDCDA]";
+              if (isMajor) {
+                borderClass = "border-[#D8D8D6]";
               } else if (is3h) {
-                borderClass = "border-[#E5E5E3]";
+                borderClass = "border-[#E4E4E2]";
               } else {
-                borderClass = "border-[#EDEDEB]";
+                borderClass = "border-[#F0F0EE]";
               }
 
               return (
@@ -245,7 +243,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                   key={slot}
                   data-slot-time={slot}
                   className={`absolute left-0 right-0 border-t transition-colors ${borderClass} ${
-                    isSelected ? "bg-[#4F46E5]/[0.06]" : "hover:bg-[#F5F5F3]"
+                    isSelected ? "bg-[#4F46E5]/[0.06]" : "hover:bg-[#F8F8F6]"
                   }`}
                   style={{
                     top: `${pct(hour)}%`,
@@ -260,15 +258,15 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
             {currentTimeTop !== null && (
               <div className="absolute left-0 right-0 z-20 pointer-events-none" style={{ top: `${currentTimeTop}%` }}>
                 <div className="relative">
-                  <div className="absolute -left-[4px] -top-[4px] w-[8px] h-[8px] rounded-full bg-[#4F46E5]" />
-                  <div className="h-[1.5px] bg-[#4F46E5] w-full" />
+                  <div className="absolute -left-[5px] -top-[5px] w-[10px] h-[10px] rounded-full bg-[#4F46E5] shadow-sm shadow-[#4F46E5]/30" />
+                  <div className="h-[2px] bg-[#4F46E5] w-full shadow-sm shadow-[#4F46E5]/20" />
                 </div>
               </div>
             )}
 
-            {/* Events */}
+            {/* Events — left-accent premium cards */}
             {timedEvents.map((evt) => {
-              const bgColor = getEventDisplayColor(evt);
+              const accentColor = getEventDisplayColor(evt);
               const topPct = getEventTopPercent(evt.startTime!, START_HOUR, END_HOUR);
               const heightPct = evt.endTime
                 ? getEventHeightPercent(evt.startTime!, evt.endTime, START_HOUR, END_HOUR)
@@ -290,23 +288,30 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                     e.stopPropagation();
                     if (!hasMoved.current) onSelectEvent(evt);
                   }}
-                  className={`absolute left-2 right-3 z-10 rounded-md px-3 py-1.5 overflow-hidden text-white transition-all text-left hover:brightness-105 hover:shadow-sm ${
+                  className={`absolute left-3 right-4 z-10 rounded-[6px] overflow-hidden transition-all text-left group ${
                     isOrder ? "cursor-pointer" : "cursor-grab active:cursor-grabbing"
-                  }`}
+                  } hover:shadow-md hover:z-20`}
                   style={{
                     top: `${topPct}%`,
                     height: `${heightPct}%`,
-                    minHeight: 22,
-                    backgroundColor: bgColor,
+                    minHeight: 24,
+                    backgroundColor: `${accentColor}12`,
+                    borderLeft: `3px solid ${accentColor}`,
                   }}
                 >
-                  <div className="text-[12px] font-semibold truncate">{evt.title}</div>
-                  <div className="text-[10px] opacity-80">
-                    {evt.startTime}–{evt.endTime || "..."}
+                  <div className="px-3 py-1 h-full">
+                    <div className="text-[12px] font-bold truncate" style={{ color: accentColor }}>
+                      {evt.title}
+                    </div>
+                    <div className="text-[10px] font-medium truncate" style={{ color: `${accentColor}88` }}>
+                      {evt.startTime}–{evt.endTime || "..."}
+                    </div>
+                    {heightPct > 5 && evt.clientName && (
+                      <div className="text-[10px] font-medium mt-0.5 truncate" style={{ color: `${accentColor}66` }}>
+                        {evt.clientName}
+                      </div>
+                    )}
                   </div>
-                  {heightPct > 6 && evt.clientName && (
-                    <div className="text-[10px] opacity-65 mt-0.5 truncate">{evt.clientName}</div>
-                  )}
                 </div>
               );
             })}
@@ -315,7 +320,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
             {interaction?.type === "drag" && (() => {
               const draggedEvent = events.find(ev => ev.id === interaction.eventId);
               if (!draggedEvent) return null;
-              const bgColor = getEventDisplayColor(draggedEvent);
+              const accentColor = getEventDisplayColor(draggedEvent);
               const topPct = getEventTopPercent(interaction.hoverTime, START_HOUR, END_HOUR);
               const duration = draggedEvent.startTime && draggedEvent.endTime
                 ? getEventHeightPercent(draggedEvent.startTime, draggedEvent.endTime, START_HOUR, END_HOUR)
@@ -323,16 +328,21 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
 
               return (
                 <div
-                  className="absolute left-2 right-3 z-30 rounded-md px-3 py-1.5 text-white shadow-md opacity-75 pointer-events-none ring-2 ring-white/40"
+                  className="absolute left-3 right-4 z-30 rounded-[6px] px-3 py-1 shadow-lg opacity-80 pointer-events-none"
                   style={{
                     top: `${topPct}%`,
                     height: `${duration}%`,
-                    minHeight: 22,
-                    backgroundColor: bgColor,
+                    minHeight: 24,
+                    backgroundColor: `${accentColor}18`,
+                    borderLeft: `3px solid ${accentColor}`,
                   }}
                 >
-                  <div className="text-[12px] font-semibold truncate">{draggedEvent.title}</div>
-                  <div className="text-[10px] opacity-80">{interaction.hoverTime}</div>
+                  <div className="text-[12px] font-bold truncate" style={{ color: accentColor }}>
+                    {draggedEvent.title}
+                  </div>
+                  <div className="text-[10px] font-medium" style={{ color: `${accentColor}88` }}>
+                    {interaction.hoverTime}
+                  </div>
                 </div>
               );
             })()}
@@ -343,14 +353,14 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
               const bottomPct = getEventTopPercent(interaction.endTime, START_HOUR, END_HOUR);
               return (
                 <div
-                  className="absolute left-2 right-3 z-15 rounded-md bg-[#4F46E5]/10 border border-[#4F46E5]/25 border-dashed pointer-events-none"
+                  className="absolute left-3 right-4 z-15 rounded-[6px] bg-[#4F46E5]/8 border-2 border-[#4F46E5]/20 border-dashed pointer-events-none"
                   style={{
                     top: `${topPct}%`,
                     height: `${Math.max(2, bottomPct - topPct)}%`,
-                    minHeight: 20,
+                    minHeight: 24,
                   }}
                 >
-                  <div className="text-[10px] font-medium text-[#4F46E5] px-2 pt-1">
+                  <div className="text-[10px] font-bold text-[#4F46E5] px-3 pt-1">
                     {interaction.startTime}–{interaction.endTime}
                   </div>
                 </div>

@@ -6,11 +6,9 @@ import { getEventDisplayColor, type CalendarEvent } from "@/lib/calendar-utils";
 interface OrderDotsProps {
   orders: CalendarEvent[];
   onSelect: (event: CalendarEvent) => void;
-  /** Compact mode for tight spaces like month cells */
   compact?: boolean;
 }
 
-/** Extract first letter of client name, fallback to "?" */
 function getInitial(order: CalendarEvent): string {
   const name = order.clientName?.trim();
   if (name) return name[0].toUpperCase();
@@ -22,8 +20,10 @@ export default function OrderDots({ orders, onSelect, compact }: OrderDotsProps)
 
   if (orders.length === 0) return null;
 
-  const size = compact ? "w-[16px] h-[16px] text-[7px]" : "w-[18px] h-[18px] text-[8px]";
-  const gap = compact ? "gap-[3px]" : "gap-[4px]";
+  const size = compact
+    ? "w-[17px] h-[17px] text-[7px]"
+    : "w-[20px] h-[20px] text-[8px]";
+  const gap = compact ? "gap-[3px]" : "gap-[5px]";
 
   return (
     <div
@@ -31,7 +31,6 @@ export default function OrderDots({ orders, onSelect, compact }: OrderDotsProps)
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
-      {/* All order markers — wrapping enabled */}
       <div className={`flex flex-wrap items-center ${gap}`}>
         {orders.map((order) => {
           const color = getEventDisplayColor(order);
@@ -43,8 +42,11 @@ export default function OrderDots({ orders, onSelect, compact }: OrderDotsProps)
                 e.stopPropagation();
                 onSelect(order);
               }}
-              className={`${size} rounded-full flex items-center justify-center font-bold text-white transition-all hover:scale-110 hover:shadow-sm cursor-pointer flex-shrink-0 leading-none`}
-              style={{ backgroundColor: color }}
+              className={`${size} rounded-full flex items-center justify-center font-extrabold text-white cursor-pointer flex-shrink-0 leading-none transition-all duration-150 hover:scale-[1.15] hover:shadow-md hover:ring-2 hover:ring-white/60`}
+              style={{
+                backgroundColor: color,
+                boxShadow: `0 1px 3px ${color}30`,
+              }}
               aria-label={order.title}
               title={order.clientName || order.title}
             >
@@ -54,43 +56,51 @@ export default function OrderDots({ orders, onSelect, compact }: OrderDotsProps)
         })}
       </div>
 
-      {/* Tooltip on hover */}
+      {/* Premium tooltip */}
       {showTooltip && orders.length > 0 && (
-        <div className="absolute left-0 top-full mt-1.5 z-50 bg-white border border-[#E6E6E4] rounded-lg shadow-lg py-1.5 min-w-[220px] max-w-[300px]">
-          <div className="px-2.5 pb-1 mb-1 border-b border-[#F0F0EE]">
-            <span className="text-[9px] font-semibold text-[#AEAEAC] uppercase tracking-wider">
+        <div className="absolute left-0 top-full mt-2 z-50 bg-white border border-[#E6E6E4] rounded-xl shadow-xl shadow-black/8 py-2 min-w-[240px] max-w-[320px]">
+          <div className="px-3 pb-1.5 mb-1 border-b border-[#F0F0EE]">
+            <span className="text-[10px] font-bold text-[#B0B0AE] uppercase tracking-wider">
               {orders.length} commande{orders.length > 1 ? "s" : ""}
             </span>
           </div>
-          {orders.map((order) => {
-            const color = getEventDisplayColor(order);
-            const initial = getInitial(order);
-            return (
-              <button
-                key={order.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelect(order);
-                }}
-                className="flex items-center gap-2 w-full text-left py-1 px-2.5 hover:bg-[#F7F7F5] transition-colors cursor-pointer"
-              >
-                <span
-                  className="w-[16px] h-[16px] rounded-full flex-shrink-0 flex items-center justify-center text-[7px] font-bold text-white"
-                  style={{ backgroundColor: color }}
+          <div className="py-0.5">
+            {orders.map((order) => {
+              const color = getEventDisplayColor(order);
+              const initial = getInitial(order);
+              return (
+                <button
+                  key={order.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelect(order);
+                  }}
+                  className="flex items-center gap-2.5 w-full text-left py-1.5 px-3 hover:bg-[#F7F7F5] transition-colors cursor-pointer group"
                 >
-                  {initial}
-                </span>
-                <span className="text-[11px] text-[#1A1A1A] truncate leading-tight flex-1">
-                  {order.title}
-                </span>
-                {order.orderStatus && (
-                  <span className="text-[9px] text-[#AEAEAC] ml-auto flex-shrink-0 capitalize">
-                    {order.orderStatus.replace(/_/g, " ")}
+                  <span
+                    className="w-[18px] h-[18px] rounded-full flex-shrink-0 flex items-center justify-center text-[7px] font-extrabold text-white transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: color }}
+                  >
+                    {initial}
                   </span>
-                )}
-              </button>
-            );
-          })}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-[12px] font-medium text-[#1A1A1A] truncate leading-tight">
+                      {order.title}
+                    </div>
+                    {order.orderStatus && (
+                      <div className="text-[10px] text-[#B0B0AE] capitalize leading-tight mt-0.5">
+                        {order.orderStatus.replace(/_/g, " ")}
+                        {order.orderPrice != null && ` — ${order.orderPrice}\u00A0\u20AC`}
+                      </div>
+                    )}
+                  </div>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <polyline points="9 18 15 12 9 6" />
+                  </svg>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

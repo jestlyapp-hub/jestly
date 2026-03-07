@@ -194,11 +194,27 @@ export default function CalendarWorkspace() {
 
   if (loading) {
     return (
-      <div className="flex flex-col" style={{ height: "calc(100vh - 100px)" }}>
-        <div className="h-10 w-48 bg-[#F7F7F5] rounded-lg animate-pulse mb-3" />
-        <div className="flex-1 bg-white rounded-xl border border-[#EAEAEA] p-6 space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-10 bg-[#F7F7F5] rounded animate-pulse" />
+      <div className="flex flex-col gap-4" style={{ height: "calc(100vh - 100px)" }}>
+        {/* Skeleton toolbar */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="h-7 w-28 bg-[#F0F0EE] rounded-lg animate-pulse" />
+            <div className="h-7 w-48 bg-[#F0F0EE] rounded-lg animate-pulse" />
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-44 bg-[#F0F0EE] rounded-lg animate-pulse" />
+            <div className="h-8 w-24 bg-[#EEEEFF] rounded-lg animate-pulse" />
+          </div>
+        </div>
+        {/* Skeleton calendar */}
+        <div className="flex-1 bg-white rounded-xl border border-[#E6E6E4] shadow-sm p-6 space-y-3">
+          <div className="grid grid-cols-8 gap-2">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="h-8 bg-[#F7F7F5] rounded animate-pulse" />
+            ))}
+          </div>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="h-12 bg-[#FAFAF9] rounded animate-pulse" />
           ))}
         </div>
       </div>
@@ -207,9 +223,16 @@ export default function CalendarWorkspace() {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center" style={{ height: "calc(100vh - 100px)" }}>
-        <p className="text-[13px] text-red-500 mb-2">Erreur : {error}</p>
-        <button onClick={mutate} className="text-[12px] text-[#4F46E5] hover:underline cursor-pointer">
+      <div className="flex flex-col items-center justify-center gap-3" style={{ height: "calc(100vh - 100px)" }}>
+        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+        </div>
+        <p className="text-[13px] text-[#666]">Impossible de charger le calendrier</p>
+        <button onClick={mutate} className="text-[12px] font-medium text-[#4F46E5] hover:text-[#4338CA] transition-colors cursor-pointer">
           Reessayer
         </button>
       </div>
@@ -219,57 +242,62 @@ export default function CalendarWorkspace() {
   const safeEvents = events || [];
 
   return (
-    <div className="flex flex-col" style={{ height: "calc(100vh - 100px)" }}>
-      {/* ─── Toolbar ─── */}
-      <div className="flex items-center justify-between mb-3 flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <h1 className="text-lg font-bold text-[#1A1A1A]">Calendrier</h1>
+    <div className="flex flex-col gap-3" style={{ height: "calc(100vh - 100px)" }}>
+      {/* ─── Premium Toolbar ─── */}
+      <div className="flex items-center justify-between flex-shrink-0">
+        {/* Left: Title + Navigation + Date range */}
+        <div className="flex items-center gap-5">
+          {/* Page title */}
+          <h1 className="text-[18px] font-bold text-[#1A1A1A] tracking-[-0.01em]">
+            Calendrier
+          </h1>
 
-          {/* Navigation */}
-          <div className="flex items-center gap-1">
+          {/* Navigation cluster */}
+          <div className="flex items-center gap-0.5 bg-[#F4F4F2] rounded-lg p-[3px]">
             <button
               onClick={goPrev}
-              className="p-1 rounded-md hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white hover:shadow-sm transition-all cursor-pointer"
               aria-label="Precedent"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
             </button>
             <button
               onClick={goToday}
-              className="px-2.5 py-1 rounded-md text-[11px] font-medium text-[#666] hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+              className="h-7 px-3 rounded-md text-[11px] font-semibold text-[#555] hover:bg-white hover:shadow-sm transition-all cursor-pointer"
             >
               Aujourd&apos;hui
             </button>
             <button
               onClick={goNext}
-              className="p-1 rounded-md hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+              className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-white hover:shadow-sm transition-all cursor-pointer"
               aria-label="Suivant"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6" />
               </svg>
             </button>
           </div>
 
-          {/* Date title */}
-          <span className="text-[13px] font-medium text-[#666] hidden sm:block">
+          {/* Date range label */}
+          <span className="text-[14px] font-semibold text-[#444] hidden sm:block tracking-[-0.005em]">
             {getTitle()}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          {/* View toggle */}
-          <div className="flex bg-[#F7F7F5] rounded-lg p-0.5">
+        {/* Right: View toggle + Add button */}
+        <div className="flex items-center gap-3">
+          {/* Segmented view switcher */}
+          <div className="flex bg-[#F4F4F2] rounded-lg p-[3px]">
             {(["day", "week", "month"] as ViewType[]).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
-                className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer ${
+                className={`px-3.5 py-[5px] rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
                   view === v
                     ? "bg-white text-[#1A1A1A] shadow-sm"
-                    : "text-[#AAA] hover:text-[#666]"
+                    : "text-[#888] hover:text-[#555]"
                 }`}
               >
                 {VIEW_LABELS[v]}
@@ -277,12 +305,12 @@ export default function CalendarWorkspace() {
             ))}
           </div>
 
-          {/* Quick add */}
+          {/* Add event CTA */}
           <button
             onClick={handleQuickAdd}
-            className="bg-[#4F46E5] text-white rounded-lg px-3 py-1.5 text-[11px] font-medium hover:bg-[#4338CA] transition-colors cursor-pointer flex items-center gap-1"
+            className="bg-[#4F46E5] text-white rounded-lg px-4 py-[7px] text-[12px] font-semibold hover:bg-[#4338CA] active:bg-[#3730A3] transition-all cursor-pointer flex items-center gap-1.5 shadow-sm shadow-[#4F46E5]/20"
           >
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
@@ -291,12 +319,12 @@ export default function CalendarWorkspace() {
         </div>
       </div>
 
-      {/* Mobile title */}
-      <div className="text-[12px] font-medium text-[#666] mb-2 sm:hidden flex-shrink-0">
+      {/* Mobile date range */}
+      <div className="text-[13px] font-semibold text-[#555] sm:hidden flex-shrink-0">
         {getTitle()}
       </div>
 
-      {/* ─── Calendar view ─── */}
+      {/* ─── Calendar surface ─── */}
       <div className="flex-1 min-h-0">
         <AnimatePresence mode="wait">
           {view === "month" && (

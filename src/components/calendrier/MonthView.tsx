@@ -44,50 +44,54 @@ export default function MonthView({ year, month, events, onSelectEvent, onCreate
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      className="bg-white rounded-xl border border-[#E6E6E4] overflow-x-auto"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+      className="bg-white rounded-xl border border-[#E2E2E0] shadow-sm overflow-hidden h-full flex flex-col"
     >
-      <div className="min-w-[640px]">
-        {/* Week day headers */}
-        <div className="grid grid-cols-7 border-b border-[#E6E6E4]">
-          {WEEK_HEADERS.map((d) => (
-            <div
-              key={d}
-              className="text-center text-[10px] font-semibold text-[#999] uppercase tracking-wider py-2 border-r border-[#EFEFEF] last:border-r-0"
-            >
-              {d}
-            </div>
-          ))}
-        </div>
+      {/* Week day headers */}
+      <div className="grid grid-cols-7 border-b border-[#E8E8E6] flex-shrink-0 bg-[#FAFAF9]">
+        {WEEK_HEADERS.map((d, i) => (
+          <div
+            key={d}
+            className={`text-center text-[10px] font-bold text-[#A0A09E] uppercase tracking-widest py-2.5 ${
+              i < 6 ? "border-r border-[#F0F0EE]" : ""
+            }`}
+          >
+            {d}
+          </div>
+        ))}
+      </div>
 
-        {/* Calendar grid */}
+      {/* Calendar grid */}
+      <div className="flex-1 flex flex-col">
         {weeks.map((week, wi) => (
-          <div key={wi} className="grid grid-cols-7 border-b border-[#EFEFEF] last:border-b-0">
-            {week.map((day) => {
+          <div key={wi} className={`grid grid-cols-7 flex-1 ${wi < weeks.length - 1 ? "border-b border-[#F0F0EE]" : ""}`}>
+            {week.map((day, di) => {
               const dateStr = toDateStr(day.date);
               const dayEvents = eventsByDate[dateStr] || [];
-              const visible = dayEvents.slice(0, MAX_VISIBLE);
-              const remaining = dayEvents.length - MAX_VISIBLE;
 
               return (
                 <div
                   key={dateStr}
                   onClick={() => onCreateEvent(dateStr)}
-                  className={`min-h-[90px] p-1 border-r border-[#EFEFEF] last:border-r-0 cursor-pointer transition-colors hover:bg-[#FBFBFA] ${
-                    !day.isCurrentMonth ? "bg-[#F7F7F5]" : ""
+                  className={`p-1.5 cursor-pointer transition-colors group ${
+                    di < 6 ? "border-r border-[#F0F0EE]" : ""
+                  } ${
+                    !day.isCurrentMonth ? "bg-[#FAFAF9]" : "hover:bg-[#FCFCFB]"
+                  } ${
+                    day.isToday ? "bg-[#4F46E5]/[0.02]" : ""
                   }`}
                 >
                   {/* Day number */}
-                  <div className="flex justify-end mb-0.5">
+                  <div className="flex justify-end mb-1">
                     <span
-                      className={`inline-flex items-center justify-center w-6 h-6 text-[11px] font-semibold rounded-full ${
+                      className={`inline-flex items-center justify-center w-7 h-7 text-[12px] font-bold rounded-full transition-colors ${
                         day.isToday
-                          ? "bg-[#4F46E5] text-white"
+                          ? "bg-[#4F46E5] text-white shadow-sm shadow-[#4F46E5]/20"
                           : day.isCurrentMonth
-                          ? "text-[#1A1A1A]"
-                          : "text-[#CCC]"
+                          ? "text-[#333] group-hover:bg-[#F0F0EE]"
+                          : "text-[#C8C8C6]"
                       }`}
                     >
                       {day.date.getDate()}
@@ -102,16 +106,14 @@ export default function MonthView({ year, month, events, onSelectEvent, onCreate
                     const remainingManual = manualEvents.length - MAX_VISIBLE;
 
                     return (
-                      <div className="space-y-0.5">
-                        {/* Order dots */}
+                      <div className="space-y-[3px]">
                         {orderEvts.length > 0 && (
                           <div className="px-0.5 py-[2px]">
                             <OrderDots orders={orderEvts} onSelect={onSelectEvent} compact />
                           </div>
                         )}
-                        {/* Manual events: pills */}
                         {visibleManual.map((evt) => {
-                          const bgColor = getEventDisplayColor(evt);
+                          const accentColor = getEventDisplayColor(evt);
                           return (
                             <button
                               key={evt.id}
@@ -119,18 +121,22 @@ export default function MonthView({ year, month, events, onSelectEvent, onCreate
                                 e.stopPropagation();
                                 onSelectEvent(evt);
                               }}
-                              className="w-full text-left px-1.5 py-[3px] rounded text-[10px] font-semibold text-white truncate hover:brightness-110 transition-all cursor-pointer"
-                              style={{ backgroundColor: bgColor }}
+                              className="w-full text-left px-1.5 py-[3px] rounded-[4px] text-[10px] font-bold truncate transition-all cursor-pointer hover:shadow-sm"
+                              style={{
+                                backgroundColor: `${accentColor}12`,
+                                color: accentColor,
+                                borderLeft: `2px solid ${accentColor}`,
+                              }}
                             >
                               {!evt.allDay && evt.startTime && (
-                                <span className="opacity-70 mr-0.5">{evt.startTime}</span>
+                                <span className="opacity-60 mr-0.5 font-semibold">{evt.startTime}</span>
                               )}
                               {evt.title}
                             </button>
                           );
                         })}
                         {remainingManual > 0 && (
-                          <div className="text-[10px] text-[#999] font-medium pl-1.5">
+                          <div className="text-[10px] text-[#999] font-semibold pl-1.5">
                             +{remainingManual} de plus
                           </div>
                         )}
