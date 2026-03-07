@@ -30,11 +30,6 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
     dispatch({ type: "UPDATE_FOOTER", footer: { ...footer, ...updates } });
   };
 
-  // Ensure nav has the new variant field — migrate old configs
-  if (!nav.variant) {
-    updateNav({ variant: "classic-floating" });
-  }
-
   const updateLink = (index: number, patch: Partial<NavLink>) => {
     const links = [...nav.links];
     links[index] = { ...links[index], ...patch };
