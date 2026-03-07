@@ -19,6 +19,12 @@ export const backgroundPresets: BackgroundPresetDef[] = [
     needsBefore: false,
   },
   {
+    key: "solid",
+    name: "Uni",
+    css: "",
+    needsBefore: false,
+  },
+  {
     key: "glow",
     name: "Glow",
     css: `radial-gradient(ellipse 80% 60% at 50% -20%, var(--site-primary, #4F46E5)22, transparent 70%)`,

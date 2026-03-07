@@ -3,6 +3,12 @@
 import { motion } from "framer-motion";
 import StatCard from "@/components/ui/StatCard";
 import BadgeStatus from "@/components/ui/BadgeStatus";
+import TodayFocus from "@/components/dashboard/TodayFocus";
+import UpcomingDeadlines from "@/components/dashboard/UpcomingDeadlines";
+import WorkloadSnapshot from "@/components/dashboard/WorkloadSnapshot";
+import ActivityFeed from "@/components/dashboard/ActivityFeed";
+import QuickActions from "@/components/dashboard/QuickActions";
+import NotificationPanel from "@/components/dashboard/NotificationPanel";
 import type { OrderStatus } from "@/types";
 import { useApi } from "@/lib/hooks/use-api";
 
@@ -36,6 +42,15 @@ const fadeIn = {
   }),
 };
 
+const sectionFade = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.45, ease: "easeOut" as const, delay: 0.3 + i * 0.1 },
+  }),
+};
+
 export default function DashboardPage() {
   const { data: apiStats, loading, error, mutate } = useApi<DashboardStats>("/api/dashboard/stats");
   const stats = apiStats || (loading ? null : emptyStats);
@@ -49,6 +64,10 @@ export default function DashboardPage() {
             <div key={i} className="bg-white rounded-xl border border-[#E6E6E4] p-5 h-24 animate-pulse" />
           ))}
         </div>
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-6">
+          <div className="lg:col-span-3 bg-white rounded-xl border border-[#E6E6E4] p-4 h-64 animate-pulse" />
+          <div className="lg:col-span-2 bg-white rounded-xl border border-[#E6E6E4] p-4 h-64 animate-pulse" />
+        </div>
         <div className="bg-white rounded-xl border border-[#E6E6E4] p-4 h-64 animate-pulse" />
       </div>
     );
@@ -58,14 +77,14 @@ export default function DashboardPage() {
     return (
       <div className="max-w-6xl mx-auto py-12 text-center">
         <p className="text-[14px] text-red-500 mb-2">Erreur : {error}</p>
-        <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline cursor-pointer">Réessayer</button>
+        <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline cursor-pointer">Reessayer</button>
       </div>
     );
   }
 
   const statCards = [
-    { label: "Revenu total", value: `${stats?.totalRevenue?.toLocaleString("fr-FR") ?? 0} €`, change: `${stats?.ordersCount ?? 0} commandes`, positive: true },
-    { label: "Commandes en attente", value: String(stats?.pendingOrders ?? 0), change: "à traiter", positive: true },
+    { label: "Revenu total", value: `${stats?.totalRevenue?.toLocaleString("fr-FR") ?? 0} EUR`, change: `${stats?.ordersCount ?? 0} commandes`, positive: true },
+    { label: "Commandes en attente", value: String(stats?.pendingOrders ?? 0), change: "a traiter", positive: true },
     { label: "Clients", value: String(stats?.clientsCount ?? 0), change: "actifs", positive: true },
     { label: "Produits actifs", value: String(stats?.activeProductsCount ?? 0), change: "en ligne", positive: true },
   ];
@@ -74,17 +93,23 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      {/* Greeting */}
+      {/* Greeting + Quick actions */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="mb-8"
+        className="mb-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4"
       >
-        <h1 className="text-2xl font-bold text-[#1A1A1A]">Dashboard</h1>
-        <p className="text-[14px] text-[#999] mt-1">
-          Voici un aperçu de votre activité.
-        </p>
+        <div>
+          <h1 className="text-2xl font-bold text-[#1A1A1A]">Dashboard</h1>
+          <p className="text-[14px] text-[#999] mt-1">
+            Voici un apercu de votre activite.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <NotificationPanel />
+          <QuickActions />
+        </div>
       </motion.div>
 
       {/* Stats */}
@@ -102,16 +127,61 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* Row 1: TodayFocus + UpcomingDeadlines */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-6">
+        <motion.div
+          className="lg:col-span-3"
+          variants={sectionFade}
+          custom={0}
+          initial="hidden"
+          animate="visible"
+        >
+          <TodayFocus />
+        </motion.div>
+        <motion.div
+          className="lg:col-span-2"
+          variants={sectionFade}
+          custom={1}
+          initial="hidden"
+          animate="visible"
+        >
+          <UpcomingDeadlines />
+        </motion.div>
+      </div>
+
+      {/* Row 2: WorkloadSnapshot + ActivityFeed */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-6">
+        <motion.div
+          className="lg:col-span-2"
+          variants={sectionFade}
+          custom={2}
+          initial="hidden"
+          animate="visible"
+        >
+          <WorkloadSnapshot stats={stats ? { pendingOrders: stats.pendingOrders, clientsCount: stats.clientsCount } : undefined} />
+        </motion.div>
+        <motion.div
+          className="lg:col-span-3"
+          variants={sectionFade}
+          custom={3}
+          initial="hidden"
+          animate="visible"
+        >
+          <ActivityFeed />
+        </motion.div>
+      </div>
+
       {/* Recent Orders */}
       <motion.div
         className="bg-white rounded-xl border border-[#E6E6E4]"
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.25 }}
+        variants={sectionFade}
+        custom={4}
+        initial="hidden"
+        animate="visible"
       >
         <div className="px-5 py-4 border-b border-[#E6E6E4] flex items-center justify-between">
           <h2 className="text-[14px] font-semibold text-[#1A1A1A]">
-            Commandes récentes
+            Commandes recentes
           </h2>
           <a
             href="/commandes"
@@ -136,11 +206,11 @@ export default function DashboardPage() {
                   key={order.id}
                   className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors"
                 >
-                  <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">
-                    {order.clients?.name ?? "—"}
+                  <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A] max-w-[200px] truncate">
+                    {order.clients?.name ?? "\u2014"}
                   </td>
-                  <td className="px-5 py-3.5 text-[13px] text-[#666]">
-                    {order.title}
+                  <td className="px-5 py-3.5 text-[13px] text-[#666] max-w-[200px] truncate">
+                    {order.title || "\u2014"}
                   </td>
                   <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">
                     {order.amount} &euro;

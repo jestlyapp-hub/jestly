@@ -26,10 +26,11 @@ function ServicesListBlockPreviewInner({ content }: { content: ServicesListBlock
 
   return (
     <div className="py-4">
+      <div className="max-w-7xl mx-auto px-6">
       {content.title && (
         <h3 className="text-lg font-bold mb-4" style={{ color: "var(--site-text, #1A1A1A)" }}>{content.title}</h3>
       )}
-      <div className={isGrid ? "grid grid-cols-2 gap-3" : "space-y-3"}>
+      <div className={isGrid ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : "space-y-3"}>
         {sorted.map((product) => (
           <div
             key={product.id}
@@ -69,6 +70,7 @@ function ServicesListBlockPreviewInner({ content }: { content: ServicesListBlock
             </div>
           </div>
         ))}
+      </div>
       </div>
     </div>
   );

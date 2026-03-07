@@ -1,7 +1,8 @@
 "use client";
 
 import { useBuilder } from "@/lib/site-builder-context";
-import type { Block, BlockStyle, BlockType } from "@/types";
+import type { Block, BlockStyle, BlockType, BackgroundPreset, BackgroundConfig } from "@/types";
+import { backgroundPresets } from "@/lib/site-designs";
 import ButtonStyleEditor from "./ButtonStyleEditor";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
@@ -297,6 +298,69 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
           className={inputClass}
         />
         <p className="text-[10px] text-[#BBB] mt-1">CSS gradient (remplace la couleur de fond)</p>
+      </div>
+
+      {/* ─── BLOCK BACKGROUND ─── */}
+      <div>
+        <span className={sectionLabel}>Fond du bloc</span>
+        <div className="grid grid-cols-4 gap-1">
+          <button
+            onClick={() => update({ background: undefined })}
+            className={`flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-md border text-[8px] font-medium transition-all ${
+              !block.style.background
+                ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
+            }`}
+          >
+            <div className="w-5 h-5 rounded border border-dashed border-[#ccc] flex items-center justify-center text-[8px] text-[#999]">H</div>
+            Heriter
+          </button>
+          {backgroundPresets.filter((bp) => bp.key !== "solid").map((bp) => (
+            <button
+              key={bp.key}
+              onClick={() => update({ background: bp.key === "none" ? { type: "none" } : { type: bp.key as BackgroundPreset, opacity: block.style.background?.opacity } })}
+              className={`flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-md border text-[8px] font-medium transition-all ${
+                block.style.background?.type === bp.key
+                  ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                  : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
+              }`}
+            >
+              <div className="w-5 h-5 rounded border border-black/10 bg-[#222]" />
+              {bp.name}
+            </button>
+          ))}
+        </div>
+        {/* Block background params */}
+        {block.style.background && block.style.background.type !== "none" && (() => {
+          const bgConfig = block.style.background;
+          const updateBg = (patch: Partial<BackgroundConfig>) => update({ background: { ...bgConfig, ...patch } });
+          const showOpacity = ["grid-tech", "dots", "noise"].includes(bgConfig.type);
+          const showSize = ["grid-tech", "dots"].includes(bgConfig.type);
+          const showBlur = bgConfig.type === "glow";
+          if (!showOpacity && !showSize && !showBlur) return null;
+          return (
+            <div className="mt-2 space-y-2">
+              {showOpacity && (
+                <div>
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Opacite ({Math.round((bgConfig.opacity ?? 0.5) * 100)}%)</label>
+                  <input type="range" min="0" max="1" step="0.05" value={bgConfig.opacity ?? 0.5} onChange={(e) => updateBg({ opacity: parseFloat(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                </div>
+              )}
+              {showSize && (
+                <div>
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Taille ({bgConfig.size ?? 20}px)</label>
+                  <input type="range" min="8" max="80" step="2" value={bgConfig.size ?? 20} onChange={(e) => updateBg({ size: parseInt(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                </div>
+              )}
+              {showBlur && (
+                <div>
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Etendue ({bgConfig.blur ?? 60}%)</label>
+                  <input type="range" min="20" max="100" step="5" value={bgConfig.blur ?? 60} onChange={(e) => updateBg({ blur: parseInt(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* ─── BUTTON STYLE (conditional) ─── */}

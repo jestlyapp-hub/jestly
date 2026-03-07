@@ -68,7 +68,7 @@ function HeroSplitGlowBlockPreviewInner({ content }: { content: HeroSplitGlowBlo
               className="inline-flex items-center justify-center text-[13px] font-semibold px-6 py-3 rounded-[var(--site-btn-radius,8px)] transition-all duration-200 hover:brightness-110 hover:shadow-lg"
               style={{
                 background: "var(--site-primary)",
-                color: "#fff",
+                color: "var(--site-text, #fff)",
                 boxShadow: `0 0 20px color-mix(in srgb, ${glow} 35%, transparent)`,
               }}
             />

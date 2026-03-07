@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { BuilderProvider } from "@/lib/site-builder-context";
 import { ProductProvider } from "@/lib/product-context";
 import type { Product } from "@/types";
+import { dbToProduct } from "@/lib/adapters";
 import BuilderToolbar from "@/components/site-web/builder/BuilderToolbar";
 import BuilderPageList from "@/components/site-web/builder/BuilderPageList";
 import BuilderCanvas from "@/components/site-web/builder/BuilderCanvas";
@@ -18,7 +19,7 @@ function useBuilderProducts(): Product[] {
   useEffect(() => {
     fetch("/api/products")
       .then((r) => (r.ok ? r.json() : []))
-      .then((data) => setProducts(Array.isArray(data) ? data : []))
+      .then((data) => setProducts(Array.isArray(data) ? data.map(dbToProduct) : []))
       .catch(() => {});
   }, []);
   return products;

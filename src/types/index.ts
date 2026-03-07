@@ -304,6 +304,7 @@ export interface BlockStyle {
   containerWidth?: "full" | "boxed" | "narrow";
   backgroundGradient?: string;
   buttonStyle?: ButtonStyle;
+  background?: BackgroundConfig;
 }
 
 export type BlockAnimation = "none" | "fade-up" | "fade-in" | "slide-left";
@@ -611,7 +612,7 @@ export interface ServiceCardsBlockContent extends SaleBlockBriefSettings {
     ctaLabel: string;
   }[];
   productIds: string[];
-  columns: 2 | 3;
+  columns: 2 | 3 | 4;
   showPrice: boolean;
   ctaMode: "product_page" | "product_checkout";
 }
@@ -694,6 +695,7 @@ export interface HeroCenteredMeshBlockContent {
   ctaLabel: string;
   blockLink?: BlockLink;
   trustLogos?: { name: string; imageUrl?: string }[];
+  glowColor?: string;
 }
 
 export interface ServicesPremiumBlockContent {
@@ -803,6 +805,7 @@ export interface VideoShowcaseBlockContent {
   stats?: { value: string; label: string }[];
   ctaLabel?: string;
   blockLink?: BlockLink;
+  glowColor?: string;
 }
 
 export interface TechStackBlockContent {
@@ -1048,15 +1051,34 @@ export interface SiteTheme {
   mode?: "light" | "dark";
   containerWidth?: "narrow" | "default" | "wide";
   buttonRadius?: "none" | "sm" | "md" | "full";
+  // Theme-level button defaults (consumed as CSS vars fallbacks)
+  buttonBg?: string;
+  buttonText?: string;
+  buttonBorder?: string;
+  buttonHoverBg?: string;
+  buttonHoverText?: string;
+  buttonHoverBorder?: string;
+  buttonHoverShadow?: "none" | "sm" | "md" | "lg";
+  buttonHoverScale?: number;
 }
 
-export type BackgroundPreset = "none" | "glow" | "mesh" | "grid-tech" | "noise" | "dots" | "gradient-radial";
+export type BackgroundPreset = "none" | "solid" | "glow" | "mesh" | "grid-tech" | "noise" | "dots" | "gradient-radial";
+
+export interface BackgroundConfig {
+  type: BackgroundPreset;
+  primaryColor?: string;
+  secondaryColor?: string;
+  opacity?: number;       // 0-1
+  size?: number;          // px (grid/dots)
+  blur?: number;          // px (glow)
+}
 
 export type DesignKey = "creator" | "product" | "cinema" | "custom";
 
 export interface SiteDesign {
   designKey: DesignKey;
   backgroundPreset: BackgroundPreset;
+  background?: BackgroundConfig;
   heroVariant: string;
   cardStyle: "flat" | "bordered" | "elevated" | "glass";
   buttonVariant: "solid" | "outline" | "ghost" | "gradient";

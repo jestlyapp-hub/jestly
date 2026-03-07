@@ -86,7 +86,7 @@ function BeforeAfterProBlockPreviewInner({ content }: { content: BeforeAfterProB
                         className="absolute bottom-3 left-3 px-3 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wider backdrop-blur-md"
                         style={{
                           backgroundColor: "var(--site-primary)",
-                          color: "#fff",
+                          color: "var(--btn-text, #fff)",
                           boxShadow: "0 0 16px var(--site-primary-light)",
                         }}
                       >

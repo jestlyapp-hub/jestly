@@ -5,6 +5,9 @@ import type { VideoShowcaseBlockContent } from "@/types";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 function VideoShowcaseBlockPreviewInner({ content }: { content: VideoShowcaseBlockContent }) {
+  const glow = content.glowColor || "var(--site-primary)";
+  const glowLight = content.glowColor ? `color-mix(in srgb, ${content.glowColor} 25%, transparent)` : "var(--site-primary-light)";
+
   return (
     <section className="py-20 px-8">
       <div className="max-w-5xl mx-auto">
@@ -35,7 +38,7 @@ function VideoShowcaseBlockPreviewInner({ content }: { content: VideoShowcaseBlo
             borderRadius: "var(--site-btn-radius, 12px)",
             border: "1px solid var(--site-border)",
             backgroundColor: "var(--site-surface)",
-            boxShadow: "0 0 80px -20px var(--site-primary-light), 0 4px 32px -8px rgba(0,0,0,0.3)",
+            boxShadow: `0 0 80px -20px ${glowLight}, 0 4px 32px -8px rgba(0,0,0,0.3)`,
           }}
         >
           {content.thumbnailUrl ? (
@@ -53,11 +56,11 @@ function VideoShowcaseBlockPreviewInner({ content }: { content: VideoShowcaseBlo
                 <div
                   className="w-20 h-20 rounded-full flex items-center justify-center backdrop-blur-md transition-transform duration-300 group-hover:scale-110"
                   style={{
-                    backgroundColor: "var(--site-primary)",
-                    boxShadow: "0 0 40px var(--site-primary-light)",
+                    backgroundColor: glow,
+                    boxShadow: `0 0 40px ${glowLight}`,
                   }}
                 >
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                     <polygon points="6 3 20 12 6 21 6 3" />
                   </svg>
                 </div>
@@ -70,11 +73,11 @@ function VideoShowcaseBlockPreviewInner({ content }: { content: VideoShowcaseBlo
                 <div
                   className="w-20 h-20 rounded-full flex items-center justify-center"
                   style={{
-                    backgroundColor: "var(--site-primary)",
-                    boxShadow: "0 0 40px var(--site-primary-light)",
+                    backgroundColor: glow,
+                    boxShadow: `0 0 40px ${glowLight}`,
                   }}
                 >
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="white" stroke="none">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" stroke="none">
                     <polygon points="6 3 20 12 6 21 6 3" />
                   </svg>
                 </div>

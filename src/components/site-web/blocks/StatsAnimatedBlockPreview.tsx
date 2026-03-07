@@ -45,7 +45,7 @@ function StatsAnimatedBlockPreviewInner({ content }: { content: StatsAnimatedBlo
             <div className="text-3xl font-bold text-[var(--site-primary)]">
               <AnimatedNumber target={s.value} suffix={s.suffix} animate={visible} />
             </div>
-            <div className="text-[12px] opacity-50 mt-1">{s.label}</div>
+            <div className="text-[12px] mt-1" style={{ color: "var(--site-muted)" }}>{s.label}</div>
           </div>
         ))}
       </div>

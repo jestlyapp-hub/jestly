@@ -102,7 +102,7 @@ export function validateSite(site: Site): ValidationError[] {
         }
       }
 
-      // 4) pricing-modern in product mode needs productIds
+      // 4) pricing-modern in product mode without productIds — warning only (renders empty state)
       if (block.type === "pricing-modern") {
         const mode = content.mode as string | undefined;
         const productIds = content.productIds as string[] | undefined;
@@ -110,7 +110,7 @@ export function validateSite(site: Site): ValidationError[] {
           errors.push({
             ...ctx,
             message: "Mode Produit actif mais aucun produit selectionne",
-            severity: "error",
+            severity: "warning",
           });
         }
       }

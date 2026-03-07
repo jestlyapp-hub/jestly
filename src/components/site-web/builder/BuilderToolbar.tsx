@@ -64,7 +64,11 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(snapshot),
       });
-      if (!saveRes.ok) throw new Error("Erreur sauvegarde avant publication");
+      if (!saveRes.ok) {
+        const errBody = await saveRes.json().catch(() => ({}));
+        console.error("[publish] save error:", saveRes.status, errBody);
+        throw new Error(errBody.error || `Erreur sauvegarde (${saveRes.status})`);
+      }
 
       const pubRes = await fetch(`/api/sites/${siteId}/publish`, { method: "POST" });
       const pubData = await pubRes.json().catch(() => ({}));

@@ -24,6 +24,16 @@ export default function HeroBlockEditor({ block }: { block: Extract<Block, { typ
         <label className="block text-[11px] font-medium text-[#999] mb-1">Texte du bouton</label>
         <input type="text" value={block.content.ctaLabel} onChange={(e) => update({ ctaLabel: e.target.value })} className={inputClass} />
       </div>
+      <div>
+        <label className="block text-[11px] font-medium text-[#999] mb-1">Image (URL)</label>
+        <input type="url" value={block.content.imageUrl ?? ""} onChange={(e) => update({ imageUrl: e.target.value || undefined })} placeholder="https://..." className={inputClass} />
+        {block.content.imageUrl && (
+          <div className="mt-1.5 rounded-md overflow-hidden border border-[#E6E6E4]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={block.content.imageUrl} alt="Preview" className="w-full h-20 object-cover" />
+          </div>
+        )}
+      </div>
       <LinkEditor
         label="Lien du bouton"
         value={block.content.blockLink}

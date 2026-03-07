@@ -157,8 +157,8 @@ export default function BriefFormRenderer({
                 disabled={readOnly}
               >
                 <option value="">Sélectionner...</option>
-                {(field.options || []).map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
+                {(field.options || []).map((opt, i) => (
+                  <option key={`${opt}-${i}`} value={opt}>{opt}</option>
                 ))}
               </select>
             )}
@@ -166,8 +166,8 @@ export default function BriefFormRenderer({
             {/* radio */}
             {field.type === "radio" && (
               <div className="space-y-1.5">
-                {(field.options || []).map((opt) => (
-                  <label key={opt} className="flex items-center gap-2 text-sm text-[#5A5A58] cursor-pointer">
+                {(field.options || []).map((opt, i) => (
+                  <label key={`${opt}-${i}`} className="flex items-center gap-2 text-sm text-[#5A5A58] cursor-pointer">
                     <input
                       type="radio"
                       name={field.key}
@@ -185,10 +185,10 @@ export default function BriefFormRenderer({
             {/* checkbox */}
             {field.type === "checkbox" && (
               <div className="space-y-1.5">
-                {(field.options || []).map((opt) => {
+                {(field.options || []).map((opt, i) => {
                   const selected = Array.isArray(value) ? (value as string[]).includes(opt) : false;
                   return (
-                    <label key={opt} className="flex items-center gap-2 text-sm text-[#5A5A58] cursor-pointer">
+                    <label key={`${opt}-${i}`} className="flex items-center gap-2 text-sm text-[#5A5A58] cursor-pointer">
                       <input
                         type="checkbox"
                         checked={selected}

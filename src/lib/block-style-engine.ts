@@ -1,4 +1,4 @@
-import type { BlockStyle, ButtonStyle, SiteTheme, SiteDesign, DesignKey } from "@/types";
+import type { BlockStyle, ButtonStyle, SiteTheme, SiteDesign, DesignKey, BackgroundConfig } from "@/types";
 import { getDesignPreset } from "@/lib/site-designs";
 
 const shadowMap: Record<string, string> = {
@@ -119,6 +119,15 @@ export function computeThemeVars(theme: SiteTheme): Record<string, string> {
     const brMap = { none: "0", sm: "4px", md: "8px", full: "999px" };
     vars["--site-btn-radius"] = brMap[theme.buttonRadius] || "8px";
   }
+  // Theme-level button defaults (block overrides take precedence via computeButtonVars)
+  if (theme.buttonBg) vars["--btn-bg"] = theme.buttonBg;
+  if (theme.buttonText) vars["--btn-text"] = theme.buttonText;
+  if (theme.buttonBorder) vars["--btn-border"] = theme.buttonBorder;
+  if (theme.buttonHoverBg) vars["--btn-hover-bg"] = theme.buttonHoverBg;
+  if (theme.buttonHoverText) vars["--btn-hover-text"] = theme.buttonHoverText;
+  if (theme.buttonHoverBorder) vars["--btn-hover-border"] = theme.buttonHoverBorder;
+  if (theme.buttonHoverShadow) vars["--btn-hover-shadow"] = shadowMap[theme.buttonHoverShadow] ?? "none";
+  if (theme.buttonHoverScale != null) vars["--btn-hover-scale"] = String(theme.buttonHoverScale);
   return vars;
 }
 
@@ -225,4 +234,119 @@ export function getButtonHoverCSS(blockId: string): string {
       box-shadow: var(--btn-hover-shadow, none);
     }
   `;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BACKGROUND CONFIG — site-level & block-level backgrounds
+   ═══════════════════════════════════════════════════════════ */
+
+/**
+ * Resolve the effective BackgroundConfig from SiteDesign.
+ * Handles backward compat: old `backgroundPreset` string → BackgroundConfig.
+ */
+export function resolveBackgroundConfig(design?: SiteDesign): BackgroundConfig | undefined {
+  if (!design) return undefined;
+  if (design.background) return design.background;
+  if (design.backgroundPreset && design.backgroundPreset !== "none") {
+    return { type: design.backgroundPreset };
+  }
+  return undefined;
+}
+
+/**
+ * Render a BackgroundConfig into inline styles.
+ * Returns containerStyle (applied to the wrapper) and/or overlayStyle (for absolute overlay div).
+ */
+export function renderBackgroundConfig(
+  config: BackgroundConfig | undefined,
+): { containerStyle?: React.CSSProperties; overlayStyle?: React.CSSProperties } {
+  if (!config || config.type === "none") return {};
+
+  const primary = config.primaryColor || "var(--site-primary, #4F46E5)";
+  const secondary = config.secondaryColor || "var(--site-secondary, var(--site-primary, #6366F1))";
+  const bgColor = "var(--site-bg, #0A0A0F)";
+  const surface = "var(--site-surface, #141420)";
+  const border = "var(--site-border, #27272A)";
+  const opacity = config.opacity ?? 0.5;
+
+  switch (config.type) {
+    case "solid":
+      return { containerStyle: { backgroundColor: config.primaryColor || undefined } };
+
+    case "glow": {
+      const blur = config.blur ?? 60;
+      return {
+        containerStyle: {
+          backgroundImage: `radial-gradient(ellipse 80% ${blur}% at 50% -20%, ${primary}22, transparent 70%)`,
+        },
+      };
+    }
+
+    case "mesh":
+      return {
+        containerStyle: {
+          backgroundImage: [
+            `radial-gradient(at 20% 20%, ${primary}15 0%, transparent 50%)`,
+            `radial-gradient(at 80% 80%, ${secondary}12 0%, transparent 50%)`,
+            `radial-gradient(at 50% 50%, ${bgColor} 0%, transparent 100%)`,
+          ].join(", "),
+        },
+      };
+
+    case "gradient-radial":
+      return {
+        containerStyle: {
+          backgroundImage: `radial-gradient(ellipse at center, ${surface} 0%, ${bgColor} 70%)`,
+        },
+      };
+
+    case "grid-tech": {
+      const size = config.size ?? 40;
+      return {
+        overlayStyle: {
+          background: [
+            `linear-gradient(${border}08 1px, transparent 1px)`,
+            `linear-gradient(90deg, ${border}08 1px, transparent 1px)`,
+          ].join(", "),
+          backgroundSize: `${size}px ${size}px`,
+          opacity,
+        },
+      };
+    }
+
+    case "dots": {
+      const size = config.size ?? 20;
+      return {
+        overlayStyle: {
+          background: `radial-gradient(circle, ${border}40 1px, transparent 1px)`,
+          backgroundSize: `${size}px ${size}px`,
+          opacity,
+        },
+      };
+    }
+
+    case "noise":
+      return {
+        overlayStyle: {
+          background: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
+          opacity,
+        },
+      };
+
+    default:
+      return {};
+  }
+}
+
+/**
+ * Resolve the effective background for a block: block override or site global.
+ */
+export function resolveBlockBackground(
+  blockBg: BackgroundConfig | undefined,
+  siteBg: BackgroundConfig | undefined,
+): BackgroundConfig | undefined {
+  // Block has explicit background → use it (even "none" = intentional clear)
+  if (blockBg) return blockBg;
+  // Otherwise inherit site background
+  return siteBg;
 }

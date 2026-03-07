@@ -21,8 +21,8 @@ function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlo
   if (products.length === 0) {
     return (
       <div className="py-8 text-center">
-        <div className="text-[13px] text-[#999]">Aucun produit sélectionné</div>
-        <div className="text-[11px] text-[#ccc] mt-1">Ajoutez des produits depuis l&apos;onglet Contenu</div>
+        <div className="text-[13px]" style={{ color: "var(--site-muted, #999)" }}>Aucun produit sélectionné</div>
+        <div className="text-[11px] mt-1" style={{ color: "var(--site-muted, #ccc)" }}>Ajoutez des produits depuis l&apos;onglet Contenu</div>
       </div>
     );
   }
@@ -50,47 +50,48 @@ function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlo
     <div className="py-6">
       {/* Header */}
       <div className="text-center mb-5">
-        <h3 className="text-lg font-bold text-[#1A1A1A] mb-1">{content.title}</h3>
+        <h3 className="text-lg font-bold mb-1" style={{ color: "var(--site-text, #1A1A1A)" }}>{content.title}</h3>
         {content.description && (
-          <p className="text-[12px] text-[#999] max-w-md mx-auto">{content.description}</p>
+          <p className="text-[12px] max-w-md mx-auto" style={{ color: "var(--site-muted, #999)" }}>{content.description}</p>
         )}
       </div>
 
       {/* Product list with checkboxes */}
-      <div className="rounded-xl border border-[#E6E6E4] divide-y divide-[#E6E6E4] mb-5">
+      <div className="rounded-xl border divide-y mb-5" style={{ borderColor: "var(--site-border, #E6E6E4)", ["--tw-divide-color" as string]: "var(--site-border, #E6E6E4)" } as React.CSSProperties}>
         {products.map((product) => {
           const isChecked = checked.has(product.id);
           return (
             <div
               key={product.id}
-              className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${isChecked ? "bg-white" : "bg-[#F7F7F5] opacity-60"}`}
+              className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${isChecked ? "" : "opacity-60"}`}
+              style={{ background: isChecked ? "var(--site-bg, #fff)" : "var(--site-surface, #F7F7F5)" }}
               onClick={() => toggleProduct(product.id)}
             >
               {/* Checkbox */}
-              <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isChecked ? "bg-[var(--site-primary)] border-[var(--site-primary)]" : "border-[#E6E6E4] bg-white"}`}>
+              <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${isChecked ? "bg-[var(--site-primary)] border-[var(--site-primary)]" : ""}`} style={isChecked ? { color: "var(--btn-text, #fff)" } : { borderColor: "var(--site-border, #E6E6E4)", background: "var(--site-bg, #fff)" }}>
                 {isChecked && (
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 )}
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-semibold text-[#1A1A1A]">{product.name}</div>
-                <div className="text-[11px] text-[#999] truncate">{product.shortDescription}</div>
+                <div className="text-[13px] font-semibold" style={{ color: "var(--site-text, #1A1A1A)" }}>{product.name}</div>
+                <div className="text-[11px] truncate" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</div>
               </div>
 
-              <div className="text-[13px] font-medium text-[#1A1A1A] whitespace-nowrap">{formatPrice(product.priceCents)}</div>
+              <div className="text-[13px] font-medium whitespace-nowrap" style={{ color: "var(--site-text, #1A1A1A)" }}>{formatPrice(product.priceCents)}</div>
             </div>
           );
         })}
       </div>
 
       {/* Price summary */}
-      <div className="rounded-xl border border-[#E6E6E4] p-4 mb-5">
+      <div className="rounded-xl border p-4 mb-5" style={{ borderColor: "var(--site-border, #E6E6E4)" }}>
         <div className="flex items-center justify-between mb-1">
-          <span className="text-[12px] text-[#999]">Sous-total</span>
-          <span className="text-[12px] text-[#999] line-through">{formatPrice(totalPrice)}</span>
+          <span className="text-[12px]" style={{ color: "var(--site-muted, #999)" }}>Sous-total</span>
+          <span className="text-[12px] line-through" style={{ color: "var(--site-muted, #999)" }}>{formatPrice(totalPrice)}</span>
         </div>
         {content.discountPercent > 0 && (
           <div className="flex items-center justify-between mb-1">
@@ -98,8 +99,8 @@ function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlo
             <span className="text-[12px] text-[var(--site-primary)] font-medium">-{formatPrice(savings)}</span>
           </div>
         )}
-        <div className="flex items-center justify-between pt-2 border-t border-[#E6E6E4]">
-          <span className="text-[14px] font-bold text-[#1A1A1A]">Total</span>
+        <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: "var(--site-border, #E6E6E4)" }}>
+          <span className="text-[14px] font-bold" style={{ color: "var(--site-text, #1A1A1A)" }}>Total</span>
           <span className="text-xl font-bold text-[var(--site-primary)]">{formatPrice(discountedPrice)}</span>
         </div>
       </div>

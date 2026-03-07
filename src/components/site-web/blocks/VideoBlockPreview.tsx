@@ -47,7 +47,7 @@ function VideoBlockPreviewInner({ content }: { content: VideoBlockContent }) {
           className="w-full rounded-lg"
         />
       ) : (
-        <div className="h-48 bg-[#191919] rounded-lg flex items-center justify-center">
+        <div className="h-48 rounded-lg flex items-center justify-center" style={{ background: "var(--site-surface, #F7F7F5)" }}>
           <div className="text-center">
             <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-2">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="white" stroke="none">
@@ -61,7 +61,7 @@ function VideoBlockPreviewInner({ content }: { content: VideoBlockContent }) {
         </div>
       )}
       {content.caption && (
-        <p className="text-[12px] opacity-60 text-center mt-2">{content.caption}</p>
+        <p className="text-[12px] text-center mt-2" style={{ color: "var(--site-muted)" }}>{content.caption}</p>
       )}
     </div>
   );

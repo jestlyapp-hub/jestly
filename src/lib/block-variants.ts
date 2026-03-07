@@ -25,13 +25,13 @@ const heroVariants: BlockVariant[] = [
     key: "hero-bold",
     name: "Bold",
     description: "Grand titre, fond sombre, impact",
-    style: { paddingTop: 100, paddingBottom: 100, textAlign: "center", containerWidth: "boxed", backgroundColor: "#0A0A0F", textColor: "#ffffff" },
+    style: { paddingTop: 100, paddingBottom: 100, textAlign: "center", containerWidth: "boxed" },
   },
   {
     key: "hero-tech",
     name: "Tech",
     description: "Accent gradient, style moderne",
-    style: { paddingTop: 80, paddingBottom: 80, textAlign: "left", containerWidth: "boxed", backgroundGradient: "linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%)", textColor: "#ffffff" },
+    style: { paddingTop: 80, paddingBottom: 80, textAlign: "left", containerWidth: "boxed" },
   },
   {
     key: "hero-creator",
@@ -109,7 +109,7 @@ const pricingVariants: BlockVariant[] = [
     key: "pricing-dark",
     name: "Plans dark",
     description: "Style sombre premium",
-    style: { paddingTop: 80, paddingBottom: 80, containerWidth: "boxed", backgroundColor: "#0A0A0F", textColor: "#ffffff" },
+    style: { paddingTop: 80, paddingBottom: 80, containerWidth: "boxed" },
   },
 ];
 
@@ -131,7 +131,7 @@ const ctaVariants: BlockVariant[] = [
     key: "cta-dark",
     name: "Dark",
     description: "Fond sombre, CTA impactant",
-    style: { paddingTop: 60, paddingBottom: 60, textAlign: "center", containerWidth: "boxed", backgroundColor: "#0A0A0F", textColor: "#ffffff" },
+    style: { paddingTop: 60, paddingBottom: 60, textAlign: "center", containerWidth: "boxed" },
   },
 ];
 
@@ -153,7 +153,7 @@ const testimonialsVariants: BlockVariant[] = [
     key: "testimonials-dark",
     name: "Dark",
     description: "Fond sombre, style premium",
-    style: { paddingTop: 80, paddingBottom: 80, containerWidth: "boxed", backgroundColor: "#0A0A0F", textColor: "#ffffff" },
+    style: { paddingTop: 80, paddingBottom: 80, containerWidth: "boxed" },
   },
 ];
 
@@ -169,7 +169,7 @@ const faqVariants: BlockVariant[] = [
     key: "faq-dark",
     name: "Dark",
     description: "Style sombre premium",
-    style: { paddingTop: 60, paddingBottom: 60, containerWidth: "narrow", backgroundColor: "#0A0A0F", textColor: "#ffffff" },
+    style: { paddingTop: 60, paddingBottom: 60, containerWidth: "narrow" },
   },
 ];
 
@@ -185,7 +185,7 @@ const contactVariants: BlockVariant[] = [
     key: "contact-dark",
     name: "Dark",
     description: "Fond sombre",
-    style: { paddingTop: 60, paddingBottom: 60, containerWidth: "narrow", backgroundColor: "#0A0A0F", textColor: "#ffffff" },
+    style: { paddingTop: 60, paddingBottom: 60, containerWidth: "narrow" },
   },
 ];
 

@@ -33,7 +33,7 @@ function PlanCard({ name, price, period, description, features, isPopular, ctaLa
       {isPopular && (
         <span
           className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-bold uppercase tracking-wider px-4 py-1 rounded-full"
-          style={{ backgroundColor: "var(--site-primary)", color: "#fff" }}
+          style={{ backgroundColor: "var(--site-primary)", color: "var(--site-text, #fff)" }}
         >
           Populaire
         </span>
@@ -81,7 +81,7 @@ function PlanCard({ name, price, period, description, features, isPopular, ctaLa
         className="block w-full text-center text-[13px] font-semibold px-5 py-3 rounded-lg cursor-pointer transition-all duration-200"
         style={
           isPopular
-            ? { backgroundColor: "var(--site-primary)", color: "#fff", borderRadius: "var(--site-btn-radius)" }
+            ? { backgroundColor: "var(--site-primary)", color: "var(--site-text, #fff)", borderRadius: "var(--site-btn-radius)" }
             : { backgroundColor: "transparent", color: "var(--site-text)", border: "1px solid var(--site-border)", borderRadius: "var(--site-btn-radius)" }
         }
       />
@@ -97,14 +97,28 @@ function PricingModernBlockPreviewInner({ content }: { content: PricingModernBlo
 
   if (isEmpty) {
     return (
-      <div className="py-8 text-center">
-        <div className="text-[13px]" style={{ color: "var(--site-muted)" }}>
-          {mode === "product" ? "Aucun produit selectionne" : "Aucun plan configure"}
+      <section className="py-16 px-4">
+        {(content.title || content.subtitle) && (
+          <div className="text-center mb-8">
+            {content.title && (
+              <h2
+                className="text-3xl font-bold tracking-tight mb-3"
+                style={{ color: "var(--site-text)", fontFamily: "var(--site-heading-font)" }}
+              >
+                {content.title}
+              </h2>
+            )}
+            {content.subtitle && (
+              <p className="text-base max-w-2xl mx-auto" style={{ color: "var(--site-muted)" }}>
+                {content.subtitle}
+              </p>
+            )}
+          </div>
+        )}
+        <div className="text-center text-[13px]" style={{ color: "var(--site-muted)" }}>
+          Aucun produit disponible pour le moment
         </div>
-        <div className="text-[11px] mt-1" style={{ color: "var(--site-muted)", opacity: 0.6 }}>
-          {mode === "product" ? "Ajoutez des produits depuis l\u0027onglet Contenu" : "Ajoutez des plans depuis l\u0027onglet Contenu"}
-        </div>
-      </div>
+      </section>
     );
   }
 

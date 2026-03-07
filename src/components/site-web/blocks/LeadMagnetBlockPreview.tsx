@@ -16,7 +16,7 @@ function LeadMagnetBlockPreviewInner({ content }: { content: LeadMagnetBlockCont
               <polyline points="20 6 9 17 4 12" />
             </svg>
           </div>
-          <p className="text-[13px] font-medium mb-2">{content.successMessage}</p>
+          <p className="text-[13px] font-medium mb-2" style={{ color: "var(--site-text)" }}>{content.successMessage}</p>
           <button
             onClick={() => setSuccess(false)}
             className="text-[11px] text-[var(--site-primary)] hover:underline"
@@ -26,13 +26,14 @@ function LeadMagnetBlockPreviewInner({ content }: { content: LeadMagnetBlockCont
         </div>
       ) : (
         <>
-          <h3 className="text-lg font-bold mb-1">{content.title}</h3>
-          <p className="text-[12px] opacity-60 mb-4">{content.description}</p>
+          <h3 className="text-lg font-bold mb-1" style={{ color: "var(--site-text)" }}>{content.title}</h3>
+          <p className="text-[12px] mb-4" style={{ color: "var(--site-muted)" }}>{content.description}</p>
           <div className="flex gap-2">
             <input
               type="email"
               placeholder="Votre email"
-              className="flex-1 bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none"
+              className="flex-1 border rounded-lg px-3 py-2 text-[13px] focus:outline-none"
+              style={{ background: "var(--site-surface, #F7F7F5)", borderColor: "var(--site-border, #E6E6E4)", color: "var(--site-text, #1A1A1A)" }}
               readOnly
             />
             <button

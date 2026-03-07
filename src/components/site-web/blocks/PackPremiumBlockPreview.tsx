@@ -12,8 +12,8 @@ function PackPremiumBlockPreviewInner({ content }: { content: PackPremiumBlockCo
   if (!product) {
     return (
       <div className="py-8 text-center">
-        <div className="text-[13px] text-[#999]">Aucun produit sélectionné</div>
-        <div className="text-[11px] text-[#ccc] mt-1">Choisissez un pack depuis l&apos;onglet Contenu</div>
+        <div className="text-[13px]" style={{ color: "var(--site-muted, #999)" }}>Aucun produit sélectionné</div>
+        <div className="text-[11px] mt-1" style={{ color: "var(--site-muted, #ccc)" }}>Choisissez un pack depuis l&apos;onglet Contenu</div>
       </div>
     );
   }
@@ -24,15 +24,15 @@ function PackPremiumBlockPreviewInner({ content }: { content: PackPremiumBlockCo
         <div className="absolute inset-0 rounded-xl bg-[var(--site-primary)]/5 border border-[var(--site-primary)]/20" />
       )}
       <div className="relative">
-        <h3 className="text-xl font-bold mb-1">{product.name}</h3>
-        <p className="text-[13px] opacity-60 mb-2">{product.shortDescription}</p>
+        <h3 className="text-xl font-bold mb-1" style={{ color: "var(--site-text)" }}>{product.name}</h3>
+        <p className="text-[13px] mb-2" style={{ color: "var(--site-muted)" }}>{product.shortDescription}</p>
         {content.showPrice && (
           <div className="text-2xl font-bold text-[var(--site-primary)] mb-4">{formatPrice(product.priceCents)}</div>
         )}
         {content.showFeatures && product.features && (
           <ul className="space-y-1.5 mb-4 max-w-xs mx-auto">
             {product.features.map((f, i) => (
-              <li key={i} className="text-[12px] opacity-70 flex items-center gap-2 justify-center">
+              <li key={i} className="text-[12px] flex items-center gap-2 justify-center" style={{ color: "var(--site-text)" }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--site-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                 {f}
               </li>

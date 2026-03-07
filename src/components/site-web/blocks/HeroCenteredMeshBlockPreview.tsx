@@ -5,6 +5,8 @@ import type { HeroCenteredMeshBlockContent } from "@/types";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 function HeroCenteredMeshBlockPreviewInner({ content }: { content: HeroCenteredMeshBlockContent }) {
+  const glow = content.glowColor || "var(--site-primary)";
+
   return (
     <section
       className="relative overflow-hidden py-16 sm:py-24 px-4 sm:px-8"
@@ -15,9 +17,9 @@ function HeroCenteredMeshBlockPreviewInner({ content }: { content: HeroCenteredM
         className="absolute inset-0 pointer-events-none"
         style={{
           background: `
-            radial-gradient(ellipse 50% 40% at 20% 20%, color-mix(in srgb, var(--site-primary) 12%, transparent) 0%, transparent 100%),
-            radial-gradient(ellipse 40% 50% at 80% 30%, color-mix(in srgb, var(--site-primary) 8%, transparent) 0%, transparent 100%),
-            radial-gradient(ellipse 60% 30% at 50% 80%, color-mix(in srgb, var(--site-primary) 6%, transparent) 0%, transparent 100%)
+            radial-gradient(ellipse 50% 40% at 20% 20%, color-mix(in srgb, ${glow} 12%, transparent) 0%, transparent 100%),
+            radial-gradient(ellipse 40% 50% at 80% 30%, color-mix(in srgb, ${glow} 8%, transparent) 0%, transparent 100%),
+            radial-gradient(ellipse 60% 30% at 50% 80%, color-mix(in srgb, ${glow} 6%, transparent) 0%, transparent 100%)
           `,
         }}
       />
@@ -69,7 +71,7 @@ function HeroCenteredMeshBlockPreviewInner({ content }: { content: HeroCenteredM
           className="inline-flex items-center justify-center text-[14px] font-semibold px-8 py-3.5 rounded-[var(--site-btn-radius,8px)] transition-all duration-200 hover:brightness-110 hover:shadow-lg"
           style={{
             background: "var(--site-primary)",
-            color: "#fff",
+            color: "var(--site-text, #fff)",
             boxShadow: "0 0 30px color-mix(in srgb, var(--site-primary) 30%, transparent)",
           }}
         />

@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { Block } from "@/types";
-import { computeSectionStyle, computePublicContainerClass, computeButtonVars, getButtonHoverCSS } from "@/lib/block-style-engine";
+import { computeSectionStyle, computePublicContainerClass, computeButtonVars, getButtonHoverCSS, renderBackgroundConfig } from "@/lib/block-style-engine";
 import HeroBlockPreview from "./HeroBlockPreview";
 import PortfolioGridBlockPreview from "./PortfolioGridBlockPreview";
 import ServicesListBlockPreview from "./ServicesListBlockPreview";
@@ -54,6 +54,10 @@ import BeforeAfterProBlockPreview from "./BeforeAfterProBlockPreview";
 const FULL_BLEED_BLOCKS = new Set([
   "full-image", "video", "hero", "availability-banner",
   "hero-split-glow", "hero-centered-mesh", "cta-banner", "footer-block",
+  "services-premium", "service-cards", "services-list",
+  "portfolio-masonry", "pricing-modern",
+  "testimonials-dark", "contact-premium", "video-showcase",
+  "tech-stack", "before-after-pro", "cta-premium",
 ]);
 
 function BlockPreviewInner({ block }: { block: Block }) {
@@ -64,10 +68,14 @@ function BlockPreviewInner({ block }: { block: Block }) {
   const hoverCSS = getButtonHoverCSS(block.id);
   const isFullBleed = FULL_BLEED_BLOCKS.has(block.type);
 
+  // Per-block background (only if block has an explicit override)
+  const blockBg = block.style.background ? renderBackgroundConfig(block.style.background) : {};
+
   // Merge button CSS variables into section style
   const mergedStyle: React.CSSProperties = {
     ...sectionStyle,
     ...buttonVars,
+    ...blockBg.containerStyle,
   } as React.CSSProperties;
 
   const content = (() => {
@@ -125,10 +133,11 @@ function BlockPreviewInner({ block }: { block: Block }) {
   })();
 
   return (
-    <div data-block={block.id} style={mergedStyle} className="overflow-hidden">
+    <div data-block={block.id} style={mergedStyle} className={`overflow-hidden ${blockBg.overlayStyle ? "relative" : ""}`}>
       {/* Scoped hover CSS for buttons */}
       <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
-      <div className={isFullBleed ? "" : `${containerClass} px-6`}>{content}</div>
+      {blockBg.overlayStyle && <div className="absolute inset-0 pointer-events-none z-0" style={blockBg.overlayStyle} />}
+      <div className={`${isFullBleed ? "" : `${containerClass} px-6`} ${blockBg.overlayStyle ? "relative z-[1]" : ""}`}>{content}</div>
     </div>
   );
 }

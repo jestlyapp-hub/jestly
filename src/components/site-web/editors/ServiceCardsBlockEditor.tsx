@@ -4,9 +4,9 @@ import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
 import ProductMultiSelect from "./ProductMultiSelect";
 import BriefSelect from "./BriefSelect";
+import IconPicker from "@/components/ui/IconPicker";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
-const iconOptions = ["zap", "shield", "heart", "star", "clock", "globe", "palette"];
 
 export default function ServiceCardsBlockEditor({ block }: { block: Extract<Block, { type: "service-cards" }> }) {
   const { dispatch } = useBuilder();
@@ -44,7 +44,7 @@ export default function ServiceCardsBlockEditor({ block }: { block: Extract<Bloc
       <div>
         <label className="block text-[11px] font-medium text-[#999] mb-1">Colonnes</label>
         <div className="flex gap-1.5">
-          {([2, 3] as const).map((n) => (
+          {([2, 3, 4] as const).map((n) => (
             <button key={n} onClick={() => update({ columns: n })} className={`px-3 py-1.5 rounded-lg text-[12px] font-medium ${block.content.columns === n ? "bg-[#4F46E5] text-white" : "bg-[#F7F7F5] text-[#999] border border-[#E6E6E4]"}`}>{n}</button>
           ))}
         </div>
@@ -95,12 +95,8 @@ export default function ServiceCardsBlockEditor({ block }: { block: Extract<Bloc
             {services.map((s, i) => (
               <div key={i} className="rounded-lg border border-[#E6E6E4] p-3 space-y-2 relative">
                 <button onClick={() => removeService(i)} className="absolute top-2 right-2 text-[#999] hover:text-red-500 text-[16px] leading-none">&times;</button>
-                <div className="flex gap-2">
-                  <select value={s.icon} onChange={(e) => updateService(i, "icon", e.target.value)} className={`${inputClass} w-28`}>
-                    {iconOptions.map((ic) => <option key={ic} value={ic}>{ic}</option>)}
-                  </select>
-                  <input type="text" value={s.name} onChange={(e) => updateService(i, "name", e.target.value)} placeholder="Nom" className={inputClass} />
-                </div>
+                <IconPicker value={s.icon} onChange={(key) => updateService(i, "icon", key)} />
+                <input type="text" value={s.name} onChange={(e) => updateService(i, "name", e.target.value)} placeholder="Nom" className={inputClass} />
                 <textarea value={s.description} onChange={(e) => updateService(i, "description", e.target.value)} rows={2} placeholder="Description" className={inputClass} />
                 <div className="flex gap-2">
                   <input type="number" value={s.price ?? ""} onChange={(e) => updateService(i, "price", e.target.value ? Number(e.target.value) : undefined)} placeholder="Prix (optionnel)" className={`${inputClass} w-32`} />

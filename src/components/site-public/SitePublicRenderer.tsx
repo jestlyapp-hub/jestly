@@ -11,7 +11,8 @@ import {
   computeThemeVars,
   resolveTheme,
 } from "@/lib/block-style-engine";
-import { getBackgroundCSS, getNavClass, getButtonClass } from "@/lib/site-designs";
+import { getNavClass } from "@/lib/site-designs";
+import { resolveBackgroundConfig, renderBackgroundConfig } from "@/lib/block-style-engine";
 import { ProductProvider } from "@/lib/product-context";
 import { LinkProvider } from "@/lib/link-context";
 import AnimateOnScroll from "@/components/site-public/AnimateOnScroll";
@@ -130,6 +131,10 @@ function renderBlockContent(block: Block) {
 const FULL_BLEED_BLOCKS = new Set([
   "full-image", "video", "hero", "availability-banner",
   "hero-split-glow", "hero-centered-mesh", "cta-banner", "footer-block",
+  "services-premium", "service-cards", "services-list",
+  "portfolio-masonry", "pricing-modern",
+  "testimonials-dark", "contact-premium", "video-showcase",
+  "tech-stack", "before-after-pro", "cta-premium",
 ]);
 
 // ═══════════════════════════════════════════════
@@ -142,9 +147,13 @@ function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
   const buttonVars = computeButtonVars(block.style.buttonStyle);
   const hoverCSS = getButtonHoverCSS(block.id);
 
+  // Per-block background override
+  const blockBg = block.style.background ? renderBackgroundConfig(block.style.background) : {};
+
   const mergedStyle: React.CSSProperties = {
     ...sectionStyle,
     ...buttonVars,
+    ...blockBg.containerStyle,
   } as React.CSSProperties;
 
   const isFullBleed = FULL_BLEED_BLOCKS.has(block.type);
@@ -154,11 +163,12 @@ function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
       id={block.settings?.anchorId || undefined}
       data-block={block.id}
       style={mergedStyle}
-      className="w-full"
+      className={`w-full ${blockBg.overlayStyle ? "relative" : ""}`}
     >
       <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
+      {blockBg.overlayStyle && <div className="absolute inset-0 pointer-events-none z-0" style={blockBg.overlayStyle} />}
       <AnimateOnScroll animation={block.settings?.animation}>
-        <div className={isFullBleed ? "" : `${containerClass} px-6`}>
+        <div className={`${isFullBleed ? "" : `${containerClass} px-6`} ${blockBg.overlayStyle ? "relative z-[1]" : ""}`}>
           {renderBlockContent(block)}
         </div>
       </AnimateOnScroll>
@@ -174,17 +184,16 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
   const [mobileOpen, setMobileOpen] = useState(false);
   const nav = site.nav;
   if (!nav) return null;
-  const isDark = site.theme.mode === "dark";
   const navStyle = site.design?.navStyle;
   const navClass = navStyle ? getNavClass(navStyle) : "";
 
   return (
     <nav className={`sticky top-0 z-50 border-b ${
-      navClass || (isDark ? "bg-[var(--site-bg,#0A0A0F)]/95 backdrop-blur-sm border-white/10" : "bg-white/95 backdrop-blur-sm border-[#EFEFEF]")
-    }`}>
+      navClass || "backdrop-blur-sm"
+    }`} style={{ backgroundColor: navClass ? undefined : "color-mix(in srgb, var(--site-bg, #fff) 95%, transparent)", borderColor: "var(--site-border)" }}>
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         {/* Logo / Site name */}
-        <a href="/" className={`text-base font-bold tracking-tight ${isDark ? "text-white" : "text-[#191919]"}`}>
+        <a href="/" className="text-base font-bold tracking-tight" style={{ color: "var(--site-text)" }}>
           {site.settings.name}
         </a>
 
@@ -197,11 +206,10 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
               <a
                 key={i}
                 href={href}
-                className={`text-[13px] font-medium transition-colors ${
-                  isActive
-                    ? isDark ? "text-white" : "text-[#191919]"
-                    : isDark ? "text-white/60 hover:text-white" : "text-[#5A5A58] hover:text-[#191919]"
-                }`}
+                className="text-[13px] font-medium transition-colors"
+                style={{ color: isActive ? "var(--site-text)" : "var(--site-muted)" }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "var(--site-text)"; }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "var(--site-muted)"; }}
               >
                 {link.label}
               </a>
@@ -214,8 +222,8 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
           {nav.showCta && nav.ctaLabel && (
             <a
               href={nav.ctaLink?.value ? resolvePageSlug(site, nav.ctaLink.value) : "#"}
-              className="hidden md:inline-flex text-[13px] font-semibold px-4 py-2 rounded-md text-white transition-colors hover:opacity-90"
-              style={{ backgroundColor: site.theme.primaryColor }}
+              className="hidden md:inline-flex text-[13px] font-semibold px-4 py-2 transition-colors hover:opacity-90"
+              style={{ backgroundColor: "var(--btn-bg, var(--site-primary))", color: "var(--btn-text, #fff)", borderRadius: "var(--site-btn-radius, 6px)" }}
             >
               {nav.ctaLabel}
             </a>
@@ -224,7 +232,8 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
           {/* Hamburger button (mobile) */}
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className={`md:hidden p-2 transition-colors ${isDark ? "text-white/60 hover:text-white" : "text-[#5A5A58] hover:text-[#191919]"}`}
+            className="md:hidden p-2 transition-colors"
+            style={{ color: "var(--site-muted)" }}
             aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
           >
             {mobileOpen ? (
@@ -245,7 +254,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className={`md:hidden border-t ${isDark ? "border-white/10 bg-[var(--site-bg,#0A0A0F)]" : "border-[#EFEFEF] bg-white"}`}>
+        <div className="md:hidden border-t" style={{ borderColor: "var(--site-border)", backgroundColor: "var(--site-bg, #fff)" }}>
           <div className="px-6 py-4 space-y-3">
             {nav.links.map((link, i) => {
               const href = link.pageId ? resolvePageSlug(site, link.pageId) : "#";
@@ -254,7 +263,8 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
                   key={i}
                   href={href}
                   onClick={() => setMobileOpen(false)}
-                  className={`block text-sm font-medium transition-colors py-1 ${isDark ? "text-white/60 hover:text-white" : "text-[#5A5A58] hover:text-[#191919]"}`}
+                  className="block text-sm font-medium transition-colors py-1"
+                  style={{ color: "var(--site-muted)" }}
                 >
                   {link.label}
                 </a>
@@ -263,8 +273,8 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
             {nav.showCta && nav.ctaLabel && (
               <a
                 href={nav.ctaLink?.value ? resolvePageSlug(site, nav.ctaLink.value) : "#"}
-                className="block text-center text-sm font-semibold px-4 py-2.5 rounded-md text-white transition-colors mt-2"
-                style={{ backgroundColor: site.theme.primaryColor }}
+                className="block text-center text-sm font-semibold px-4 py-2.5 transition-colors mt-2"
+                style={{ backgroundColor: "var(--btn-bg, var(--site-primary))", color: "var(--btn-text, #fff)", borderRadius: "var(--site-btn-radius, 6px)" }}
               >
                 {nav.ctaLabel}
               </a>
@@ -283,10 +293,9 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
 function SitePublicFooter({ site }: { site: Site }) {
   const footer = site.footer;
   if (!footer) return null;
-  const isDark = site.theme.mode === "dark";
 
   return (
-    <footer className={`py-12 px-6 border-t ${isDark ? "bg-[var(--site-bg,#0A0A0F)] border-white/10" : "bg-[#F7F7F5] border-[#E6E6E4]"}`}>
+    <footer className="py-12 px-6 border-t" style={{ backgroundColor: "var(--site-surface, var(--site-bg, #F7F7F5))", borderColor: "var(--site-border, #E6E6E4)" }}>
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Links */}
@@ -297,7 +306,10 @@ function SitePublicFooter({ site }: { site: Site }) {
                 <a
                   key={i}
                   href={href}
-                  className={`text-[13px] transition-colors ${isDark ? "text-white/50 hover:text-white" : "text-[#5A5A58] hover:text-[#191919]"}`}
+                  className="text-[13px] transition-colors"
+                  style={{ color: "var(--site-muted)" }}
+                  onMouseEnter={e => (e.currentTarget.style.color = "var(--site-text)")}
+                  onMouseLeave={e => (e.currentTarget.style.color = "var(--site-muted)")}
                 >
                   {link.label}
                 </a>
@@ -309,7 +321,7 @@ function SitePublicFooter({ site }: { site: Site }) {
           {footer.showSocials && site.settings.socials && (
             <div className="flex items-center gap-4">
               {site.settings.socials.instagram && (
-                <a href={site.settings.socials.instagram} target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? "text-white/40 hover:text-white" : "text-[#8A8A88] hover:text-[#191919]"}`}>
+                <a href={site.settings.socials.instagram} target="_blank" rel="noopener noreferrer" className="transition-colors" style={{ color: "var(--site-muted)" }} onMouseEnter={e => (e.currentTarget.style.color = "var(--site-text)")} onMouseLeave={e => (e.currentTarget.style.color = "var(--site-muted)")}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="2" width="20" height="20" rx="5" />
                     <circle cx="12" cy="12" r="5" />
@@ -318,14 +330,14 @@ function SitePublicFooter({ site }: { site: Site }) {
                 </a>
               )}
               {site.settings.socials.twitter && (
-                <a href={site.settings.socials.twitter} target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? "text-white/40 hover:text-white" : "text-[#8A8A88] hover:text-[#191919]"}`}>
+                <a href={site.settings.socials.twitter} target="_blank" rel="noopener noreferrer" className="transition-colors" style={{ color: "var(--site-muted)" }} onMouseEnter={e => (e.currentTarget.style.color = "var(--site-text)")} onMouseLeave={e => (e.currentTarget.style.color = "var(--site-muted)")}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
                   </svg>
                 </a>
               )}
               {site.settings.socials.linkedin && (
-                <a href={site.settings.socials.linkedin} target="_blank" rel="noopener noreferrer" className={`transition-colors ${isDark ? "text-white/40 hover:text-white" : "text-[#8A8A88] hover:text-[#191919]"}`}>
+                <a href={site.settings.socials.linkedin} target="_blank" rel="noopener noreferrer" className="transition-colors" style={{ color: "var(--site-muted)" }} onMouseEnter={e => (e.currentTarget.style.color = "var(--site-text)")} onMouseLeave={e => (e.currentTarget.style.color = "var(--site-muted)")}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
                     <rect x="2" y="9" width="4" height="12" />
@@ -338,8 +350,8 @@ function SitePublicFooter({ site }: { site: Site }) {
         </div>
 
         {footer.copyright && (
-          <div className={`mt-8 pt-6 border-t ${isDark ? "border-white/10" : "border-[#E6E6E4]"}`}>
-            <p className={`text-xs text-center ${isDark ? "text-white/30" : "text-[#8A8A88]"}`}>{footer.copyright}</p>
+          <div className="mt-8 pt-6 border-t" style={{ borderColor: "var(--site-border, #E6E6E4)" }}>
+            <p className="text-xs text-center" style={{ color: "var(--site-muted)" }}>{footer.copyright}</p>
           </div>
         )}
       </div>
@@ -370,9 +382,9 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
     return () => document.documentElement.classList.remove("smooth-scroll");
   }, []);
 
-  // Background preset
-  const bgPreset = site.design?.backgroundPreset || "none";
-  const { style: bgStyle, beforeCSS } = getBackgroundCSS(bgPreset);
+  // Background config
+  const siteBgConfig = resolveBackgroundConfig(site.design);
+  const { containerStyle: siteBgContainerStyle, overlayStyle: siteBgOverlayStyle } = renderBackgroundConfig(siteBgConfig);
 
   // Use resolved theme for site-wide styling
   const resolvedSite = { ...site, theme: resolvedTheme };
@@ -381,20 +393,20 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
     <ProductProvider products={products} siteId={site.id}>
       <LinkProvider site={site} products={products}>
         <div
-          className={`min-h-screen flex flex-col ${beforeCSS ? "site-bg-preset" : ""}`}
+          className="min-h-screen flex flex-col relative"
           style={{
             fontFamily: resolvedTheme.fontFamily,
             backgroundColor: resolvedTheme.backgroundColor || (isDark ? "#0A0A0F" : "#ffffff"),
             color: resolvedTheme.textColor || (isDark ? "#FAFAFA" : "#191919"),
             ...themeVars,
-            ...bgStyle,
+            ...siteBgContainerStyle,
           } as React.CSSProperties}
         >
-          {beforeCSS && <style dangerouslySetInnerHTML={{ __html: beforeCSS }} />}
+          {siteBgOverlayStyle && <div className="fixed inset-0 pointer-events-none z-0" style={siteBgOverlayStyle} />}
           <SiteAnalyticsTracker siteId={site.id} pageSlug={page.slug} />
           <SitePublicNav site={resolvedSite} currentSlug={page.slug} />
 
-          <main className="flex-1">
+          <main className="flex-1 relative z-[1]">
             {visibleBlocks.map((block) => (
               <PublicBlockSection key={block.id} block={block} site={resolvedSite} />
             ))}

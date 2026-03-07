@@ -2,9 +2,9 @@
 
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
+import IconPicker from "@/components/ui/IconPicker";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
-const iconOptions = ["zap", "shield", "heart", "star", "clock", "globe", "palette"];
 
 export default function FeatureGridBlockEditor({ block }: { block: Extract<Block, { type: "feature-grid" }> }) {
   const { dispatch } = useBuilder();
@@ -44,9 +44,7 @@ export default function FeatureGridBlockEditor({ block }: { block: Extract<Block
         {features.map((f, i) => (
           <div key={i} className="rounded-lg border border-[#E6E6E4] p-3 space-y-2 relative">
             <button onClick={() => removeFeature(i)} className="absolute top-2 right-2 text-[#999] hover:text-red-500 text-[16px] leading-none">&times;</button>
-            <select value={f.icon} onChange={(e) => updateFeature(i, "icon", e.target.value)} className={inputClass}>
-              {iconOptions.map((ic) => <option key={ic} value={ic}>{ic}</option>)}
-            </select>
+            <IconPicker value={f.icon} onChange={(key) => updateFeature(i, "icon", key)} />
             <input type="text" value={f.title} onChange={(e) => updateFeature(i, "title", e.target.value)} placeholder="Titre" className={inputClass} />
             <textarea value={f.description} onChange={(e) => updateFeature(i, "description", e.target.value)} rows={2} placeholder="Description" className={inputClass} />
           </div>

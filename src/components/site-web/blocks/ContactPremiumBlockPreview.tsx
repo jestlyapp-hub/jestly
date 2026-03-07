@@ -64,7 +64,6 @@ function ContactPremiumBlockPreviewInner({ content }: { content: ContactPremiumB
                   <div key={index}>
                     {labelEl}
                     <textarea
-                      readOnly
                       rows={4}
                       placeholder={field.placeholder || ""}
                       className="w-full px-4 py-3 text-[13px] resize-none transition-colors duration-200 focus:ring-2 focus:ring-[var(--site-primary)] focus:border-transparent"
@@ -109,7 +108,6 @@ function ContactPremiumBlockPreviewInner({ content }: { content: ContactPremiumB
                   {labelEl}
                   <input
                     type={field.type === "phone" ? "tel" : field.type}
-                    readOnly
                     placeholder={field.placeholder || ""}
                     className="w-full px-4 py-3 text-[13px] transition-colors duration-200 focus:ring-2 focus:ring-[var(--site-primary)] focus:border-transparent"
                     style={inputStyle}
@@ -125,7 +123,7 @@ function ContactPremiumBlockPreviewInner({ content }: { content: ContactPremiumB
             className="w-full mt-8 text-[14px] font-semibold px-6 py-3.5 cursor-pointer transition-all duration-200 hover:opacity-90"
             style={{
               backgroundColor: "var(--site-primary)",
-              color: "#fff",
+              color: "var(--site-text, #fff)",
               borderRadius: "var(--site-btn-radius)",
               border: "none",
             }}

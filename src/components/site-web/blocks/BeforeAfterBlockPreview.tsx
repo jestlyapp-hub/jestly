@@ -47,7 +47,7 @@ function BeforeAfterBlockPreviewInner({ content }: { content: BeforeAfterBlockCo
           {content.beforeImageUrl ? (
             <img src={content.beforeImageUrl} alt={content.beforeLabel} className="absolute inset-0 w-full h-full object-cover" style={{ width: containerRef.current?.offsetWidth ?? "100%" }} />
           ) : (
-            <div className="absolute inset-0 bg-[#E6E6E4] flex items-center justify-center text-[11px] text-[#999]" style={{ width: containerRef.current?.offsetWidth ?? "100%" }}>Avant</div>
+            <div className="absolute inset-0 flex items-center justify-center text-[11px]" style={{ background: "var(--site-border, #E6E6E4)", color: "var(--site-muted, #999)", width: containerRef.current?.offsetWidth ?? "100%" }}>Avant</div>
           )}
         </div>
         {/* Slider handle */}

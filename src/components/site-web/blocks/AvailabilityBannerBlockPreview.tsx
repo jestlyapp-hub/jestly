@@ -13,10 +13,10 @@ function AvailabilityBannerBlockPreviewInner({ content }: { content: Availabilit
 
   return (
     <div className="py-4">
-      <div className="flex items-center justify-between gap-4 px-5 py-3 rounded-xl border border-[#E6E6E4] bg-[#FBFBFA]">
+      <div className="flex items-center justify-between gap-4 px-5 py-3 rounded-xl border" style={{ borderColor: "var(--site-border, #E6E6E4)", background: "var(--site-surface, #FBFBFA)" }}>
         <div className="flex items-center gap-3">
           <span className={`w-3 h-3 rounded-full ${color.bg} ring-4 ${color.ring} flex-shrink-0`} />
-          <span className="text-[13px] font-medium">{content.message}</span>
+          <span className="text-[13px] font-medium" style={{ color: "var(--site-text)" }}>{content.message}</span>
         </div>
         {content.ctaLabel && (
           <SmartLinkButton link={content.blockLink} label={content.ctaLabel!} className="px-3 py-1.5 text-[12px] font-semibold cursor-pointer whitespace-nowrap flex-shrink-0" />

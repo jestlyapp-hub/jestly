@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
 import { designPresets, backgroundPresets } from "@/lib/site-designs";
 import { TEMPLATES } from "@/lib/site-templates";
-import type { SiteTheme, SiteDesign, SitePage, Block, BackgroundPreset } from "@/types";
+import type { SiteTheme, SiteDesign, SitePage, Block, BackgroundPreset, BackgroundConfig } from "@/types";
 
 const sectionLabel = "text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-2 block";
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
@@ -235,34 +235,112 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
         <div>
           <span className={sectionLabel}>Fond de page</span>
           <div className="grid grid-cols-4 gap-1.5">
-            {backgroundPresets.map((bp) => (
-              <button
-                key={bp.key}
-                onClick={() => updateDesign({ backgroundPreset: bp.key as BackgroundPreset })}
-                className={`flex flex-col items-center gap-1 py-2 px-1 rounded-md border text-[9px] font-medium transition-all ${
-                  (design?.backgroundPreset || "none") === bp.key
-                    ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
-                    : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
-                }`}
-              >
-                <div
-                  className="w-6 h-6 rounded border border-black/10"
-                  style={(() => {
-                    const bgColor = theme.backgroundColor || "#fff";
-                    if (!bp.css) return { backgroundColor: bgColor };
-                    if (bp.key === "glow") return { backgroundImage: `radial-gradient(ellipse at center, ${theme.primaryColor}40, transparent)`, backgroundColor: bgColor };
-                    if (bp.key === "mesh") return { backgroundImage: `radial-gradient(at 30% 30%, ${theme.primaryColor}30, transparent), radial-gradient(at 70% 70%, ${theme.secondaryColor || theme.primaryColor}20, transparent)`, backgroundColor: bgColor };
-                    if (bp.key === "grid-tech") return { backgroundImage: `repeating-linear-gradient(0deg, #666 0px, transparent 1px, transparent 6px), repeating-linear-gradient(90deg, #666 0px, transparent 1px, transparent 6px)`, backgroundSize: "6px 6px", backgroundColor: bgColor };
-                    if (bp.key === "noise") return { backgroundColor: "#333" };
-                    if (bp.key === "dots") return { backgroundImage: `radial-gradient(circle, #888 1px, transparent 1px)`, backgroundSize: "4px 4px", backgroundColor: bgColor };
-                    if (bp.key === "gradient-radial") return { backgroundImage: `radial-gradient(ellipse at center, #333, #111)` };
-                    return { backgroundColor: bgColor };
-                  })()}
-                />
-                {bp.name}
-              </button>
-            ))}
+            {backgroundPresets.map((bp) => {
+              const activeBgType = design?.background?.type || design?.backgroundPreset || "none";
+              return (
+                <button
+                  key={bp.key}
+                  onClick={() => {
+                    const current = design?.background || { type: design?.backgroundPreset || "none" as BackgroundPreset };
+                    updateDesign({
+                      backgroundPreset: bp.key as BackgroundPreset,
+                      background: { ...current, type: bp.key as BackgroundPreset },
+                    });
+                  }}
+                  className={`flex flex-col items-center gap-1 py-2 px-1 rounded-md border text-[9px] font-medium transition-all ${
+                    activeBgType === bp.key
+                      ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                      : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
+                  }`}
+                >
+                  <div
+                    className="w-6 h-6 rounded border border-black/10"
+                    style={(() => {
+                      const bgColor = theme.backgroundColor || "#fff";
+                      if (!bp.css && bp.key !== "solid") return { backgroundColor: bgColor };
+                      if (bp.key === "solid") return { backgroundColor: theme.primaryColor + "20", border: `1px solid ${theme.primaryColor}40` };
+                      if (bp.key === "glow") return { backgroundImage: `radial-gradient(ellipse at center, ${theme.primaryColor}40, transparent)`, backgroundColor: bgColor };
+                      if (bp.key === "mesh") return { backgroundImage: `radial-gradient(at 30% 30%, ${theme.primaryColor}30, transparent), radial-gradient(at 70% 70%, ${theme.secondaryColor || theme.primaryColor}20, transparent)`, backgroundColor: bgColor };
+                      if (bp.key === "grid-tech") return { backgroundImage: `repeating-linear-gradient(0deg, #666 0px, transparent 1px, transparent 6px), repeating-linear-gradient(90deg, #666 0px, transparent 1px, transparent 6px)`, backgroundSize: "6px 6px", backgroundColor: bgColor };
+                      if (bp.key === "noise") return { backgroundColor: "#333" };
+                      if (bp.key === "dots") return { backgroundImage: `radial-gradient(circle, #888 1px, transparent 1px)`, backgroundSize: "4px 4px", backgroundColor: bgColor };
+                      if (bp.key === "gradient-radial") return { backgroundImage: `radial-gradient(ellipse at center, #333, #111)` };
+                      return { backgroundColor: bgColor };
+                    })()}
+                  />
+                  {bp.name}
+                </button>
+              );
+            })}
           </div>
+
+          {/* Background params */}
+          {(() => {
+            const bgType = design?.background?.type || design?.backgroundPreset || "none";
+            if (bgType === "none") return null;
+            const bgConfig = design?.background || { type: bgType as BackgroundPreset };
+            const updateBg = (patch: Partial<BackgroundConfig>) => {
+              updateDesign({ background: { ...bgConfig, ...patch } });
+            };
+            const showOpacity = ["grid-tech", "dots", "noise"].includes(bgType);
+            const showSize = ["grid-tech", "dots"].includes(bgType);
+            const showBlur = bgType === "glow";
+            const showColors = ["glow", "mesh", "solid"].includes(bgType);
+            if (!showOpacity && !showSize && !showBlur && !showColors) return null;
+            return (
+              <div className="mt-3 space-y-2 pt-2 border-t border-[#E6E6E4]">
+                <span className="text-[9px] font-medium text-[#BBB] uppercase tracking-wider block">Parametres du fond</span>
+                {showColors && (
+                  <div className="grid grid-cols-2 gap-2">
+                    <ColorField label="Couleur 1" value={bgConfig.primaryColor || theme.primaryColor} onChange={(v) => updateBg({ primaryColor: v })} />
+                    {bgType === "mesh" && <ColorField label="Couleur 2" value={bgConfig.secondaryColor || theme.secondaryColor || ""} onChange={(v) => updateBg({ secondaryColor: v })} />}
+                  </div>
+                )}
+                {showOpacity && (
+                  <div>
+                    <label className="block text-[10px] font-medium text-[#BBB] mb-1">Opacite ({Math.round((bgConfig.opacity ?? 0.5) * 100)}%)</label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.05"
+                      value={bgConfig.opacity ?? 0.5}
+                      onChange={(e) => updateBg({ opacity: parseFloat(e.target.value) })}
+                      className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]"
+                    />
+                  </div>
+                )}
+                {showSize && (
+                  <div>
+                    <label className="block text-[10px] font-medium text-[#BBB] mb-1">Taille ({bgConfig.size ?? (bgType === "dots" ? 20 : 40)}px)</label>
+                    <input
+                      type="range"
+                      min="8"
+                      max="80"
+                      step="2"
+                      value={bgConfig.size ?? (bgType === "dots" ? 20 : 40)}
+                      onChange={(e) => updateBg({ size: parseInt(e.target.value) })}
+                      className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]"
+                    />
+                  </div>
+                )}
+                {showBlur && (
+                  <div>
+                    <label className="block text-[10px] font-medium text-[#BBB] mb-1">Etendue ({bgConfig.blur ?? 60}%)</label>
+                    <input
+                      type="range"
+                      min="20"
+                      max="100"
+                      step="5"
+                      value={bgConfig.blur ?? 60}
+                      onChange={(e) => updateBg({ blur: parseInt(e.target.value) })}
+                      className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]"
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
         {/* ── Design Properties ── */}
@@ -299,6 +377,42 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
             <ColorField label="Texte principal" value={theme.textColor || ""} onChange={(v) => updateTheme({ textColor: v })} />
             <ColorField label="Texte secondaire" value={theme.mutedTextColor || ""} onChange={(v) => updateTheme({ mutedTextColor: v })} />
             <ColorField label="Bordures" value={theme.borderColor || ""} onChange={(v) => updateTheme({ borderColor: v })} />
+          </div>
+        </div>
+
+        {/* ── Button Theme Defaults ── */}
+        <div>
+          <span className={sectionLabel}>Boutons (theme)</span>
+          <p className="text-[9px] text-[#888] mb-2">Couleurs par defaut des CTA. Chaque bloc peut overrider.</p>
+          <div className="space-y-2.5">
+            <div className="grid grid-cols-2 gap-2">
+              <ColorField label="Fond bouton" value={theme.buttonBg || ""} onChange={(v) => updateTheme({ buttonBg: v || undefined })} />
+              <ColorField label="Texte bouton" value={theme.buttonText || ""} onChange={(v) => updateTheme({ buttonText: v || undefined })} />
+            </div>
+            <ColorField label="Bordure bouton" value={theme.buttonBorder || ""} onChange={(v) => updateTheme({ buttonBorder: v || undefined })} />
+            <div className="pt-1.5 border-t border-[#E6E6E4]">
+              <span className="text-[9px] font-medium text-[#BBB] uppercase tracking-wider mb-1.5 block">Hover</span>
+              <div className="grid grid-cols-2 gap-2">
+                <ColorField label="Fond hover" value={theme.buttonHoverBg || ""} onChange={(v) => updateTheme({ buttonHoverBg: v || undefined })} />
+                <ColorField label="Texte hover" value={theme.buttonHoverText || ""} onChange={(v) => updateTheme({ buttonHoverText: v || undefined })} />
+              </div>
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                <ColorField label="Bordure hover" value={theme.buttonHoverBorder || ""} onChange={(v) => updateTheme({ buttonHoverBorder: v || undefined })} />
+                <div>
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Scale hover</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="1"
+                    max="1.15"
+                    value={theme.buttonHoverScale ?? ""}
+                    onChange={(e) => updateTheme({ buttonHoverScale: e.target.value ? parseFloat(e.target.value) : undefined })}
+                    placeholder="1.00"
+                    className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -357,9 +471,11 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
             </p>
             <div className="flex gap-2">
               <button
-                className="px-3 py-1.5 text-[11px] font-semibold text-white"
+                className="px-3 py-1.5 text-[11px] font-semibold transition-all"
                 style={{
-                  backgroundColor: theme.primaryColor,
+                  backgroundColor: theme.buttonBg || theme.primaryColor,
+                  color: theme.buttonText || "#fff",
+                  border: theme.buttonBorder ? `1px solid ${theme.buttonBorder}` : "none",
                   borderRadius: theme.buttonRadius === "full" ? "999px" : theme.buttonRadius === "sm" ? "4px" : theme.buttonRadius === "none" ? "0" : "8px",
                 }}
               >

@@ -35,12 +35,12 @@ function CtaBannerBlockPreviewInner({ content }: { content: CtaBannerBlockConten
         <div className="relative z-10 max-w-2xl mx-auto">
           <h2
             className="text-3xl sm:text-4xl font-bold tracking-tight mb-4"
-            style={{ color: "#fff", fontFamily: "var(--site-heading-font)" }}
+            style={{ color: "var(--btn-text, #fff)", fontFamily: "var(--site-heading-font)" }}
           >
             {content.title}
           </h2>
 
-          <p className="text-base sm:text-lg mb-8 max-w-xl mx-auto" style={{ color: "rgba(255,255,255,0.7)" }}>
+          <p className="text-base sm:text-lg mb-8 max-w-xl mx-auto" style={{ color: "var(--btn-text, rgba(255,255,255,0.7))" }}>
             {content.description}
           </p>
 
@@ -52,7 +52,7 @@ function CtaBannerBlockPreviewInner({ content }: { content: CtaBannerBlockConten
               label={content.ctaLabel}
               className="inline-block text-[14px] font-semibold px-7 py-3 cursor-pointer transition-all duration-200 hover:shadow-lg hover:shadow-white/20"
               style={{
-                backgroundColor: "#fff",
+                backgroundColor: "var(--site-bg, #fff)",
                 color: "var(--site-primary)",
                 borderRadius: "var(--site-btn-radius)",
               }}
@@ -66,7 +66,7 @@ function CtaBannerBlockPreviewInner({ content }: { content: CtaBannerBlockConten
                 className="inline-block text-[14px] font-semibold px-7 py-3 cursor-pointer transition-all duration-200 hover:bg-white/10"
                 style={{
                   backgroundColor: "transparent",
-                  color: "#fff",
+                  color: "var(--btn-text, #fff)",
                   border: "1px solid rgba(255,255,255,0.35)",
                   borderRadius: "var(--site-btn-radius)",
                 }}

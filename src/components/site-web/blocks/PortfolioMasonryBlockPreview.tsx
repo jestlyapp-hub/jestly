@@ -108,7 +108,7 @@ function PortfolioMasonryBlockPreviewInner({ content }: { content: PortfolioMaso
 
                     <h3
                       className="text-[15px] font-semibold mb-1"
-                      style={{ color: "#fff" }}
+                      style={{ color: "var(--site-text, #fff)" }}
                     >
                       {item.title}
                     </h3>
@@ -116,7 +116,7 @@ function PortfolioMasonryBlockPreviewInner({ content }: { content: PortfolioMaso
                     {item.description && (
                       <p
                         className="text-[12px] leading-relaxed line-clamp-2"
-                        style={{ color: "rgba(255,255,255,0.7)" }}
+                        style={{ color: "var(--site-muted, rgba(255,255,255,0.7))" }}
                       >
                         {item.description}
                       </p>

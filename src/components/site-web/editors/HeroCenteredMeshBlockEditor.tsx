@@ -93,6 +93,19 @@ export default function HeroCenteredMeshBlockEditor({
         onChange={(link: BlockLink) => update({ blockLink: link })}
       />
 
+      {/* Glow Color */}
+      <div>
+        <label className="block text-[12px] font-medium text-[#5A5A58] mb-1">
+          Couleur du glow
+        </label>
+        <input
+          type="color"
+          className="h-9 w-full rounded-lg border border-[#E6E6E4] bg-[#F7F7F5] cursor-pointer"
+          value={block.content.glowColor ?? "#4F46E5"}
+          onChange={(e) => update({ glowColor: e.target.value })}
+        />
+      </div>
+
       {/* Trust Logos */}
       <div className="pt-2 border-t border-[#E6E6E4]">
         <label className="block text-[12px] font-semibold text-[#1A1A1A] mb-2">

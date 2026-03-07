@@ -9,7 +9,7 @@ export function dbToProduct(row: ProductRow): Product {
   return {
     id: row.id,
     name: row.title,
-    priceCents: Math.round(Number(row.price) * 100),
+    priceCents: Math.round(parseFloat(String(row.price ?? 0).replace(/[€\s]/g, "").replace(",", ".")) * 100) || 0,
     status: row.is_active ? "active" : "draft",
     sales: row.sales_count,
     category: row.category,

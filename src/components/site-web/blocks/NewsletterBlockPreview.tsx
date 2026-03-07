@@ -5,11 +5,14 @@ import { getButtonInlineStyle } from "@/lib/block-style-engine";
 function NewsletterBlockPreviewInner({ content }: { content: NewsletterBlockContent }) {
   return (
     <div className="py-6 text-center max-w-md mx-auto">
-      <h3 className="text-lg font-bold mb-1">{content.title}</h3>
-      <p className="text-[12px] opacity-60 mb-4">{content.description}</p>
+      <h3 className="text-lg font-bold mb-1" style={{ color: "var(--site-text)" }}>{content.title}</h3>
+      <p className="text-[12px] mb-4" style={{ color: "var(--site-muted)" }}>{content.description}</p>
       <div className="flex gap-2">
-        <div className="flex-1 h-10 bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg flex items-center px-3">
-          <span className="text-[12px] text-[#BBB]">{content.placeholder}</span>
+        <div
+          className="flex-1 h-10 rounded-lg flex items-center px-3"
+          style={{ background: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)" }}
+        >
+          <span className="text-[12px]" style={{ color: "var(--site-muted, #BBB)" }}>{content.placeholder}</span>
         </div>
         <span className="btn-styled text-[12px] font-semibold px-4 rounded-lg flex items-center cursor-pointer" style={getButtonInlineStyle()}>
           {content.buttonLabel}

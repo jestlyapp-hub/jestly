@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
 import { getBlockEntry } from "@/lib/block-registry";
-import { computeThemeVars, resolveTheme } from "@/lib/block-style-engine";
+import { computeThemeVars, resolveTheme, resolveBackgroundConfig, renderBackgroundConfig } from "@/lib/block-style-engine";
 import BlockPreview from "@/components/site-web/blocks/BlockPreview";
 import AddBlockModal from "@/components/site-web/builder/AddBlockModal";
 import {
@@ -74,19 +74,18 @@ function SortableBlock({
       ref={setNodeRef}
       style={style}
       {...attributes}
-      {...listeners}
       onClick={() => !isPreview && onSelect()}
       onMouseEnter={() => !isPreview && onHover()}
       onMouseLeave={onLeave}
       className={`relative transition-shadow ${!isPreview ? "cursor-pointer" : ""}`}
     >
-      {/* Block type label on hover/select */}
+      {/* Drag handle + Block type label on hover/select */}
       {(isSelected || isHovered) && (
-        <div className="absolute -top-5 left-2 z-20 flex items-center gap-1">
-          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+        <div className="absolute -top-5 left-2 z-20 flex items-center gap-1" {...listeners}>
+          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded cursor-grab active:cursor-grabbing ${
             isSelected ? "bg-[#4F46E5] text-white" : "bg-white text-[#999] border border-[#E6E6E4] shadow-sm"
           }`}>
-            {entry?.name || block.type}
+            ⠿ {entry?.name || block.type}
           </span>
         </div>
       )}
@@ -186,13 +185,27 @@ export default function BuilderCanvas() {
       >
         <div className={`${isPreview ? "" : "py-4 px-4"}`}>
           <div
-            className={`${isPreview ? "" : "rounded-xl shadow-sm border border-[#E6E6E4] overflow-hidden"}`}
+            className={`${isPreview ? "" : "rounded-xl shadow-sm border border-[#E6E6E4] overflow-hidden"} relative`}
             style={{
               ...computeThemeVars(resolveTheme(state.site.theme, state.site.design)) as React.CSSProperties,
+              ...(() => {
+                const bgConfig = resolveBackgroundConfig(state.site.design);
+                const { containerStyle } = renderBackgroundConfig(bgConfig);
+                return containerStyle || {};
+              })(),
               fontFamily: state.site.theme.fontFamily || undefined,
               backgroundColor: resolveTheme(state.site.theme, state.site.design).backgroundColor || "#ffffff",
             }}
           >
+            {/* Background overlay (grid, dots, noise) */}
+            {(() => {
+              const bgConfig = resolveBackgroundConfig(state.site.design);
+              const { overlayStyle } = renderBackgroundConfig(bgConfig);
+              return overlayStyle ? (
+                <div className="absolute inset-0 pointer-events-none z-0" style={overlayStyle} />
+              ) : null;
+            })()}
+            <div className="relative z-[1]">
             {activePage.blocks.length === 0 && !isPreview && (
               <div className="py-20 text-center">
                 <div className="w-12 h-12 rounded-xl bg-[#F7F7F5] flex items-center justify-center mx-auto mb-3">
@@ -242,6 +255,7 @@ export default function BuilderCanvas() {
                 ) : null}
               </DragOverlay>
             </DndContext>
+            </div>
           </div>
 
           {/* Add block button */}

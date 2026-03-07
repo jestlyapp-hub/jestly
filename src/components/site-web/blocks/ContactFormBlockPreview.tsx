@@ -62,8 +62,8 @@ function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockCo
   if (isPublic) {
     return (
       <div className="py-6 max-w-lg mx-auto">
-        {content.title && <h3 className="text-lg font-bold mb-1">{content.title}</h3>}
-        {content.description && <p className="text-[13px] opacity-50 mb-5">{content.description}</p>}
+        {content.title && <h3 className="text-lg font-bold mb-1" style={{ color: "var(--site-text)" }}>{content.title}</h3>}
+        {content.description && <p className="text-[13px] mb-5" style={{ color: "var(--site-muted)" }}>{content.description}</p>}
         <div className="space-y-3">
           {content.fields.map((field, i) => (
             <div key={i}>
@@ -114,8 +114,8 @@ function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockCo
   // Builder mode: static preview
   return (
     <div className="py-6 max-w-lg mx-auto">
-      {content.title && <h3 className="text-lg font-bold mb-1">{content.title}</h3>}
-      {content.description && <p className="text-[13px] opacity-50 mb-5">{content.description}</p>}
+      {content.title && <h3 className="text-lg font-bold mb-1" style={{ color: "var(--site-text)" }}>{content.title}</h3>}
+      {content.description && <p className="text-[13px] mb-5" style={{ color: "var(--site-muted)" }}>{content.description}</p>}
       <div className="space-y-3">
         {content.fields.map((field, i) => (
           <div key={i}>

@@ -18,15 +18,16 @@ function FaqAdvancedBlockPreviewInner({ content }: { content: FaqAdvancedBlockCo
 
   return (
     <div className="py-4">
-      {content.title && <h3 className="text-lg font-bold mb-4">{content.title}</h3>}
+      {content.title && <h3 className="text-lg font-bold mb-4" style={{ color: "var(--site-text)" }}>{content.title}</h3>}
       <div className="space-y-2">
         {displayItems.map((item, i) => {
           const isOpen = openItems.has(i);
           return (
-            <div key={i} className="rounded-lg border border-[#E6E6E4] overflow-hidden">
+            <div key={i} className="rounded-lg overflow-hidden" style={{ border: "1px solid var(--site-border, #E6E6E4)" }}>
               <button
                 onClick={() => toggle(i)}
-                className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#FBFBFA] transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3 text-left transition-colors"
+                style={{ color: "var(--site-text)" }}
               >
                 <span className="text-[13px] font-medium">{item.question}</span>
                 <svg
@@ -37,7 +38,7 @@ function FaqAdvancedBlockPreviewInner({ content }: { content: FaqAdvancedBlockCo
                 </svg>
               </button>
               {isOpen && (
-                <div className="px-4 pb-3 text-[12px] opacity-60">{item.answer}</div>
+                <div className="px-4 pb-3 text-[12px]" style={{ color: "var(--site-muted)" }}>{item.answer}</div>
               )}
             </div>
           );

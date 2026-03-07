@@ -26,6 +26,9 @@ export default function SlidePanel({ open, onClose, title, children }: SlidePane
 
           {/* Panel */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
             className="fixed top-0 right-0 bottom-0 w-full max-w-lg bg-white border-l border-[#E6E6E4] z-50 flex flex-col shadow-xl"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -37,7 +40,8 @@ export default function SlidePanel({ open, onClose, title, children }: SlidePane
               <h2 className="text-[15px] font-semibold text-[#1A1A1A]">{title}</h2>
               <button
                 onClick={onClose}
-                className="p-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors"
+                aria-label="Fermer"
+                className="p-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors cursor-pointer"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" />
