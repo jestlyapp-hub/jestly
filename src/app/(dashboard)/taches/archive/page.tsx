@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
-import { MOCK_TASKS, PRIORITY_CONFIG, formatDate, type Task } from "@/lib/tasks-utils";
+import { PRIORITY_CONFIG, formatDate, type Task } from "@/lib/tasks-utils";
 import Link from "next/link";
 
 export default function ArchivePage() {
@@ -11,9 +11,6 @@ export default function ArchivePage() {
   const [search, setSearch] = useState("");
   const [restoringId, setRestoringId] = useState<string | null>(null);
 
-  // rawTasks comes from API — if it's an empty array, that's a valid response (no archived tasks).
-  // Only fall back to mock data if rawTasks is null (fetch hasn't completed or failed).
-  // Note: MOCK_TASKS all have archived: false, so mock fallback shows empty — which is correct.
   const tasks = rawTasks ?? [];
 
   const filtered = tasks.filter(

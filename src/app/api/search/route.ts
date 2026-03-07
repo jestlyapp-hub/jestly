@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
-import { searchMockData, type SearchResult, statusLabels } from "@/lib/search-utils";
+import { type SearchResult, statusLabels } from "@/lib/search-utils";
 
 // GET /api/search?q=query
 export async function GET(req: NextRequest) {
@@ -93,7 +93,6 @@ export async function GET(req: NextRequest) {
       }
 
       // Search tasks (include archived — search should find everything)
-      let taskSearchDone = false;
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: dbTasks } = await (supabase.from("tasks") as any)
@@ -102,8 +101,7 @@ export async function GET(req: NextRequest) {
           .or(`title.ilike.${pattern},client_name.ilike.${pattern}`)
           .limit(8);
 
-        if (dbTasks && dbTasks.length > 0) {
-          taskSearchDone = true;
+        if (dbTasks) {
           for (const t of dbTasks) {
             results.push({
               id: t.id,
@@ -116,44 +114,16 @@ export async function GET(req: NextRequest) {
             });
           }
         }
-      } catch {
-        // tasks table query failed — will fall through to mock tasks below
+      } catch (e) {
+        console.error("[/api/search] Task search error:", e);
       }
 
-      // If Supabase task query returned nothing (empty table or query failure),
-      // supplement with mock task search so tasks are always findable
-      if (!taskSearchDone) {
-        const lq = q.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        const { MOCK_TASKS } = await import("@/lib/tasks-utils");
-        for (const t of MOCK_TASKS) {
-          const norm = (s: string) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          if (
-            norm(t.title).includes(lq) ||
-            (t.clientName && norm(t.clientName).includes(lq)) ||
-            t.tags.some((tag) => norm(tag).includes(lq))
-          ) {
-            results.push({
-              id: t.id,
-              type: "task",
-              title: t.title,
-              subtitle: t.clientName || (statusLabels[t.status] ?? t.status),
-              status: t.status,
-              date: t.dueDate,
-              href: `/taches/${t.id}`,
-            });
-          }
-        }
-      }
-
-      if (results.length > 0) {
-        return NextResponse.json({ results });
-      }
+      return NextResponse.json({ results });
     }
-  } catch {
-    // Supabase failed, fall through to mock data
+  } catch (e) {
+    console.error("[/api/search] Auth/DB error:", e);
   }
 
-  // Fallback: search mock data
-  const results = searchMockData(q);
-  return NextResponse.json({ results });
+  // No auth or DB entirely unavailable — return empty results
+  return NextResponse.json({ results: [] });
 }

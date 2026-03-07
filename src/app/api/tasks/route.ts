@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
-import { MOCK_TASKS } from "@/lib/tasks-utils";
 
 // GET /api/tasks — list user's tasks
 export async function GET(req: NextRequest) {
@@ -25,11 +24,11 @@ export async function GET(req: NextRequest) {
   const { data, error } = await query;
 
   if (error) {
-    // Fallback to mock data if table doesn't exist yet
-    const filtered = MOCK_TASKS.filter((t) =>
-      showArchived ? t.archived : !t.archived
+    console.error("[/api/tasks] Supabase query error:", error.message);
+    return NextResponse.json(
+      { error: "Erreur de chargement des taches" },
+      { status: 500 }
     );
-    return NextResponse.json(filtered);
   }
 
   // Map snake_case DB rows to camelCase for frontend

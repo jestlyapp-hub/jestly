@@ -36,7 +36,7 @@ export default function TaskDetailPage() {
   const descRef = useRef<HTMLTextAreaElement>(null);
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load task — try active tasks, then archived, then mock data
+  // Load task from real DB — try active tasks, then archived
   useEffect(() => {
     async function loadTask() {
       setLoading(true);
@@ -44,7 +44,8 @@ export default function TaskDetailPage() {
         // First try active tasks
         const res = await fetch("/api/tasks");
         if (res.ok) {
-          const tasks: Task[] = await res.json();
+          const data = await res.json();
+          const tasks: Task[] = Array.isArray(data) ? data : [];
           const found = tasks.find((t) => t.id === taskId);
           if (found) {
             setTask(found);
@@ -56,7 +57,8 @@ export default function TaskDetailPage() {
         // Try archived tasks
         const res2 = await fetch("/api/tasks?archived=true");
         if (res2.ok) {
-          const archived: Task[] = await res2.json();
+          const data2 = await res2.json();
+          const archived: Task[] = Array.isArray(data2) ? data2 : [];
           const found2 = archived.find((t) => t.id === taskId);
           if (found2) {
             setTask(found2);
@@ -65,21 +67,9 @@ export default function TaskDetailPage() {
           }
         }
 
-        // Fallback: search in MOCK_TASKS directly (for mock task IDs like t1, t2...)
-        const { MOCK_TASKS } = await import("@/lib/tasks-utils");
-        const mockFound = MOCK_TASKS.find((t) => t.id === taskId);
-        if (mockFound) {
-          setTask({ ...mockFound });
-        }
-      } catch {
-        // Last resort: try mock data
-        try {
-          const { MOCK_TASKS } = await import("@/lib/tasks-utils");
-          const mockFound = MOCK_TASKS.find((t) => t.id === taskId);
-          if (mockFound) setTask({ ...mockFound });
-        } catch {
-          // truly nothing found
-        }
+        // Task not found in DB — will show "introuvable" state
+      } catch (e) {
+        console.error("Task load error:", e);
       } finally {
         setLoading(false);
       }

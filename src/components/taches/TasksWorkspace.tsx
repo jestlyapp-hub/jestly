@@ -20,7 +20,6 @@ import {
 import { useDroppable } from "@dnd-kit/core";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import {
-  MOCK_TASKS,
   STATUS_CONFIG,
   COLUMNS_ORDER,
   filterTasks,
@@ -120,14 +119,14 @@ function KanbanColumn({
 
 /* ── Main Workspace ── */
 export default function TasksWorkspace() {
-  const { data: rawTasks, loading, error, setData, mutate } = useApi<Task[]>("/api/tasks", MOCK_TASKS);
+  const { data: rawTasks, loading, error, setData, mutate } = useApi<Task[]>("/api/tasks");
   const [filter, setFilter] = useState<FilterType>("all");
   const [view, setView] = useState<ViewType>("board");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
 
-  const tasks = rawTasks || MOCK_TASKS;
+  const tasks = rawTasks || [];
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
