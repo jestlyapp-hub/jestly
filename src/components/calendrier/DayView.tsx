@@ -13,6 +13,7 @@ import {
   getEventDisplayColor,
   type CalendarEvent,
 } from "@/lib/calendar-utils";
+import OrderDots from "./OrderDots";
 
 const START_HOUR = 6;
 const END_HOUR = 24;
@@ -64,7 +65,8 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
   }, [today]);
 
   const dayEvents = useMemo(() => events.filter((e) => e.date === dateStr), [events, dateStr]);
-  const allDayEvents = dayEvents.filter((e) => e.allDay);
+  const manualAllDay = dayEvents.filter((e) => e.allDay && e.source !== "order");
+  const orderEvents = dayEvents.filter((e) => e.allDay && e.source === "order");
   const timedEvents = dayEvents.filter((e) => !e.allDay && e.startTime);
 
   const getSlotFromPoint = useCallback((clientX: number, clientY: number): string | null => {
@@ -156,30 +158,37 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
         </div>
       </div>
 
-      {/* ─── All-day events ─── */}
-      {allDayEvents.length > 0 && (
+      {/* ─── All-day events + order dots ─── */}
+      {(manualAllDay.length > 0 || orderEvents.length > 0) && (
         <div className="px-4 py-2 border-b border-[#EAEAEA] flex-shrink-0">
-          <div className="space-y-1">
-            {allDayEvents.map((evt) => {
-              const bgColor = getEventDisplayColor(evt);
-              const isOrder = evt.source === "order";
-              return (
-                <button
-                  key={evt.id}
-                  onClick={() => onSelectEvent(evt)}
-                  className="w-full text-left px-3 py-1.5 rounded-md text-[12px] font-semibold text-white hover:brightness-105 transition-all cursor-pointer flex items-center gap-1.5"
-                  style={{ backgroundColor: bgColor }}
-                >
-                  {isOrder && (
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 opacity-80">
-                      <circle cx="12" cy="12" r="10" />
-                      <polyline points="12 6 12 12 16 14" />
-                    </svg>
-                  )}
-                  <span className="truncate">{evt.title}</span>
-                </button>
-              );
-            })}
+          <div className="flex items-center gap-3">
+            {/* Manual all-day events: pills */}
+            {manualAllDay.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {manualAllDay.map((evt) => {
+                  const bgColor = getEventDisplayColor(evt);
+                  return (
+                    <button
+                      key={evt.id}
+                      onClick={() => onSelectEvent(evt)}
+                      className="text-left px-3 py-1.5 rounded-md text-[12px] font-semibold text-white hover:brightness-105 transition-all cursor-pointer truncate max-w-[200px]"
+                      style={{ backgroundColor: bgColor }}
+                    >
+                      {evt.title}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {/* Order events: dots */}
+            {orderEvents.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-medium text-[#AEAEAC] uppercase tracking-wider select-none">
+                  Cmd
+                </span>
+                <OrderDots orders={orderEvents} maxDots={5} onSelect={onSelectEvent} />
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -9,6 +9,7 @@ import {
   type CalendarEvent,
   type MonthDay,
 } from "@/lib/calendar-utils";
+import OrderDots from "./OrderDots";
 
 const WEEK_HEADERS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 const MAX_VISIBLE = 3;
@@ -93,33 +94,49 @@ export default function MonthView({ year, month, events, onSelectEvent, onCreate
                     </span>
                   </div>
 
-                  {/* Events — solid colored pills */}
-                  <div className="space-y-0.5">
-                    {visible.map((evt) => {
-                      const bgColor = getEventDisplayColor(evt);
-                      return (
-                        <button
-                          key={evt.id}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelectEvent(evt);
-                          }}
-                          className="w-full text-left px-1.5 py-[3px] rounded text-[10px] font-semibold text-white truncate hover:brightness-110 transition-all cursor-pointer"
-                          style={{ backgroundColor: bgColor }}
-                        >
-                          {!evt.allDay && evt.startTime && (
-                            <span className="opacity-70 mr-0.5">{evt.startTime}</span>
-                          )}
-                          {evt.title}
-                        </button>
-                      );
-                    })}
-                    {remaining > 0 && (
-                      <div className="text-[10px] text-[#999] font-medium pl-1.5">
-                        +{remaining} de plus
+                  {/* Events */}
+                  {(() => {
+                    const manualEvents = dayEvents.filter((e) => e.source !== "order");
+                    const orderEvts = dayEvents.filter((e) => e.source === "order");
+                    const visibleManual = manualEvents.slice(0, MAX_VISIBLE);
+                    const remainingManual = manualEvents.length - MAX_VISIBLE;
+
+                    return (
+                      <div className="space-y-0.5">
+                        {/* Order dots */}
+                        {orderEvts.length > 0 && (
+                          <div className="px-0.5 py-[2px]">
+                            <OrderDots orders={orderEvts} maxDots={3} onSelect={onSelectEvent} />
+                          </div>
+                        )}
+                        {/* Manual events: pills */}
+                        {visibleManual.map((evt) => {
+                          const bgColor = getEventDisplayColor(evt);
+                          return (
+                            <button
+                              key={evt.id}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onSelectEvent(evt);
+                              }}
+                              className="w-full text-left px-1.5 py-[3px] rounded text-[10px] font-semibold text-white truncate hover:brightness-110 transition-all cursor-pointer"
+                              style={{ backgroundColor: bgColor }}
+                            >
+                              {!evt.allDay && evt.startTime && (
+                                <span className="opacity-70 mr-0.5">{evt.startTime}</span>
+                              )}
+                              {evt.title}
+                            </button>
+                          );
+                        })}
+                        {remainingManual > 0 && (
+                          <div className="text-[10px] text-[#999] font-medium pl-1.5">
+                            +{remainingManual} de plus
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
+                    );
+                  })()}
                 </div>
               );
             })}

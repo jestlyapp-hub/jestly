@@ -13,6 +13,7 @@ import {
   getEventDisplayColor,
   type CalendarEvent,
 } from "@/lib/calendar-utils";
+import OrderDots from "./OrderDots";
 
 const START_HOUR = 6;
 const END_HOUR = 24;
@@ -71,15 +72,21 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     return map;
   }, [events]);
 
-  const allDayByDate = useMemo(() => {
-    const map: Record<string, CalendarEvent[]> = {};
+  const { manualAllDayByDate, ordersByDate } = useMemo(() => {
+    const manual: Record<string, CalendarEvent[]> = {};
+    const orders: Record<string, CalendarEvent[]> = {};
     for (const evt of events) {
       if (evt.allDay) {
-        if (!map[evt.date]) map[evt.date] = [];
-        map[evt.date].push(evt);
+        if (evt.source === "order") {
+          if (!orders[evt.date]) orders[evt.date] = [];
+          orders[evt.date].push(evt);
+        } else {
+          if (!manual[evt.date]) manual[evt.date] = [];
+          manual[evt.date].push(evt);
+        }
       }
     }
-    return map;
+    return { manualAllDayByDate: manual, ordersByDate: orders };
   }, [events]);
 
   const getSlotFromPoint = useCallback((clientX: number, clientY: number): { date: string; time: string } | null => {
@@ -154,7 +161,10 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     hasMoved.current = false;
   }, [interaction, events, onSelectEvent, onCreateEvent, onMoveEvent]);
 
-  const hasAllDay = weekDays.some((d) => (allDayByDate[toDateStr(d)] || []).length > 0);
+  const hasAllDay = weekDays.some((d) => {
+    const ds = toDateStr(d);
+    return (manualAllDayByDate[ds] || []).length > 0 || (ordersByDate[ds] || []).length > 0;
+  });
 
   const pct = (hour: number) => ((hour - START_HOUR) / HOUR_RANGE) * 100;
 
@@ -198,10 +208,12 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
           </div>
           {weekDays.map((d) => {
             const dateStr = toDateStr(d);
-            const dayAllDay = allDayByDate[dateStr] || [];
+            const dayManual = manualAllDayByDate[dateStr] || [];
+            const dayOrders = ordersByDate[dateStr] || [];
             return (
-              <div key={dateStr} className="px-0.5 py-1 space-y-0.5 min-h-[28px]">
-                {dayAllDay.map((evt) => {
+              <div key={dateStr} className="px-0.5 py-1 space-y-0.5 min-h-[28px] flex flex-col justify-center">
+                {/* Manual all-day events: pills */}
+                {dayManual.map((evt) => {
                   const bgColor = getEventDisplayColor(evt);
                   return (
                     <button
@@ -214,6 +226,12 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                     </button>
                   );
                 })}
+                {/* Order events: dots */}
+                {dayOrders.length > 0 && (
+                  <div className="px-1">
+                    <OrderDots orders={dayOrders} maxDots={3} onSelect={onSelectEvent} />
+                  </div>
+                )}
               </div>
             );
           })}
