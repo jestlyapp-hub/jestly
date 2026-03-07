@@ -70,10 +70,11 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({
-      id: Math.random().toString(36).slice(2, 10),
-      ...mapRecordToTask(record),
-    });
+    console.error("[/api/tasks POST] Supabase insert error:", error.message);
+    return NextResponse.json(
+      { error: "Erreur lors de la creation de la tache" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json(mapRowToTask(data), { status: 201 });
@@ -123,7 +124,11 @@ export async function PATCH(req: NextRequest) {
     .single();
 
   if (error) {
-    return NextResponse.json({ id, ...fields, updated_at: update.updated_at });
+    console.error("[/api/tasks PATCH] Supabase update error:", error.message);
+    return NextResponse.json(
+      { error: "Erreur lors de la mise a jour de la tache" },
+      { status: 500 }
+    );
   }
 
   return NextResponse.json(mapRowToTask(data));
@@ -170,25 +175,5 @@ function mapRowToTask(row: any) {
     archivedAt: row.archived_at || undefined,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-  };
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapRecordToTask(rec: any) {
-  return {
-    title: rec.title,
-    description: rec.description || undefined,
-    status: rec.status,
-    priority: rec.priority,
-    dueDate: rec.due_date || undefined,
-    clientId: rec.client_id || undefined,
-    clientName: rec.client_name || undefined,
-    orderId: rec.order_id || undefined,
-    orderTitle: rec.order_title || undefined,
-    tags: rec.tags || [],
-    subtasks: rec.subtasks || [],
-    archived: !!rec.archived_at,
-    createdAt: rec.created_at,
-    updatedAt: rec.updated_at,
   };
 }

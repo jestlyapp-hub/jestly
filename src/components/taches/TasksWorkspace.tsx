@@ -186,20 +186,37 @@ export default function TasksWorkspace() {
     setDrawerOpen(true);
   }
 
-  function handleAddQuick(title: string, status: TaskStatus) {
+  async function handleAddQuick(title: string, status: TaskStatus) {
     const newTask = createEmptyTask(status);
     newTask.title = title;
     setData((prev) => [newTask, ...(prev || [])]);
-    apiFetch("/api/tasks", { method: "POST", body: newTask }).catch((e) => console.error("Task sync error:", e));
+    try {
+      const saved = await apiFetch<Task>("/api/tasks", { method: "POST", body: newTask });
+      // Replace optimistic task with DB-returned task (has real ID)
+      setData((prev) => (prev || []).map((t) => (t.id === newTask.id ? saved : t)));
+    } catch (e) {
+      console.error("Task create error:", e);
+      // Rollback optimistic add
+      setData((prev) => (prev || []).filter((t) => t.id !== newTask.id));
+    }
   }
 
-  function handleAddNew() {
+  async function handleAddNew() {
     const newTask = createEmptyTask("todo");
     newTask.title = "Nouvelle tache";
     setData((prev) => [newTask, ...(prev || [])]);
     setSelectedTask(newTask);
     setDrawerOpen(true);
-    apiFetch("/api/tasks", { method: "POST", body: newTask }).catch((e) => console.error("Task sync error:", e));
+    try {
+      const saved = await apiFetch<Task>("/api/tasks", { method: "POST", body: newTask });
+      // Replace optimistic task with DB-returned task (has real ID)
+      setData((prev) => (prev || []).map((t) => (t.id === newTask.id ? saved : t)));
+      setSelectedTask(saved);
+    } catch (e) {
+      console.error("Task create error:", e);
+      setData((prev) => (prev || []).filter((t) => t.id !== newTask.id));
+      setDrawerOpen(false);
+    }
   }
 
   function handleDelete(id: string) {

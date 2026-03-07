@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
         const { data: dbTasks } = await (supabase.from("tasks") as any)
           .select("id, title, status, priority, due_date, client_name, tags, archived_at")
           .eq("user_id", user.id)
-          .or(`title.ilike.${pattern},client_name.ilike.${pattern}`)
+          .or(`title.ilike.${pattern},client_name.ilike.${pattern},description.ilike.${pattern}`)
           .limit(8);
 
         if (dbTasks) {
