@@ -96,7 +96,13 @@ async function ensureCalendarTable(): Promise<boolean> {
 // ─── Helpers ───
 
 function isTableMissingError(error: { code?: string; message?: string }): boolean {
-  return error.code === "42P01" || (error.message || "").includes("does not exist");
+  const msg = (error.message || "").toLowerCase();
+  return (
+    error.code === "42P01" ||
+    msg.includes("does not exist") ||
+    msg.includes("could not find the table") ||
+    msg.includes("schema cache")
+  );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -160,13 +166,17 @@ export async function GET() {
     console.warn("[calendar GET] Table missing, attempting auto-migration...");
     const migrated = await ensureCalendarTable();
     if (migrated) {
-      // Wait briefly for PostgREST schema cache to refresh
-      await new Promise((r) => setTimeout(r, 1000));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = await (supabase.from("calendar_events") as any)
-        .select("*")
-        .eq("user_id", user.id)
-        .order("date", { ascending: true });
+      // Wait for PostgREST schema cache to refresh, then retry (up to 2 attempts)
+      for (const delay of [2000, 3000]) {
+        await new Promise((r) => setTimeout(r, delay));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        result = await (supabase.from("calendar_events") as any)
+          .select("*")
+          .eq("user_id", user.id)
+          .order("date", { ascending: true });
+        if (!result.error) break;
+        console.warn(`[calendar GET] Retry after ${delay}ms still failed:`, result.error.message);
+      }
     }
   }
 
@@ -264,12 +274,17 @@ export async function POST(req: NextRequest) {
     console.warn("[calendar POST] Table missing, attempting auto-migration...");
     const migrated = await ensureCalendarTable();
     if (migrated) {
-      await new Promise((r) => setTimeout(r, 1000));
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      result = await (supabase.from("calendar_events") as any)
-        .insert(payload)
-        .select()
-        .single();
+      // Wait for PostgREST schema cache to refresh, then retry (up to 2 attempts)
+      for (const delay of [2000, 3000]) {
+        await new Promise((r) => setTimeout(r, delay));
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        result = await (supabase.from("calendar_events") as any)
+          .insert(payload)
+          .select()
+          .single();
+        if (!result.error) break;
+        console.warn(`[calendar POST] Retry after ${delay}ms still failed:`, result.error.message);
+      }
     }
   }
 
