@@ -42,24 +42,44 @@ export async function GET() {
     // Table doesn't exist yet — fallback to mock
   }
 
-  // Fetch orders with deadlines (products table, not services)
+  // Fetch orders — use services(title) to match actual DB schema
+  // (migration 017 renamed services→products but was not applied to production)
   let orderEvents: CalendarEvent[] = [];
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: orders } = await (supabase.from("orders") as any)
-      .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email), products(name)")
+    let ordersResult = await (supabase.from("orders") as any)
+      .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email), services(title)")
       .eq("user_id", user.id);
+
+    // Fallback: if services join fails (migration 017 WAS applied), try products
+    if (ordersResult.error || !ordersResult.data) {
+      ordersResult = await (supabase.from("orders") as any)
+        .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email), products(name)")
+        .eq("user_id", user.id);
+    }
+
+    // Last resort: no joins at all — just get order data
+    if (ordersResult.error || !ordersResult.data) {
+      ordersResult = await (supabase.from("orders") as any)
+        .select("id, title, deadline, status, amount, priority, notes, created_at")
+        .eq("user_id", user.id);
+    }
+
+    const orders = ordersResult.data;
 
     if (orders) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       orderEvents = orders.filter((o: any) => o.deadline || o.created_at).map((o: any) => {
         // Use deadline if available, otherwise fall back to created_at
         const hasDeadline = !!o.deadline;
-        const eventDate = hasDeadline
-          ? (typeof o.deadline === "string" ? o.deadline.substring(0, 10) : new Date(o.deadline).toISOString().substring(0, 10))
-          : (typeof o.created_at === "string" ? o.created_at.substring(0, 10) : new Date(o.created_at).toISOString().substring(0, 10));
+        const rawDate = hasDeadline ? o.deadline : o.created_at;
+        // Extract YYYY-MM-DD from timestamptz string, avoiding UTC timezone shift
+        const eventDate = typeof rawDate === "string"
+          ? rawDate.substring(0, 10)
+          : new Date(rawDate).toISOString().substring(0, 10);
 
-        const productName = o.products?.name || o.title || "Commande";
+        // Product name: services join (old schema) or products join (new schema) or order title
+        const productName = o.services?.title || o.products?.name || o.title || "Commande";
         const clientName = o.clients?.name || "Client";
 
         return {
@@ -78,7 +98,7 @@ export async function GET() {
           orderPrice: o.amount,
           clientName: o.clients?.name,
           clientEmail: o.clients?.email,
-          productName: o.products?.name || o.title,
+          productName,
         } as CalendarEvent;
       });
     }

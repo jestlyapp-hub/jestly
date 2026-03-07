@@ -1,3 +1,3 @@
 # BLOCKERS
 
-No blockers encountered during Calendar V2.2 sprint.
+No blockers encountered during Calendar deadline mapping fix sprint.
