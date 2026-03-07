@@ -60,29 +60,35 @@ export const PRIORITY_CONFIG: Record<
 
 // ── Helpers ──
 
-export type FilterType = "all" | "urgent" | "week" | "overdue";
+export type FilterType = "all" | "today" | "upcoming" | "overdue" | "urgent";
 
 export function filterTasks(
   tasks: Task[],
   filter: FilterType
 ): Task[] {
-  if (filter === "urgent") {
-    return tasks.filter((t) => t.priority === "urgent" || t.priority === "high");
-  }
-  if (filter === "week") {
-    const now = new Date();
-    const endOfWeek = new Date(now);
-    endOfWeek.setDate(now.getDate() + (7 - now.getDay()));
-    endOfWeek.setHours(23, 59, 59, 999);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+
+  if (filter === "today") {
     return tasks.filter((t) => {
       if (!t.dueDate) return false;
       const d = new Date(t.dueDate);
-      return d <= endOfWeek;
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === now.getTime();
+    });
+  }
+  if (filter === "upcoming") {
+    const inSevenDays = new Date(now);
+    inSevenDays.setDate(inSevenDays.getDate() + 7);
+    return tasks.filter((t) => {
+      if (!t.dueDate) return false;
+      if (t.status === "done" || t.status === "completed") return false;
+      const d = new Date(t.dueDate);
+      d.setHours(0, 0, 0, 0);
+      return d >= now && d <= inSevenDays;
     });
   }
   if (filter === "overdue") {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0);
     return tasks.filter((t) => {
       if (!t.dueDate) return false;
       if (t.status === "done" || t.status === "completed") return false;
@@ -91,7 +97,99 @@ export function filterTasks(
       return d < now;
     });
   }
+  if (filter === "urgent") {
+    return tasks.filter((t) => t.priority === "urgent" || t.priority === "high");
+  }
   return tasks;
+}
+
+// ── Task Templates ──
+
+export interface TaskTemplate {
+  id: string;
+  name: string;
+  description: string;
+  subtasks: string[];
+  tags: string[];
+  priority: TaskPriority;
+}
+
+export const TASK_TEMPLATES: TaskTemplate[] = [
+  {
+    id: "tpl-video",
+    name: "Video YouTube",
+    description: "Workflow complet pour une video YouTube",
+    subtasks: ["Ecrire le script", "Montage video", "Creer la thumbnail", "Upload + SEO", "Publier"],
+    tags: ["video", "youtube"],
+    priority: "high",
+  },
+  {
+    id: "tpl-seo",
+    name: "Audit SEO",
+    description: "Audit SEO complet d'un site client",
+    subtasks: ["Analyse technique", "Audit de contenu", "Analyse backlinks", "Rapport + recommandations"],
+    tags: ["seo", "audit"],
+    priority: "medium",
+  },
+  {
+    id: "tpl-design",
+    name: "Livraison design",
+    description: "Livraison d'un projet design client",
+    subtasks: ["Concept initial", "Revisions client", "Version finale", "Export fichiers sources", "Livraison"],
+    tags: ["design", "livraison"],
+    priority: "high",
+  },
+  {
+    id: "tpl-social",
+    name: "Pack reseaux sociaux",
+    description: "Creation d'un pack de contenu social",
+    subtasks: ["Briefing client", "Creation visuels", "Redaction textes", "Revisions", "Livraison"],
+    tags: ["social-media", "contenu"],
+    priority: "medium",
+  },
+  {
+    id: "tpl-motion",
+    name: "Animation / Motion",
+    description: "Projet d'animation ou motion design",
+    subtasks: ["Storyboard", "Design des assets", "Animation", "Sound design", "Export final"],
+    tags: ["motion", "animation"],
+    priority: "high",
+  },
+];
+
+export function createTaskFromTemplate(template: TaskTemplate, clientName?: string): Task {
+  const now = new Date().toISOString();
+  return {
+    id: createId(),
+    title: template.name + (clientName ? ` — ${clientName}` : ""),
+    description: template.description,
+    status: "todo",
+    priority: template.priority,
+    tags: [...template.tags],
+    subtasks: template.subtasks.map((text) => ({
+      id: createId(),
+      text,
+      done: false,
+    })),
+    clientName,
+    archived: false,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function duplicateTask(task: Task): Task {
+  const now = new Date().toISOString();
+  return {
+    ...task,
+    id: createId(),
+    title: `${task.title} (copie)`,
+    status: "todo",
+    archived: false,
+    subtasks: task.subtasks.map((s) => ({ ...s, id: createId(), done: false })),
+    createdAt: now,
+    updatedAt: now,
+  };
 }
 
 export function getOverdueCount(tasks: Task[]): number {

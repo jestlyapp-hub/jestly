@@ -12,6 +12,7 @@ import {
   getDueDateStatus,
   formatDate,
   createId,
+  duplicateTask,
   type Task,
   type TaskStatus,
   type TaskPriority,
@@ -165,6 +166,46 @@ export default function TaskDetailPage() {
   function removeTag(tag: string) {
     if (!task) return;
     update({ tags: task.tags.filter((t) => t !== tag) });
+  }
+
+  async function handleDuplicate() {
+    if (!task) return;
+    const dup = duplicateTask(task);
+    try {
+      const saved = await apiFetch<Task>("/api/tasks", { method: "POST", body: dup });
+      router.push(`/taches/${saved.id}`);
+    } catch (e) {
+      console.error("Duplicate error:", e);
+    }
+  }
+
+  async function handleSchedule(date: string, startTime?: string) {
+    if (!task) return;
+    try {
+      await apiFetch("/api/calendar/events", {
+        method: "POST",
+        body: {
+          title: task.title,
+          category: "session",
+          date,
+          startTime: startTime || null,
+          endTime: startTime ? (() => {
+            const [h, m] = startTime.split(":").map(Number);
+            return `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+          })() : null,
+          allDay: !startTime,
+          notes: `Tache liee: ${task.title}`,
+          priority: task.priority,
+          clientName: task.clientName || null,
+          clientId: task.clientId || null,
+        },
+      });
+      if (!task.dueDate) {
+        update({ dueDate: date });
+      }
+    } catch (e) {
+      console.error("Schedule error:", e);
+    }
   }
 
   async function handleArchive() {
@@ -545,6 +586,21 @@ export default function TaskDetailPage() {
               Actions
             </label>
 
+            {/* Schedule */}
+            <ScheduleButton onSchedule={handleSchedule} defaultDate={task.dueDate} />
+
+            {/* Duplicate */}
+            <button
+              onClick={handleDuplicate}
+              className="w-full flex items-center gap-2 text-[13px] text-[#666] font-medium px-3 py-2.5 rounded-lg hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              Dupliquer
+            </button>
+
             <button
               onClick={handleArchive}
               className="w-full flex items-center gap-2 text-[13px] text-[#666] font-medium px-3 py-2.5 rounded-lg hover:bg-[#F7F7F5] transition-colors cursor-pointer"
@@ -595,5 +651,69 @@ export default function TaskDetailPage() {
         </div>
       </div>
     </motion.div>
+  );
+}
+
+/* ── Schedule Button (inline in task page sidebar) ── */
+function ScheduleButton({
+  onSchedule,
+  defaultDate,
+}: {
+  onSchedule: (date: string, startTime?: string) => void;
+  defaultDate?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [date, setDate] = useState(defaultDate || new Date().toISOString().slice(0, 10));
+  const [time, setTime] = useState("");
+
+  if (!open) {
+    return (
+      <button
+        onClick={() => { setDate(defaultDate || new Date().toISOString().slice(0, 10)); setOpen(true); }}
+        className="w-full flex items-center gap-2 text-[13px] text-[#4F46E5] font-medium px-3 py-2.5 rounded-lg hover:bg-[#EEF2FF] transition-colors cursor-pointer"
+      >
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        Planifier au calendrier
+      </button>
+    );
+  }
+
+  return (
+    <div className="bg-[#FBFBFA] border border-[#E6E6E4] rounded-lg p-3 space-y-2">
+      <div className="flex gap-2">
+        <input
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+          className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[12px] focus:outline-none focus:border-[#4F46E5]/30"
+        />
+        <input
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+          className="w-24 bg-white border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[12px] focus:outline-none focus:border-[#4F46E5]/30"
+        />
+      </div>
+      <div className="flex gap-2">
+        <button
+          onClick={() => { onSchedule(date, time || undefined); setOpen(false); }}
+          disabled={!date}
+          className="text-[11px] text-white bg-[#4F46E5] hover:bg-[#4338CA] px-3 py-1.5 rounded-lg transition-colors cursor-pointer disabled:opacity-30"
+        >
+          Ajouter
+        </button>
+        <button
+          onClick={() => setOpen(false)}
+          className="text-[11px] text-[#666] px-2 py-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+        >
+          Annuler
+        </button>
+      </div>
+    </div>
   );
 }

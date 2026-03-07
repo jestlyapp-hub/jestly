@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
-import { motion } from "framer-motion";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
   closestCorners,
@@ -26,9 +26,13 @@ import {
   sortByPriority,
   createEmptyTask,
   getOverdueCount,
+  duplicateTask,
+  TASK_TEMPLATES,
+  createTaskFromTemplate,
   type Task,
   type TaskStatus,
   type FilterType,
+  type TaskTemplate,
 } from "@/lib/tasks-utils";
 import TaskCard from "./TaskCard";
 import TaskDetailDrawer from "./TaskDetailDrawer";
@@ -117,6 +121,122 @@ function KanbanColumn({
   );
 }
 
+/* ── Global Quick Capture Bar ── */
+function QuickCaptureBar({ onAdd }: { onAdd: (title: string) => void }) {
+  const [value, setValue] = useState("");
+  const [focused, setFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcut: N to focus
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "n" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, []);
+
+  function handleSubmit() {
+    if (!value.trim()) return;
+    onAdd(value.trim());
+    setValue("");
+  }
+
+  return (
+    <div className={`relative transition-all ${focused ? "ring-2 ring-[#4F46E5]/20 rounded-xl" : ""}`}>
+      <div className="flex items-center bg-white border border-[#E6E6E4] rounded-xl overflow-hidden">
+        <div className="pl-4 pr-2 text-[#BBB]">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" />
+            <line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+        </div>
+        <input
+          ref={inputRef}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSubmit();
+            if (e.key === "Escape") { setValue(""); inputRef.current?.blur(); }
+          }}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          placeholder="Nouvelle tache... (appuyer N)"
+          className="flex-1 py-3 px-2 text-[14px] text-[#1A1A1A] placeholder-[#CCC] border-none outline-none bg-transparent"
+        />
+        {value.trim() && (
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 mr-1 text-[12px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-lg transition-colors cursor-pointer"
+          >
+            Creer
+          </button>
+        )}
+        <div className="pr-3">
+          <kbd className="text-[10px] text-[#BBB] bg-[#F7F7F5] px-1.5 py-0.5 rounded border border-[#EFEFEF]">
+            Enter
+          </kbd>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Template Picker Modal ── */
+function TemplatePicker({
+  open,
+  onClose,
+  onSelect,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSelect: (template: TaskTemplate) => void;
+}) {
+  if (!open) return null;
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/10 z-40" onClick={onClose} />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl border border-[#E6E6E4] shadow-xl z-50">
+        <div className="px-5 py-4 border-b border-[#E6E6E4] flex items-center justify-between">
+          <h3 className="text-[15px] font-semibold text-[#1A1A1A]">Creer depuis un modele</h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] cursor-pointer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+        <div className="p-3 space-y-1 max-h-[60vh] overflow-y-auto">
+          {TASK_TEMPLATES.map((tpl) => (
+            <button
+              key={tpl.id}
+              onClick={() => { onSelect(tpl); onClose(); }}
+              className="w-full text-left p-3 rounded-lg hover:bg-[#F7F7F5] transition-colors cursor-pointer group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[14px] font-medium text-[#1A1A1A] group-hover:text-[#4F46E5] transition-colors">
+                  {tpl.name}
+                </span>
+                <span className="text-[11px] text-[#BBB]">{tpl.subtasks.length} sous-taches</span>
+              </div>
+              <p className="text-[12px] text-[#999] mt-0.5">{tpl.description}</p>
+              <div className="flex gap-1 mt-1.5">
+                {tpl.tags.map((tag) => (
+                  <span key={tag} className="text-[10px] text-[#666] bg-[#F0F0F0] px-1.5 py-[1px] rounded">{tag}</span>
+                ))}
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  );
+}
+
 /* ── Main Workspace ── */
 export default function TasksWorkspace() {
   const { data: rawTasks, loading, error, setData, mutate } = useApi<Task[]>("/api/tasks");
@@ -125,6 +245,7 @@ export default function TasksWorkspace() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
 
   const tasks = rawTasks || [];
 
@@ -148,14 +269,25 @@ export default function TasksWorkspace() {
 
   // ── Handlers ──
 
+  const persistNewTask = useCallback(async (newTask: Task) => {
+    setData((prev) => [newTask, ...(prev || [])]);
+    try {
+      const saved = await apiFetch<Task>("/api/tasks", { method: "POST", body: newTask });
+      setData((prev) => (prev || []).map((t) => (t.id === newTask.id ? saved : t)));
+      return saved;
+    } catch (e) {
+      console.error("Task create error:", e);
+      setData((prev) => (prev || []).filter((t) => t.id !== newTask.id));
+      return null;
+    }
+  }, [setData]);
+
   const updateTaskLocally = useCallback(
     (updatedTask: Task) => {
       setData((prev) =>
         (prev || []).map((t) => (t.id === updatedTask.id ? updatedTask : t))
       );
-      // Also update selectedTask in drawer
       setSelectedTask(updatedTask);
-      // Persist — send only the fields the API knows how to map
       apiFetch("/api/tasks", {
         method: "PATCH",
         body: {
@@ -186,36 +318,74 @@ export default function TasksWorkspace() {
     setDrawerOpen(true);
   }
 
+  async function handleQuickCapture(title: string) {
+    const newTask = createEmptyTask("todo");
+    newTask.title = title;
+    await persistNewTask(newTask);
+  }
+
   async function handleAddQuick(title: string, status: TaskStatus) {
     const newTask = createEmptyTask(status);
     newTask.title = title;
-    setData((prev) => [newTask, ...(prev || [])]);
-    try {
-      const saved = await apiFetch<Task>("/api/tasks", { method: "POST", body: newTask });
-      // Replace optimistic task with DB-returned task (has real ID)
-      setData((prev) => (prev || []).map((t) => (t.id === newTask.id ? saved : t)));
-    } catch (e) {
-      console.error("Task create error:", e);
-      // Rollback optimistic add
-      setData((prev) => (prev || []).filter((t) => t.id !== newTask.id));
-    }
+    await persistNewTask(newTask);
   }
 
   async function handleAddNew() {
     const newTask = createEmptyTask("todo");
     newTask.title = "Nouvelle tache";
-    setData((prev) => [newTask, ...(prev || [])]);
     setSelectedTask(newTask);
     setDrawerOpen(true);
-    try {
-      const saved = await apiFetch<Task>("/api/tasks", { method: "POST", body: newTask });
-      // Replace optimistic task with DB-returned task (has real ID)
-      setData((prev) => (prev || []).map((t) => (t.id === newTask.id ? saved : t)));
+    const saved = await persistNewTask(newTask);
+    if (saved) setSelectedTask(saved);
+    else setDrawerOpen(false);
+  }
+
+  async function handleCreateFromTemplate(template: TaskTemplate) {
+    const newTask = createTaskFromTemplate(template);
+    setSelectedTask(newTask);
+    setDrawerOpen(true);
+    const saved = await persistNewTask(newTask);
+    if (saved) setSelectedTask(saved);
+    else setDrawerOpen(false);
+  }
+
+  async function handleDuplicate(task: Task) {
+    const dup = duplicateTask(task);
+    setDrawerOpen(false);
+    const saved = await persistNewTask(dup);
+    if (saved) {
       setSelectedTask(saved);
+      setDrawerOpen(true);
+    }
+  }
+
+  async function handleScheduleTask(task: Task, date: string, startTime?: string) {
+    try {
+      await apiFetch("/api/calendar/events", {
+        method: "POST",
+        body: {
+          title: task.title,
+          category: "session",
+          date,
+          startTime: startTime || null,
+          endTime: startTime ? (() => {
+            const [h, m] = startTime.split(":").map(Number);
+            return `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+          })() : null,
+          allDay: !startTime,
+          notes: `Tache liee: ${task.title}`,
+          priority: task.priority,
+          clientName: task.clientName || null,
+          clientId: task.clientId || null,
+        },
+      });
+      // Update task due date if not set
+      if (!task.dueDate) {
+        const updated = { ...task, dueDate: date, updatedAt: new Date().toISOString() };
+        updateTaskLocally(updated);
+      }
     } catch (e) {
-      console.error("Task create error:", e);
-      setData((prev) => (prev || []).filter((t) => t.id !== newTask.id));
-      setDrawerOpen(false);
+      console.error("Schedule error:", e);
     }
   }
 
@@ -261,12 +431,10 @@ export default function TasksWorkspace() {
     const activeTask = tasks.find((t) => t.id === active.id);
     if (!activeTask) return;
 
-    // Check if over is a column (droppable)
     const overStatus = COLUMNS_ORDER.includes(over.id as TaskStatus)
       ? (over.id as TaskStatus)
       : null;
 
-    // Or over is a task in a different column
     const overTask = tasks.find((t) => t.id === over.id);
     const targetStatus = overStatus || overTask?.status;
 
@@ -285,7 +453,6 @@ export default function TasksWorkspace() {
     const { active } = event;
     setActiveId(null);
 
-    // Persist the status change
     const task = tasks.find((t) => t.id === active.id);
     if (task) {
       apiFetch("/api/tasks", {
@@ -299,17 +466,41 @@ export default function TasksWorkspace() {
 
   const overdueCount = useMemo(() => getOverdueCount(tasks), [tasks]);
 
+  const todayCount = useMemo(() => {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    return tasks.filter((t) => {
+      if (t.archived || !t.dueDate) return false;
+      const d = new Date(t.dueDate);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === now.getTime();
+    }).length;
+  }, [tasks]);
+
   const filters: { key: FilterType; label: string; badge?: number }[] = [
     { key: "all", label: "Toutes" },
+    { key: "today", label: "Aujourd'hui", badge: todayCount },
+    { key: "upcoming", label: "A venir" },
     { key: "overdue", label: "En retard", badge: overdueCount },
     { key: "urgent", label: "Urgentes" },
-    { key: "week", label: "Cette semaine" },
   ];
+
+  // Keyboard shortcut: Escape to close drawer
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === "Escape" && drawerOpen) {
+        setDrawerOpen(false);
+      }
+    }
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [drawerOpen]);
 
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto">
         <div className="h-8 w-32 bg-[#F7F7F5] rounded animate-pulse mb-6" />
+        <div className="h-12 bg-[#F7F7F5] rounded-xl animate-pulse mb-6" />
         <div className="flex gap-4 overflow-x-auto">
           {[1, 2, 3, 4].map((i) => (
             <div
@@ -339,6 +530,16 @@ export default function TasksWorkspace() {
 
   return (
     <div className="max-w-7xl mx-auto">
+      {/* Quick Capture Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="mb-5"
+      >
+        <QuickCaptureBar onAdd={handleQuickCapture} />
+      </motion.div>
+
       {/* Top bar */}
       <motion.div
         className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6"
@@ -377,7 +578,9 @@ export default function TasksWorkspace() {
               >
                 {f.label}
                 {f.badge !== undefined && f.badge > 0 && (
-                  <span className="ml-1 bg-[#EF4444] text-white text-[10px] font-bold rounded-full w-4 h-4 inline-flex items-center justify-center">
+                  <span className={`ml-1 text-white text-[10px] font-bold rounded-full w-4 h-4 inline-flex items-center justify-center ${
+                    f.key === "overdue" ? "bg-[#EF4444]" : "bg-[#4F46E5]"
+                  }`}>
                     {f.badge}
                   </span>
                 )}
@@ -418,6 +621,20 @@ export default function TasksWorkspace() {
               </svg>
             </button>
           </div>
+
+          {/* Template button */}
+          <button
+            onClick={() => setTemplatePickerOpen(true)}
+            className="flex items-center gap-1.5 text-[12px] font-medium text-[#666] bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 hover:bg-[#F7F7F5] transition-colors cursor-pointer"
+            title="Creer depuis un modele"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <path d="M3 9h18" />
+              <path d="M9 21V9" />
+            </svg>
+            Modele
+          </button>
 
           {/* New task button */}
           <button
@@ -478,7 +695,18 @@ export default function TasksWorkspace() {
         onUpdate={updateTaskLocally}
         onDelete={handleDelete}
         onArchive={handleArchive}
+        onDuplicate={handleDuplicate}
+        onSchedule={handleScheduleTask}
       />
+
+      {/* Template picker */}
+      <AnimatePresence>
+        <TemplatePicker
+          open={templatePickerOpen}
+          onClose={() => setTemplatePickerOpen(false)}
+          onSelect={handleCreateFromTemplate}
+        />
+      </AnimatePresence>
     </div>
   );
 }
