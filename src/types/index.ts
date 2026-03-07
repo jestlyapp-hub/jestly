@@ -282,7 +282,58 @@ export type BlockType =
   | "footer-block"
   | "video-showcase"
   | "tech-stack"
-  | "before-after-pro";
+  | "before-after-pro"
+  // ─── 50 new blocks (library expansion) ───
+  | "hero-split-portfolio"
+  | "hero-minimal-service"
+  | "hero-dark-saas"
+  | "hero-creator-brand"
+  | "hero-video-showreel"
+  | "projects-grid-cases"
+  | "projects-horizontal"
+  | "project-before-after"
+  | "project-timeline"
+  | "project-masonry-wall"
+  | "services-3card-premium"
+  | "services-icon-grid"
+  | "services-split-value"
+  | "services-process-offers"
+  | "product-featured-card"
+  | "products-3card-shop"
+  | "product-bundle-compare"
+  | "product-benefits-mockup"
+  | "pricing-3tier-saas"
+  | "pricing-custom-quote"
+  | "pricing-mini-faq"
+  | "testimonials-3dark"
+  | "testimonials-video"
+  | "results-logos-quotes"
+  | "numbers-impact"
+  | "results-timeline"
+  | "about-personal-story"
+  | "about-studio-values"
+  | "team-mini-grid"
+  | "process-4steps"
+  | "process-detailed-timeline"
+  | "faq-accordion-full"
+  | "faq-2column"
+  | "cta-centered-strong"
+  | "cta-split-text"
+  | "cta-dark-glow"
+  | "form-contact-simple"
+  | "form-quote-request"
+  | "form-newsletter-lead"
+  | "media-featured-video"
+  | "gallery-3up-strip"
+  | "gallery-stacked-storyboard"
+  | "content-feature-article"
+  | "content-3articles"
+  | "content-comparison-why"
+  | "trust-badges"
+  | "social-proof-marquee"
+  | "footer-simple-premium"
+  | "footer-multi-column"
+  | "signature-creative-closing";
 
 export interface BlockStyle {
   backgroundColor?: string;
@@ -828,6 +879,59 @@ export interface BeforeAfterProBlockContent {
   layout: "slider" | "side-by-side";
 }
 
+/* ─── 50 New Block Content Types (Library Expansion) ─── */
+
+export interface HeroSplitPortfolioBlockContent { badge?: string; title: string; subtitle: string; ctaLabel: string; ctaLink?: string; secondaryCtaLabel?: string; secondaryCtaLink?: string; imageUrl?: string; stats?: { value: string; label: string }[]; }
+export interface HeroMinimalServiceBlockContent { trustBadge?: string; title: string; subtitle: string; ctaLabel: string; secondaryCtaLabel?: string; proofItems?: { icon: string; text: string }[]; }
+export interface HeroDarkSaasBlockContent { title: string; subtitle: string; ctaLabel: string; secondaryCtaLabel?: string; features?: { title: string; description: string }[]; imageUrl?: string; }
+export interface HeroCreatorBrandBlockContent { title: string; subtitle: string; credentials?: string[]; ctaLabel: string; secondaryCtaLabel?: string; imageUrl?: string; socialProof?: { value: string; label: string }[]; }
+export interface HeroVideoShowreelBlockContent { title: string; subtitle: string; ctaLabel?: string; videoUrl?: string; tags?: string[]; }
+export interface ProjectsGridCasesBlockContent { title: string; subtitle?: string; projects: { imageUrl?: string; title: string; category: string; result: string }[]; }
+export interface ProjectsHorizontalBlockContent { title: string; subtitle?: string; projects: { imageUrl?: string; title: string; category: string }[]; ctaLabel?: string; }
+export interface ProjectBeforeAfterBlockContent { title: string; items: { beforeLabel: string; afterLabel: string; resultText: string; description: string }[]; }
+export interface ProjectTimelineBlockContent { title: string; subtitle?: string; steps: { title: string; description: string; tag?: string }[]; resultSummary?: string; }
+export interface ProjectMasonryWallBlockContent { title?: string; items: { imageUrl?: string; title: string; category: string }[]; columns?: number; }
+export interface Services3CardPremiumBlockContent { title: string; subtitle?: string; services: { title: string; description: string; features: string[]; ctaLabel: string }[]; }
+export interface ServicesIconGridBlockContent { title: string; subtitle?: string; services: { icon: string; title: string; description: string }[]; }
+export interface ServicesSplitValueBlockContent { title: string; subtitle: string; description: string; pillars: { title: string; description: string }[]; }
+export interface ServicesProcessOffersBlockContent { title: string; offers: { title: string; description: string; steps: string[] }[]; }
+export interface ProductFeaturedCardBlockContent { title: string; description: string; price: string; benefits: string[]; ctaLabel: string; imageUrl?: string; trustNote?: string; }
+export interface Products3CardShopBlockContent { title: string; subtitle?: string; products: { imageUrl?: string; title: string; price: string; description: string; ctaLabel: string }[]; }
+export interface ProductBundleCompareBlockContent { title: string; subtitle?: string; bundles: { name: string; price: string; description: string; features: string[]; isPopular?: boolean; ctaLabel: string }[]; }
+export interface ProductBenefitsMockupBlockContent { title: string; subtitle: string; benefits: string[]; ctaLabel: string; imageUrl?: string; }
+export interface Pricing3TierSaasBlockContent { title: string; subtitle?: string; plans: { name: string; price: string; period: string; description: string; features: string[]; isPopular?: boolean; ctaLabel: string }[]; }
+export interface PricingCustomQuoteBlockContent { title: string; subtitle: string; features: string[]; ctaLabel: string; note?: string; }
+export interface PricingMiniFaqBlockContent { title?: string; plans: { name: string; price: string; features: string[]; ctaLabel: string }[]; faq: { question: string; answer: string }[]; }
+export interface Testimonials3DarkBlockContent { title: string; testimonials: { name: string; role: string; company: string; text: string; rating: number }[]; }
+export interface TestimonialsVideoBlockContent { title: string; subtitle?: string; testimonials: { name: string; company: string; quote: string; videoUrl?: string; thumbnailUrl?: string }[]; }
+export interface ResultsLogosQuotesBlockContent { title?: string; logos: { name: string; imageUrl?: string }[]; quotes: { text: string; name: string; role: string }[]; }
+export interface NumbersImpactBlockContent { title?: string; subtitle?: string; stats: { value: string; label: string; context?: string }[]; }
+export interface ResultsTimelineBlockContent { title: string; subtitle?: string; milestones: { label: string; value: string; description: string }[]; }
+export interface AboutPersonalStoryBlockContent { title: string; story: string; highlights?: string[]; imageUrl?: string; mission?: string; }
+export interface AboutStudioValuesBlockContent { title: string; subtitle?: string; values: { title: string; description: string; icon?: string }[]; teamNote?: string; }
+export interface TeamMiniGridBlockContent { title: string; subtitle?: string; members: { name: string; role: string; bio: string; imageUrl?: string; socials?: { network: string; url: string }[] }[]; }
+export interface Process4StepsBlockContent { title: string; subtitle?: string; steps: { title: string; description: string; icon?: string }[]; }
+export interface ProcessDetailedTimelineBlockContent { title: string; subtitle?: string; steps: { title: string; description: string; tag?: string; details?: string }[]; }
+export interface FaqAccordionFullBlockContent { title: string; subtitle?: string; items: { question: string; answer: string }[]; }
+export interface Faq2ColumnBlockContent { title: string; subtitle?: string; items: { question: string; answer: string }[]; }
+export interface CtaCenteredStrongBlockContent { title: string; subtitle?: string; ctaLabel: string; secondaryCtaLabel?: string; }
+export interface CtaSplitTextBlockContent { title: string; description: string; ctaLabel: string; secondaryCtaLabel?: string; }
+export interface CtaDarkGlowBlockContent { title: string; subtitle: string; ctaLabel: string; trustBadges?: string[]; }
+export interface FormContactSimpleBlockContent { title: string; subtitle?: string; fields: { label: string; type: string; placeholder?: string; required?: boolean }[]; submitLabel: string; trustNote?: string; }
+export interface FormQuoteRequestBlockContent { title: string; subtitle?: string; fields: { label: string; type: string; placeholder?: string; required?: boolean; options?: string[] }[]; submitLabel: string; sideText?: string; }
+export interface FormNewsletterLeadBlockContent { title: string; subtitle: string; placeholder: string; ctaLabel: string; privacyNote?: string; }
+export interface MediaFeaturedVideoBlockContent { title: string; subtitle?: string; videoUrl?: string; thumbnailUrl?: string; secondaryVideos?: { title: string; thumbnailUrl?: string }[]; }
+export interface Gallery3UpStripBlockContent { title?: string; items: { imageUrl?: string; caption?: string }[]; }
+export interface GalleryStackedStoryboardBlockContent { title?: string; items: { imageUrl?: string; title: string; description: string }[]; }
+export interface ContentFeatureArticleBlockContent { title: string; excerpt: string; imageUrl?: string; ctaLabel: string; category?: string; date?: string; }
+export interface Content3ArticlesBlockContent { title: string; subtitle?: string; articles: { title: string; excerpt: string; imageUrl?: string; category?: string; date?: string }[]; }
+export interface ContentComparisonWhyBlockContent { title: string; subtitle?: string; leftColumn: { title: string; items: string[] }; rightColumn: { title: string; items: string[] }; }
+export interface TrustBadgesBlockContent { title?: string; badges: { icon: string; title: string; description: string }[]; }
+export interface SocialProofMarqueeBlockContent { items: { text: string; name: string; result?: string }[]; speed?: number; }
+export interface FooterSimplePremiumBlockContent { siteName: string; links: { label: string; url?: string }[]; copyright: string; showSocials?: boolean; socials?: Record<string, string>; }
+export interface FooterMultiColumnBlockContent { siteName: string; description?: string; columns: { title: string; links: { label: string; url?: string }[] }[]; copyright: string; contact?: { email?: string; phone?: string; address?: string }; showSocials?: boolean; socials?: Record<string, string>; }
+export interface SignatureCreativeClosingBlockContent { title: string; subtitle: string; ctaLabel: string; signatureNote?: string; }
+
 /* ─── Brief / Questionnaire Types ─── */
 
 export type BriefFieldType =
@@ -1052,6 +1156,57 @@ export type BlockContentMap = {
   "video-showcase": VideoShowcaseBlockContent;
   "tech-stack": TechStackBlockContent;
   "before-after-pro": BeforeAfterProBlockContent;
+  // ─── 50 new blocks ───
+  "hero-split-portfolio": HeroSplitPortfolioBlockContent;
+  "hero-minimal-service": HeroMinimalServiceBlockContent;
+  "hero-dark-saas": HeroDarkSaasBlockContent;
+  "hero-creator-brand": HeroCreatorBrandBlockContent;
+  "hero-video-showreel": HeroVideoShowreelBlockContent;
+  "projects-grid-cases": ProjectsGridCasesBlockContent;
+  "projects-horizontal": ProjectsHorizontalBlockContent;
+  "project-before-after": ProjectBeforeAfterBlockContent;
+  "project-timeline": ProjectTimelineBlockContent;
+  "project-masonry-wall": ProjectMasonryWallBlockContent;
+  "services-3card-premium": Services3CardPremiumBlockContent;
+  "services-icon-grid": ServicesIconGridBlockContent;
+  "services-split-value": ServicesSplitValueBlockContent;
+  "services-process-offers": ServicesProcessOffersBlockContent;
+  "product-featured-card": ProductFeaturedCardBlockContent;
+  "products-3card-shop": Products3CardShopBlockContent;
+  "product-bundle-compare": ProductBundleCompareBlockContent;
+  "product-benefits-mockup": ProductBenefitsMockupBlockContent;
+  "pricing-3tier-saas": Pricing3TierSaasBlockContent;
+  "pricing-custom-quote": PricingCustomQuoteBlockContent;
+  "pricing-mini-faq": PricingMiniFaqBlockContent;
+  "testimonials-3dark": Testimonials3DarkBlockContent;
+  "testimonials-video": TestimonialsVideoBlockContent;
+  "results-logos-quotes": ResultsLogosQuotesBlockContent;
+  "numbers-impact": NumbersImpactBlockContent;
+  "results-timeline": ResultsTimelineBlockContent;
+  "about-personal-story": AboutPersonalStoryBlockContent;
+  "about-studio-values": AboutStudioValuesBlockContent;
+  "team-mini-grid": TeamMiniGridBlockContent;
+  "process-4steps": Process4StepsBlockContent;
+  "process-detailed-timeline": ProcessDetailedTimelineBlockContent;
+  "faq-accordion-full": FaqAccordionFullBlockContent;
+  "faq-2column": Faq2ColumnBlockContent;
+  "cta-centered-strong": CtaCenteredStrongBlockContent;
+  "cta-split-text": CtaSplitTextBlockContent;
+  "cta-dark-glow": CtaDarkGlowBlockContent;
+  "form-contact-simple": FormContactSimpleBlockContent;
+  "form-quote-request": FormQuoteRequestBlockContent;
+  "form-newsletter-lead": FormNewsletterLeadBlockContent;
+  "media-featured-video": MediaFeaturedVideoBlockContent;
+  "gallery-3up-strip": Gallery3UpStripBlockContent;
+  "gallery-stacked-storyboard": GalleryStackedStoryboardBlockContent;
+  "content-feature-article": ContentFeatureArticleBlockContent;
+  "content-3articles": Content3ArticlesBlockContent;
+  "content-comparison-why": ContentComparisonWhyBlockContent;
+  "trust-badges": TrustBadgesBlockContent;
+  "social-proof-marquee": SocialProofMarqueeBlockContent;
+  "footer-simple-premium": FooterSimplePremiumBlockContent;
+  "footer-multi-column": FooterMultiColumnBlockContent;
+  "signature-creative-closing": SignatureCreativeClosingBlockContent;
 };
 
 export type Block = {

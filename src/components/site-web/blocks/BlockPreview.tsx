@@ -50,6 +50,57 @@ import FooterBlockBlockPreview from "./FooterBlockBlockPreview";
 import VideoShowcaseBlockPreview from "./VideoShowcaseBlockPreview";
 import TechStackBlockPreview from "./TechStackBlockPreview";
 import BeforeAfterProBlockPreview from "./BeforeAfterProBlockPreview";
+// ─── 50 new blocks ───
+import HeroSplitPortfolioBlockPreview from "./HeroSplitPortfolioBlockPreview";
+import HeroMinimalServiceBlockPreview from "./HeroMinimalServiceBlockPreview";
+import HeroDarkSaasBlockPreview from "./HeroDarkSaasBlockPreview";
+import HeroCreatorBrandBlockPreview from "./HeroCreatorBrandBlockPreview";
+import HeroVideoShowreelBlockPreview from "./HeroVideoShowreelBlockPreview";
+import ProjectsGridCasesBlockPreview from "./ProjectsGridCasesBlockPreview";
+import ProjectsHorizontalBlockPreview from "./ProjectsHorizontalBlockPreview";
+import ProjectBeforeAfterBlockPreview from "./ProjectBeforeAfterBlockPreview";
+import ProjectTimelineBlockPreview from "./ProjectTimelineBlockPreview";
+import ProjectMasonryWallBlockPreview from "./ProjectMasonryWallBlockPreview";
+import Services3CardPremiumBlockPreview from "./Services3CardPremiumBlockPreview";
+import ServicesIconGridBlockPreview from "./ServicesIconGridBlockPreview";
+import ServicesSplitValueBlockPreview from "./ServicesSplitValueBlockPreview";
+import ServicesProcessOffersBlockPreview from "./ServicesProcessOffersBlockPreview";
+import ProductFeaturedCardBlockPreview from "./ProductFeaturedCardBlockPreview";
+import Products3CardShopBlockPreview from "./Products3CardShopBlockPreview";
+import ProductBundleCompareBlockPreview from "./ProductBundleCompareBlockPreview";
+import ProductBenefitsMockupBlockPreview from "./ProductBenefitsMockupBlockPreview";
+import Pricing3TierSaasBlockPreview from "./Pricing3TierSaasBlockPreview";
+import PricingCustomQuoteBlockPreview from "./PricingCustomQuoteBlockPreview";
+import PricingMiniFaqBlockPreview from "./PricingMiniFaqBlockPreview";
+import Testimonials3DarkBlockPreview from "./Testimonials3DarkBlockPreview";
+import TestimonialsVideoBlockPreview from "./TestimonialsVideoBlockPreview";
+import ResultsLogosQuotesBlockPreview from "./ResultsLogosQuotesBlockPreview";
+import NumbersImpactBlockPreview from "./NumbersImpactBlockPreview";
+import ResultsTimelineBlockPreview from "./ResultsTimelineBlockPreview";
+import AboutPersonalStoryBlockPreview from "./AboutPersonalStoryBlockPreview";
+import AboutStudioValuesBlockPreview from "./AboutStudioValuesBlockPreview";
+import TeamMiniGridBlockPreview from "./TeamMiniGridBlockPreview";
+import Process4StepsBlockPreview from "./Process4StepsBlockPreview";
+import ProcessDetailedTimelineBlockPreview from "./ProcessDetailedTimelineBlockPreview";
+import FaqAccordionFullBlockPreview from "./FaqAccordionFullBlockPreview";
+import Faq2ColumnBlockPreview from "./Faq2ColumnBlockPreview";
+import CtaCenteredStrongBlockPreview from "./CtaCenteredStrongBlockPreview";
+import CtaSplitTextBlockPreview from "./CtaSplitTextBlockPreview";
+import CtaDarkGlowBlockPreview from "./CtaDarkGlowBlockPreview";
+import FormContactSimpleBlockPreview from "./FormContactSimpleBlockPreview";
+import FormQuoteRequestBlockPreview from "./FormQuoteRequestBlockPreview";
+import FormNewsletterLeadBlockPreview from "./FormNewsletterLeadBlockPreview";
+import MediaFeaturedVideoBlockPreview from "./MediaFeaturedVideoBlockPreview";
+import Gallery3UpStripBlockPreview from "./Gallery3UpStripBlockPreview";
+import GalleryStackedStoryboardBlockPreview from "./GalleryStackedStoryboardBlockPreview";
+import ContentFeatureArticleBlockPreview from "./ContentFeatureArticleBlockPreview";
+import Content3ArticlesBlockPreview from "./Content3ArticlesBlockPreview";
+import ContentComparisonWhyBlockPreview from "./ContentComparisonWhyBlockPreview";
+import TrustBadgesBlockPreview from "./TrustBadgesBlockPreview";
+import SocialProofMarqueeBlockPreview from "./SocialProofMarqueeBlockPreview";
+import FooterSimplePremiumBlockPreview from "./FooterSimplePremiumBlockPreview";
+import FooterMultiColumnBlockPreview from "./FooterMultiColumnBlockPreview";
+import SignatureCreativeClosingBlockPreview from "./SignatureCreativeClosingBlockPreview";
 
 const FULL_BLEED_BLOCKS = new Set([
   "full-image", "video", "hero", "availability-banner",
@@ -58,6 +109,14 @@ const FULL_BLEED_BLOCKS = new Set([
   "portfolio-masonry", "pricing-modern",
   "testimonials-dark", "contact-premium", "video-showcase",
   "tech-stack", "before-after-pro", "cta-premium",
+  // new full-bleed blocks
+  "hero-split-portfolio", "hero-minimal-service", "hero-dark-saas",
+  "hero-creator-brand", "hero-video-showreel",
+  "services-3card-premium", "services-icon-grid", "services-split-value", "services-process-offers",
+  "cta-centered-strong", "cta-split-text", "cta-dark-glow",
+  "footer-simple-premium", "footer-multi-column", "signature-creative-closing",
+  "social-proof-marquee", "numbers-impact", "results-timeline",
+  "testimonials-3dark", "testimonials-video", "results-logos-quotes",
 ]);
 
 function BlockPreviewInner({ block }: { block: Block }) {
@@ -129,6 +188,57 @@ function BlockPreviewInner({ block }: { block: Block }) {
       case "video-showcase": return <VideoShowcaseBlockPreview content={block.content} />;
       case "tech-stack": return <TechStackBlockPreview content={block.content} />;
       case "before-after-pro": return <BeforeAfterProBlockPreview content={block.content} />;
+      // ─── 50 new blocks ───
+      case "hero-split-portfolio": return <HeroSplitPortfolioBlockPreview content={block.content} />;
+      case "hero-minimal-service": return <HeroMinimalServiceBlockPreview content={block.content} />;
+      case "hero-dark-saas": return <HeroDarkSaasBlockPreview content={block.content} />;
+      case "hero-creator-brand": return <HeroCreatorBrandBlockPreview content={block.content} />;
+      case "hero-video-showreel": return <HeroVideoShowreelBlockPreview content={block.content} />;
+      case "projects-grid-cases": return <ProjectsGridCasesBlockPreview content={block.content} />;
+      case "projects-horizontal": return <ProjectsHorizontalBlockPreview content={block.content} />;
+      case "project-before-after": return <ProjectBeforeAfterBlockPreview content={block.content} />;
+      case "project-timeline": return <ProjectTimelineBlockPreview content={block.content} />;
+      case "project-masonry-wall": return <ProjectMasonryWallBlockPreview content={block.content} />;
+      case "services-3card-premium": return <Services3CardPremiumBlockPreview content={block.content} />;
+      case "services-icon-grid": return <ServicesIconGridBlockPreview content={block.content} />;
+      case "services-split-value": return <ServicesSplitValueBlockPreview content={block.content} />;
+      case "services-process-offers": return <ServicesProcessOffersBlockPreview content={block.content} />;
+      case "product-featured-card": return <ProductFeaturedCardBlockPreview content={block.content} />;
+      case "products-3card-shop": return <Products3CardShopBlockPreview content={block.content} />;
+      case "product-bundle-compare": return <ProductBundleCompareBlockPreview content={block.content} />;
+      case "product-benefits-mockup": return <ProductBenefitsMockupBlockPreview content={block.content} />;
+      case "pricing-3tier-saas": return <Pricing3TierSaasBlockPreview content={block.content} />;
+      case "pricing-custom-quote": return <PricingCustomQuoteBlockPreview content={block.content} />;
+      case "pricing-mini-faq": return <PricingMiniFaqBlockPreview content={block.content} />;
+      case "testimonials-3dark": return <Testimonials3DarkBlockPreview content={block.content} />;
+      case "testimonials-video": return <TestimonialsVideoBlockPreview content={block.content} />;
+      case "results-logos-quotes": return <ResultsLogosQuotesBlockPreview content={block.content} />;
+      case "numbers-impact": return <NumbersImpactBlockPreview content={block.content} />;
+      case "results-timeline": return <ResultsTimelineBlockPreview content={block.content} />;
+      case "about-personal-story": return <AboutPersonalStoryBlockPreview content={block.content} />;
+      case "about-studio-values": return <AboutStudioValuesBlockPreview content={block.content} />;
+      case "team-mini-grid": return <TeamMiniGridBlockPreview content={block.content} />;
+      case "process-4steps": return <Process4StepsBlockPreview content={block.content} />;
+      case "process-detailed-timeline": return <ProcessDetailedTimelineBlockPreview content={block.content} />;
+      case "faq-accordion-full": return <FaqAccordionFullBlockPreview content={block.content} />;
+      case "faq-2column": return <Faq2ColumnBlockPreview content={block.content} />;
+      case "cta-centered-strong": return <CtaCenteredStrongBlockPreview content={block.content} />;
+      case "cta-split-text": return <CtaSplitTextBlockPreview content={block.content} />;
+      case "cta-dark-glow": return <CtaDarkGlowBlockPreview content={block.content} />;
+      case "form-contact-simple": return <FormContactSimpleBlockPreview content={block.content} />;
+      case "form-quote-request": return <FormQuoteRequestBlockPreview content={block.content} />;
+      case "form-newsletter-lead": return <FormNewsletterLeadBlockPreview content={block.content} />;
+      case "media-featured-video": return <MediaFeaturedVideoBlockPreview content={block.content} />;
+      case "gallery-3up-strip": return <Gallery3UpStripBlockPreview content={block.content} />;
+      case "gallery-stacked-storyboard": return <GalleryStackedStoryboardBlockPreview content={block.content} />;
+      case "content-feature-article": return <ContentFeatureArticleBlockPreview content={block.content} />;
+      case "content-3articles": return <Content3ArticlesBlockPreview content={block.content} />;
+      case "content-comparison-why": return <ContentComparisonWhyBlockPreview content={block.content} />;
+      case "trust-badges": return <TrustBadgesBlockPreview content={block.content} />;
+      case "social-proof-marquee": return <SocialProofMarqueeBlockPreview content={block.content} />;
+      case "footer-simple-premium": return <FooterSimplePremiumBlockPreview content={block.content} />;
+      case "footer-multi-column": return <FooterMultiColumnBlockPreview content={block.content} />;
+      case "signature-creative-closing": return <SignatureCreativeClosingBlockPreview content={block.content} />;
       default: return <div className="py-8 text-center text-sm opacity-50">Bloc « {(block as { type: string }).type} » non reconnu</div>;
     }
   })();

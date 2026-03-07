@@ -1,7 +1,7 @@
 import type { BlockType, BlockContentMap } from "@/types";
 import { defaultContent } from "@/lib/site-builder-context";
 
-export type BlockCategory = "hero" | "layout" | "content" | "media" | "conversion" | "vente" | "social" | "contact" | "footer";
+export type BlockCategory = "hero" | "layout" | "content" | "media" | "conversion" | "vente" | "social" | "contact" | "footer" | "portfolio" | "services" | "about" | "process" | "faq" | "cta" | "creative";
 
 export interface BlockRegistryEntry {
   type: BlockType;
@@ -20,6 +20,13 @@ export const blockCategories: { id: BlockCategory; label: string }[] = [
   { id: "contact", label: "Contact / Formulaires" },
   { id: "social", label: "Social" },
   { id: "footer", label: "Footer" },
+  { id: "portfolio", label: "Portfolio / Projets" },
+  { id: "services", label: "Services / Offres" },
+  { id: "about", label: "A propos / Equipe" },
+  { id: "process", label: "Processus / Etapes" },
+  { id: "faq", label: "FAQ / Confiance" },
+  { id: "cta", label: "CTA / Conversion" },
+  { id: "creative", label: "Creatif / Signature" },
 ];
 
 export const blockRegistry: BlockRegistryEntry[] = [
@@ -71,7 +78,58 @@ export const blockRegistry: BlockRegistryEntry[] = [
   { type: "footer-block", name: "Footer Premium", description: "Footer multi-colonnes premium avec socials", category: "footer" },
   { type: "video-showcase", name: "Vidéo Showcase", description: "Showcase vidéo cinématique avec stats", category: "media" },
   { type: "tech-stack", name: "Tech Stack", description: "Grille technologies / intégrations par catégorie", category: "content" },
-  { type: "before-after-pro", name: "Avant/Après Pro", description: "Comparaison avant/après premium multi-items", category: "media" },
+  { type: "before-after-pro", name: "Avant/Apres Pro", description: "Comparaison avant/apres premium multi-items", category: "media" },
+  // ─── 50 new blocks ───
+  { type: "hero-split-portfolio", name: "Hero Portfolio Split", description: "Hero freelancer avec texte, image et stats", category: "hero" },
+  { type: "hero-minimal-service", name: "Hero Service Minimal", description: "Hero service centre avec preuves et CTA", category: "hero" },
+  { type: "hero-dark-saas", name: "Hero SaaS Dark", description: "Hero produit SaaS avec features flottantes", category: "hero" },
+  { type: "hero-creator-brand", name: "Hero Personal Brand", description: "Hero createur avec photo, credentials et social proof", category: "hero" },
+  { type: "hero-video-showreel", name: "Hero Showreel Video", description: "Hero immersif pour monteurs et realisateurs", category: "hero" },
+  { type: "projects-grid-cases", name: "Projets Case Studies", description: "Grille 2x2 de projets avec resultats", category: "portfolio" },
+  { type: "projects-horizontal", name: "Projets Horizontal", description: "Carrousel horizontal de projets creatifs", category: "portfolio" },
+  { type: "project-before-after", name: "Projet Avant/Apres", description: "Transformations clients avec resultats", category: "portfolio" },
+  { type: "project-timeline", name: "Etude de Cas Timeline", description: "Parcours projet etape par etape", category: "portfolio" },
+  { type: "project-masonry-wall", name: "Mur de Projets", description: "Grille masonry portfolio visuel", category: "portfolio" },
+  { type: "services-3card-premium", name: "Services 3 Cartes", description: "3 offres premium avec features et CTA", category: "services" },
+  { type: "services-icon-grid", name: "Services Grille Icones", description: "6 services avec icones en grille", category: "services" },
+  { type: "services-split-value", name: "Services Valeur Split", description: "Positionnement premium avec piliers", category: "services" },
+  { type: "services-process-offers", name: "Services + Process", description: "Offres avec workflow integre", category: "services" },
+  { type: "product-featured-card", name: "Produit Vedette", description: "Carte produit unique avec benefices", category: "vente" },
+  { type: "products-3card-shop", name: "Boutique 3 Produits", description: "3 produits digitaux avec prix et CTA", category: "vente" },
+  { type: "product-bundle-compare", name: "Comparaison Bundles", description: "3 formules avec features comparees", category: "vente" },
+  { type: "product-benefits-mockup", name: "Produit + Benefices", description: "Produit digital avec liste d'avantages", category: "vente" },
+  { type: "pricing-3tier-saas", name: "Tarifs 3 Tiers SaaS", description: "Pricing SaaS classique 3 colonnes", category: "conversion" },
+  { type: "pricing-custom-quote", name: "Tarif Sur Devis", description: "Offre premium sur devis personnalise", category: "conversion" },
+  { type: "pricing-mini-faq", name: "Tarifs + FAQ", description: "Mini pricing avec FAQ rassurante", category: "conversion" },
+  { type: "testimonials-3dark", name: "Temoignages 3 Cartes", description: "3 temoignages premium en cartes", category: "social" },
+  { type: "testimonials-video", name: "Temoignages Video", description: "Temoignages clients en format video", category: "social" },
+  { type: "results-logos-quotes", name: "Logos + Citations", description: "Logos clients et citations selectionnees", category: "social" },
+  { type: "numbers-impact", name: "Chiffres d'Impact", description: "Stats et metriques de performance", category: "social" },
+  { type: "results-timeline", name: "Timeline Resultats", description: "Progression de resultats sur 90 jours", category: "social" },
+  { type: "about-personal-story", name: "Histoire Personnelle", description: "Bio fondateur avec parcours et mission", category: "about" },
+  { type: "about-studio-values", name: "Valeurs du Studio", description: "Valeurs d'entreprise en cartes", category: "about" },
+  { type: "team-mini-grid", name: "Equipe Mini", description: "Grille equipe compacte avec roles", category: "about" },
+  { type: "process-4steps", name: "Processus 4 Etapes", description: "Workflow simple en 4 etapes", category: "process" },
+  { type: "process-detailed-timeline", name: "Process Timeline Detail", description: "Methode de travail detaillee", category: "process" },
+  { type: "faq-accordion-full", name: "FAQ Complete", description: "FAQ 7 questions avec accordeon", category: "faq" },
+  { type: "faq-2column", name: "FAQ 2 Colonnes", description: "FAQ dense sur 2 colonnes", category: "faq" },
+  { type: "cta-centered-strong", name: "CTA Centre Fort", description: "Appel a l'action centre impactant", category: "cta" },
+  { type: "cta-split-text", name: "CTA Split Texte", description: "CTA avec texte a gauche et boutons a droite", category: "cta" },
+  { type: "cta-dark-glow", name: "CTA Dark Glow", description: "CTA premium sombre avec glow", category: "cta" },
+  { type: "form-contact-simple", name: "Contact Simple", description: "Formulaire de contact 3 champs", category: "contact" },
+  { type: "form-quote-request", name: "Demande de Devis", description: "Formulaire devis avance avec projet", category: "contact" },
+  { type: "form-newsletter-lead", name: "Newsletter / Lead", description: "Capture email newsletter legere", category: "contact" },
+  { type: "media-featured-video", name: "Video Vedette", description: "Section video principale avec secondaires", category: "media" },
+  { type: "gallery-3up-strip", name: "Galerie 3 Images", description: "Bande de 3 images avec legendes", category: "media" },
+  { type: "gallery-stacked-storyboard", name: "Galerie Storyboard", description: "Sequence d'images narratives empilees", category: "media" },
+  { type: "content-feature-article", name: "Article Vedette", description: "Article mis en avant avec image et CTA", category: "content" },
+  { type: "content-3articles", name: "3 Articles", description: "Section blog avec 3 articles recents", category: "content" },
+  { type: "content-comparison-why", name: "Comparaison Pourquoi Nous", description: "Comparaison avant/nous en 2 colonnes", category: "content" },
+  { type: "trust-badges", name: "Badges de Confiance", description: "Garanties et engagements en badges", category: "faq" },
+  { type: "social-proof-marquee", name: "Proof Defilant", description: "Bande defilante de temoignages courts", category: "social" },
+  { type: "footer-simple-premium", name: "Footer Simple", description: "Footer minimal avec liens et socials", category: "footer" },
+  { type: "footer-multi-column", name: "Footer Multi-Colonnes", description: "Footer complet 3-4 colonnes business", category: "footer" },
+  { type: "signature-creative-closing", name: "Closing Signature", description: "Section de cloture creative et memorable", category: "creative" },
 ];
 
 export function getDefaultContent<T extends BlockType>(type: T): BlockContentMap[T] {
