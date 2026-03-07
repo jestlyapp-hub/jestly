@@ -1,3 +1,3 @@
 # BLOCKERS
 
-No blockers encountered during Calendar deadline mapping fix sprint.
+No blockers encountered during Task System Hard Fix sprint.
