@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -13,6 +14,15 @@ export async function POST(
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
 
+  // Use admin client for write operations (bypasses RLS timing issues)
+  let admin: ReturnType<typeof createAdminClient>;
+  try {
+    admin = createAdminClient();
+  } catch {
+    // Fallback to user client if service role key is missing
+    admin = supabase as any;
+  }
+
   let body: any;
   try {
     body = await req.json();
@@ -21,7 +31,7 @@ export async function POST(
   }
 
   try {
-    // Verify ownership + get current status
+    // Verify ownership + get current status (using user client for auth check)
     const { data: site, error: siteErr } = await (supabase.from("sites") as any)
       .select("id, status")
       .eq("id", id)
@@ -49,7 +59,7 @@ export async function POST(
       siteUpdate.design = body.design ?? null;
     }
 
-    const { error: updateErr } = await (supabase.from("sites") as any)
+    const { error: updateErr } = await (admin.from("sites") as any)
       .update(siteUpdate)
       .eq("id", id);
 
@@ -59,7 +69,8 @@ export async function POST(
     }
 
     // 2. Replace pages + blocks (V1: delete all, re-insert)
-    const { error: deleteErr } = await (supabase.from("site_pages") as any)
+    // Uses admin client to bypass RLS timing issues on cascading inserts
+    const { error: deleteErr } = await (admin.from("site_pages") as any)
       .delete()
       .eq("site_id", id);
 
@@ -82,7 +93,7 @@ export async function POST(
         seo_description: p.seo_description || null,
       }));
 
-      const { data: insertedPages, error: pageErr } = await (supabase.from("site_pages") as any)
+      const { data: insertedPages, error: pageErr } = await (admin.from("site_pages") as any)
         .insert(pageRows)
         .select("id");
 
@@ -115,7 +126,7 @@ export async function POST(
       }
 
       if (blockRows.length > 0) {
-        const { error: blockErr } = await (supabase.from("site_blocks") as any)
+        const { error: blockErr } = await (admin.from("site_blocks") as any)
           .insert(blockRows);
 
         if (blockErr) {
