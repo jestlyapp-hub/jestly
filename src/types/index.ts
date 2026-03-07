@@ -941,11 +941,51 @@ export interface Lead {
 
 /* ─── Nav / Footer / Member Types ─── */
 
+export type NavbarVariant =
+  | "classic-floating"     // V1 — White floating SaaS
+  | "dark-premium"         // V2 — Dark premium centered
+  | "capsule"              // V3 — Pill/capsule navigation
+  | "brand-heavy"          // V4 — Brand-forward creator
+  | "dual-cta"             // V5 — Sales-oriented dual CTA
+  | "dropdown-rich"        // V6 — Resource/dropdown heavy
+  | "creative-split"       // V7 — Creative asymmetric
+  | "signature"            // V8 — High-end original
+  ;
+
+export interface NavLink {
+  id?: string;
+  label: string;
+  pageId?: string;
+  url?: string;
+  openNewTab?: boolean;
+  children?: NavLink[];   // dropdown submenu items
+}
+
+export interface NavSocialLink {
+  network: "instagram" | "twitter" | "linkedin" | "youtube" | "tiktok" | "github" | "dribbble" | "behance";
+  url: string;
+}
+
 export interface NavConfig {
-  links: { label: string; pageId?: string; url?: string }[];
+  variant?: NavbarVariant;
+  links: NavLink[];
   showCta: boolean;
   ctaLabel: string;
   ctaLink?: Link;
+  showSecondaryCta?: boolean;
+  secondaryCtaLabel?: string;
+  secondaryCtaLink?: Link;
+  showSocials?: boolean;
+  socials?: NavSocialLink[];
+  sticky?: boolean;
+  transparent?: boolean;      // transparent over hero
+  logoPosition?: "left" | "center";
+  alignment?: "left" | "center" | "right";
+  containerWidth?: "full" | "boxed" | "narrow";
+  bgMode?: "solid" | "blur" | "transparent";
+  showBorder?: boolean;
+  showShadow?: boolean;
+  density?: "compact" | "default" | "spacious";
 }
 
 export interface FooterConfig {

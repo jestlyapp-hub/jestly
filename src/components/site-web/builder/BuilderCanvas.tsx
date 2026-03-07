@@ -6,6 +6,7 @@ import { getBlockEntry } from "@/lib/block-registry";
 import { computeThemeVars, resolveTheme, resolveBackgroundConfig, renderBackgroundConfig } from "@/lib/block-style-engine";
 import BlockPreview from "@/components/site-web/blocks/BlockPreview";
 import AddBlockModal from "@/components/site-web/builder/AddBlockModal";
+import NavbarRenderer, { defaultNavConfig } from "@/components/site-web/navbar/NavbarRenderer";
 import {
   DndContext,
   closestCenter,
@@ -206,6 +207,16 @@ export default function BuilderCanvas() {
               ) : null;
             })()}
             <div className="relative z-[1]">
+            {/* Navbar preview */}
+            {state.site.nav && (
+              <NavbarRenderer
+                nav={state.site.nav}
+                siteName={state.site.settings.name}
+                logoUrl={state.site.settings.logoUrl}
+                resolveHref={() => "#"}
+                isBuilder
+              />
+            )}
             {activePage.blocks.length === 0 && !isPreview && (
               <div className="py-20 text-center">
                 <div className="w-12 h-12 rounded-xl bg-[#F7F7F5] flex items-center justify-center mx-auto mb-3">

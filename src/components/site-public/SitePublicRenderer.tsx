@@ -12,6 +12,8 @@ import {
   resolveTheme,
 } from "@/lib/block-style-engine";
 import { getNavClass } from "@/lib/site-designs";
+import NavbarRenderer from "@/components/site-web/navbar/NavbarRenderer";
+import type { NavLink } from "@/types";
 import { resolveBackgroundConfig, renderBackgroundConfig } from "@/lib/block-style-engine";
 import { ProductProvider } from "@/lib/product-context";
 import { LinkProvider } from "@/lib/link-context";
@@ -405,7 +407,18 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
         >
           {siteBgOverlayStyle && <div className="fixed inset-0 pointer-events-none z-0" style={siteBgOverlayStyle} />}
           <SiteAnalyticsTracker siteId={site.id} pageSlug={page.slug} />
-          <SitePublicNav site={resolvedSite} currentSlug={page.slug} />
+          {/* Navbar — new variant system or legacy fallback */}
+          {resolvedSite.nav && (
+            resolvedSite.nav.variant
+              ? <NavbarRenderer
+                  nav={resolvedSite.nav}
+                  siteName={resolvedSite.settings.name}
+                  logoUrl={resolvedSite.settings.logoUrl}
+                  currentSlug={page.slug}
+                  resolveHref={(link: NavLink) => link.pageId ? resolvePageSlug(resolvedSite, link.pageId) : (link.url || "#")}
+                />
+              : <SitePublicNav site={resolvedSite} currentSlug={page.slug} />
+          )}
 
           <main className="flex-1 relative z-[1]">
             {visibleBlocks.map((block) => (
