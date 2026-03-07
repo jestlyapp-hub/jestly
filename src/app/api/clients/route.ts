@@ -1,17 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 
-// GET /api/clients — list user's clients
-export async function GET() {
+// GET /api/clients — list user's clients (supports ?q= search)
+export async function GET(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
 
+  const q = req.nextUrl.searchParams.get("q")?.trim();
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("clients") as any)
+  let query = (supabase.from("clients") as any)
     .select("*, orders(count)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
+
+  if (q && q.length >= 1) {
+    const pattern = `%${q}%`;
+    query = query.or(`name.ilike.${pattern},email.ilike.${pattern}`);
+    query = query.limit(10);
+  }
+
+  const { data, error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

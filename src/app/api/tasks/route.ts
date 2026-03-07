@@ -1,0 +1,195 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getAuthUser } from "@/lib/api-auth";
+import { MOCK_TASKS } from "@/lib/tasks-utils";
+
+// GET /api/tasks — list user's tasks
+export async function GET(req: NextRequest) {
+  const auth = await getAuthUser();
+  if (auth.error) return auth.error;
+  const { user, supabase } = auth;
+
+  const showArchived = req.nextUrl.searchParams.get("archived") === "true";
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query = (supabase.from("tasks") as any)
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (showArchived) {
+    query = query.not("archived_at", "is", null);
+  } else {
+    query = query.is("archived_at", null);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    // Fallback to mock data if table doesn't exist yet
+    const filtered = MOCK_TASKS.filter((t) =>
+      showArchived ? t.archived : !t.archived
+    );
+    return NextResponse.json(filtered);
+  }
+
+  // Map snake_case DB rows to camelCase for frontend
+  const mapped = (data || []).map(mapRowToTask);
+  return NextResponse.json(mapped);
+}
+
+// POST /api/tasks — create a task
+export async function POST(req: NextRequest) {
+  const auth = await getAuthUser();
+  if (auth.error) return auth.error;
+  const { user, supabase } = auth;
+
+  const body = await req.json();
+  const now = new Date().toISOString();
+
+  const record = {
+    user_id: user.id,
+    title: body.title || "Sans titre",
+    description: body.description || null,
+    status: body.status || "todo",
+    priority: body.priority || "medium",
+    due_date: body.dueDate || null,
+    client_id: body.clientId || null,
+    client_name: body.clientName || null,
+    order_id: body.orderId || null,
+    order_title: body.orderTitle || null,
+    tags: body.tags || [],
+    subtasks: body.subtasks || [],
+    archived_at: null,
+    created_at: now,
+    updated_at: now,
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.from("tasks") as any)
+    .insert(record)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({
+      id: Math.random().toString(36).slice(2, 10),
+      ...mapRecordToTask(record),
+    });
+  }
+
+  return NextResponse.json(mapRowToTask(data), { status: 201 });
+}
+
+// PATCH /api/tasks — update a task
+export async function PATCH(req: NextRequest) {
+  const auth = await getAuthUser();
+  if (auth.error) return auth.error;
+  const { user, supabase } = auth;
+
+  const body = await req.json();
+  const { id, ...fields } = body;
+
+  if (!id) {
+    return NextResponse.json({ error: "id requis" }, { status: 400 });
+  }
+
+  // Map camelCase to snake_case
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const update: Record<string, any> = { updated_at: new Date().toISOString() };
+  if (fields.title !== undefined) update.title = fields.title;
+  if (fields.description !== undefined) update.description = fields.description;
+  if (fields.status !== undefined) update.status = fields.status;
+  if (fields.priority !== undefined) update.priority = fields.priority;
+  if (fields.dueDate !== undefined) update.due_date = fields.dueDate;
+  if (fields.clientId !== undefined) update.client_id = fields.clientId;
+  if (fields.clientName !== undefined) update.client_name = fields.clientName;
+  if (fields.orderId !== undefined) update.order_id = fields.orderId;
+  if (fields.orderTitle !== undefined) update.order_title = fields.orderTitle;
+  if (fields.tags !== undefined) update.tags = fields.tags;
+  if (fields.subtasks !== undefined) update.subtasks = fields.subtasks;
+
+  // Archive: use archived_at timestamp
+  if (fields.archived === true) {
+    update.archived_at = new Date().toISOString();
+  } else if (fields.archived === false) {
+    update.archived_at = null;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data, error } = await (supabase.from("tasks") as any)
+    .update(update)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select()
+    .single();
+
+  if (error) {
+    return NextResponse.json({ id, ...fields, updated_at: update.updated_at });
+  }
+
+  return NextResponse.json(mapRowToTask(data));
+}
+
+// DELETE /api/tasks — delete a task
+export async function DELETE(req: NextRequest) {
+  const auth = await getAuthUser();
+  if (auth.error) return auth.error;
+  const { user, supabase } = auth;
+
+  const { id } = await req.json();
+  if (!id) {
+    return NextResponse.json({ error: "id requis" }, { status: 400 });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from("tasks") as any)
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  return NextResponse.json({ ok: true });
+}
+
+// ── Mapping helpers ──
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapRowToTask(row: any) {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description || undefined,
+    status: row.status,
+    priority: row.priority === "normal" ? "medium" : row.priority,
+    dueDate: row.due_date || undefined,
+    clientId: row.client_id || undefined,
+    clientName: row.client_name || undefined,
+    orderId: row.order_id || undefined,
+    orderTitle: row.order_title || undefined,
+    tags: row.tags || [],
+    subtasks: row.subtasks || [],
+    archived: !!row.archived_at,
+    archivedAt: row.archived_at || undefined,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function mapRecordToTask(rec: any) {
+  return {
+    title: rec.title,
+    description: rec.description || undefined,
+    status: rec.status,
+    priority: rec.priority,
+    dueDate: rec.due_date || undefined,
+    clientId: rec.client_id || undefined,
+    clientName: rec.client_name || undefined,
+    orderId: rec.order_id || undefined,
+    orderTitle: rec.order_title || undefined,
+    tags: rec.tags || [],
+    subtasks: rec.subtasks || [],
+    archived: !!rec.archived_at,
+    createdAt: rec.created_at,
+    updatedAt: rec.updated_at,
+  };
+}
