@@ -520,10 +520,20 @@ export default function TasksWorkspace() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto py-12 text-center">
-        <p className="text-[14px] text-red-500 mb-2">Erreur : {error}</p>
-        <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline cursor-pointer">
-          Reessayer
-        </button>
+        <div className="inline-flex flex-col items-center gap-3 bg-white border border-red-200 rounded-xl p-8 max-w-md">
+          <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <p className="text-[14px] font-medium text-[#1A1A1A]">Impossible de charger les taches</p>
+          <p className="text-[12px] text-[#999]">{error}</p>
+          <button onClick={mutate} className="mt-2 text-[13px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-lg px-4 py-2 transition-colors cursor-pointer">
+            Reessayer
+          </button>
+        </div>
       </div>
     );
   }
