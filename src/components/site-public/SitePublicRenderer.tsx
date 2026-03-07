@@ -124,6 +124,7 @@ function renderBlockContent(block: Block) {
     case "video-showcase": return <VideoShowcaseBlockPreview content={block.content} />;
     case "tech-stack": return <TechStackBlockPreview content={block.content} />;
     case "before-after-pro": return <BeforeAfterProBlockPreview content={block.content} />;
+    default: return null;
   }
 }
 
@@ -163,12 +164,12 @@ function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
       id={block.settings?.anchorId || undefined}
       data-block={block.id}
       style={mergedStyle}
-      className={`w-full ${blockBg.overlayStyle ? "relative" : ""}`}
+      className="w-full relative overflow-hidden"
     >
       <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
       {blockBg.overlayStyle && <div className="absolute inset-0 pointer-events-none z-0" style={blockBg.overlayStyle} />}
       <AnimateOnScroll animation={block.settings?.animation}>
-        <div className={`${isFullBleed ? "" : `${containerClass} px-6`} ${blockBg.overlayStyle ? "relative z-[1]" : ""}`}>
+        <div className={`relative z-[1] ${isFullBleed ? "" : `${containerClass} px-6`}`}>
           {renderBlockContent(block)}
         </div>
       </AnimateOnScroll>

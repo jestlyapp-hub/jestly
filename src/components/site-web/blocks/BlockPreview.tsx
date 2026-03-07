@@ -129,15 +129,16 @@ function BlockPreviewInner({ block }: { block: Block }) {
       case "video-showcase": return <VideoShowcaseBlockPreview content={block.content} />;
       case "tech-stack": return <TechStackBlockPreview content={block.content} />;
       case "before-after-pro": return <BeforeAfterProBlockPreview content={block.content} />;
+      default: return <div className="py-8 text-center text-sm opacity-50">Bloc « {(block as { type: string }).type} » non reconnu</div>;
     }
   })();
 
   return (
-    <div data-block={block.id} style={mergedStyle} className={`overflow-hidden ${blockBg.overlayStyle ? "relative" : ""}`}>
+    <div data-block={block.id} style={mergedStyle} className="relative overflow-hidden">
       {/* Scoped hover CSS for buttons */}
       <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
       {blockBg.overlayStyle && <div className="absolute inset-0 pointer-events-none z-0" style={blockBg.overlayStyle} />}
-      <div className={`${isFullBleed ? "" : `${containerClass} px-6`} ${blockBg.overlayStyle ? "relative z-[1]" : ""}`}>{content}</div>
+      <div className={`relative z-[1] ${isFullBleed ? "" : `${containerClass} px-6`}`}>{content}</div>
     </div>
   );
 }

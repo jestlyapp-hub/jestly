@@ -15,11 +15,13 @@ const shadowMap: Record<string, string> = {
 export function computeSectionStyle(style: BlockStyle): React.CSSProperties {
   const css: React.CSSProperties = {};
 
-  // Background
+  // Background — always fall back to site bg so no parent canvas color bleeds through
   if (style.backgroundGradient) {
     css.background = style.backgroundGradient;
   } else if (style.backgroundColor) {
     css.backgroundColor = style.backgroundColor;
+  } else {
+    css.backgroundColor = "var(--site-bg, #ffffff)";
   }
 
   // Text
@@ -31,9 +33,8 @@ export function computeSectionStyle(style: BlockStyle): React.CSSProperties {
   if (style.paddingLeft != null) css.paddingLeft = style.paddingLeft;
   if (style.paddingRight != null) css.paddingRight = style.paddingRight;
 
-  // Margin
-  if (style.marginTop != null) css.marginTop = style.marginTop;
-  if (style.marginBottom != null) css.marginBottom = style.marginBottom;
+  // Margin — no vertical margin to prevent gaps; use padding instead
+  // (margins create visible parent-background gaps between blocks)
 
   // Typography
   if (style.fontSize != null) css.fontSize = style.fontSize;

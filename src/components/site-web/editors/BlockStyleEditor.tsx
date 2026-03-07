@@ -303,43 +303,109 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
       {/* ─── BLOCK BACKGROUND ─── */}
       <div>
         <span className={sectionLabel}>Fond du bloc</span>
-        <div className="grid grid-cols-4 gap-1">
+        <div className="grid grid-cols-3 gap-1.5 mb-2">
+          {/* Inherit */}
           <button
             onClick={() => update({ background: undefined })}
-            className={`flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-md border text-[8px] font-medium transition-all ${
+            className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
               !block.style.background
                 ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
-                : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
+                : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
             }`}
           >
-            <div className="w-5 h-5 rounded border border-dashed border-[#ccc] flex items-center justify-center text-[8px] text-[#999]">H</div>
+            <div className="w-6 h-6 rounded-md border-2 border-dashed border-[#ccc] flex items-center justify-center text-[9px] text-[#aaa]">H</div>
             Heriter
           </button>
-          {backgroundPresets.filter((bp) => bp.key !== "solid").map((bp) => (
-            <button
-              key={bp.key}
-              onClick={() => update({ background: bp.key === "none" ? { type: "none" } : { type: bp.key as BackgroundPreset, opacity: block.style.background?.opacity } })}
-              className={`flex flex-col items-center gap-0.5 py-1.5 px-1 rounded-md border text-[8px] font-medium transition-all ${
-                block.style.background?.type === bp.key
-                  ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
-                  : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
-              }`}
-            >
-              <div className="w-5 h-5 rounded border border-black/10 bg-[#222]" />
-              {bp.name}
-            </button>
-          ))}
+          {/* None — explicit no background */}
+          <button
+            onClick={() => update({ background: { type: "none" } })}
+            className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
+              block.style.background?.type === "none"
+                ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
+            }`}
+          >
+            <div className="w-6 h-6 rounded-md border border-[#ddd] bg-white" />
+            Aucun
+          </button>
+          {/* Solid */}
+          <button
+            onClick={() => update({ background: { type: "solid", primaryColor: block.style.background?.primaryColor || "#1a1a2e" } })}
+            className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
+              block.style.background?.type === "solid"
+                ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
+            }`}
+          >
+            <div className="w-6 h-6 rounded-md" style={{ backgroundColor: block.style.background?.type === "solid" ? block.style.background.primaryColor || "#1a1a2e" : "#1a1a2e" }} />
+            Uni
+          </button>
         </div>
-        {/* Block background params */}
+
+        {/* Effect backgrounds */}
+        <div className="grid grid-cols-3 gap-1.5 mb-2">
+          {(["glow", "mesh", "gradient-radial", "grid-tech", "dots", "noise"] as BackgroundPreset[]).map((bgType) => {
+            const labels: Record<string, string> = { glow: "Glow", mesh: "Mesh", "gradient-radial": "Radial", "grid-tech": "Grille", dots: "Dots", noise: "Noise" };
+            const previews: Record<string, string> = {
+              glow: "radial-gradient(ellipse at 50% 30%, rgba(79,70,229,0.3), transparent 70%)",
+              mesh: "radial-gradient(at 30% 30%, rgba(79,70,229,0.15), transparent 50%), radial-gradient(at 70% 70%, rgba(99,102,241,0.1), transparent 50%)",
+              "gradient-radial": "radial-gradient(ellipse at center, #1a1a2e, #0a0a0f)",
+              "grid-tech": "linear-gradient(rgba(100,100,120,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(100,100,120,0.15) 1px, transparent 1px)",
+              dots: "radial-gradient(circle, rgba(100,100,120,0.4) 1px, transparent 1px)",
+              noise: "#333",
+            };
+            return (
+              <button
+                key={bgType}
+                onClick={() => update({ background: { type: bgType, opacity: block.style.background?.opacity, size: block.style.background?.size, blur: block.style.background?.blur, primaryColor: block.style.background?.primaryColor } })}
+                className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
+                  block.style.background?.type === bgType
+                    ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                    : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
+                }`}
+              >
+                <div className="w-6 h-6 rounded-md border border-black/10" style={{
+                  background: previews[bgType],
+                  backgroundSize: bgType === "grid-tech" ? "8px 8px" : bgType === "dots" ? "6px 6px" : undefined,
+                  backgroundColor: ["grid-tech", "dots", "noise"].includes(bgType) ? "#1a1a2e" : undefined,
+                }} />
+                {labels[bgType]}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Block background controls */}
         {block.style.background && block.style.background.type !== "none" && (() => {
           const bgConfig = block.style.background;
           const updateBg = (patch: Partial<BackgroundConfig>) => update({ background: { ...bgConfig, ...patch } });
-          const showOpacity = ["grid-tech", "dots", "noise"].includes(bgConfig.type);
-          const showSize = ["grid-tech", "dots"].includes(bgConfig.type);
-          const showBlur = bgConfig.type === "glow";
-          if (!showOpacity && !showSize && !showBlur) return null;
+          const bgType = bgConfig.type;
+          const showColor = ["solid", "glow", "mesh"].includes(bgType);
+          const showSecondaryColor = bgType === "mesh";
+          const showOpacity = ["grid-tech", "dots", "noise"].includes(bgType);
+          const showSize = ["grid-tech", "dots"].includes(bgType);
+          const showBlur = bgType === "glow";
+          if (!showColor && !showOpacity && !showSize && !showBlur) return null;
           return (
-            <div className="mt-2 space-y-2">
+            <div className="mt-2 space-y-2.5 border-t border-[#F0F0EE] pt-2.5">
+              {showColor && (
+                <div>
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Couleur</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={toHexColor(bgConfig.primaryColor, "#4F46E5")} onChange={(e) => updateBg({ primaryColor: e.target.value })} className="w-7 h-7 rounded border border-[#E6E6E4] cursor-pointer flex-shrink-0" />
+                    <input type="text" value={bgConfig.primaryColor || ""} onChange={(e) => updateBg({ primaryColor: e.target.value })} placeholder="#4F46E5" className={smallInputClass} />
+                  </div>
+                </div>
+              )}
+              {showSecondaryColor && (
+                <div>
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Couleur secondaire</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={toHexColor(bgConfig.secondaryColor, "#6366F1")} onChange={(e) => updateBg({ secondaryColor: e.target.value })} className="w-7 h-7 rounded border border-[#E6E6E4] cursor-pointer flex-shrink-0" />
+                    <input type="text" value={bgConfig.secondaryColor || ""} onChange={(e) => updateBg({ secondaryColor: e.target.value })} placeholder="#6366F1" className={smallInputClass} />
+                  </div>
+                </div>
+              )}
               {showOpacity && (
                 <div>
                   <label className="block text-[10px] font-medium text-[#BBB] mb-1">Opacite ({Math.round((bgConfig.opacity ?? 0.5) * 100)}%)</label>
