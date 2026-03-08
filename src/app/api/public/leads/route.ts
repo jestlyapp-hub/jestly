@@ -3,21 +3,34 @@ import { createClient } from "@/lib/supabase/server";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-// POST /api/public/leads — submit a lead from a public site form
-// Also supports createOrder mode: creates client + order + maps fields
+// POST /api/public/leads — unified lead ingestion endpoint
+// Accepts leads from all site surfaces: forms, newsletter, checkout, quote requests, etc.
 export async function POST(req: NextRequest) {
   const body = await req.json();
   const {
-    site_id, name, email, phone, source, message, fields,
+    site_id, name, email, phone, company, source, message, fields,
+    page_path, block_type, block_label,
+    utm_source, utm_medium, utm_campaign, referrer,
+    product_name, amount,
     create_order, field_mappings,
   } = body as {
     site_id?: string;
     name?: string;
     email?: string;
     phone?: string;
+    company?: string;
     source?: string;
     message?: string;
     fields?: Record<string, string | number | boolean | null>;
+    page_path?: string;
+    block_type?: string;
+    block_label?: string;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    referrer?: string;
+    product_name?: string;
+    amount?: number;
     create_order?: boolean;
     field_mappings?: Record<string, string>;
   };
@@ -32,17 +45,30 @@ export async function POST(req: NextRequest) {
 
   const supabase = await createClient();
 
-  // Always create the lead
+  // Build lead row with all enrichment fields
+  const leadRow: Record<string, unknown> = {
+    site_id,
+    email,
+    name: name || null,
+    phone: phone || null,
+    company: company || null,
+    source: source || "contact-form",
+    status: "new",
+    message: message || null,
+    fields: fields || {},
+    page_path: page_path || null,
+    block_type: block_type || null,
+    block_label: block_label || null,
+    utm_source: utm_source || null,
+    utm_medium: utm_medium || null,
+    utm_campaign: utm_campaign || null,
+    referrer: referrer || null,
+    product_name: product_name || null,
+    amount: amount ?? null,
+  };
+
   const { data: leadData, error: leadErr } = await (supabase.from("leads") as any)
-    .insert({
-      site_id,
-      email,
-      name: name || null,
-      phone: phone || null,
-      source: source || "contact-form",
-      message: message || null,
-      fields: fields || {},
-    })
+    .insert(leadRow)
     .select()
     .single();
 
@@ -53,7 +79,6 @@ export async function POST(req: NextRequest) {
   // If createOrder mode: also create client + order via fn_upsert_client + order insert
   let orderId: string | null = null;
   if (create_order) {
-    // Find site owner to create order under their account
     const { data: site } = await (supabase.from("sites") as any)
       .select("owner_id")
       .eq("id", site_id)
@@ -62,7 +87,6 @@ export async function POST(req: NextRequest) {
     if (site?.owner_id) {
       const ownerId = site.owner_id;
 
-      // Upsert client
       const { data: clientResult } = await (supabase as any).rpc("fn_upsert_client", {
         p_user_id: ownerId,
         p_name: name || "Inconnu",
@@ -73,7 +97,6 @@ export async function POST(req: NextRequest) {
       const clientId = clientResult;
 
       if (clientId) {
-        // Build order fields from mappings
         const orderData: Record<string, unknown> = {
           user_id: ownerId,
           client_id: clientId,
@@ -85,7 +108,6 @@ export async function POST(req: NextRequest) {
           paid: false,
         };
 
-        // Apply field mappings: briefing, deadline, category, notes, resources
         if (field_mappings && fields) {
           for (const [label, mapTo] of Object.entries(field_mappings)) {
             const val = fields[label];
@@ -95,7 +117,6 @@ export async function POST(req: NextRequest) {
             else if (mapTo === "category") orderData.category = String(val);
             else if (mapTo === "notes") orderData.notes = String(val);
             else if (mapTo === "resources") {
-              // Store as resource item
               const url = String(val);
               if (url.startsWith("http")) {
                 orderData.resources = JSON.stringify([{ id: crypto.randomUUID(), type: "url", label: label, url }]);

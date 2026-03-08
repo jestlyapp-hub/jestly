@@ -265,5 +265,20 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  // Also create a lead record for CRM tracking
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from("leads") as any).insert({
+    site_id,
+    email,
+    name: name || null,
+    phone: phone || null,
+    source: "checkout",
+    status: "new",
+    message: message || null,
+    fields: form_data || {},
+    product_name: body.product_name || null,
+    amount: data?.amount ?? null,
+  }).then(() => {/* fire & forget */}).catch(() => {/* non-blocking */});
+
   return NextResponse.json(data, { status: 201 });
 }

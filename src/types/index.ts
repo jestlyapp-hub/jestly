@@ -1041,13 +1041,40 @@ export interface AnalyticsEvent {
 
 /* ─── Lead Type ─── */
 
+export type LeadSource =
+  | "contact-form"
+  | "custom-form"
+  | "quote-request"
+  | "newsletter"
+  | "lead-magnet"
+  | "checkout"
+  | "booking"
+  | "signup"
+  | "other";
+
+export type LeadStatus = "new" | "contacted" | "qualified" | "won" | "lost" | "archived";
+
 export interface Lead {
   id: string;
   name: string;
   email: string;
-  source: string;
-  date: string;
-  fields: Record<string, string>;
+  phone: string | null;
+  company: string | null;
+  source: LeadSource | string;
+  status: LeadStatus;
+  message: string | null;
+  fields: Record<string, unknown>;
+  page_path: string | null;
+  block_type: string | null;
+  block_label: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  referrer: string | null;
+  product_name: string | null;
+  amount: number | null;
+  notes: string | null;
+  created_at: string;
 }
 
 /* ─── Nav / Footer / Member Types ─── */

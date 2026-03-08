@@ -1,11 +1,29 @@
 "use client";
 
-import { memo, useState } from "react";
+import { memo, useState, useRef } from "react";
 import type { LeadMagnetBlockContent } from "@/types";
 import { getButtonInlineStyle } from "@/lib/block-style-engine";
+import type { LeadCaptureContext } from "@/lib/lead-capture";
+import { submitLead } from "@/lib/lead-capture";
 
-function LeadMagnetBlockPreviewInner({ content }: { content: LeadMagnetBlockContent }) {
+function LeadMagnetBlockPreviewInner({ content, leadCtx }: { content: LeadMagnetBlockContent; leadCtx?: LeadCaptureContext }) {
   const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleSubmit = async () => {
+    if (leadCtx && inputRef.current) {
+      const email = inputRef.current.value.trim();
+      if (!email) return;
+
+      setLoading(true);
+      const result = await submitLead(leadCtx, { email, source: "lead-magnet" });
+      setLoading(false);
+      if (result.ok) setSuccess(true);
+    } else {
+      setSuccess(true);
+    }
+  };
 
   return (
     <div className="py-6 text-center max-w-md mx-auto">
@@ -30,18 +48,20 @@ function LeadMagnetBlockPreviewInner({ content }: { content: LeadMagnetBlockCont
           <p className="text-[12px] mb-4" style={{ color: "var(--site-muted)" }}>{content.description}</p>
           <div className="flex gap-2">
             <input
+              ref={inputRef}
               type="email"
               placeholder="Votre email"
               className="flex-1 border rounded-lg px-3 py-2 text-[13px] focus:outline-none"
               style={{ background: "var(--site-surface, #F7F7F5)", borderColor: "var(--site-border, #E6E6E4)", color: "var(--site-text, #1A1A1A)" }}
-              readOnly
+              readOnly={!leadCtx}
             />
             <button
-              onClick={() => setSuccess(true)}
-              className="btn-styled px-4 py-2 text-[12px] font-semibold cursor-pointer whitespace-nowrap"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="btn-styled px-4 py-2 text-[12px] font-semibold cursor-pointer whitespace-nowrap disabled:opacity-50"
               style={getButtonInlineStyle()}
             >
-              {content.buttonLabel}
+              {loading ? "..." : content.buttonLabel}
             </button>
           </div>
         </>

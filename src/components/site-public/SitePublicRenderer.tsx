@@ -129,7 +129,8 @@ import SignatureCreativeClosingBlockPreview from "@/components/site-web/blocks/S
 // Block Content Renderer (same content, different wrapper)
 // ═══════════════════════════════════════════════
 
-function renderBlockContent(block: Block) {
+function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: string }) {
+  const lp = ctx ? { siteId: ctx.siteId, pagePath: ctx.pagePath, blockType: block.type } : undefined;
   switch (block.type) {
     case "hero": return <HeroBlockPreview content={block.content} />;
     case "portfolio-grid": return <PortfolioGridBlockPreview content={block.content} />;
@@ -145,7 +146,7 @@ function renderBlockContent(block: Block) {
     case "custom-form": return <CustomFormBlockPreview content={block.content} />;
     case "calendar-booking": return <CalendarBookingBlockPreview content={block.content} />;
     case "stats-counter": return <StatsCounterBlockPreview content={block.content} />;
-    case "newsletter": return <NewsletterBlockPreview content={block.content} />;
+    case "newsletter": return <NewsletterBlockPreview content={block.content} leadCtx={lp} />;
     case "pricing-table": return <PricingTableBlockPreview content={block.content} />;
     case "feature-grid": return <FeatureGridBlockPreview content={block.content} />;
     case "testimonials-carousel": return <TestimonialsCarouselBlockPreview content={block.content} />;
@@ -161,7 +162,7 @@ function renderBlockContent(block: Block) {
     case "video-text-split": return <VideoTextSplitBlockPreview content={block.content} />;
     case "before-after": return <BeforeAfterBlockPreview content={block.content} />;
     case "service-cards": return <ServiceCardsBlockPreview content={block.content} />;
-    case "lead-magnet": return <LeadMagnetBlockPreview content={block.content} />;
+    case "lead-magnet": return <LeadMagnetBlockPreview content={block.content} leadCtx={lp} />;
     case "availability-banner": return <AvailabilityBannerBlockPreview content={block.content} />;
     case "product-hero-checkout": return <ProductHeroCheckoutBlockPreview content={block.content} />;
     case "product-cards-grid": return <ProductCardsGridBlockPreview content={block.content} />;
@@ -217,9 +218,9 @@ function renderBlockContent(block: Block) {
     case "cta-centered-strong": return <CtaCenteredStrongBlockPreview content={block.content} />;
     case "cta-split-text": return <CtaSplitTextBlockPreview content={block.content} />;
     case "cta-dark-glow": return <CtaDarkGlowBlockPreview content={block.content} />;
-    case "form-contact-simple": return <FormContactSimpleBlockPreview content={block.content} />;
-    case "form-quote-request": return <FormQuoteRequestBlockPreview content={block.content} />;
-    case "form-newsletter-lead": return <FormNewsletterLeadBlockPreview content={block.content} />;
+    case "form-contact-simple": return <FormContactSimpleBlockPreview content={block.content} leadCtx={lp} />;
+    case "form-quote-request": return <FormQuoteRequestBlockPreview content={block.content} leadCtx={lp} />;
+    case "form-newsletter-lead": return <FormNewsletterLeadBlockPreview content={block.content} leadCtx={lp} />;
     case "media-featured-video": return <MediaFeaturedVideoBlockPreview content={block.content} />;
     case "gallery-3up-strip": return <Gallery3UpStripBlockPreview content={block.content} />;
     case "gallery-stacked-storyboard": return <GalleryStackedStoryboardBlockPreview content={block.content} />;
@@ -257,7 +258,7 @@ const FULL_BLEED_BLOCKS = new Set([
 // Public Block Section (no rounded-xl, no forced bg-white)
 // ═══════════════════════════════════════════════
 
-function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
+function PublicBlockSection({ block, site, pagePath }: { block: Block; site: Site; pagePath: string }) {
   const sectionStyle = computePublicSectionStyle(block.style, site.theme);
   const containerClass = computePublicContainerClass(block.style);
   const buttonVars = computeButtonVars(block.style.buttonStyle);
@@ -295,7 +296,7 @@ function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
         delay={block.settings?.animationDelay}
       >
         <div className={`relative z-[1] ${isFullBleed ? "" : `${containerClass} px-6`}`}>
-          {renderBlockContent(block)}
+          {renderBlockContent(block, { siteId: site.id, pagePath })}
         </div>
       </AnimateOnScroll>
     </section>
@@ -629,7 +630,7 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
 
           <main className="flex-1 relative z-[1]">
             {visibleBlocks.map((block) => (
-              <PublicBlockSection key={block.id} block={block} site={resolvedSite} />
+              <PublicBlockSection key={block.id} block={block} site={resolvedSite} pagePath={page.slug} />
             ))}
           </main>
 
