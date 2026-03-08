@@ -1261,16 +1261,21 @@ export interface SiteTheme {
 
 export type BackgroundPreset = "none" | "solid" | "glow" | "mesh" | "grid-tech" | "noise" | "dots" | "gradient-radial" | "particles-float" | "particles-constellation" | "particles-aura" | "luxe-waves" | "halo-spotlight";
 
+export type BackgroundPosition = "center" | "top" | "bottom" | "left" | "right" | "top-left" | "top-right" | "bottom-left" | "bottom-right";
+
 export interface BackgroundConfig {
   type: BackgroundPreset;
   primaryColor?: string;
   secondaryColor?: string;
-  opacity?: number;       // 0-1
-  size?: number;          // px (grid/dots/halo)
-  blur?: number;          // px (glow/halo)
+  opacity?: number;       // 0-1 (visual strength)
+  size?: number;          // px (grid spacing / dot spacing / halo spread / noise scale)
+  blur?: number;          // px (glow/halo blur)
   density?: number;       // particle count factor (0.2-2)
   speed?: number;         // animation speed factor (0.2-2)
   particleSize?: number;  // particle size in px (1-6)
+  position?: BackgroundPosition; // focal point for glow/halo/radial/aura
+  lineWidth?: number;     // grid line thickness (0.5-3 px)
+  dotSize?: number;       // dot radius (0.5-4 px)
 }
 
 export type DesignKey = "creator" | "product" | "cinema" | "custom";

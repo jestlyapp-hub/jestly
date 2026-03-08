@@ -1,4 +1,4 @@
-import type { BlockStyle, ButtonStyle, SiteTheme, SiteDesign, DesignKey, BackgroundConfig } from "@/types";
+import type { BlockStyle, ButtonStyle, SiteTheme, SiteDesign, DesignKey, BackgroundConfig, BackgroundPosition } from "@/types";
 import { getDesignPreset } from "@/lib/site-designs";
 
 const shadowMap: Record<string, string> = {
@@ -267,6 +267,23 @@ function colorWithAlpha(color: string, percent: number): string {
   return `color-mix(in srgb, ${color} ${Math.round(percent)}%, transparent)`;
 }
 
+/**
+ * Map BackgroundPosition to CSS background-position percentages.
+ */
+function positionToCSS(pos?: BackgroundPosition): string {
+  switch (pos) {
+    case "top":          return "50% 0%";
+    case "bottom":       return "50% 100%";
+    case "left":         return "0% 50%";
+    case "right":        return "100% 50%";
+    case "top-left":     return "20% 10%";
+    case "top-right":    return "80% 10%";
+    case "bottom-left":  return "20% 90%";
+    case "bottom-right": return "80% 90%";
+    default:             return "50% 40%"; // center (slightly raised)
+  }
+}
+
 export function renderBackgroundConfig(
   config: BackgroundConfig | undefined,
 ): { containerStyle?: React.CSSProperties; overlayStyle?: React.CSSProperties; html?: string } {
@@ -279,9 +296,9 @@ export function renderBackgroundConfig(
   const opacity = config.opacity ?? 0.5;
 
   // Map user opacity (0-1) to a visual strength percentage for patterns.
-  // This is the ONLY opacity control — no element-level opacity, avoiding the
-  // double-reduction bug where colorWithAlpha × element opacity made patterns invisible.
+  // Single opacity channel via colorWithAlpha — no element-level opacity.
   const strength = Math.round(opacity * 100);
+  const focal = positionToCSS(config.position);
 
   switch (config.type) {
     case "solid":
@@ -289,9 +306,10 @@ export function renderBackgroundConfig(
 
     case "glow": {
       const blur = config.blur ?? 60;
+      const spread = config.size ?? 80;
       return {
         containerStyle: {
-          backgroundImage: `radial-gradient(ellipse 80% ${blur}% at 50% -20%, ${colorWithAlpha(primary, Math.max(25, strength * 0.5))}, transparent 70%)`,
+          backgroundImage: `radial-gradient(ellipse ${spread}% ${blur}% at ${focal}, ${colorWithAlpha(primary, Math.max(25, strength * 0.5))}, transparent 70%)`,
         },
       };
     }
@@ -310,58 +328,57 @@ export function renderBackgroundConfig(
     case "gradient-radial":
       return {
         containerStyle: {
-          backgroundImage: `radial-gradient(ellipse at center, ${surface} 0%, ${bgColor} 70%)`,
+          backgroundImage: `radial-gradient(ellipse at ${focal}, ${surface} 0%, ${bgColor} 70%)`,
         },
       };
 
     case "grid-tech": {
       const size = config.size ?? 40;
-      // Use primary color for visible grid lines — NOT border color (too subtle)
+      const lw = config.lineWidth ?? 1;
       const lineColor = colorWithAlpha(primary, Math.max(15, strength * 0.3));
       return {
         overlayStyle: {
           backgroundImage: [
-            `linear-gradient(${lineColor} 1px, transparent 1px)`,
-            `linear-gradient(90deg, ${lineColor} 1px, transparent 1px)`,
+            `linear-gradient(${lineColor} ${lw}px, transparent ${lw}px)`,
+            `linear-gradient(90deg, ${lineColor} ${lw}px, transparent ${lw}px)`,
           ].join(", "),
           backgroundSize: `${size}px ${size}px`,
-          // NO element opacity — pattern strength is controlled solely via colorWithAlpha
         },
       };
     }
 
     case "dots": {
       const size = config.size ?? 20;
-      // Use primary color for dots — NOT border color
+      const ds = config.dotSize ?? 1.2;
       const dotColor = colorWithAlpha(primary, Math.max(20, strength * 0.4));
       return {
         overlayStyle: {
-          backgroundImage: `radial-gradient(circle, ${dotColor} 1.2px, transparent 1.2px)`,
+          backgroundImage: `radial-gradient(circle, ${dotColor} ${ds}px, transparent ${ds}px)`,
           backgroundSize: `${size}px ${size}px`,
-          // NO element opacity
         },
       };
     }
 
-    case "noise":
+    case "noise": {
+      const noiseScale = config.size ?? 256;
       return {
         overlayStyle: {
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E")`,
           backgroundRepeat: "repeat",
-          backgroundSize: "256px 256px",
+          backgroundSize: `${noiseScale}px ${noiseScale}px`,
           opacity: Math.max(0.08, opacity * 0.4),
         },
       };
+    }
 
-    // ─── 5 NEW PREMIUM BACKGROUNDS ───
+    // ─── ANIMATED BACKGROUNDS ───
 
     case "particles-float":
     case "particles-constellation":
-    case "particles-aura": {
-      // Animated backgrounds: rendered via <canvas> component, no CSS styles needed here.
-      // The html field signals that a canvas component should be mounted.
+    case "particles-aura":
       return { html: config.type };
-    }
+
+    // ─── PREMIUM STATIC BACKGROUNDS ───
 
     case "luxe-waves": {
       const c1 = primary;
@@ -381,14 +398,17 @@ export function renderBackgroundConfig(
       const haloColor = primary;
       const haloSize = config.size ?? 50;
       const haloBlur = config.blur ?? 80;
+      // Secondary glow offset from focal point
+      const [fx, fy] = focal.split(" ");
+      const secX = Math.max(10, parseInt(fx) - 20);
+      const secY = Math.min(90, parseInt(fy) + 20);
       return {
         overlayStyle: {
           backgroundImage: [
-            `radial-gradient(ellipse ${haloSize}% ${haloSize * 0.7}% at 50% 40%, ${colorWithAlpha(haloColor, Math.max(20, strength * 0.4))} 0%, transparent 70%)`,
-            `radial-gradient(ellipse ${haloSize * 0.5}% ${haloSize * 0.3}% at 30% 60%, ${colorWithAlpha(haloColor, Math.max(10, strength * 0.2))} 0%, transparent 70%)`,
+            `radial-gradient(ellipse ${haloSize}% ${haloSize * 0.7}% at ${focal}, ${colorWithAlpha(haloColor, Math.max(20, strength * 0.4))} 0%, transparent 70%)`,
+            `radial-gradient(ellipse ${haloSize * 0.5}% ${haloSize * 0.3}% at ${secX}% ${secY}%, ${colorWithAlpha(haloColor, Math.max(10, strength * 0.2))} 0%, transparent 70%)`,
           ].join(", "),
           filter: `blur(${haloBlur * 0.3}px)`,
-          // NO element opacity — controlled via colorWithAlpha strength
         },
       };
     }

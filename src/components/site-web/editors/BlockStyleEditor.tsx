@@ -1,7 +1,7 @@
 "use client";
 
 import { useBuilder } from "@/lib/site-builder-context";
-import type { Block, BlockStyle, BlockType, BackgroundPreset, BackgroundConfig } from "@/types";
+import type { Block, BlockStyle, BlockType, BackgroundPreset, BackgroundConfig, BackgroundPosition } from "@/types";
 import { backgroundPresets } from "@/lib/site-designs";
 import ButtonStyleEditor from "./ButtonStyleEditor";
 
@@ -300,49 +300,33 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
         <p className="text-[10px] text-[#BBB] mt-1">CSS gradient (remplace la couleur de fond)</p>
       </div>
 
-      {/* ─── BLOCK BACKGROUND ─── */}
+      {/* ─── BLOCK BACKGROUND V2 ─── */}
       <div>
         <span className={sectionLabel}>Fond du bloc</span>
+
+        {/* ── Type selector: base modes ── */}
         <div className="grid grid-cols-3 gap-1.5 mb-2">
-          {/* Inherit */}
-          <button
-            onClick={() => update({ background: undefined })}
-            className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
-              !block.style.background
-                ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
-                : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
-            }`}
-          >
-            <div className="w-6 h-6 rounded-md border-2 border-dashed border-[#ccc] flex items-center justify-center text-[9px] text-[#aaa]">H</div>
-            Heriter
-          </button>
-          {/* None — explicit no background */}
-          <button
-            onClick={() => update({ background: { type: "none" } })}
-            className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
-              block.style.background?.type === "none"
-                ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
-                : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
-            }`}
-          >
-            <div className="w-6 h-6 rounded-md border border-[#ddd] bg-white" />
-            Aucun
-          </button>
-          {/* Solid */}
-          <button
-            onClick={() => update({ background: { type: "solid", primaryColor: block.style.background?.primaryColor || "#1a1a2e" } })}
-            className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
-              block.style.background?.type === "solid"
-                ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
-                : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
-            }`}
-          >
-            <div className="w-6 h-6 rounded-md" style={{ backgroundColor: block.style.background?.type === "solid" ? block.style.background.primaryColor || "#1a1a2e" : "#1a1a2e" }} />
-            Uni
-          </button>
+          {([
+            { type: undefined as BackgroundPreset | undefined, label: "Heriter", preview: <div className="w-6 h-6 rounded-md border-2 border-dashed border-[#ccc] flex items-center justify-center text-[9px] text-[#aaa]">H</div> },
+            { type: "none" as BackgroundPreset, label: "Aucun", preview: <div className="w-6 h-6 rounded-md border border-[#ddd] bg-white" /> },
+            { type: "solid" as BackgroundPreset, label: "Uni", preview: <div className="w-6 h-6 rounded-md" style={{ backgroundColor: block.style.background?.type === "solid" ? block.style.background.primaryColor || "#1a1a2e" : "#1a1a2e" }} /> },
+          ]).map(({ type, label, preview }) => (
+            <button
+              key={label}
+              onClick={() => type === undefined ? update({ background: undefined }) : update({ background: { ...block.style.background, type } as BackgroundConfig })}
+              className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
+                (type === undefined && !block.style.background) || block.style.background?.type === type
+                  ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                  : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
+              }`}
+            >
+              {preview}
+              {label}
+            </button>
+          ))}
         </div>
 
-        {/* Effect backgrounds — existing */}
+        {/* ── Effect modes ── */}
         <div className="grid grid-cols-3 gap-1.5 mb-1.5">
           {(["glow", "mesh", "gradient-radial", "grid-tech", "dots", "noise"] as BackgroundPreset[]).map((bgType) => {
             const labels: Record<string, string> = { glow: "Glow", mesh: "Mesh", "gradient-radial": "Radial", "grid-tech": "Grille", dots: "Dots", noise: "Noise" };
@@ -357,7 +341,7 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
             return (
               <button
                 key={bgType}
-                onClick={() => update({ background: { type: bgType, opacity: block.style.background?.opacity, size: block.style.background?.size, blur: block.style.background?.blur, primaryColor: block.style.background?.primaryColor, secondaryColor: block.style.background?.secondaryColor } })}
+                onClick={() => update({ background: { ...block.style.background, type: bgType } as BackgroundConfig })}
                 className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
                   block.style.background?.type === bgType
                     ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
@@ -375,65 +359,167 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
           })}
         </div>
 
-        {/* Premium backgrounds — 5 new */}
+        {/* ── Premium modes ── */}
         <p className="text-[9px] font-semibold text-[#BBB] uppercase tracking-wider mt-3 mb-1.5">Premium</p>
         <div className="grid grid-cols-3 gap-1.5 mb-2">
           {(["particles-float", "particles-constellation", "particles-aura", "luxe-waves", "halo-spotlight"] as BackgroundPreset[]).map((bgType) => {
             const labels: Record<string, string> = {
-              "particles-float": "Particules",
-              "particles-constellation": "Constellation",
-              "particles-aura": "Aura",
-              "luxe-waves": "Luxe Waves",
-              "halo-spotlight": "Halo",
+              "particles-float": "Particules", "particles-constellation": "Constellation",
+              "particles-aura": "Aura", "luxe-waves": "Luxe Waves", "halo-spotlight": "Halo",
             };
-            const emojis: Record<string, string> = {
-              "particles-float": "✦",
-              "particles-constellation": "⬡",
-              "particles-aura": "◉",
-              "luxe-waves": "≋",
-              "halo-spotlight": "◎",
+            const icons: Record<string, string> = {
+              "particles-float": "\u2726", "particles-constellation": "\u2B21",
+              "particles-aura": "\u25C9", "luxe-waves": "\u224B", "halo-spotlight": "\u25CE",
             };
             return (
               <button
                 key={bgType}
-                onClick={() => update({ background: { type: bgType, opacity: block.style.background?.opacity ?? 0.6, primaryColor: block.style.background?.primaryColor, secondaryColor: block.style.background?.secondaryColor, density: block.style.background?.density, speed: block.style.background?.speed, particleSize: block.style.background?.particleSize, size: block.style.background?.size, blur: block.style.background?.blur } })}
+                onClick={() => update({ background: { ...block.style.background, type: bgType, opacity: block.style.background?.opacity ?? 0.6 } as BackgroundConfig })}
                 className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
                   block.style.background?.type === bgType
                     ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
                     : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
                 }`}
               >
-                <div className="w-6 h-6 rounded-md border border-black/10 bg-[#0a0a1a] flex items-center justify-center text-[11px] text-indigo-300">{emojis[bgType]}</div>
+                <div className="w-6 h-6 rounded-md border border-black/10 bg-[#0a0a1a] flex items-center justify-center text-[11px] text-indigo-300">{icons[bgType]}</div>
                 {labels[bgType]}
               </button>
             );
           })}
         </div>
 
-        {/* Block background controls — context-aware per type */}
+        {/* ══════════════════════════════════════════
+            MODE-AWARE CONTROLS V2
+           ══════════════════════════════════════════ */}
         {block.style.background && block.style.background.type !== "none" && (() => {
           const bgConfig = block.style.background;
           const updateBg = (patch: Partial<BackgroundConfig>) => update({ background: { ...bgConfig, ...patch } });
           const bgType = bgConfig.type;
 
           const isParticle = ["particles-float", "particles-constellation", "particles-aura"].includes(bgType);
-          const showColor = ["solid", "glow", "mesh", "luxe-waves", "halo-spotlight", ...["particles-float", "particles-constellation", "particles-aura"]].includes(bgType);
+          const isGradient = ["glow", "mesh", "gradient-radial", "luxe-waves", "halo-spotlight"].includes(bgType);
+          const isPattern = ["grid-tech", "dots", "noise"].includes(bgType);
+
+          // Control visibility matrix
+          const showColor = bgType !== "noise" && bgType !== "gradient-radial" && bgType !== "none";
           const showSecondaryColor = ["mesh", "luxe-waves", "particles-constellation", "particles-aura"].includes(bgType);
-          const showOpacity = bgType !== "solid" && bgType !== "gradient-radial";
-          const showSize = ["grid-tech", "dots", "halo-spotlight"].includes(bgType);
+          const showStrength = bgType !== "solid" && bgType !== "gradient-radial";
+          const showPosition = ["glow", "gradient-radial", "halo-spotlight", "particles-aura"].includes(bgType);
+          const showSpacing = ["grid-tech", "dots"].includes(bgType);
+          const showLineWidth = bgType === "grid-tech";
+          const showDotSize = bgType === "dots";
+          const showNoiseScale = bgType === "noise";
           const showBlur = ["glow", "halo-spotlight"].includes(bgType);
+          const showSpread = ["glow", "halo-spotlight"].includes(bgType);
           const showDensity = isParticle;
           const showSpeed = isParticle;
           const showParticleSize = isParticle;
 
-          const hasAnyControl = showColor || showOpacity || showSize || showBlur || showDensity || showSpeed || showParticleSize;
-          if (!hasAnyControl) return null;
+          if (bgType === "solid" && !showColor) return null;
+
+          // ── Presets per mode ──
+          const presets: { label: string; config: Partial<BackgroundConfig> }[] = (() => {
+            switch (bgType) {
+              case "grid-tech": return [
+                { label: "Subtil", config: { opacity: 0.3, size: 48, lineWidth: 0.5 } },
+                { label: "Editorial", config: { opacity: 0.5, size: 60, lineWidth: 1 } },
+                { label: "Tech", config: { opacity: 0.7, size: 28, lineWidth: 1.5 } },
+              ];
+              case "dots": return [
+                { label: "Subtil", config: { opacity: 0.3, size: 24, dotSize: 0.8 } },
+                { label: "Premium", config: { opacity: 0.5, size: 16, dotSize: 1.2 } },
+                { label: "Dense", config: { opacity: 0.7, size: 12, dotSize: 1.8 } },
+              ];
+              case "noise": return [
+                { label: "Subtil", config: { opacity: 0.2, size: 256 } },
+                { label: "Texture", config: { opacity: 0.5, size: 200 } },
+                { label: "Grain", config: { opacity: 0.8, size: 150 } },
+              ];
+              case "glow": return [
+                { label: "Subtil", config: { opacity: 0.3, blur: 80, size: 60, position: undefined } },
+                { label: "Hero", config: { opacity: 0.6, blur: 50, size: 90, position: "top" as BackgroundPosition } },
+                { label: "Spotlight", config: { opacity: 0.8, blur: 40, size: 100, position: "center" as BackgroundPosition } },
+              ];
+              case "halo-spotlight": return [
+                { label: "Doux", config: { opacity: 0.4, blur: 100, size: 40, position: undefined } },
+                { label: "Hero", config: { opacity: 0.7, blur: 60, size: 70, position: "top" as BackgroundPosition } },
+                { label: "Dramatique", config: { opacity: 0.9, blur: 30, size: 90, position: "center" as BackgroundPosition } },
+              ];
+              case "mesh": return [
+                { label: "Subtil", config: { opacity: 0.3 } },
+                { label: "Premium", config: { opacity: 0.6 } },
+                { label: "Intense", config: { opacity: 0.9 } },
+              ];
+              case "luxe-waves": return [
+                { label: "Calme", config: { opacity: 0.3 } },
+                { label: "Premium", config: { opacity: 0.5 } },
+                { label: "Expressif", config: { opacity: 0.8 } },
+              ];
+              case "gradient-radial": return [
+                { label: "Centre", config: { position: "center" as BackgroundPosition } },
+                { label: "Haut", config: { position: "top" as BackgroundPosition } },
+                { label: "Bas", config: { position: "bottom" as BackgroundPosition } },
+              ];
+              case "particles-float": return [
+                { label: "Subtil", config: { opacity: 0.3, density: 0.5, speed: 0.4, particleSize: 1.5 } },
+                { label: "Premium", config: { opacity: 0.5, density: 1, speed: 0.7, particleSize: 2 } },
+                { label: "Intense", config: { opacity: 0.7, density: 1.5, speed: 1, particleSize: 2.5 } },
+              ];
+              case "particles-constellation": return [
+                { label: "Subtil", config: { opacity: 0.3, density: 0.5, speed: 0.3, particleSize: 1.5 } },
+                { label: "Premium", config: { opacity: 0.5, density: 1, speed: 0.6, particleSize: 2 } },
+                { label: "Reseau", config: { opacity: 0.7, density: 1.8, speed: 0.5, particleSize: 1.5 } },
+              ];
+              case "particles-aura": return [
+                { label: "Calme", config: { opacity: 0.3, density: 0.5, speed: 0.3, particleSize: 2 } },
+                { label: "Hero", config: { opacity: 0.6, density: 1, speed: 0.7, particleSize: 2.5, position: "center" as BackgroundPosition } },
+                { label: "Cinema", config: { opacity: 0.8, density: 1.5, speed: 0.5, particleSize: 3 } },
+              ];
+              default: return [];
+            }
+          })();
+
+          const sliderClass = "w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]";
+          const controlLabel = "block text-[10px] font-medium text-[#BBB] mb-1";
+
+          // Position options
+          const positionOptions: { value: BackgroundPosition | undefined; label: string }[] = [
+            { value: undefined, label: "Centre" },
+            { value: "top", label: "Haut" },
+            { value: "bottom", label: "Bas" },
+            { value: "left", label: "Gauche" },
+            { value: "right", label: "Droite" },
+            { value: "top-left", label: "Haut-G" },
+            { value: "top-right", label: "Haut-D" },
+            { value: "bottom-left", label: "Bas-G" },
+            { value: "bottom-right", label: "Bas-D" },
+          ];
 
           return (
-            <div className="mt-2 space-y-2.5 border-t border-[#F0F0EE] pt-2.5">
+            <div className="mt-2 border-t border-[#F0F0EE] pt-2.5 space-y-3">
+
+              {/* ── Presets ── */}
+              {presets.length > 0 && (
+                <div>
+                  <label className={controlLabel}>Style rapide</label>
+                  <div className="flex gap-1.5">
+                    {presets.map((p) => (
+                      <button
+                        key={p.label}
+                        onClick={() => updateBg(p.config)}
+                        className="flex-1 text-[10px] font-medium py-1.5 rounded-md border border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/40 hover:text-[#4F46E5] hover:bg-[#EEF2FF]/50 transition-all"
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Colors ── */}
               {showColor && (
                 <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Couleur</label>
+                  <label className={controlLabel}>Couleur</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={toHexColor(bgConfig.primaryColor, "#4F46E5")} onChange={(e) => updateBg({ primaryColor: e.target.value })} className="w-7 h-7 rounded border border-[#E6E6E4] cursor-pointer flex-shrink-0" />
                     <input type="text" value={bgConfig.primaryColor || ""} onChange={(e) => updateBg({ primaryColor: e.target.value })} placeholder="#4F46E5" className={smallInputClass} />
@@ -442,47 +528,137 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
               )}
               {showSecondaryColor && (
                 <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Couleur secondaire</label>
+                  <label className={controlLabel}>Couleur secondaire</label>
                   <div className="flex items-center gap-2">
                     <input type="color" value={toHexColor(bgConfig.secondaryColor, "#6366F1")} onChange={(e) => updateBg({ secondaryColor: e.target.value })} className="w-7 h-7 rounded border border-[#E6E6E4] cursor-pointer flex-shrink-0" />
                     <input type="text" value={bgConfig.secondaryColor || ""} onChange={(e) => updateBg({ secondaryColor: e.target.value })} placeholder="#6366F1" className={smallInputClass} />
                   </div>
                 </div>
               )}
-              {showOpacity && (
+
+              {/* ── Strength / Opacity ── */}
+              {showStrength && (
                 <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Opacite ({Math.round((bgConfig.opacity ?? 0.6) * 100)}%)</label>
-                  <input type="range" min="0.05" max="1" step="0.05" value={bgConfig.opacity ?? 0.6} onChange={(e) => updateBg({ opacity: parseFloat(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                  <label className={controlLabel}>Intensite ({Math.round((bgConfig.opacity ?? 0.5) * 100)}%)</label>
+                  <input type="range" min="0.05" max="1" step="0.05" value={bgConfig.opacity ?? 0.5} onChange={(e) => updateBg({ opacity: parseFloat(e.target.value) })} className={sliderClass} />
                 </div>
               )}
-              {showSize && (
+
+              {/* ── Position / Focal ── */}
+              {showPosition && (
                 <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Taille ({bgConfig.size ?? (bgType === "halo-spotlight" ? 50 : 20)}px)</label>
-                  <input type="range" min="8" max={bgType === "halo-spotlight" ? 100 : 80} step="2" value={bgConfig.size ?? (bgType === "halo-spotlight" ? 50 : 20)} onChange={(e) => updateBg({ size: parseInt(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                  <label className={controlLabel}>Point focal</label>
+                  <div className="grid grid-cols-3 gap-1">
+                    {positionOptions.slice(0, 3).map((opt) => (
+                      <button
+                        key={opt.label}
+                        onClick={() => updateBg({ position: opt.value })}
+                        className={`text-[9px] font-medium py-1 rounded border transition-all ${
+                          (bgConfig.position ?? undefined) === opt.value || (!bgConfig.position && !opt.value)
+                            ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                            : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 mt-1">
+                    {positionOptions.slice(3, 6).map((opt) => (
+                      <button
+                        key={opt.label}
+                        onClick={() => updateBg({ position: opt.value })}
+                        className={`text-[9px] font-medium py-1 rounded border transition-all ${
+                          bgConfig.position === opt.value
+                            ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                            : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 mt-1">
+                    {positionOptions.slice(6).map((opt) => (
+                      <button
+                        key={opt.label}
+                        onClick={() => updateBg({ position: opt.value })}
+                        className={`text-[9px] font-medium py-1 rounded border transition-all ${
+                          bgConfig.position === opt.value
+                            ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                            : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
-              {showBlur && (
-                <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">{bgType === "halo-spotlight" ? "Flou" : "Etendue"} ({bgConfig.blur ?? (bgType === "halo-spotlight" ? 80 : 60)}{bgType === "halo-spotlight" ? "px" : "%"})</label>
-                  <input type="range" min={bgType === "halo-spotlight" ? 20 : 20} max={bgType === "halo-spotlight" ? 150 : 100} step="5" value={bgConfig.blur ?? (bgType === "halo-spotlight" ? 80 : 60)} onChange={(e) => updateBg({ blur: parseInt(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+
+              {/* ── Pattern controls ── */}
+              {isPattern && (
+                <div className="space-y-2.5">
+                  {showSpacing && (
+                    <div>
+                      <label className={controlLabel}>Espacement ({bgConfig.size ?? (bgType === "dots" ? 20 : 40)}px)</label>
+                      <input type="range" min="8" max="80" step="2" value={bgConfig.size ?? (bgType === "dots" ? 20 : 40)} onChange={(e) => updateBg({ size: parseInt(e.target.value) })} className={sliderClass} />
+                    </div>
+                  )}
+                  {showLineWidth && (
+                    <div>
+                      <label className={controlLabel}>Epaisseur ({bgConfig.lineWidth ?? 1}px)</label>
+                      <input type="range" min="0.5" max="3" step="0.25" value={bgConfig.lineWidth ?? 1} onChange={(e) => updateBg({ lineWidth: parseFloat(e.target.value) })} className={sliderClass} />
+                    </div>
+                  )}
+                  {showDotSize && (
+                    <div>
+                      <label className={controlLabel}>Taille des points ({bgConfig.dotSize ?? 1.2}px)</label>
+                      <input type="range" min="0.5" max="4" step="0.2" value={bgConfig.dotSize ?? 1.2} onChange={(e) => updateBg({ dotSize: parseFloat(e.target.value) })} className={sliderClass} />
+                    </div>
+                  )}
+                  {showNoiseScale && (
+                    <div>
+                      <label className={controlLabel}>Echelle ({bgConfig.size ?? 256}px)</label>
+                      <input type="range" min="64" max="512" step="16" value={bgConfig.size ?? 256} onChange={(e) => updateBg({ size: parseInt(e.target.value) })} className={sliderClass} />
+                    </div>
+                  )}
                 </div>
               )}
-              {showDensity && (
-                <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Densite ({Math.round((bgConfig.density ?? 1) * 100)}%)</label>
-                  <input type="range" min="0.2" max="2" step="0.1" value={bgConfig.density ?? 1} onChange={(e) => updateBg({ density: parseFloat(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+
+              {/* ── Gradient / Glow controls ── */}
+              {isGradient && (showBlur || showSpread) && (
+                <div className="space-y-2.5">
+                  {showSpread && (
+                    <div>
+                      <label className={controlLabel}>Etendue ({bgConfig.size ?? (bgType === "halo-spotlight" ? 50 : 80)}%)</label>
+                      <input type="range" min="20" max="120" step="5" value={bgConfig.size ?? (bgType === "halo-spotlight" ? 50 : 80)} onChange={(e) => updateBg({ size: parseInt(e.target.value) })} className={sliderClass} />
+                    </div>
+                  )}
+                  {showBlur && (
+                    <div>
+                      <label className={controlLabel}>Flou ({bgConfig.blur ?? (bgType === "halo-spotlight" ? 80 : 60)})</label>
+                      <input type="range" min="10" max="150" step="5" value={bgConfig.blur ?? (bgType === "halo-spotlight" ? 80 : 60)} onChange={(e) => updateBg({ blur: parseInt(e.target.value) })} className={sliderClass} />
+                    </div>
+                  )}
                 </div>
               )}
-              {showSpeed && (
-                <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Vitesse ({Math.round((bgConfig.speed ?? 1) * 100)}%)</label>
-                  <input type="range" min="0.2" max="2" step="0.1" value={bgConfig.speed ?? 1} onChange={(e) => updateBg({ speed: parseFloat(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
-                </div>
-              )}
-              {showParticleSize && (
-                <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Taille particules ({bgConfig.particleSize ?? 2}px)</label>
-                  <input type="range" min="1" max="6" step="0.5" value={bgConfig.particleSize ?? 2} onChange={(e) => updateBg({ particleSize: parseFloat(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+
+              {/* ── Particle controls ── */}
+              {isParticle && (
+                <div className="space-y-2.5">
+                  <div>
+                    <label className={controlLabel}>Densite ({Math.round((bgConfig.density ?? 1) * 100)}%)</label>
+                    <input type="range" min="0.2" max="2" step="0.1" value={bgConfig.density ?? 1} onChange={(e) => updateBg({ density: Math.min(2, parseFloat(e.target.value)) })} className={sliderClass} />
+                  </div>
+                  <div>
+                    <label className={controlLabel}>Vitesse ({Math.round((bgConfig.speed ?? 1) * 100)}%)</label>
+                    <input type="range" min="0.1" max="2" step="0.1" value={bgConfig.speed ?? 1} onChange={(e) => updateBg({ speed: Math.min(2, parseFloat(e.target.value)) })} className={sliderClass} />
+                  </div>
+                  <div>
+                    <label className={controlLabel}>Taille particules ({bgConfig.particleSize ?? 2}px)</label>
+                    <input type="range" min="0.5" max="5" step="0.5" value={bgConfig.particleSize ?? 2} onChange={(e) => updateBg({ particleSize: Math.min(5, parseFloat(e.target.value)) })} className={sliderClass} />
+                  </div>
                 </div>
               )}
             </div>
