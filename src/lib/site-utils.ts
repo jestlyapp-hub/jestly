@@ -1,4 +1,4 @@
-import type { Site, SitePage } from "@/types";
+import type { Site, SitePage, Block } from "@/types";
 
 /**
  * Find a published page by its path within a site.
@@ -67,4 +67,47 @@ export function resolveLink(
     default:
       return link.value;
   }
+}
+
+/**
+ * Resolve a NavLink to a full href, supporting blockId scroll-to targets.
+ * If blockId is set, appends #block-{blockId} to the page URL.
+ */
+export function resolveNavLinkHref(
+  link: { pageId?: string; url?: string; blockId?: string },
+  site: Site
+): string {
+  // External URL takes precedence if no pageId
+  if (!link.pageId && link.url) return link.url;
+
+  // Internal page with optional block anchor
+  if (link.pageId) {
+    const base = resolvePageSlug(site, link.pageId);
+    if (link.blockId) return `${base}#block-${link.blockId}`;
+    return base;
+  }
+
+  // Block anchor on current page (no pageId, just blockId)
+  if (link.blockId) return `#block-${link.blockId}`;
+
+  return "#";
+}
+
+/**
+ * Get a human-readable label for a block (type name + title if available).
+ */
+export function getBlockLabel(block: Block): string {
+  const typeLabel = block.type
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+  // Try to extract a title from common content fields
+  const c = block.content as unknown as Record<string, unknown>;
+  const title = c.title || c.heading || c.name || c.label;
+  if (title && typeof title === "string" && title.length > 0) {
+    const short = title.length > 30 ? title.slice(0, 30) + "..." : title;
+    return `${typeLabel} — ${short}`;
+  }
+
+  return typeLabel;
 }

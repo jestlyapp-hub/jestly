@@ -1061,6 +1061,7 @@ export interface NavLink {
   label: string;
   pageId?: string;
   url?: string;
+  blockId?: string;       // target block id for scroll-to (same or other page)
   openNewTab?: boolean;
   children?: NavLink[];   // dropdown submenu items
 }
@@ -1094,8 +1095,15 @@ export interface NavConfig {
   ctaBorderRadius?: string;
 }
 
+export interface FooterLink {
+  label: string;
+  pageId?: string;
+  url?: string;
+  blockId?: string;       // target block id for scroll-to
+}
+
 export interface FooterConfig {
-  links: { label: string; pageId?: string; url?: string }[];
+  links: FooterLink[];
   showSocials: boolean;
   copyright: string;
 }

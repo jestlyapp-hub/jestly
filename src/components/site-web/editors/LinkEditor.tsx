@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/productTypes";
 import type { BlockLink, BlockLinkType, Product } from "@/types";
 import type { ProductRow } from "@/types/database";
 import { normalizeLink } from "@/lib/links";
+import { getBlockLabel } from "@/lib/site-utils";
 
 interface LinkEditorProps {
   value: BlockLink | undefined;
@@ -79,7 +80,7 @@ export default function LinkEditor({ value, onChange, label }: LinkEditorProps) 
         <div className="space-y-2">
           <select
             value={current.pageId}
-            onChange={(e) => onChange({ ...current, pageId: e.target.value })}
+            onChange={(e) => onChange({ ...current, pageId: e.target.value, anchor: undefined })}
             className={inputClass}
           >
             <option value="">Choisir une page...</option>
@@ -87,13 +88,23 @@ export default function LinkEditor({ value, onChange, label }: LinkEditorProps) 
               <option key={p.id} value={p.id}>{p.name} ({p.slug})</option>
             ))}
           </select>
-          <input
-            type="text"
-            value={current.anchor ?? ""}
-            onChange={(e) => onChange({ ...current, anchor: e.target.value || undefined })}
-            placeholder="Ancre optionnelle (ex: section-tarifs)"
-            className={inputClass}
-          />
+          {/* Block targeting — select a specific block to scroll to */}
+          {current.pageId && (() => {
+            const targetPage = pages.find(p => p.id === current.pageId);
+            const blocks = targetPage?.blocks.filter(b => b.visible) || [];
+            return blocks.length > 0 ? (
+              <select
+                value={current.anchor?.startsWith("block-") ? current.anchor : ""}
+                onChange={(e) => onChange({ ...current, anchor: e.target.value || undefined })}
+                className={inputClass}
+              >
+                <option value="">Page entiere (pas de scroll)</option>
+                {blocks.map((b) => (
+                  <option key={b.id} value={`block-${b.id}`}>{getBlockLabel(b)}</option>
+                ))}
+              </select>
+            ) : null;
+          })()}
         </div>
       )}
 

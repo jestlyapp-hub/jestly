@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
-import type { NavConfig, NavLink, NavSocialLink, FooterConfig, NavbarVariant } from "@/types";
+import type { NavConfig, NavLink, NavSocialLink, FooterConfig, FooterLink, NavbarVariant } from "@/types";
+import { getBlockLabel } from "@/lib/site-utils";
 import { NAVBAR_VARIANTS, defaultNavConfig } from "@/components/site-web/navbar/NavbarRenderer";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
@@ -226,6 +227,24 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                         </button>
                       </div>
 
+                      {/* Block target (scroll-to) — when a page is selected */}
+                      {link.pageId && (() => {
+                        const targetPage = state.site.pages.find(p => p.id === link.pageId);
+                        const blocks = targetPage?.blocks.filter(b => b.visible) || [];
+                        return blocks.length > 0 ? (
+                          <select
+                            value={link.blockId || ""}
+                            onChange={(e) => updateLink(i, { blockId: e.target.value || undefined })}
+                            className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[10px] text-[#1A1A1A] w-full"
+                          >
+                            <option value="">Page entiere</option>
+                            {blocks.map((b) => (
+                              <option key={b.id} value={b.id}>{getBlockLabel(b)}</option>
+                            ))}
+                          </select>
+                        ) : null;
+                      })()}
+
                       {/* External URL */}
                       {!link.pageId && (
                         <input
@@ -242,27 +261,45 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                         <div className="pl-4 space-y-1.5 border-l-2 border-[#E6E6E4] ml-2">
                           <span className="text-[9px] text-[#BBB] font-semibold uppercase">Sous-liens</span>
                           {link.children.map((child, j) => (
-                            <div key={child.id || j} className="flex items-center gap-1.5">
-                              <input
-                                type="text"
-                                value={child.label}
-                                onChange={(e) => updateChildLink(i, j, { label: e.target.value })}
-                                className={smallInputClass}
-                                placeholder="Sous-lien"
-                              />
-                              <select
-                                value={child.pageId || ""}
-                                onChange={(e) => updateChildLink(i, j, { pageId: e.target.value || undefined })}
-                                className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[10px] max-w-[80px]"
-                              >
-                                <option value="">Page…</option>
-                                {state.site.pages.map((p) => (
-                                  <option key={p.id} value={p.id}>{p.name}</option>
-                                ))}
-                              </select>
-                              <button onClick={() => removeChildLink(i, j)} className="text-[#BBB] hover:text-red-500">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                              </button>
+                            <div key={child.id || j} className="space-y-1">
+                              <div className="flex items-center gap-1.5">
+                                <input
+                                  type="text"
+                                  value={child.label}
+                                  onChange={(e) => updateChildLink(i, j, { label: e.target.value })}
+                                  className={smallInputClass}
+                                  placeholder="Sous-lien"
+                                />
+                                <select
+                                  value={child.pageId || ""}
+                                  onChange={(e) => updateChildLink(i, j, { pageId: e.target.value || undefined, blockId: undefined })}
+                                  className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[10px] max-w-[80px]"
+                                >
+                                  <option value="">Page…</option>
+                                  {state.site.pages.map((p) => (
+                                    <option key={p.id} value={p.id}>{p.name}</option>
+                                  ))}
+                                </select>
+                                <button onClick={() => removeChildLink(i, j)} className="text-[#BBB] hover:text-red-500">
+                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                </button>
+                              </div>
+                              {child.pageId && (() => {
+                                const tp = state.site.pages.find(p => p.id === child.pageId);
+                                const bl = tp?.blocks.filter(b => b.visible) || [];
+                                return bl.length > 0 ? (
+                                  <select
+                                    value={child.blockId || ""}
+                                    onChange={(e) => updateChildLink(i, j, { blockId: e.target.value || undefined })}
+                                    className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[9px] text-[#666] w-full"
+                                  >
+                                    <option value="">Page entiere</option>
+                                    {bl.map((b) => (
+                                      <option key={b.id} value={b.id}>{getBlockLabel(b)}</option>
+                                    ))}
+                                  </select>
+                                ) : null;
+                              })()}
                             </div>
                           ))}
                         </div>
@@ -593,38 +630,60 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
             <label className={sectionLabel}>Liens</label>
             <div className="space-y-2">
               {footer.links.map((link, i) => (
-                <div key={i} className="flex items-center gap-1.5">
-                  <input
-                    type="text"
-                    value={link.label}
-                    onChange={(e) => {
-                      const links = [...footer.links];
-                      links[i] = { ...links[i], label: e.target.value };
-                      updateFooter({ links });
-                    }}
-                    className={smallInputClass}
-                    placeholder="Label"
-                  />
-                  <select
-                    value={link.pageId || ""}
-                    onChange={(e) => {
-                      const links = [...footer.links];
-                      links[i] = { ...links[i], pageId: e.target.value || undefined };
-                      updateFooter({ links });
-                    }}
-                    className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[11px] text-[#1A1A1A]"
-                  >
-                    <option value="">Aucune page</option>
-                    {state.site.pages.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                  <button
-                    onClick={() => updateFooter({ links: footer.links.filter((_, j) => j !== i) })}
-                    className="text-[#999] hover:text-red-500 flex-shrink-0"
-                  >
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                  </button>
+                <div key={i} className="space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={link.label}
+                      onChange={(e) => {
+                        const links = [...footer.links];
+                        links[i] = { ...links[i], label: e.target.value };
+                        updateFooter({ links });
+                      }}
+                      className={smallInputClass}
+                      placeholder="Label"
+                    />
+                    <select
+                      value={link.pageId || ""}
+                      onChange={(e) => {
+                        const links = [...footer.links];
+                        links[i] = { ...links[i], pageId: e.target.value || undefined, blockId: undefined };
+                        updateFooter({ links });
+                      }}
+                      className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[11px] text-[#1A1A1A]"
+                    >
+                      <option value="">Aucune page</option>
+                      {state.site.pages.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => updateFooter({ links: footer.links.filter((_, j) => j !== i) })}
+                      className="text-[#999] hover:text-red-500 flex-shrink-0"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                    </button>
+                  </div>
+                  {link.pageId && (() => {
+                    const tp = state.site.pages.find(p => p.id === link.pageId);
+                    const bl = tp?.blocks.filter(b => b.visible) || [];
+                    return bl.length > 0 ? (
+                      <select
+                        value={link.blockId || ""}
+                        onChange={(e) => {
+                          const links = [...footer.links];
+                          links[i] = { ...links[i], blockId: e.target.value || undefined };
+                          updateFooter({ links });
+                        }}
+                        className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[10px] text-[#666] w-full"
+                      >
+                        <option value="">Page entiere</option>
+                        {bl.map((b) => (
+                          <option key={b.id} value={b.id}>{getBlockLabel(b)}</option>
+                        ))}
+                      </select>
+                    ) : null;
+                  })()}
                 </div>
               ))}
               <button

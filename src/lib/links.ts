@@ -71,7 +71,9 @@ export function resolveBlockLink(
     case "internal": {
       if (!link.pageId && link.anchor) return `#${link.anchor}`;
       const base = link.pageId ? resolvePageSlug(site, link.pageId) : "";
-      return link.anchor ? `${base}#${link.anchor}` : base || null;
+      // anchor can be a blockId (prefixed block-) or a custom anchorId
+      const fragment = link.anchor ? `#${link.anchor}` : "";
+      return (base + fragment) || null;
     }
     case "external":
       return link.url || null;

@@ -4,7 +4,7 @@ import { useState, useEffect, lazy, Suspense } from "react";
 import type { Site, SitePage, Block, Product } from "@/types";
 
 const ParticleBackground = lazy(() => import("@/components/site-web/blocks/ParticleBackground"));
-import { resolvePageSlug } from "@/lib/site-utils";
+import { resolvePageSlug, resolveNavLinkHref } from "@/lib/site-utils";
 import {
   computePublicSectionStyle,
   computePublicContainerClass,
@@ -275,7 +275,7 @@ function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
 
   return (
     <section
-      id={block.settings?.anchorId || undefined}
+      id={block.settings?.anchorId || `block-${block.id}`}
       data-block={block.id}
       style={mergedStyle}
       className="w-full relative overflow-hidden"
@@ -320,7 +320,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-6">
           {nav.links.map((link, i) => {
-            const href = link.pageId ? resolvePageSlug(site, link.pageId) : "#";
+            const href = resolveNavLinkHref(link, site);
             const isActive = href === currentSlug;
             return (
               <a
@@ -377,7 +377,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
         <div className="md:hidden border-t" style={{ borderColor: "var(--site-border)", backgroundColor: "var(--site-bg, #fff)" }}>
           <div className="px-6 py-4 space-y-3">
             {nav.links.map((link, i) => {
-              const href = link.pageId ? resolvePageSlug(site, link.pageId) : "#";
+              const href = resolveNavLinkHref(link, site);
               return (
                 <a
                   key={i}
@@ -421,7 +421,7 @@ function SitePublicFooter({ site }: { site: Site }) {
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-6">
             {footer.links.map((link, i) => {
-              const href = link.pageId ? resolvePageSlug(site, link.pageId) : "#";
+              const href = resolveNavLinkHref(link, site);
               return (
                 <a
                   key={i}
@@ -499,7 +499,33 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
 
   useEffect(() => {
     document.documentElement.classList.add("smooth-scroll");
-    return () => document.documentElement.classList.remove("smooth-scroll");
+
+    // Smooth scroll with sticky navbar offset for anchor links
+    const handleClick = (e: MouseEvent) => {
+      const target = (e.target as HTMLElement).closest("a[href*='#block-']");
+      if (!target) return;
+      const href = target.getAttribute("href");
+      if (!href) return;
+      const hash = href.includes("#") ? href.slice(href.indexOf("#")) : null;
+      if (!hash) return;
+      // Only intercept same-page anchors
+      const issamePage = href.startsWith("#") || href.split("#")[0] === window.location.pathname;
+      if (!issamePage) return;
+      const el = document.querySelector(hash);
+      if (!el) return;
+      e.preventDefault();
+      const navHeight = document.querySelector("nav")?.getBoundingClientRect().height || 0;
+      const top = el.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+      window.scrollTo({ top, behavior: "smooth" });
+      // Update URL hash without jumping
+      history.pushState(null, "", hash);
+    };
+
+    document.addEventListener("click", handleClick);
+    return () => {
+      document.documentElement.classList.remove("smooth-scroll");
+      document.removeEventListener("click", handleClick);
+    };
   }, []);
 
   // Background config
@@ -532,7 +558,7 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
                   siteName={resolvedSite.settings.name}
                   logoUrl={resolvedSite.settings.logoUrl}
                   currentSlug={page.slug}
-                  resolveHref={(link: NavLink) => link.pageId ? resolvePageSlug(resolvedSite, link.pageId) : (link.url || "#")}
+                  resolveHref={(link: NavLink) => resolveNavLinkHref(link, resolvedSite)}
                 />
               : <SitePublicNav site={resolvedSite} currentSlug={page.slug} />
           )}
