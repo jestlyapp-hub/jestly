@@ -258,13 +258,22 @@ export function resolveBackgroundConfig(design?: SiteDesign): BackgroundConfig |
  * Render a BackgroundConfig into inline styles.
  * Returns containerStyle (applied to the wrapper) and/or overlayStyle (for absolute overlay div).
  */
+/**
+ * Helper: produce a color with opacity using color-mix().
+ * CSS var() values cannot have hex suffixes appended — "var(--c)22" is invalid CSS.
+ * color-mix(in srgb, <color> <percent>, transparent) works with both var() and hex.
+ */
+function colorWithAlpha(color: string, percent: number): string {
+  return `color-mix(in srgb, ${color} ${Math.round(percent)}%, transparent)`;
+}
+
 export function renderBackgroundConfig(
   config: BackgroundConfig | undefined,
-): { containerStyle?: React.CSSProperties; overlayStyle?: React.CSSProperties } {
+): { containerStyle?: React.CSSProperties; overlayStyle?: React.CSSProperties; html?: string } {
   if (!config || config.type === "none") return {};
 
   const primary = config.primaryColor || "var(--site-primary, #4F46E5)";
-  const secondary = config.secondaryColor || "var(--site-secondary, var(--site-primary, #6366F1))";
+  const secondary = config.secondaryColor || "var(--site-primary, #6366F1)";
   const bgColor = "var(--site-bg, #0A0A0F)";
   const surface = "var(--site-surface, #141420)";
   const border = "var(--site-border, #27272A)";
@@ -278,7 +287,7 @@ export function renderBackgroundConfig(
       const blur = config.blur ?? 60;
       return {
         containerStyle: {
-          backgroundImage: `radial-gradient(ellipse 80% ${blur}% at 50% -20%, ${primary}22, transparent 70%)`,
+          backgroundImage: `radial-gradient(ellipse 80% ${blur}% at 50% -20%, ${colorWithAlpha(primary, 20)}, transparent 70%)`,
         },
       };
     }
@@ -287,8 +296,8 @@ export function renderBackgroundConfig(
       return {
         containerStyle: {
           backgroundImage: [
-            `radial-gradient(at 20% 20%, ${primary}15 0%, transparent 50%)`,
-            `radial-gradient(at 80% 80%, ${secondary}12 0%, transparent 50%)`,
+            `radial-gradient(at 20% 20%, ${colorWithAlpha(primary, 15)} 0%, transparent 50%)`,
+            `radial-gradient(at 80% 80%, ${colorWithAlpha(secondary, 12)} 0%, transparent 50%)`,
             `radial-gradient(at 50% 50%, ${bgColor} 0%, transparent 100%)`,
           ].join(", "),
         },
@@ -303,11 +312,12 @@ export function renderBackgroundConfig(
 
     case "grid-tech": {
       const size = config.size ?? 40;
+      const lineColor = colorWithAlpha(border, 25);
       return {
         overlayStyle: {
-          background: [
-            `linear-gradient(${border}08 1px, transparent 1px)`,
-            `linear-gradient(90deg, ${border}08 1px, transparent 1px)`,
+          backgroundImage: [
+            `linear-gradient(${lineColor} 1px, transparent 1px)`,
+            `linear-gradient(90deg, ${lineColor} 1px, transparent 1px)`,
           ].join(", "),
           backgroundSize: `${size}px ${size}px`,
           opacity,
@@ -317,9 +327,10 @@ export function renderBackgroundConfig(
 
     case "dots": {
       const size = config.size ?? 20;
+      const dotColor = colorWithAlpha(border, 40);
       return {
         overlayStyle: {
-          background: `radial-gradient(circle, ${border}40 1px, transparent 1px)`,
+          backgroundImage: `radial-gradient(circle, ${dotColor} 1.2px, transparent 1.2px)`,
           backgroundSize: `${size}px ${size}px`,
           opacity,
         },
@@ -329,10 +340,52 @@ export function renderBackgroundConfig(
     case "noise":
       return {
         overlayStyle: {
-          background: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E")`,
+          backgroundRepeat: "repeat",
+          backgroundSize: "256px 256px",
           opacity,
         },
       };
+
+    // ─── 5 NEW PREMIUM BACKGROUNDS ───
+
+    case "particles-float":
+    case "particles-constellation":
+    case "particles-aura": {
+      // Animated backgrounds: rendered via <canvas> component, no CSS styles needed here.
+      // The html field signals that a canvas component should be mounted.
+      return { html: config.type };
+    }
+
+    case "luxe-waves": {
+      const c1 = primary;
+      const c2 = secondary;
+      return {
+        containerStyle: {
+          backgroundImage: [
+            `radial-gradient(ellipse 120% 80% at 20% 100%, ${colorWithAlpha(c1, 18)} 0%, transparent 60%)`,
+            `radial-gradient(ellipse 100% 60% at 80% 0%, ${colorWithAlpha(c2, 14)} 0%, transparent 60%)`,
+            `radial-gradient(ellipse 140% 50% at 60% 60%, ${colorWithAlpha(c1, 8)} 0%, transparent 70%)`,
+          ].join(", "),
+        },
+      };
+    }
+
+    case "halo-spotlight": {
+      const haloColor = primary;
+      const haloSize = config.size ?? 50;
+      const haloBlur = config.blur ?? 80;
+      return {
+        overlayStyle: {
+          backgroundImage: [
+            `radial-gradient(ellipse ${haloSize}% ${haloSize * 0.7}% at 50% 40%, ${colorWithAlpha(haloColor, 25)} 0%, transparent 70%)`,
+            `radial-gradient(ellipse ${haloSize * 0.5}% ${haloSize * 0.3}% at 30% 60%, ${colorWithAlpha(haloColor, 10)} 0%, transparent 70%)`,
+          ].join(", "),
+          filter: `blur(${haloBlur * 0.3}px)`,
+          opacity: opacity,
+        },
+      };
+    }
 
     default:
       return {};

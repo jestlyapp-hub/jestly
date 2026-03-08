@@ -342,22 +342,22 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
           </button>
         </div>
 
-        {/* Effect backgrounds */}
-        <div className="grid grid-cols-3 gap-1.5 mb-2">
+        {/* Effect backgrounds — existing */}
+        <div className="grid grid-cols-3 gap-1.5 mb-1.5">
           {(["glow", "mesh", "gradient-radial", "grid-tech", "dots", "noise"] as BackgroundPreset[]).map((bgType) => {
             const labels: Record<string, string> = { glow: "Glow", mesh: "Mesh", "gradient-radial": "Radial", "grid-tech": "Grille", dots: "Dots", noise: "Noise" };
             const previews: Record<string, string> = {
               glow: "radial-gradient(ellipse at 50% 30%, rgba(79,70,229,0.3), transparent 70%)",
               mesh: "radial-gradient(at 30% 30%, rgba(79,70,229,0.15), transparent 50%), radial-gradient(at 70% 70%, rgba(99,102,241,0.1), transparent 50%)",
               "gradient-radial": "radial-gradient(ellipse at center, #1a1a2e, #0a0a0f)",
-              "grid-tech": "linear-gradient(rgba(100,100,120,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(100,100,120,0.15) 1px, transparent 1px)",
-              dots: "radial-gradient(circle, rgba(100,100,120,0.4) 1px, transparent 1px)",
+              "grid-tech": "linear-gradient(rgba(100,100,120,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(100,100,120,0.2) 1px, transparent 1px)",
+              dots: "radial-gradient(circle, rgba(100,100,120,0.5) 1.2px, transparent 1.2px)",
               noise: "#333",
             };
             return (
               <button
                 key={bgType}
-                onClick={() => update({ background: { type: bgType, opacity: block.style.background?.opacity, size: block.style.background?.size, blur: block.style.background?.blur, primaryColor: block.style.background?.primaryColor } })}
+                onClick={() => update({ background: { type: bgType, opacity: block.style.background?.opacity, size: block.style.background?.size, blur: block.style.background?.blur, primaryColor: block.style.background?.primaryColor, secondaryColor: block.style.background?.secondaryColor } })}
                 className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
                   block.style.background?.type === bgType
                     ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
@@ -375,17 +375,60 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
           })}
         </div>
 
-        {/* Block background controls */}
+        {/* Premium backgrounds — 5 new */}
+        <p className="text-[9px] font-semibold text-[#BBB] uppercase tracking-wider mt-3 mb-1.5">Premium</p>
+        <div className="grid grid-cols-3 gap-1.5 mb-2">
+          {(["particles-float", "particles-constellation", "particles-aura", "luxe-waves", "halo-spotlight"] as BackgroundPreset[]).map((bgType) => {
+            const labels: Record<string, string> = {
+              "particles-float": "Particules",
+              "particles-constellation": "Constellation",
+              "particles-aura": "Aura",
+              "luxe-waves": "Luxe Waves",
+              "halo-spotlight": "Halo",
+            };
+            const emojis: Record<string, string> = {
+              "particles-float": "✦",
+              "particles-constellation": "⬡",
+              "particles-aura": "◉",
+              "luxe-waves": "≋",
+              "halo-spotlight": "◎",
+            };
+            return (
+              <button
+                key={bgType}
+                onClick={() => update({ background: { type: bgType, opacity: block.style.background?.opacity ?? 0.6, primaryColor: block.style.background?.primaryColor, secondaryColor: block.style.background?.secondaryColor, density: block.style.background?.density, speed: block.style.background?.speed, particleSize: block.style.background?.particleSize, size: block.style.background?.size, blur: block.style.background?.blur } })}
+                className={`flex flex-col items-center gap-1 py-2 px-1 rounded-lg border text-[9px] font-semibold transition-all ${
+                  block.style.background?.type === bgType
+                    ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                    : "border-[#E6E6E4] text-[#888] hover:border-[#4F46E5]/30"
+                }`}
+              >
+                <div className="w-6 h-6 rounded-md border border-black/10 bg-[#0a0a1a] flex items-center justify-center text-[11px] text-indigo-300">{emojis[bgType]}</div>
+                {labels[bgType]}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Block background controls — context-aware per type */}
         {block.style.background && block.style.background.type !== "none" && (() => {
           const bgConfig = block.style.background;
           const updateBg = (patch: Partial<BackgroundConfig>) => update({ background: { ...bgConfig, ...patch } });
           const bgType = bgConfig.type;
-          const showColor = ["solid", "glow", "mesh"].includes(bgType);
-          const showSecondaryColor = bgType === "mesh";
-          const showOpacity = ["grid-tech", "dots", "noise"].includes(bgType);
-          const showSize = ["grid-tech", "dots"].includes(bgType);
-          const showBlur = bgType === "glow";
-          if (!showColor && !showOpacity && !showSize && !showBlur) return null;
+
+          const isParticle = ["particles-float", "particles-constellation", "particles-aura"].includes(bgType);
+          const showColor = ["solid", "glow", "mesh", "luxe-waves", "halo-spotlight", ...["particles-float", "particles-constellation", "particles-aura"]].includes(bgType);
+          const showSecondaryColor = ["mesh", "luxe-waves", "particles-constellation", "particles-aura"].includes(bgType);
+          const showOpacity = bgType !== "solid" && bgType !== "gradient-radial";
+          const showSize = ["grid-tech", "dots", "halo-spotlight"].includes(bgType);
+          const showBlur = ["glow", "halo-spotlight"].includes(bgType);
+          const showDensity = isParticle;
+          const showSpeed = isParticle;
+          const showParticleSize = isParticle;
+
+          const hasAnyControl = showColor || showOpacity || showSize || showBlur || showDensity || showSpeed || showParticleSize;
+          if (!hasAnyControl) return null;
+
           return (
             <div className="mt-2 space-y-2.5 border-t border-[#F0F0EE] pt-2.5">
               {showColor && (
@@ -408,20 +451,38 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
               )}
               {showOpacity && (
                 <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Opacite ({Math.round((bgConfig.opacity ?? 0.5) * 100)}%)</label>
-                  <input type="range" min="0" max="1" step="0.05" value={bgConfig.opacity ?? 0.5} onChange={(e) => updateBg({ opacity: parseFloat(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Opacite ({Math.round((bgConfig.opacity ?? 0.6) * 100)}%)</label>
+                  <input type="range" min="0.05" max="1" step="0.05" value={bgConfig.opacity ?? 0.6} onChange={(e) => updateBg({ opacity: parseFloat(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
                 </div>
               )}
               {showSize && (
                 <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Taille ({bgConfig.size ?? 20}px)</label>
-                  <input type="range" min="8" max="80" step="2" value={bgConfig.size ?? 20} onChange={(e) => updateBg({ size: parseInt(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Taille ({bgConfig.size ?? (bgType === "halo-spotlight" ? 50 : 20)}px)</label>
+                  <input type="range" min="8" max={bgType === "halo-spotlight" ? 100 : 80} step="2" value={bgConfig.size ?? (bgType === "halo-spotlight" ? 50 : 20)} onChange={(e) => updateBg({ size: parseInt(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
                 </div>
               )}
               {showBlur && (
                 <div>
-                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Etendue ({bgConfig.blur ?? 60}%)</label>
-                  <input type="range" min="20" max="100" step="5" value={bgConfig.blur ?? 60} onChange={(e) => updateBg({ blur: parseInt(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">{bgType === "halo-spotlight" ? "Flou" : "Etendue"} ({bgConfig.blur ?? (bgType === "halo-spotlight" ? 80 : 60)}{bgType === "halo-spotlight" ? "px" : "%"})</label>
+                  <input type="range" min={bgType === "halo-spotlight" ? 20 : 20} max={bgType === "halo-spotlight" ? 150 : 100} step="5" value={bgConfig.blur ?? (bgType === "halo-spotlight" ? 80 : 60)} onChange={(e) => updateBg({ blur: parseInt(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                </div>
+              )}
+              {showDensity && (
+                <div>
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Densite ({Math.round((bgConfig.density ?? 1) * 100)}%)</label>
+                  <input type="range" min="0.2" max="2" step="0.1" value={bgConfig.density ?? 1} onChange={(e) => updateBg({ density: parseFloat(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                </div>
+              )}
+              {showSpeed && (
+                <div>
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Vitesse ({Math.round((bgConfig.speed ?? 1) * 100)}%)</label>
+                  <input type="range" min="0.2" max="2" step="0.1" value={bgConfig.speed ?? 1} onChange={(e) => updateBg({ speed: parseFloat(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
+                </div>
+              )}
+              {showParticleSize && (
+                <div>
+                  <label className="block text-[10px] font-medium text-[#BBB] mb-1">Taille particules ({bgConfig.particleSize ?? 2}px)</label>
+                  <input type="range" min="1" max="6" step="0.5" value={bgConfig.particleSize ?? 2} onChange={(e) => updateBg({ particleSize: parseFloat(e.target.value) })} className="w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-[#4F46E5]" />
                 </div>
               )}
             </div>

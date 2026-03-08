@@ -1,7 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import type { Site, SitePage, Block, Product } from "@/types";
+
+const ParticleBackground = lazy(() => import("@/components/site-web/blocks/ParticleBackground"));
 import { resolvePageSlug } from "@/lib/site-utils";
 import {
   computePublicSectionStyle,
@@ -280,6 +282,11 @@ function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
     >
       <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
       {blockBg.overlayStyle && <div className="absolute inset-0 pointer-events-none z-0" style={blockBg.overlayStyle} />}
+      {blockBg.html && block.style.background && (
+        <Suspense fallback={null}>
+          <ParticleBackground config={block.style.background} />
+        </Suspense>
+      )}
       <AnimateOnScroll animation={block.settings?.animation}>
         <div className={`relative z-[1] ${isFullBleed ? "" : `${containerClass} px-6`}`}>
           {renderBlockContent(block)}

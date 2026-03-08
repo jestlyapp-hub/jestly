@@ -1259,15 +1259,18 @@ export interface SiteTheme {
   buttonHoverScale?: number;
 }
 
-export type BackgroundPreset = "none" | "solid" | "glow" | "mesh" | "grid-tech" | "noise" | "dots" | "gradient-radial";
+export type BackgroundPreset = "none" | "solid" | "glow" | "mesh" | "grid-tech" | "noise" | "dots" | "gradient-radial" | "particles-float" | "particles-constellation" | "particles-aura" | "luxe-waves" | "halo-spotlight";
 
 export interface BackgroundConfig {
   type: BackgroundPreset;
   primaryColor?: string;
   secondaryColor?: string;
   opacity?: number;       // 0-1
-  size?: number;          // px (grid/dots)
-  blur?: number;          // px (glow)
+  size?: number;          // px (grid/dots/halo)
+  blur?: number;          // px (glow/halo)
+  density?: number;       // particle count factor (0.2-2)
+  speed?: number;         // animation speed factor (0.2-2)
+  particleSize?: number;  // particle size in px (1-6)
 }
 
 export type DesignKey = "creator" | "product" | "cinema" | "custom";

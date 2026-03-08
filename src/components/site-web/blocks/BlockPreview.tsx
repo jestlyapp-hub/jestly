@@ -1,6 +1,8 @@
-import { memo } from "react";
+import { memo, lazy, Suspense } from "react";
 import type { Block } from "@/types";
 import { computeSectionStyle, computePublicContainerClass, computeButtonVars, getButtonHoverCSS, renderBackgroundConfig } from "@/lib/block-style-engine";
+
+const ParticleBackground = lazy(() => import("./ParticleBackground"));
 import HeroBlockPreview from "./HeroBlockPreview";
 import PortfolioGridBlockPreview from "./PortfolioGridBlockPreview";
 import ServicesListBlockPreview from "./ServicesListBlockPreview";
@@ -248,6 +250,11 @@ function BlockPreviewInner({ block }: { block: Block }) {
       {/* Scoped hover CSS for buttons */}
       <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
       {blockBg.overlayStyle && <div className="absolute inset-0 pointer-events-none z-0" style={blockBg.overlayStyle} />}
+      {blockBg.html && block.style.background && (
+        <Suspense fallback={null}>
+          <ParticleBackground config={block.style.background} />
+        </Suspense>
+      )}
       <div className={`relative z-[1] ${isFullBleed ? "" : `${containerClass} px-6`}`}>{content}</div>
     </div>
   );
