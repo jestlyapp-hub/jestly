@@ -10,6 +10,16 @@ interface RenderedEmail {
   text: string;
 }
 
+/** Escape HTML special chars to prevent XSS in email templates */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 // ─── Shared layout ───────────────────────────────────────────
 function layout(content: string): string {
   return `<!DOCTYPE html>
@@ -100,8 +110,9 @@ function benefitRow(icon: string, title: string, desc: string): string {
 // ─── Templates ───────────────────────────────────────────────
 
 function confirmationWaitlist(data: TemplateData): RenderedEmail {
+  const safe = escapeHtml(data.first_name);
   const html = layout(`
-    ${heading(`Bienvenue ${data.first_name} \u{1F44B}`)}
+    ${heading(`Bienvenue ${safe} \u{1F44B}`)}
     ${paragraph(`Votre inscription à la waitlist Jestly est confirmée. Vous faites désormais partie des premiers à découvrir le cockpit tout-en-un conçu pour les freelances créatifs.`)}
     ${paragraph(`Jestly réunit commandes, workflow, facturation, site vitrine, agenda et fichiers en un seul espace — simple, rapide, premium.`)}
     ${paragraph(`On vous tiendra informé(e) dès que les portes s'ouvriront.`)}
@@ -116,8 +127,9 @@ function confirmationWaitlist(data: TemplateData): RenderedEmail {
 }
 
 function teasingProduit(data: TemplateData): RenderedEmail {
+  const safe = escapeHtml(data.first_name);
   const html = layout(`
-    ${heading(`${data.first_name}, Jestly prend forme`)}
+    ${heading(`${safe}, Jestly prend forme`)}
     ${paragraph(`Le cockpit freelance avance vite. Voici un aperçu de ce qui vous attend :`)}
     ${divider()}
     ${benefitRow("\u{1F3AF}", "Commandes centralisées", "Suivez chaque projet client de la demande à la livraison, sans tableur.")}
@@ -136,8 +148,9 @@ function teasingProduit(data: TemplateData): RenderedEmail {
 }
 
 function invitationBeta(data: TemplateData): RenderedEmail {
+  const safe = escapeHtml(data.first_name);
   const html = layout(`
-    ${heading(`${data.first_name}, votre accès bêta est prêt`)}
+    ${heading(`${safe}, votre accès bêta est prêt`)}
     ${paragraph(`Vous faites partie des premiers inscrits sur la waitlist Jestly. Votre patience est récompensée : votre accès à la bêta privée est maintenant disponible.`)}
     ${paragraph(`Connectez-vous dès maintenant pour découvrir le cockpit freelance en avant-première. Votre retour nous aidera à construire l'outil parfait.`)}
     ${ctaButton("Accéder à la bêta", "https://jestly.fr/login", true)}
@@ -153,8 +166,9 @@ function invitationBeta(data: TemplateData): RenderedEmail {
 }
 
 function lancementOfficiel(data: TemplateData): RenderedEmail {
+  const safe = escapeHtml(data.first_name);
   const html = layout(`
-    ${heading(`${data.first_name}, Jestly est officiellement lancé`)}
+    ${heading(`${safe}, Jestly est officiellement lancé`)}
     ${paragraph(`C'est le jour J. Après des mois de développement et de retours bêta, Jestly est maintenant ouvert à tous.`)}
     ${paragraph(`Un seul espace pour gérer vos commandes, votre workflow, vos factures, votre site vitrine, vos fichiers et votre agenda. Conçu pour les freelances créatifs qui veulent un outil à la hauteur de leur travail.`)}
     ${ctaButton("Découvrir Jestly", "https://jestly.fr/login", true)}
