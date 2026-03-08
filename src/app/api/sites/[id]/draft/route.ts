@@ -95,19 +95,26 @@ export async function POST(
 
       const { data: insertedPages, error: pageErr } = await (admin.from("site_pages") as any)
         .insert(pageRows)
-        .select("id");
+        .select("id, slug");
 
       if (pageErr || !insertedPages) {
         console.error("[draft] pages insert error:", pageErr?.message, pageErr?.details, "slugs:", pageRows.map((r: any) => r.slug));
         return NextResponse.json({ error: pageErr?.message || "Erreur insertion pages.", step: "pages_insert" }, { status: 500 });
       }
 
-      // Insert blocks for each page
+      // Build slug → DB id map (insertion order is NOT guaranteed by Supabase)
+      const slugToId = new Map<string, string>();
+      for (const row of insertedPages) {
+        slugToId.set(row.slug, row.id);
+      }
+
+      // Insert blocks for each page — match by slug, not by array index
       const blockRows: any[] = [];
       for (let i = 0; i < pages.length; i++) {
-        const pageId = insertedPages[i]?.id;
+        const pageSlug = pageRows[i]?.slug;
+        const pageId = slugToId.get(pageSlug);
         if (!pageId) {
-          console.error("[draft] missing page id for index", i, "of", insertedPages.length);
+          console.error("[draft] missing page id for slug", pageSlug, "available:", [...slugToId.keys()]);
           continue;
         }
         const blocks = pages[i].blocks || [];
