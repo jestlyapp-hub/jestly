@@ -81,25 +81,51 @@ export async function POST(
 
     const pages = body.pages || [];
     if (pages.length > 0) {
-      // Insert pages
-      const pageRows = pages.map((p: any, i: number) => ({
-        site_id: id,
-        title: p.title || p.name || "Sans titre",
-        slug: p.slug || `page-${i}`,
-        is_home: !!p.is_home,
-        sort_order: p.sort_order ?? i,
-        status: siteIsPublished ? "published" : (p.status || "draft"),
-        seo_title: p.seo_title || null,
-        seo_description: p.seo_description || null,
-      }));
+      // Insert pages — deduplicate slugs to avoid unique constraint violation
+      const usedSlugs = new Set<string>();
+      const pageRows = pages.map((p: any, i: number) => {
+        let slug = p.slug || `page-${i}`;
+        if (usedSlugs.has(slug)) {
+          slug = `${slug}-${i}`;
+        }
+        usedSlugs.add(slug);
+        return {
+          site_id: id,
+          title: p.title || p.name || "Sans titre",
+          slug,
+          is_home: !!p.is_home,
+          sort_order: p.sort_order ?? i,
+          status: siteIsPublished ? "published" : (p.status || "draft"),
+          seo_title: p.seo_title || null,
+          seo_description: p.seo_description || null,
+        };
+      });
 
-      const { data: insertedPages, error: pageErr } = await (admin.from("site_pages") as any)
-        .insert(pageRows)
-        .select("id, slug");
+      let insertedPages: any[] | null = null;
 
-      if (pageErr || !insertedPages) {
+      // Try insert — on unique constraint conflict (race condition), retry once
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const { data, error: pageErr } = await (admin.from("site_pages") as any)
+          .insert(pageRows)
+          .select("id, slug");
+
+        if (!pageErr && data) {
+          insertedPages = data;
+          break;
+        }
+
+        if (pageErr?.message?.includes("unique constraint") && attempt === 0) {
+          console.warn("[draft] slug conflict (race condition), retrying delete+insert...");
+          await (admin.from("site_pages") as any).delete().eq("site_id", id);
+          continue;
+        }
+
         console.error("[draft] pages insert error:", pageErr?.message, pageErr?.details, "slugs:", pageRows.map((r: any) => r.slug));
         return NextResponse.json({ error: pageErr?.message || "Erreur insertion pages.", step: "pages_insert" }, { status: 500 });
+      }
+
+      if (!insertedPages) {
+        return NextResponse.json({ error: "Erreur insertion pages après retry.", step: "pages_insert" }, { status: 500 });
       }
 
       // Build slug → DB id map (insertion order is NOT guaranteed by Supabase)

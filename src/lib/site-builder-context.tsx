@@ -439,23 +439,31 @@ function serializeSiteForSave(site: Site) {
     },
     nav: site.nav || null,
     footer: site.footer || null,
-    pages: site.pages.map((p, i) => ({
-      title: p.name,
-      slug: p.slug === "/" ? "home" : p.slug.replace(/^\//, ""),
-      is_home: p.slug === "/",
-      sort_order: i,
-      status: p.status || "draft",
-      seo_title: p.seoTitle || null,
-      seo_description: p.seoDescription || null,
-      blocks: p.blocks.map((b, j) => ({
-        type: b.type,
-        sort_order: j,
-        content: b.content,
-        style: b.style,
-        settings: b.settings,
-        visible: b.visible,
-      })),
-    })),
+    pages: (() => {
+      const usedSlugs = new Set<string>();
+      return site.pages.map((p, i) => {
+        let slug = p.slug === "/" ? "home" : p.slug.replace(/^\//, "");
+        if (usedSlugs.has(slug)) slug = `${slug}-${i}`;
+        usedSlugs.add(slug);
+        return {
+          title: p.name,
+          slug,
+          is_home: p.slug === "/",
+          sort_order: i,
+          status: p.status || "draft",
+          seo_title: p.seoTitle || null,
+          seo_description: p.seoDescription || null,
+          blocks: p.blocks.map((b, j) => ({
+            type: b.type,
+            sort_order: j,
+            content: b.content,
+            style: b.style,
+            settings: b.settings,
+            visible: b.visible,
+          })),
+        };
+      });
+    })(),
   };
 }
 
