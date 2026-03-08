@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/api-auth";
 
-// POST /api/upload — upload file to order-uploads bucket
+const MAX_SIZE = 10 * 1024 * 1024; // 10MB
+const ALLOWED_TYPES = new Set([
+  "image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml",
+  "application/pdf",
+  "video/mp4", "video/quicktime",
+]);
+
+// POST /api/upload — upload file to order-uploads bucket (authenticated only)
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
+  const auth = await getAuthUser();
+  if (auth.error) return auth.error;
+  const { supabase } = auth;
 
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
@@ -12,13 +21,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No file provided" }, { status: 400 });
   }
 
-  // Max 10MB
-  if (file.size > 10 * 1024 * 1024) {
+  if (file.size > MAX_SIZE) {
     return NextResponse.json({ error: "File too large (max 10MB)" }, { status: 400 });
   }
 
+  if (!ALLOWED_TYPES.has(file.type)) {
+    return NextResponse.json({ error: "File type not allowed" }, { status: 400 });
+  }
+
   const ext = file.name.split(".").pop() || "bin";
-  const path = `${crypto.randomUUID()}.${ext}`;
+  const safeName = ext.replace(/[^a-zA-Z0-9]/g, "").slice(0, 10) || "bin";
+  const path = `${crypto.randomUUID()}.${safeName}`;
 
   const { error } = await supabase.storage
     .from("order-uploads")

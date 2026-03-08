@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
 import { signOut } from "@/lib/auth/actions";
 
 /* ─── Navigation items ─── */
@@ -147,8 +148,21 @@ const secondaryNav = [
   },
 ];
 
+const ADMIN_EMAIL = "jestlyapp@gmail.com";
+
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isAdminUser, setIsAdminUser] = useState(false);
+
+  useEffect(() => {
+    // Check admin status via lightweight API or session
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.email?.toLowerCase() === ADMIN_EMAIL) setIsAdminUser(true);
+      })
+      .catch(() => {});
+  }, []);
 
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(href + "/");
@@ -196,6 +210,46 @@ export default function Sidebar() {
             </Link>
           ))}
         </div>
+
+        {/* Admin section (conditional) */}
+        {isAdminUser && (
+          <>
+            <div className="h-px bg-[#E6E6E4] my-3" />
+            <p className="px-3 text-[10px] font-semibold text-[#999] uppercase tracking-wider mb-1">Admin</p>
+            <div className="flex flex-col gap-0.5">
+              <Link
+                href="/admin"
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${
+                  pathname === "/admin"
+                    ? "bg-[#EEF2FF] text-[#4F46E5]"
+                    : "text-[#666] hover:bg-[#F7F7F5] hover:text-[#1A1A1A]"
+                }`}
+              >
+                <span className={pathname === "/admin" ? "text-[#4F46E5]" : "text-[#999]"}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+                  </svg>
+                </span>
+                Dashboard
+              </Link>
+              <Link
+                href="/admin/waitlist"
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-[13px] font-medium transition-all ${
+                  pathname === "/admin/waitlist" || pathname.startsWith("/admin/waitlist/")
+                    ? "bg-[#EEF2FF] text-[#4F46E5]"
+                    : "text-[#666] hover:bg-[#F7F7F5] hover:text-[#1A1A1A]"
+                }`}
+              >
+                <span className={pathname.startsWith("/admin/waitlist") ? "text-[#4F46E5]" : "text-[#999]"}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                  </svg>
+                </span>
+                Waitlist
+              </Link>
+            </div>
+          </>
+        )}
 
         {/* Section secondaire */}
         <div className="h-px bg-[#E6E6E4] my-3" />

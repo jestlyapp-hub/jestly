@@ -23,6 +23,7 @@ export async function middleware(req: NextRequest) {
     const needsSession =
       url.pathname.startsWith("/api/") ||
       url.pathname.startsWith("/dashboard") ||
+      url.pathname.startsWith("/admin") ||
       url.pathname.startsWith("/site-web") ||
       url.pathname.startsWith("/clients") ||
       url.pathname.startsWith("/commandes") ||
@@ -31,6 +32,9 @@ export async function middleware(req: NextRequest) {
       url.pathname.startsWith("/abonnements") ||
       url.pathname.startsWith("/analytics") ||
       url.pathname.startsWith("/parametres") ||
+      url.pathname.startsWith("/taches") ||
+      url.pathname.startsWith("/briefs") ||
+      url.pathname.startsWith("/calendrier") ||
       url.pathname === "/login";
 
     if (needsSession) {

@@ -3,7 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { validateSubdomain } from "@/lib/validate-subdomain";
 
 // GET /api/subdomains/check?subdomain=xxx&exclude=siteId
+// Protected: requires authenticated user
 export async function GET(req: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const raw = req.nextUrl.searchParams.get("subdomain") || "";
   const excludeSiteId = req.nextUrl.searchParams.get("exclude") || "";
 
@@ -17,8 +24,6 @@ export async function GET(req: NextRequest) {
   }
 
   const { normalized } = result;
-
-  const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from("sites") as any)
     .select("id")
