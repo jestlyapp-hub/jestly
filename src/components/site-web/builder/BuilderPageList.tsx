@@ -18,6 +18,8 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { Block, BlockType } from "@/types";
+import { pageTemplates, type PageTemplate } from "@/lib/page-templates";
+import { defaultContent } from "@/lib/site-builder-context";
 
 /* ── Sortable block item ── */
 function SortableBlockItem({
@@ -255,6 +257,7 @@ function BlockPalette({ pageId, dispatch }: { pageId: string; dispatch: ReturnTy
 export default function BuilderPageList() {
   const { state, dispatch } = useBuilder();
   const { site, activePageId, activeBlockId } = state;
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   const activePage = site.pages.find((p) => p.id === activePageId);
 
@@ -267,12 +270,36 @@ export default function BuilderPageList() {
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
   );
 
-  const handleAddPage = () => {
+  let blockCounter = 0;
+  const handleAddPageFromTemplate = (template?: PageTemplate) => {
     const id = `PAGE-NEW-${Date.now()}`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const blocks: Block[] = template
+      ? template.blocks.map((tb) => ({
+          id: `BLK-TPL-${Date.now()}-${blockCounter++}`,
+          type: tb.type,
+          content: { ...defaultContent[tb.type as BlockType] },
+          style: { paddingTop: 40, paddingBottom: 40, ...tb.style },
+          settings: { animation: "none" as const, ...tb.settings },
+          visible: true,
+        } as any))
+      : [];
+
     dispatch({
       type: "ADD_PAGE",
-      page: { id, name: "Nouvelle page", slug: `/page-${site.pages.length + 1}`, status: "draft", blocks: [] },
+      page: {
+        id,
+        name: template ? template.name : "Nouvelle page",
+        slug: `/page-${site.pages.length + 1}`,
+        status: "draft",
+        blocks,
+      },
     });
+    setShowTemplateModal(false);
+  };
+
+  const handleAddPage = () => {
+    setShowTemplateModal(true);
   };
 
   const handleDragEnd = useCallback(
@@ -342,6 +369,62 @@ export default function BuilderPageList() {
 
         {activePage && <BlockPalette pageId={activePage.id} dispatch={dispatch} />}
       </div>
+
+      {/* Template picker modal */}
+      {showTemplateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" onClick={() => setShowTemplateModal(false)} />
+          <div className="relative bg-white rounded-2xl shadow-2xl border border-[#E6E6E4] w-full max-w-[560px] max-h-[500px] flex flex-col overflow-hidden">
+            <div className="px-5 py-3.5 border-b border-[#E6E6E4] flex items-center justify-between">
+              <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Nouvelle page</h2>
+              <button onClick={() => setShowTemplateModal(false)} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {/* Blank page */}
+              <button
+                onClick={() => handleAddPageFromTemplate()}
+                className="w-full flex items-center gap-3 p-3 rounded-xl border border-[#E6E6E4] hover:border-[#4F46E5]/40 transition-all text-left"
+              >
+                <div className="w-10 h-10 rounded-lg bg-[#F7F7F5] flex items-center justify-center flex-shrink-0">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                    <line x1="12" y1="8" x2="12" y2="16" /><line x1="8" y1="12" x2="16" y2="12" />
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-[13px] font-semibold text-[#1A1A1A]">Page vide</div>
+                  <div className="text-[11px] text-[#999]">Commencer de zero</div>
+                </div>
+              </button>
+
+              <div className="pt-2 pb-1">
+                <span className="text-[10px] font-semibold text-[#999] uppercase tracking-wider">Templates</span>
+              </div>
+
+              {/* Templates */}
+              {pageTemplates.map((tpl) => (
+                <button
+                  key={tpl.id}
+                  onClick={() => handleAddPageFromTemplate(tpl)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-[#E6E6E4] hover:border-[#4F46E5]/40 hover:bg-[#EEF2FF]/20 transition-all text-left"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-[#EEF2FF] flex items-center justify-center flex-shrink-0">
+                    <span className="text-[14px] font-bold text-[#4F46E5]">{tpl.blocks.length}</span>
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-[13px] font-semibold text-[#1A1A1A]">{tpl.name}</div>
+                    <div className="text-[11px] text-[#999] truncate">{tpl.description} — {tpl.blocks.length} blocs</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
