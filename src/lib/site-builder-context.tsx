@@ -156,16 +156,41 @@ const defaultContent: { [K in BlockType]: BlockContentMap[K] } = {
 let blockCounter = 100;
 
 const MAX_HISTORY = 50;
+const COALESCE_MS = 500;
 
-function pushHistory(state: BuilderState): { history: Site[]; historyIndex: number } {
+// Track last content/style edit to coalesce rapid keystrokes into one history entry
+let lastEditAction: string | null = null;
+let lastEditBlockId: string | null = null;
+let lastEditTime = 0;
+
+function pushHistory(state: BuilderState, coalesceKey?: string): { history: Site[]; historyIndex: number } {
+  const now = Date.now();
+  const shouldCoalesce = coalesceKey && coalesceKey === lastEditAction
+    && lastEditBlockId !== null && now - lastEditTime < COALESCE_MS;
+
+  if (coalesceKey) {
+    lastEditAction = coalesceKey;
+    lastEditBlockId = state.activeBlockId;
+    lastEditTime = now;
+  } else {
+    lastEditAction = null;
+    lastEditBlockId = null;
+    lastEditTime = 0;
+  }
+
   const history = state.history.slice(0, state.historyIndex + 1);
-  history.push(JSON.parse(JSON.stringify(state.site)));
-  if (history.length > MAX_HISTORY) history.shift();
+  if (shouldCoalesce && history.length > 1) {
+    // Replace last snapshot instead of pushing a new one
+    history[history.length - 1] = JSON.parse(JSON.stringify(state.site));
+  } else {
+    history.push(JSON.parse(JSON.stringify(state.site)));
+    if (history.length > MAX_HISTORY) history.shift();
+  }
   return { history, historyIndex: history.length - 1 };
 }
 
-function withHistory(state: BuilderState, site: Site): BuilderState {
-  const h = pushHistory(state);
+function withHistory(state: BuilderState, site: Site, coalesceKey?: string): BuilderState {
+  const h = pushHistory(state, coalesceKey);
   return { ...state, site, isDirty: true, history: h.history, historyIndex: h.historyIndex };
 }
 
@@ -217,7 +242,7 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
           b.id === action.blockId ? { ...b, content: { ...b.content, ...action.content } } as Block : b
         ),
       })) };
-      return withHistory(state, site);
+      return withHistory(state, site, `content:${action.blockId}`);
     }
 
     case "UPDATE_BLOCK_STYLE": {
@@ -227,7 +252,7 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
           b.id === action.blockId ? { ...b, style: { ...b.style, ...action.style } } as Block : b
         ),
       })) };
-      return withHistory(state, site);
+      return withHistory(state, site, `style:${action.blockId}`);
     }
 
     case "UPDATE_BLOCK_SETTINGS": {
