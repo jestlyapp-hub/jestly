@@ -7,14 +7,22 @@ import BlockThumbnail from "./BlockThumbnail";
 import PreviewSandbox from "./PreviewSandbox";
 import { getVariantsForBlock } from "@/lib/block-variants";
 import type { BlockType } from "@/types";
+import { suggestNextBlocks } from "@/lib/block-suggestions";
 
 export default function AddBlockModal({ onClose, pageId }: { onClose: () => void; pageId: string }) {
-  const { dispatch } = useBuilder();
+  const { state, dispatch } = useBuilder();
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState<BlockCategory | "all">("all");
   const [hoveredType, setHoveredType] = useState<BlockType | null>(null);
   const [selectedType, setSelectedType] = useState<BlockType | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Smart suggestions based on current page composition
+  const activePage = state.site.pages.find((p) => p.id === pageId);
+  const suggestions = activePage ? suggestNextBlocks(activePage.blocks) : [];
+  const suggestedEntries = suggestions
+    .map((type) => blockRegistry.find((b) => b.type === type))
+    .filter(Boolean) as typeof blockRegistry;
 
   const handleHover = useCallback((type: BlockType | null) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -99,6 +107,38 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
+            {/* Smart suggestions */}
+            {!search && activeCategory === "all" && suggestedEntries.length > 0 && (
+              <div className="mb-5">
+                <div className="flex items-center gap-2 mb-2">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                  <span className="text-[11px] font-semibold text-[#4F46E5] uppercase tracking-wider">Suggestions</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {suggestedEntries.map((entry) => (
+                    <button
+                      key={`sug-${entry.type}`}
+                      onClick={() => {
+                        const v = getVariantsForBlock(entry.type);
+                        if (v.length > 0) { setSelectedType(entry.type); } else { handleAdd(entry.type); }
+                      }}
+                      onMouseEnter={() => handleHover(entry.type)}
+                      onMouseLeave={() => handleHover(null)}
+                      className="group flex flex-col p-2.5 rounded-xl border border-[#4F46E5]/20 bg-[#EEF2FF]/30 hover:border-[#4F46E5] hover:bg-[#EEF2FF]/60 transition-all text-left"
+                    >
+                      <div className="w-full h-10 bg-white/60 rounded-lg p-1.5 mb-1.5 flex items-center justify-center overflow-hidden">
+                        <div className="w-full"><BlockThumbnail type={entry.type} /></div>
+                      </div>
+                      <div className="text-[11px] font-semibold text-[#1A1A1A]">{entry.name}</div>
+                      <div className="text-[9px] text-[#999] line-clamp-1">{entry.description}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {filtered.length === 0 ? (
               <div className="flex items-center justify-center h-full text-[13px] text-[#BBB]">
                 Aucun bloc trouvé
