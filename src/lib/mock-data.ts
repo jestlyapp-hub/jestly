@@ -134,10 +134,10 @@ export const activities: Activity[] = [
 /* ─── Leads ─── */
 
 export const mockLeads: Lead[] = [
-  { id: "LEAD-001", name: "Julien Roche", email: "julien@startup.io", source: "contact-form", date: "2025-03-15", fields: { message: "Intéressé par une refonte de logo" } },
-  { id: "LEAD-002", name: "Camille Duval", email: "camille@agence.fr", source: "newsletter", date: "2025-03-14", fields: {} },
-  { id: "LEAD-003", name: "Antoine Moreau", email: "antoine@brand.co", source: "lead-magnet", date: "2025-03-13", fields: { downloaded: "guide-branding.pdf" } },
-  { id: "LEAD-004", name: "Laura Petit", email: "laura@design.com", source: "contact-form", date: "2025-03-12", fields: { message: "Besoin d'un pack réseaux sociaux" } },
+  { id: "LEAD-001", name: "Julien Roche", email: "julien@startup.io", phone: null, company: null, source: "contact-form", status: "new", message: "Intéressé par une refonte de logo", fields: {}, page_path: null, block_type: null, block_label: null, utm_source: null, utm_medium: null, utm_campaign: null, referrer: null, product_name: null, amount: null, notes: null, created_at: "2025-03-15T10:00:00Z" },
+  { id: "LEAD-002", name: "Camille Duval", email: "camille@agence.fr", phone: null, company: null, source: "newsletter", status: "new", message: null, fields: {}, page_path: null, block_type: null, block_label: null, utm_source: null, utm_medium: null, utm_campaign: null, referrer: null, product_name: null, amount: null, notes: null, created_at: "2025-03-14T10:00:00Z" },
+  { id: "LEAD-003", name: "Antoine Moreau", email: "antoine@brand.co", phone: null, company: null, source: "lead-magnet", status: "contacted", message: null, fields: { downloaded: "guide-branding.pdf" }, page_path: null, block_type: null, block_label: null, utm_source: null, utm_medium: null, utm_campaign: null, referrer: null, product_name: null, amount: null, notes: null, created_at: "2025-03-13T10:00:00Z" },
+  { id: "LEAD-004", name: "Laura Petit", email: "laura@design.com", phone: null, company: null, source: "contact-form", status: "new", message: "Besoin d'un pack réseaux sociaux", fields: {}, page_path: null, block_type: null, block_label: null, utm_source: null, utm_medium: null, utm_campaign: null, referrer: null, product_name: null, amount: null, notes: null, created_at: "2025-03-12T10:00:00Z" },
 ];
 
 /* ─── Workspace FAQ ─── */
