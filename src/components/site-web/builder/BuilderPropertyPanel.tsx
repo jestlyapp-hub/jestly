@@ -7,6 +7,7 @@ import BlockEditor from "@/components/site-web/editors/BlockEditor";
 import BlockStyleEditor from "@/components/site-web/editors/BlockStyleEditor";
 import { getVariantsForBlock, hasVariants } from "@/lib/block-variants";
 import { getBlockErrors } from "@/lib/builder-validation";
+import { stylePresets } from "@/lib/style-presets";
 import type { BlockAnimation, BlockStyle, HoverEffect, SpacingPreset } from "@/types";
 
 type InspectorTab = "content" | "style" | "settings";
@@ -222,6 +223,32 @@ export default function BuilderPropertyPanel() {
         {/* ── STYLE TAB (PREMIUM) ── */}
         {activeTab === "style" && (
           <div className="px-4 py-4 space-y-5">
+            {/* Style presets — quick apply */}
+            <details className="group">
+              <summary className="text-[11px] font-semibold text-[#4F46E5] cursor-pointer hover:text-[#4338CA] select-none flex items-center gap-1">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-open:rotate-90"><polyline points="9 18 15 12 9 6" /></svg>
+                Presets de style
+              </summary>
+              <div className="mt-2 grid grid-cols-2 gap-1.5">
+                {stylePresets.map((preset) => (
+                  <button
+                    key={preset.id}
+                    onClick={() => updateStyle(preset.style)}
+                    className="px-2 py-2 rounded-lg border border-[#E6E6E4] hover:border-[#4F46E5]/40 transition-all text-left"
+                  >
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <div
+                        className="w-3 h-3 rounded border border-black/10 flex-shrink-0"
+                        style={{ background: preset.style.backgroundColor || "#fff" }}
+                      />
+                      <span className="text-[10px] font-semibold text-[#1A1A1A]">{preset.name}</span>
+                    </div>
+                    <span className="text-[9px] text-[#999]">{preset.description}</span>
+                  </button>
+                ))}
+              </div>
+            </details>
+
             {/* Padding presets */}
             <div>
               <span className={sectionLabel}>Espacement haut</span>
