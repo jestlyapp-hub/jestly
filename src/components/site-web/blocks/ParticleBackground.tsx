@@ -22,10 +22,19 @@ function ParticleBackgroundInner({ config }: Props) {
   const particlesRef = useRef<Particle[]>([]);
 
   const type = config.type; // particles-float | particles-constellation | particles-aura
-  const density = config.density ?? 1;
-  const speed = config.speed ?? 1;
-  const pSize = config.particleSize ?? 2;
+  const density = Math.min(2, config.density ?? 1);
+  const speed = Math.min(2, config.speed ?? 1);
+  const pSize = Math.min(5, config.particleSize ?? 2);
   const opacity = config.opacity ?? 0.6;
+  const position = config.position;
+
+  // Map position to focal ratios (0-1)
+  const focalX = position === "left" || position === "top-left" || position === "bottom-left" ? 0.25
+    : position === "right" || position === "top-right" || position === "bottom-right" ? 0.75
+    : 0.5;
+  const focalY = position === "top" || position === "top-left" || position === "top-right" ? 0.25
+    : position === "bottom" || position === "bottom-left" || position === "bottom-right" ? 0.75
+    : 0.5;
 
   // Resolve color — strip var() to get fallback hex for canvas
   const resolveColor = (c?: string): string => {
@@ -144,21 +153,21 @@ function ParticleBackgroundInner({ config }: Props) {
           }
         }
       } else if (type === "particles-aura") {
-        // Particles orbiting glow zones
-        const cx = W * 0.5;
-        const cy = H * 0.5;
+        // Particles orbiting glow zones — focal point from config
+        const cx = W * focalX;
+        const cy = H * focalY;
         const time = Date.now() * 0.0005 * speed;
 
-        // Draw central glow
+        // Draw central glow at focal point
         const glowGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.min(W, H) * 0.35);
         glowGrad.addColorStop(0, `rgba(${rgb1.r}, ${rgb1.g}, ${rgb1.b}, ${0.12 * opacity})`);
         glowGrad.addColorStop(1, "transparent");
         ctx.fillStyle = glowGrad;
         ctx.fillRect(0, 0, W, H);
 
-        // Second glow offset
-        const cx2 = W * 0.3 + Math.sin(time * 0.3) * W * 0.05;
-        const cy2 = H * 0.6 + Math.cos(time * 0.4) * H * 0.05;
+        // Second glow offset from focal
+        const cx2 = cx - W * 0.15 + Math.sin(time * 0.3) * W * 0.05;
+        const cy2 = cy + H * 0.15 + Math.cos(time * 0.4) * H * 0.05;
         const glowGrad2 = ctx.createRadialGradient(cx2, cy2, 0, cx2, cy2, Math.min(W, H) * 0.25);
         glowGrad2.addColorStop(0, `rgba(${rgb2.r}, ${rgb2.g}, ${rgb2.b}, ${0.08 * opacity})`);
         glowGrad2.addColorStop(1, "transparent");
