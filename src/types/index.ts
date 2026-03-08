@@ -335,6 +335,9 @@ export type BlockType =
   | "footer-multi-column"
   | "signature-creative-closing";
 
+export type HoverEffect = "none" | "lift" | "zoom" | "glow" | "soft-overlay" | "border-glow";
+export type SpacingPreset = "compact" | "normal" | "large" | "hero";
+
 export interface BlockStyle {
   backgroundColor?: string;
   textColor?: string;
@@ -351,6 +354,8 @@ export interface BlockStyle {
   borderRadius?: number;
   borderColor?: string;
   borderWidth?: number;
+  hoverEffect?: HoverEffect;
+  spacingPreset?: SpacingPreset;
   shadow?: "none" | "sm" | "md" | "lg";
   containerWidth?: "full" | "boxed" | "narrow";
   backgroundGradient?: string;

@@ -7,7 +7,7 @@ import BlockEditor from "@/components/site-web/editors/BlockEditor";
 import BlockStyleEditor from "@/components/site-web/editors/BlockStyleEditor";
 import { getVariantsForBlock, hasVariants } from "@/lib/block-variants";
 import { getBlockErrors } from "@/lib/builder-validation";
-import type { BlockAnimation, BlockStyle } from "@/types";
+import type { BlockAnimation, BlockStyle, HoverEffect, SpacingPreset } from "@/types";
 
 type InspectorTab = "content" | "style" | "settings";
 
@@ -57,6 +57,33 @@ const textTonePresets = [
   { value: "var(--site-text, #191919)", label: "Sombre" },
   { value: "#ffffff", label: "Clair" },
   { value: "var(--site-muted, #5A5A58)", label: "Muted" },
+];
+
+const hoverEffectOptions: { value: HoverEffect; label: string }[] = [
+  { value: "none", label: "Aucun" },
+  { value: "lift", label: "Elevation" },
+  { value: "zoom", label: "Zoom" },
+  { value: "glow", label: "Glow" },
+  { value: "soft-overlay", label: "Lumiere" },
+  { value: "border-glow", label: "Bordure" },
+];
+
+const CARD_BLOCK_TYPES = new Set([
+  "portfolio-grid", "portfolio-masonry", "services-list", "services-premium",
+  "services-3card-premium", "services-icon-grid", "service-cards",
+  "pricing-table", "pricing-modern", "pricing-3tier-saas",
+  "testimonials", "testimonials-carousel", "testimonials-dark", "testimonials-3dark",
+  "projects-grid-cases", "projects-horizontal", "project-masonry-wall",
+  "products-3card-shop", "product-cards-grid", "product-bundle-compare",
+  "team-mini-grid", "feature-grid", "tech-stack", "comparison-table",
+  "why-me", "logo-cloud", "trust-badges",
+]);
+
+const spacingPresetOptions: { value: SpacingPreset; label: string; desc: string }[] = [
+  { value: "compact", label: "Compact", desc: "20px" },
+  { value: "normal", label: "Normal", desc: "48px" },
+  { value: "large", label: "Large", desc: "80px" },
+  { value: "hero", label: "Hero", desc: "100px" },
 ];
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
@@ -276,6 +303,52 @@ export default function BuilderPropertyPanel() {
                 onChange={(v) => updateStyle({ textColor: String(v) })}
               />
             </div>
+
+            {/* Spacing preset */}
+            <div>
+              <span className={sectionLabel}>Espacement rapide</span>
+              <div className="flex gap-1">
+                {spacingPresetOptions.map((sp) => (
+                  <button
+                    key={sp.value}
+                    onClick={() => {
+                      const values = { compact: { paddingTop: 20, paddingBottom: 20 }, normal: { paddingTop: 48, paddingBottom: 48 }, large: { paddingTop: 80, paddingBottom: 80 }, hero: { paddingTop: 100, paddingBottom: 100 } }[sp.value];
+                      updateStyle({ ...values, spacingPreset: sp.value });
+                    }}
+                    className={`flex-1 py-1.5 rounded-md border text-[10px] font-medium transition-all ${
+                      activeBlock.style.spacingPreset === sp.value
+                        ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                        : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
+                    }`}
+                    title={sp.desc}
+                  >
+                    {sp.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Hover effect — only for card-based blocks */}
+            {CARD_BLOCK_TYPES.has(activeBlock.type) && (
+              <div>
+                <span className={sectionLabel}>Effet au survol</span>
+                <div className="grid grid-cols-3 gap-1">
+                  {hoverEffectOptions.map((h) => (
+                    <button
+                      key={h.value}
+                      onClick={() => updateStyle({ hoverEffect: h.value })}
+                      className={`py-1.5 rounded-md border text-[10px] font-medium transition-all ${
+                        (activeBlock.style.hoverEffect || "none") === h.value
+                          ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                          : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
+                      }`}
+                    >
+                      {h.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Full style editor (collapsed by default) */}
             <details className="border-t border-[#E6E6E4] pt-3">

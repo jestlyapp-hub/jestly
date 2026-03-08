@@ -1,6 +1,6 @@
 import { memo, lazy, Suspense } from "react";
 import type { Block } from "@/types";
-import { computeSectionStyle, computePublicContainerClass, computeButtonVars, getButtonHoverCSS, renderBackgroundConfig } from "@/lib/block-style-engine";
+import { computeSectionStyle, computePublicContainerClass, computeButtonVars, getButtonHoverCSS, getHoverEffectCSS, renderBackgroundConfig } from "@/lib/block-style-engine";
 
 const ParticleBackground = lazy(() => import("./ParticleBackground"));
 import HeroBlockPreview from "./HeroBlockPreview";
@@ -127,6 +127,7 @@ function BlockPreviewInner({ block }: { block: Block }) {
   const containerClass = computePublicContainerClass(block.style);
   const buttonVars = computeButtonVars(block.style.buttonStyle);
   const hoverCSS = getButtonHoverCSS(block.id);
+  const cardHoverCSS = getHoverEffectCSS(block.id, block.style.hoverEffect);
   const isFullBleed = FULL_BLEED_BLOCKS.has(block.type);
 
   // Per-block background (only if block has an explicit override)
@@ -248,7 +249,7 @@ function BlockPreviewInner({ block }: { block: Block }) {
   return (
     <div data-block={block.id} style={mergedStyle} className="relative overflow-hidden">
       {/* Scoped hover CSS for buttons */}
-      <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
+      <style dangerouslySetInnerHTML={{ __html: hoverCSS + cardHoverCSS }} />
       {blockBg.overlayStyle && <div className="absolute inset-0 pointer-events-none z-0" style={blockBg.overlayStyle} />}
       {blockBg.html && block.style.background && (
         <Suspense fallback={null}>

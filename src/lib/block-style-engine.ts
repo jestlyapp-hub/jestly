@@ -1,4 +1,4 @@
-import type { BlockStyle, ButtonStyle, SiteTheme, SiteDesign, DesignKey, BackgroundConfig, BackgroundPosition } from "@/types";
+import type { BlockStyle, ButtonStyle, SiteTheme, SiteDesign, DesignKey, BackgroundConfig, BackgroundPosition, HoverEffect, SpacingPreset } from "@/types";
 import { getDesignPreset } from "@/lib/site-designs";
 
 const shadowMap: Record<string, string> = {
@@ -236,6 +236,52 @@ export function getButtonHoverCSS(blockId: string): string {
     }
   `;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   HOVER EFFECTS — shared hover CSS for card-based blocks
+   ═══════════════════════════════════════════════════════════ */
+
+const hoverEffectCSS: Record<string, string> = {
+  lift: `transform: translateY(-4px); box-shadow: 0 12px 24px -4px rgba(0,0,0,0.12);`,
+  zoom: `transform: scale(1.02);`,
+  glow: `box-shadow: 0 0 20px rgba(79,70,229,0.15);`,
+  "soft-overlay": `filter: brightness(1.03);`,
+  "border-glow": `border-color: var(--site-primary, #4F46E5) !important; box-shadow: 0 0 0 1px var(--site-primary, #4F46E5);`,
+};
+
+/**
+ * Generate scoped hover CSS for interactive card elements within a block.
+ * Targets elements with .hover-card class inside the block scope.
+ */
+export function getHoverEffectCSS(blockId: string, effect?: HoverEffect): string {
+  if (!effect || effect === "none") return "";
+  const css = hoverEffectCSS[effect];
+  if (!css) return "";
+
+  return `
+    [data-block="${blockId}"] .hover-card {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    [data-block="${blockId}"] .hover-card:hover {
+      ${css}
+    }
+    @media (prefers-reduced-motion: reduce) {
+      [data-block="${blockId}"] .hover-card:hover {
+        transform: none !important;
+      }
+    }
+  `;
+}
+
+/**
+ * Resolve spacing preset to paddingTop/paddingBottom values.
+ */
+export const spacingPresetValues: Record<SpacingPreset, { paddingTop: number; paddingBottom: number }> = {
+  compact: { paddingTop: 20, paddingBottom: 20 },
+  normal: { paddingTop: 48, paddingBottom: 48 },
+  large: { paddingTop: 80, paddingBottom: 80 },
+  hero: { paddingTop: 100, paddingBottom: 100 },
+};
 
 /* ═══════════════════════════════════════════════════════════
    BACKGROUND CONFIG — site-level & block-level backgrounds

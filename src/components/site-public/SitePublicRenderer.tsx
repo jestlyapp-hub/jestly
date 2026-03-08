@@ -10,6 +10,7 @@ import {
   computePublicContainerClass,
   computeButtonVars,
   getButtonHoverCSS,
+  getHoverEffectCSS,
   computeThemeVars,
   resolveTheme,
 } from "@/lib/block-style-engine";
@@ -261,6 +262,7 @@ function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
   const containerClass = computePublicContainerClass(block.style);
   const buttonVars = computeButtonVars(block.style.buttonStyle);
   const hoverCSS = getButtonHoverCSS(block.id);
+  const cardHoverCSS = getHoverEffectCSS(block.id, block.style.hoverEffect);
 
   // Per-block background override
   const blockBg = block.style.background ? renderBackgroundConfig(block.style.background) : {};
@@ -280,7 +282,7 @@ function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
       style={mergedStyle}
       className="w-full relative overflow-hidden"
     >
-      <style dangerouslySetInnerHTML={{ __html: hoverCSS }} />
+      <style dangerouslySetInnerHTML={{ __html: hoverCSS + cardHoverCSS }} />
       {blockBg.overlayStyle && <div className="absolute inset-0 pointer-events-none z-0" style={blockBg.overlayStyle} />}
       {blockBg.html && block.style.background && (
         <Suspense fallback={null}>
