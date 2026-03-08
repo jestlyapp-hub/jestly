@@ -287,7 +287,11 @@ function PublicBlockSection({ block, site }: { block: Block; site: Site }) {
           <ParticleBackground config={block.style.background} />
         </Suspense>
       )}
-      <AnimateOnScroll animation={block.settings?.animation}>
+      <AnimateOnScroll
+        animation={block.settings?.animation}
+        duration={block.settings?.animationDuration}
+        delay={block.settings?.animationDelay}
+      >
         <div className={`relative z-[1] ${isFullBleed ? "" : `${containerClass} px-6`}`}>
           {renderBlockContent(block)}
         </div>

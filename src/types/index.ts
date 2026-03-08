@@ -358,11 +358,13 @@ export interface BlockStyle {
   background?: BackgroundConfig;
 }
 
-export type BlockAnimation = "none" | "fade-up" | "fade-in" | "slide-left";
+export type BlockAnimation = "none" | "fade-up" | "fade-down" | "fade-in" | "fade-left" | "fade-right" | "scale-in" | "blur-reveal" | "slide-left";
 
 export interface BlockSettings {
   anchorId?: string;
   animation?: BlockAnimation;
+  animationDuration?: number;  // seconds (0.3-1.5)
+  animationDelay?: number;     // seconds (0-1)
   variantKey?: string;
 }
 

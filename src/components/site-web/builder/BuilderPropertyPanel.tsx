@@ -19,9 +19,13 @@ const tabs: { id: InspectorTab; label: string }[] = [
 
 const animationOptions: { value: BlockAnimation; label: string; description: string }[] = [
   { value: "none", label: "Aucune", description: "Pas d'animation" },
-  { value: "fade-up", label: "Fondu haut", description: "Apparaît vers le haut" },
-  { value: "fade-in", label: "Fondu", description: "Apparaît progressivement" },
-  { value: "slide-left", label: "Glissement", description: "Glisse depuis la gauche" },
+  { value: "fade-up", label: "Fondu haut", description: "Monte en fondant" },
+  { value: "fade-down", label: "Fondu bas", description: "Descend en fondant" },
+  { value: "fade-in", label: "Fondu", description: "Apparition douce" },
+  { value: "fade-left", label: "Depuis gauche", description: "Glisse de la gauche" },
+  { value: "fade-right", label: "Depuis droite", description: "Glisse de la droite" },
+  { value: "scale-in", label: "Zoom", description: "Zoom progressif" },
+  { value: "blur-reveal", label: "Flou", description: "Defloute en apparaissant" },
 ];
 
 const containerWidthOptions = [
@@ -348,6 +352,42 @@ export default function BuilderPropertyPanel() {
                   </button>
                 ))}
               </div>
+
+              {/* Duration & Delay — only if animation is set */}
+              {activeBlock.settings?.animation && activeBlock.settings.animation !== "none" && (
+                <div className="mt-3 space-y-2">
+                  <div>
+                    <label className="flex items-center justify-between text-[10px] text-[#999] mb-1">
+                      <span>Duree</span>
+                      <span className="font-mono">{(activeBlock.settings.animationDuration ?? 0.5).toFixed(1)}s</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="0.2"
+                      max="1.5"
+                      step="0.1"
+                      value={activeBlock.settings.animationDuration ?? 0.5}
+                      onChange={(e) => dispatch({ type: "UPDATE_BLOCK_SETTINGS", blockId: activeBlock.id, settings: { animationDuration: parseFloat(e.target.value) } })}
+                      className="w-full h-1.5 rounded-full bg-[#E6E6E4] accent-[#4F46E5] cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="flex items-center justify-between text-[10px] text-[#999] mb-1">
+                      <span>Delai</span>
+                      <span className="font-mono">{(activeBlock.settings.animationDelay ?? 0).toFixed(1)}s</span>
+                    </label>
+                    <input
+                      type="range"
+                      min="0"
+                      max="1"
+                      step="0.1"
+                      value={activeBlock.settings.animationDelay ?? 0}
+                      onChange={(e) => dispatch({ type: "UPDATE_BLOCK_SETTINGS", blockId: activeBlock.id, settings: { animationDelay: parseFloat(e.target.value) } })}
+                      className="w-full h-1.5 rounded-full bg-[#E6E6E4] accent-[#4F46E5] cursor-pointer"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Visibility toggle */}
