@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { sendWaitlistConfirmation } from "@/lib/email/send-waitlist-email";
 
 function getAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
+  if (!url || !key) {
+    console.error("[waitlist] Missing env:", { hasUrl: !!url, hasKey: !!key });
+    return null;
+  }
   return createClient(url, key);
 }
 
@@ -13,7 +15,10 @@ export async function POST(req: NextRequest) {
   try {
     const supabaseAdmin = getAdminClient();
     if (!supabaseAdmin) {
-      return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
+      return NextResponse.json(
+        { error: "Configuration serveur manquante. Contactez l'administrateur." },
+        { status: 503 }
+      );
     }
 
     const body = await req.json();
@@ -23,7 +28,7 @@ export async function POST(req: NextRequest) {
     // Validation
     if (!email || !first_name || !job_type) {
       return NextResponse.json(
-        { error: "email, first_name et job_type sont requis" },
+        { error: "Prénom, email et métier sont requis." },
         { status: 400 }
       );
     }
@@ -31,7 +36,7 @@ export async function POST(req: NextRequest) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
-        { error: "Email invalide" },
+        { error: "Email invalide." },
         { status: 400 }
       );
     }
@@ -54,12 +59,14 @@ export async function POST(req: NextRequest) {
     if (job_type === "freelance-dev") score += 10;
     if (job_type === "freelance-other") score += 8;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabaseAdmin.from("waitlist") as any)
       .insert({
         email: email.toLowerCase().trim(),
         first_name: first_name.trim(),
         twitter: twitter?.trim() || null,
         job_type,
+        status: "new",
         source,
         referrer,
         utm_source,
@@ -81,19 +88,30 @@ export async function POST(req: NextRequest) {
           { status: 409 }
         );
       }
-      console.error("[waitlist] insert error:", error);
-      return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+      console.error("[waitlist] insert error:", JSON.stringify(error));
+      return NextResponse.json(
+        { error: "Impossible de traiter l'inscription. Réessayez." },
+        { status: 500 }
+      );
     }
 
-    // Send confirmation email (fire-and-forget, don't block the response)
-    sendWaitlistConfirmation(email.toLowerCase().trim(), first_name.trim(), data.id).catch(
-      (err) => console.error("[waitlist] confirmation email failed:", err)
-    );
+    // Send confirmation email (fire-and-forget, never block the response)
+    try {
+      const { sendWaitlistConfirmation } = await import("@/lib/email/send-waitlist-email");
+      sendWaitlistConfirmation(email.toLowerCase().trim(), first_name.trim(), data.id).catch(
+        (err) => console.error("[waitlist] confirmation email failed:", err)
+      );
+    } catch (emailErr) {
+      console.error("[waitlist] email module load failed:", emailErr);
+    }
 
     return NextResponse.json({ success: true, id: data.id }, { status: 201 });
   } catch (err) {
     console.error("[waitlist] unexpected error:", err);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Une erreur inattendue est survenue. Réessayez." },
+      { status: 500 }
+    );
   }
 }
 
@@ -105,11 +123,12 @@ export async function GET() {
       return NextResponse.json({ count: 0 });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { count, error } = await (supabaseAdmin.from("waitlist") as any)
       .select("id", { count: "exact", head: true });
 
     if (error) {
-      console.error("[waitlist] count error:", error);
+      console.error("[waitlist] count error:", JSON.stringify(error));
       return NextResponse.json({ count: 0 });
     }
 

@@ -26,7 +26,12 @@ export async function GET(req: NextRequest) {
   let query = (supabase.from("waitlist") as ReturnType<typeof supabase.from>).select("*", { count: "exact" });
 
   if (status && status !== "all") {
-    query = query.eq("status", status);
+    if (status === "new") {
+      // Include both 'new' and null status (entries inserted without explicit status)
+      query = query.or("status.eq.new,status.is.null");
+    } else {
+      query = query.eq("status", status);
+    }
   }
   if (job_type && job_type !== "all") {
     query = query.eq("job_type", job_type);

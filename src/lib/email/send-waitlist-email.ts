@@ -37,7 +37,13 @@ export async function sendWaitlistEmail(
     return { success: false, error: "Resend not configured" };
   }
 
-  const supabase = createAdminClient();
+  let supabase: ReturnType<typeof createAdminClient> | null = null;
+  try {
+    supabase = createAdminClient();
+  } catch (e) {
+    console.warn("[email] Cannot create admin client for logging:", e);
+  }
+
   const rendered = renderWaitlistTemplate(templateKey, {
     first_name: recipient.first_name,
   });
@@ -55,16 +61,20 @@ export async function sendWaitlistEmail(
     const status = error ? "failed" : "sent";
     const errorMessage = error ? JSON.stringify(error) : null;
 
-    // Log to database
-    await (supabase.from("waitlist_email_logs") as ReturnType<typeof supabase.from>)
-      .insert({
-        waitlist_id: recipient.waitlist_id || null,
-        recipient_email: recipient.email,
-        template_key: templateKey,
-        sent_by: sentBy,
-        status,
-        error_message: errorMessage,
-      });
+    // Log to database (best-effort)
+    if (supabase) {
+      await (supabase.from("waitlist_email_logs") as ReturnType<typeof supabase.from>)
+        .insert({
+          waitlist_id: recipient.waitlist_id || null,
+          recipient_email: recipient.email,
+          template_key: templateKey,
+          sent_by: sentBy,
+          status,
+          error_message: errorMessage,
+        }).then(({ error: logErr }) => {
+          if (logErr) console.warn("[email] Log insert failed:", logErr);
+        });
+    }
 
     if (error) {
       console.error("[email] Resend error:", error);
@@ -76,16 +86,20 @@ export async function sendWaitlistEmail(
     const errorMessage = err instanceof Error ? err.message : "Unknown error";
     console.error("[email] Send failed:", errorMessage);
 
-    // Log failure
-    await (supabase.from("waitlist_email_logs") as ReturnType<typeof supabase.from>)
-      .insert({
-        waitlist_id: recipient.waitlist_id || null,
-        recipient_email: recipient.email,
-        template_key: templateKey,
-        sent_by: sentBy,
-        status: "failed",
-        error_message: errorMessage,
-      });
+    // Log failure (best-effort)
+    if (supabase) {
+      await (supabase.from("waitlist_email_logs") as ReturnType<typeof supabase.from>)
+        .insert({
+          waitlist_id: recipient.waitlist_id || null,
+          recipient_email: recipient.email,
+          template_key: templateKey,
+          sent_by: sentBy,
+          status: "failed",
+          error_message: errorMessage,
+        }).then(({ error: logErr }) => {
+          if (logErr) console.warn("[email] Failure log insert failed:", logErr);
+        });
+    }
 
     return { success: false, error: errorMessage };
   }
