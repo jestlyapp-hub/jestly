@@ -13,3 +13,4 @@ No blockers encountered during Block Library Expansion sprint (50 new blocks).
 No blockers encountered during Block Content Configuration sprint (50 editors wired).
 No blockers encountered during Deep Block Configuration and Media Hardening sprint.
 No blockers encountered during block background layer stack fix sprint.
+No blockers encountered during Background Controls V2 sprint.
