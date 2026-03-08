@@ -184,9 +184,17 @@ export default function BuilderCanvas() {
         className="mx-auto transition-all duration-300"
         style={{ maxWidth: breakpointWidths[state.breakpoint] }}
       >
+        {/* Device frame label */}
+        {state.breakpoint !== "desktop" && !isPreview && (
+          <div className="text-center py-2">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E6E6E4] text-[10px] font-medium text-[#999] shadow-sm">
+              {state.breakpoint === "tablet" ? "Tablette — 768px" : "Mobile — 375px"}
+            </span>
+          </div>
+        )}
         <div className={`${isPreview ? "" : "py-4 px-4"}`}>
           <div
-            className={`${isPreview ? "" : "rounded-xl shadow-sm border border-[#E6E6E4] overflow-hidden"} relative`}
+            className={`${isPreview ? "" : "rounded-xl shadow-sm border border-[#E6E6E4] overflow-hidden"} ${state.breakpoint !== "desktop" && !isPreview ? "ring-2 ring-[#4F46E5]/10" : ""} relative`}
             style={{
               ...computeThemeVars(resolveTheme(state.site.theme, state.site.design)) as React.CSSProperties,
               ...(() => {
