@@ -17,3 +17,8 @@ No blockers encountered during Background Controls V2 sprint.
 No blockers encountered during Unified Link Destination System sprint.
 No blockers encountered during Premium Builder Upgrade sprint (9 features).
 No blockers encountered during Leads CRM sprint.
+
+No blockers encountered during Projects V2 sprint.
+*(Migration 028 executed successfully via direct PostgreSQL connection — tables projects, project_folders, project_items created.)*
+No blockers encountered during Projects V3 sprint.
+*(Migration 029 executed successfully — added brief_template_id, portfolio_images, portfolio_category, portfolio_external_url, share_enabled columns.)*

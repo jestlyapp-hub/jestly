@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import type { Order, ChecklistItem, BoardField, FieldOption, BriefField, ResourceItem } from "@/types";
+import { apiFetch } from "@/lib/hooks/use-api";
 import { urlToResourceItem } from "@/lib/brief-column-compat";
 import BriefAnswersDisplay from "@/components/briefs/BriefAnswersDisplay";
 import { useFieldSave } from "@/lib/hooks/use-field-save";
@@ -209,6 +211,64 @@ function DrawerResources({
           Ajouter
         </button>
       </div>
+    </div>
+  );
+}
+
+/* ─── Create Project from Order ─── */
+function CreateProjectFromOrder({ order }: { order: Order }) {
+  const router = useRouter();
+  const [creating, setCreating] = useState(false);
+  const [created, setCreated] = useState(false);
+
+  const handleCreate = async () => {
+    setCreating(true);
+    try {
+      const categoryToType: Record<string, string> = {
+        miniature: "thumbnail", montage: "video", design: "design",
+        logo: "branding", illustration: "design",
+      };
+      const res = await apiFetch<{ id: string }>("/api/projects", {
+        body: {
+          name: order.product || "Projet sans titre",
+          description: order.briefing || order.notes || "",
+          projectType: categoryToType[order.category || ""] || "custom",
+          clientId: order.clientId || null,
+          budget: order.price || 0,
+          status: "in_progress",
+          priority: order.priority || "normal",
+          orderId: order.id,
+          deadline: order.deadline || null,
+          tags: order.tags || [],
+        },
+      });
+      setCreated(true);
+      setTimeout(() => router.push(`/projets/${res.id}`), 500);
+    } catch {
+      setCreating(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">
+        Projet
+      </div>
+      {created ? (
+        <div className="flex items-center gap-2 text-[12px] text-emerald-600 font-medium">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+          Projet créé ! Redirection...
+        </div>
+      ) : (
+        <button
+          onClick={handleCreate}
+          disabled={creating}
+          className="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-[#4F46E5] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><line x1="12" y1="11" x2="12" y2="17" /><line x1="9" y1="14" x2="15" y2="14" /></svg>
+          {creating ? "Création..." : "Créer un projet depuis cette commande"}
+        </button>
+      )}
     </div>
   );
 }
@@ -634,6 +694,11 @@ export default function OrderDrawer({
                   }
                 />
               </div>
+
+              <div className="h-px bg-[#E6E6E4]" />
+
+              {/* Create project from order */}
+              <CreateProjectFromOrder order={order} />
 
               <div className="h-px bg-[#E6E6E4]" />
 

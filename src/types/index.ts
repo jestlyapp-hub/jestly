@@ -175,6 +175,73 @@ export interface Product {
   stripePriceId?: string;
 }
 
+/* ─── Projects System ─── */
+
+export type ProjectStatus = "draft" | "in_progress" | "review" | "completed" | "archived";
+export type ProjectType = "thumbnail" | "video" | "branding" | "development" | "design" | "content" | "custom";
+export type ProjectPriority = "low" | "normal" | "high" | "urgent";
+export type ProjectItemType = "folder" | "image" | "video" | "file" | "link" | "note" | "embed" | "reference" | "moodboard";
+
+export interface Project {
+  id: string;
+  name: string;
+  description: string;
+  projectType: ProjectType;
+  color: string;
+  status: ProjectStatus;
+  priority: ProjectPriority;
+  budget: number;
+  currency: string;
+  tags: string[];
+  coverUrl?: string;
+  clientId?: string;
+  clientName?: string;
+  clientEmail?: string;
+  clientCompany?: string;
+  productId?: string;
+  orderId?: string;
+  isPortfolio: boolean;
+  portfolioDescription?: string;
+  shareToken?: string;
+  deadline?: string;
+  startDate?: string;
+  itemsCount: number;
+  foldersCount: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectFolder {
+  id: string;
+  projectId: string;
+  parentId?: string;
+  name: string;
+  color: string;
+  position: number;
+  itemsCount?: number;
+}
+
+export interface ProjectItem {
+  id: string;
+  projectId: string;
+  folderId?: string;
+  itemType: ProjectItemType;
+  title: string;
+  description: string;
+  content: string;
+  url?: string;
+  filePath?: string;
+  fileSize?: number;
+  mimeType?: string;
+  thumbnailUrl?: string;
+  tags: string[];
+  metadata: Record<string, unknown>;
+  position: number;
+  isPinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Invoice {
   id: string;
   number: string;

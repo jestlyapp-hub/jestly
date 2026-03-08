@@ -129,11 +129,11 @@ import SignatureCreativeClosingBlockPreview from "@/components/site-web/blocks/S
 // Block Content Renderer (same content, different wrapper)
 // ═══════════════════════════════════════════════
 
-function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: string }) {
+function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: string; siteSlug?: string }) {
   const lp = ctx ? { siteId: ctx.siteId, pagePath: ctx.pagePath, blockType: block.type } : undefined;
   switch (block.type) {
     case "hero": return <HeroBlockPreview content={block.content} />;
-    case "portfolio-grid": return <PortfolioGridBlockPreview content={block.content} />;
+    case "portfolio-grid": return <PortfolioGridBlockPreview content={block.content} siteSlug={ctx?.siteSlug} />;
     case "services-list": return <ServicesListBlockPreview content={block.content} />;
     case "pack-premium": return <PackPremiumBlockPreview content={block.content} />;
     case "testimonials": return <TestimonialsBlockPreview content={block.content} />;
@@ -296,7 +296,7 @@ function PublicBlockSection({ block, site, pagePath }: { block: Block; site: Sit
         delay={block.settings?.animationDelay}
       >
         <div className={`relative z-[1] ${isFullBleed ? "" : `${containerClass} px-6`}`}>
-          {renderBlockContent(block, { siteId: site.id, pagePath })}
+          {renderBlockContent(block, { siteId: site.id, pagePath, siteSlug: site.domain?.subdomain })}
         </div>
       </AnimateOnScroll>
     </section>

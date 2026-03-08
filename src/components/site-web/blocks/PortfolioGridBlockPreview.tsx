@@ -3,10 +3,21 @@
 import { memo, useState, useRef, useEffect } from "react";
 import type { PortfolioGridBlockContent } from "@/types";
 
-function PortfolioGridBlockPreviewInner({ content }: { content: PortfolioGridBlockContent }) {
+interface PortfolioProject {
+  title: string;
+  imageUrl: string;
+  category: string;
+  description?: string;
+  featured?: boolean;
+  clientName?: string;
+  externalUrl?: string;
+}
+
+function PortfolioGridBlockPreviewInner({ content, siteSlug }: { content: PortfolioGridBlockContent; siteSlug?: string }) {
   const [activeFilter, setActiveFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [liveProjects, setLiveProjects] = useState<PortfolioProject[] | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -14,17 +25,30 @@ function PortfolioGridBlockPreviewInner({ content }: { content: PortfolioGridBlo
     return () => clearTimeout(timerRef.current);
   }, [searchQuery]);
 
+  // Fetch real portfolio projects if useRealProjects flag is set and siteSlug available
+  useEffect(() => {
+    if (!(content as any).useRealProjects || !siteSlug) return;
+    fetch(`/api/public/portfolio?site_slug=${siteSlug}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((data: any[]) => {
+        setLiveProjects(data.map(p => ({
+          title: p.title,
+          imageUrl: p.coverUrl || "",
+          category: p.category || p.type || "",
+          description: p.description,
+          featured: false,
+          clientName: p.clientName,
+          externalUrl: p.externalUrl,
+        })));
+      })
+      .catch(() => {});
+  }, [(content as any).useRealProjects, siteSlug]);
+
+  const items = liveProjects ?? content.items;
   const cols = content.columns === 2 ? "grid-cols-2" : content.columns === 4 ? "grid-cols-4" : "grid-cols-3";
 
-  // Sort: featured items first
-  const sorted = [...content.items].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
-
-  // Filter by category
-  const afterCategoryFilter = activeFilter
-    ? sorted.filter((item) => item.category === activeFilter)
-    : sorted;
-
-  // Filter by search
+  const sorted = [...items].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  const afterCategoryFilter = activeFilter ? sorted.filter((item) => item.category === activeFilter) : sorted;
   const filtered = debouncedSearch
     ? afterCategoryFilter.filter((item) =>
         item.title.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
@@ -32,9 +56,13 @@ function PortfolioGridBlockPreviewInner({ content }: { content: PortfolioGridBlo
       )
     : afterCategoryFilter;
 
+  // Derive categories from items if using real projects
+  const categories = liveProjects
+    ? [...new Set(liveProjects.map(p => p.category).filter(Boolean))]
+    : (content.categories || []);
+
   return (
     <div className="py-4">
-      {/* Search bar */}
       {content.showSearch && (
         <div className="mb-3 relative">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--site-muted, #999)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2">
@@ -52,8 +80,7 @@ function PortfolioGridBlockPreviewInner({ content }: { content: PortfolioGridBlo
         </div>
       )}
 
-      {/* Category filter bar */}
-      {content.showFilter && content.categories && content.categories.length > 0 && (
+      {content.showFilter && categories.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-4">
           <button
             onClick={() => setActiveFilter(null)}
@@ -65,7 +92,7 @@ function PortfolioGridBlockPreviewInner({ content }: { content: PortfolioGridBlo
           >
             Tous
           </button>
-          {content.categories.map((cat) => (
+          {categories.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveFilter(activeFilter === cat ? null : cat)}
@@ -83,23 +110,33 @@ function PortfolioGridBlockPreviewInner({ content }: { content: PortfolioGridBlo
 
       <div className={`grid ${cols} gap-3`}>
         {filtered.map((item, i) => (
-          <div key={i} className="rounded-lg overflow-hidden relative" style={{ border: "1px solid var(--site-border, #E6E6E4)" }}>
+          <div key={i} className="rounded-lg overflow-hidden relative group" style={{ border: "1px solid var(--site-border, #E6E6E4)" }}>
             {item.featured && (
               <span className="absolute top-2 right-2 z-10 bg-[var(--site-primary)] text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ color: "var(--btn-text, #fff)" }}>
                 En vedette
               </span>
             )}
-            <div className="h-24 bg-gradient-to-br from-[var(--site-primary-light)] to-[var(--site-border)]" />
+            <div className="h-24 overflow-hidden" style={{ background: "linear-gradient(135deg, var(--site-primary-light), var(--site-border))" }}>
+              {item.imageUrl && (
+                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+              )}
+            </div>
             <div className="p-3">
               <div className="text-[12px] font-medium" style={{ color: "var(--site-text, #1A1A1A)" }}>{item.title}</div>
-              <div className="text-[10px]" style={{ color: "var(--site-muted, #999)" }}>{item.category}</div>
+              <div className="text-[10px]" style={{ color: "var(--site-muted, #999)" }}>
+                {item.category}
+                {item.clientName && ` · ${item.clientName}`}
+              </div>
+              {item.description && (
+                <div className="text-[10px] mt-1 line-clamp-2" style={{ color: "var(--site-muted, #999)" }}>{item.description}</div>
+              )}
             </div>
           </div>
         ))}
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-6 text-[12px]" style={{ color: "var(--site-muted, #999)" }}>Aucun projet trouve</div>
+        <div className="text-center py-6 text-[12px]" style={{ color: "var(--site-muted, #999)" }}>Aucun projet trouvé</div>
       )}
     </div>
   );
