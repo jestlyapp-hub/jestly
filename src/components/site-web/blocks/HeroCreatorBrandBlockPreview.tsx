@@ -7,7 +7,6 @@ function HeroCreatorBrandBlockPreviewInner({ content }: { content: HeroCreatorBr
   return (
     <section
       className="py-16 px-6"
-      style={{ backgroundColor: "var(--site-bg, #FFFFFF)" }}
     >
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
         {/* Left — Portrait / image placeholder */}

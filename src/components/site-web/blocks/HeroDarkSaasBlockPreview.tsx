@@ -7,7 +7,6 @@ function HeroDarkSaasBlockPreviewInner({ content }: { content: HeroDarkSaasBlock
   return (
     <section
       className="py-16 px-6"
-      style={{ backgroundColor: "var(--site-surface, #F7F7F5)" }}
     >
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
         {/* Left — Text */}

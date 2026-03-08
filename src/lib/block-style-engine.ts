@@ -279,6 +279,11 @@ export function renderBackgroundConfig(
   const border = "var(--site-border, #27272A)";
   const opacity = config.opacity ?? 0.5;
 
+  // Map user opacity (0-1) to a visual strength percentage for patterns.
+  // This is the ONLY opacity control — no element-level opacity, avoiding the
+  // double-reduction bug where colorWithAlpha × element opacity made patterns invisible.
+  const strength = Math.round(opacity * 100);
+
   switch (config.type) {
     case "solid":
       return { containerStyle: { backgroundColor: config.primaryColor || undefined } };
@@ -287,7 +292,7 @@ export function renderBackgroundConfig(
       const blur = config.blur ?? 60;
       return {
         containerStyle: {
-          backgroundImage: `radial-gradient(ellipse 80% ${blur}% at 50% -20%, ${colorWithAlpha(primary, 20)}, transparent 70%)`,
+          backgroundImage: `radial-gradient(ellipse 80% ${blur}% at 50% -20%, ${colorWithAlpha(primary, Math.max(25, strength * 0.5))}, transparent 70%)`,
         },
       };
     }
@@ -296,8 +301,8 @@ export function renderBackgroundConfig(
       return {
         containerStyle: {
           backgroundImage: [
-            `radial-gradient(at 20% 20%, ${colorWithAlpha(primary, 15)} 0%, transparent 50%)`,
-            `radial-gradient(at 80% 80%, ${colorWithAlpha(secondary, 12)} 0%, transparent 50%)`,
+            `radial-gradient(at 20% 20%, ${colorWithAlpha(primary, Math.max(20, strength * 0.4))} 0%, transparent 50%)`,
+            `radial-gradient(at 80% 80%, ${colorWithAlpha(secondary, Math.max(15, strength * 0.3))} 0%, transparent 50%)`,
             `radial-gradient(at 50% 50%, ${bgColor} 0%, transparent 100%)`,
           ].join(", "),
         },
@@ -312,7 +317,8 @@ export function renderBackgroundConfig(
 
     case "grid-tech": {
       const size = config.size ?? 40;
-      const lineColor = colorWithAlpha(border, 25);
+      // Use primary color for visible grid lines — NOT border color (too subtle)
+      const lineColor = colorWithAlpha(primary, Math.max(15, strength * 0.3));
       return {
         overlayStyle: {
           backgroundImage: [
@@ -320,19 +326,20 @@ export function renderBackgroundConfig(
             `linear-gradient(90deg, ${lineColor} 1px, transparent 1px)`,
           ].join(", "),
           backgroundSize: `${size}px ${size}px`,
-          opacity,
+          // NO element opacity — pattern strength is controlled solely via colorWithAlpha
         },
       };
     }
 
     case "dots": {
       const size = config.size ?? 20;
-      const dotColor = colorWithAlpha(border, 40);
+      // Use primary color for dots — NOT border color
+      const dotColor = colorWithAlpha(primary, Math.max(20, strength * 0.4));
       return {
         overlayStyle: {
           backgroundImage: `radial-gradient(circle, ${dotColor} 1.2px, transparent 1.2px)`,
           backgroundSize: `${size}px ${size}px`,
-          opacity,
+          // NO element opacity
         },
       };
     }
@@ -343,7 +350,7 @@ export function renderBackgroundConfig(
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.15'/%3E%3C/svg%3E")`,
           backgroundRepeat: "repeat",
           backgroundSize: "256px 256px",
-          opacity,
+          opacity: Math.max(0.08, opacity * 0.4),
         },
       };
 
@@ -378,11 +385,11 @@ export function renderBackgroundConfig(
       return {
         overlayStyle: {
           backgroundImage: [
-            `radial-gradient(ellipse ${haloSize}% ${haloSize * 0.7}% at 50% 40%, ${colorWithAlpha(haloColor, 25)} 0%, transparent 70%)`,
-            `radial-gradient(ellipse ${haloSize * 0.5}% ${haloSize * 0.3}% at 30% 60%, ${colorWithAlpha(haloColor, 10)} 0%, transparent 70%)`,
+            `radial-gradient(ellipse ${haloSize}% ${haloSize * 0.7}% at 50% 40%, ${colorWithAlpha(haloColor, Math.max(20, strength * 0.4))} 0%, transparent 70%)`,
+            `radial-gradient(ellipse ${haloSize * 0.5}% ${haloSize * 0.3}% at 30% 60%, ${colorWithAlpha(haloColor, Math.max(10, strength * 0.2))} 0%, transparent 70%)`,
           ].join(", "),
           filter: `blur(${haloBlur * 0.3}px)`,
-          opacity: opacity,
+          // NO element opacity — controlled via colorWithAlpha strength
         },
       };
     }

@@ -10,7 +10,6 @@ function HeroCenteredMeshBlockPreviewInner({ content }: { content: HeroCenteredM
   return (
     <section
       className="relative overflow-hidden py-16 sm:py-24 px-4 sm:px-8"
-      style={{ background: "var(--site-surface, #0a0a0a)" }}
     >
       {/* Mesh gradient background */}
       <div

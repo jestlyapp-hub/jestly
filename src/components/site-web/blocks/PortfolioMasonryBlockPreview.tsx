@@ -9,7 +9,6 @@ function PortfolioMasonryBlockPreviewInner({ content }: { content: PortfolioMaso
   return (
     <section
       className="relative py-20 px-8"
-      style={{ background: "var(--site-surface, #0a0a0a)" }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Header */}

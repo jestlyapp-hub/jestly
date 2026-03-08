@@ -10,7 +10,7 @@ function FooterBlockBlockPreviewInner({ content }: { content: FooterBlockContent
   return (
     <footer
       className="py-12 sm:py-16 px-4 sm:px-8"
-      style={{ backgroundColor: "var(--site-surface)", color: "var(--site-muted)" }}
+      style={{ color: "var(--site-muted)" }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Top section: brand + columns */}

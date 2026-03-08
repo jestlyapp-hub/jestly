@@ -9,7 +9,6 @@ function ProjectMasonryWallBlockPreviewInner({ content }: { content: ProjectMaso
   return (
     <section
       className="py-16 px-6"
-      style={{ backgroundColor: "var(--site-bg, #FFFFFF)" }}
     >
       <div className="max-w-6xl mx-auto">
         {content.title && (

@@ -42,7 +42,6 @@ function ProjectBeforeAfterBlockPreviewInner({
   return (
     <section
       className="py-16 px-6"
-      style={{ backgroundColor: "var(--site-bg, #FFFFFF)" }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Header */}

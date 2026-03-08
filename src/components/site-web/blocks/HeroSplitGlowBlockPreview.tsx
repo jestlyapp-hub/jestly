@@ -10,7 +10,6 @@ function HeroSplitGlowBlockPreviewInner({ content }: { content: HeroSplitGlowBlo
   return (
     <section
       className="relative overflow-hidden py-20 px-8"
-      style={{ background: "var(--site-surface, #0a0a0a)" }}
     >
       {/* Radial glow background */}
       <div

@@ -7,7 +7,6 @@ function ProductBenefitsMockupBlockPreviewInner({ content }: { content: ProductB
   return (
     <section
       className="py-16 px-6"
-      style={{ background: "var(--site-bg, #ffffff)" }}
     >
       <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         {/* Left — Image / Mockup placeholder */}

@@ -7,7 +7,6 @@ function PricingCustomQuoteBlockPreviewInner({ content }: { content: PricingCust
   return (
     <section
       className="py-16 px-6"
-      style={{ background: "var(--site-bg, #ffffff)" }}
     >
       <div className="max-w-2xl mx-auto text-center">
         {/* Header */}

@@ -7,7 +7,6 @@ function ProductBundleCompareBlockPreviewInner({ content }: { content: ProductBu
   return (
     <section
       className="py-16 px-6"
-      style={{ background: "var(--site-bg, #ffffff)" }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Header */}

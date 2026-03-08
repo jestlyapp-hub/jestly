@@ -12,7 +12,6 @@ function ServicesPremiumBlockPreviewInner({ content }: { content: ServicesPremiu
   return (
     <section
       className="relative py-16 sm:py-20 px-4 sm:px-8"
-      style={{ background: "var(--site-surface, #0a0a0a)" }}
     >
       <div className="max-w-6xl mx-auto">
         {/* Header */}
