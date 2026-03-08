@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, lazy, Suspense } from "react";
 import type { Site, SitePage, Block, Product } from "@/types";
 
 const ParticleBackground = lazy(() => import("@/components/site-web/blocks/ParticleBackground"));
@@ -501,6 +501,57 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
   const themeVars = computeThemeVars(resolvedTheme);
   const isDark = resolvedTheme.mode === "dark";
 
+  // ── Scrollspy: track active section ──
+  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const sections = document.querySelectorAll<HTMLElement>("section[data-block]");
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        // Find the topmost visible section
+        let topSection: HTMLElement | null = null;
+        let topY = Infinity;
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            const rect = entry.boundingClientRect;
+            if (rect.top < topY) {
+              topY = rect.top;
+              topSection = entry.target as HTMLElement;
+            }
+          }
+        }
+        if (topSection) {
+          setActiveBlockId(topSection.getAttribute("data-block"));
+        }
+      },
+      { rootMargin: "-80px 0px -50% 0px", threshold: 0 }
+    );
+
+    sections.forEach((s) => observer.observe(s));
+    return () => observer.disconnect();
+  }, [visibleBlocks]);
+
+  // Apply active class to nav links matching the active block
+  useEffect(() => {
+    if (!activeBlockId) return;
+    const blockEl = document.getElementById(`block-${activeBlockId}`);
+    const anchorId = blockEl?.id;
+    if (!anchorId) return;
+
+    // Find all nav links and update active state via data attribute
+    document.querySelectorAll<HTMLAnchorElement>("nav a[href*='#']").forEach((a) => {
+      const href = a.getAttribute("href") || "";
+      const hash = href.includes("#") ? href.slice(href.indexOf("#") + 1) : "";
+      if (hash === anchorId) {
+        a.setAttribute("data-scrollspy-active", "true");
+      } else {
+        a.removeAttribute("data-scrollspy-active");
+      }
+    });
+  }, [activeBlockId]);
+
   useEffect(() => {
     document.documentElement.classList.add("smooth-scroll");
 
@@ -552,6 +603,13 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
             ...siteBgContainerStyle,
           } as React.CSSProperties}
         >
+          {/* Scrollspy active link styles */}
+          <style dangerouslySetInnerHTML={{ __html: `
+            nav a[data-scrollspy-active="true"] {
+              color: var(--site-primary, #4F46E5) !important;
+              font-weight: 600;
+            }
+          ` }} />
           {siteBgOverlayStyle && <div className="fixed inset-0 pointer-events-none z-0" style={siteBgOverlayStyle} />}
           <SiteAnalyticsTracker siteId={site.id} pageSlug={page.slug} />
           {/* Navbar — new variant system or legacy fallback */}
