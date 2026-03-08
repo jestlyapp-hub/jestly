@@ -276,7 +276,6 @@ export function renderBackgroundConfig(
   const secondary = config.secondaryColor || "var(--site-primary, #6366F1)";
   const bgColor = "var(--site-bg, #0A0A0F)";
   const surface = "var(--site-surface, #141420)";
-  const border = "var(--site-border, #27272A)";
   const opacity = config.opacity ?? 0.5;
 
   // Map user opacity (0-1) to a visual strength percentage for patterns.
@@ -370,9 +369,9 @@ export function renderBackgroundConfig(
       return {
         containerStyle: {
           backgroundImage: [
-            `radial-gradient(ellipse 120% 80% at 20% 100%, ${colorWithAlpha(c1, 18)} 0%, transparent 60%)`,
-            `radial-gradient(ellipse 100% 60% at 80% 0%, ${colorWithAlpha(c2, 14)} 0%, transparent 60%)`,
-            `radial-gradient(ellipse 140% 50% at 60% 60%, ${colorWithAlpha(c1, 8)} 0%, transparent 70%)`,
+            `radial-gradient(ellipse 120% 80% at 20% 100%, ${colorWithAlpha(c1, Math.max(15, strength * 0.35))} 0%, transparent 60%)`,
+            `radial-gradient(ellipse 100% 60% at 80% 0%, ${colorWithAlpha(c2, Math.max(12, strength * 0.28))} 0%, transparent 60%)`,
+            `radial-gradient(ellipse 140% 50% at 60% 60%, ${colorWithAlpha(c1, Math.max(8, strength * 0.16))} 0%, transparent 70%)`,
           ].join(", "),
         },
       };
