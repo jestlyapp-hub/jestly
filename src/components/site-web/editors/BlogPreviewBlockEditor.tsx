@@ -2,6 +2,7 @@
 
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
+import ImageUploader from "./ImageUploader";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
@@ -41,10 +42,8 @@ export default function BlogPreviewBlockEditor({ block }: { block: Extract<Block
             <button onClick={() => removePost(i)} className="absolute top-2 right-2 text-[#999] hover:text-red-500 text-[16px] leading-none">&times;</button>
             <input type="text" value={post.title} onChange={(e) => updatePost(i, "title", e.target.value)} placeholder="Titre" className={inputClass} />
             <textarea value={post.excerpt} onChange={(e) => updatePost(i, "excerpt", e.target.value)} rows={2} placeholder="Résumé" className={inputClass} />
-            <div className="flex gap-2">
-              <input type="text" value={post.imageUrl ?? ""} onChange={(e) => updatePost(i, "imageUrl", e.target.value)} placeholder="URL image" className={`${inputClass} flex-1`} />
-              <input type="date" value={post.date} onChange={(e) => updatePost(i, "date", e.target.value)} className={`${inputClass} w-36`} />
-            </div>
+            <ImageUploader value={post.imageUrl ?? ""} onChange={(url) => updatePost(i, "imageUrl", url)} label="Image" />
+            <input type="date" value={post.date} onChange={(e) => updatePost(i, "date", e.target.value)} className={`${inputClass} w-36`} />
           </div>
         ))}
         <button onClick={addPost} className="w-full py-2 rounded-lg border border-dashed border-[#E6E6E4] text-[12px] text-[#999] hover:border-[#4F46E5] hover:text-[#4F46E5] transition-colors">+ Ajouter un article</button>

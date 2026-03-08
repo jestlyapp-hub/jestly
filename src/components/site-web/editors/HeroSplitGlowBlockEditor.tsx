@@ -2,6 +2,7 @@
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block, BlockLink } from "@/types";
 import LinkEditor from "./LinkEditor";
+import ImageUploader from "./ImageUploader";
 
 const inputClass =
   "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
@@ -57,18 +58,11 @@ export default function HeroSplitGlowBlockEditor({
         />
       </div>
 
-      {/* Image URL */}
-      <div>
-        <label className="block text-[12px] font-medium text-[#5A5A58] mb-1">
-          Image URL
-        </label>
-        <input
-          className={inputClass}
-          value={block.content.imageUrl ?? ""}
-          onChange={(e) => update({ imageUrl: e.target.value })}
-          placeholder="https://..."
-        />
-      </div>
+      <ImageUploader
+        value={block.content.imageUrl}
+        onChange={(url) => update({ imageUrl: url })}
+        label="Image"
+      />
 
       {/* Glow Color */}
       <div>

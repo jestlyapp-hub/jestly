@@ -2,6 +2,7 @@
 
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
+import ImageUploader from "./ImageUploader";
 
 const inputClass =
   "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
@@ -115,25 +116,25 @@ export default function BeforeAfterProBlockEditor({ block }: { block: BeforeAfte
                 }}
                 placeholder="Label (ex: Retouche portrait)"
               />
-              <input
-                className={inputClass}
+              <ImageUploader
                 value={item.beforeImageUrl}
-                onChange={(e) => {
+                onChange={(url) => {
                   const next = [...items];
-                  next[i] = { ...next[i], beforeImageUrl: e.target.value };
+                  next[i] = { ...next[i], beforeImageUrl: url };
                   update({ items: next });
                 }}
-                placeholder="https://... (image avant)"
+                label="Image avant"
+                previewAspect="16 / 9"
               />
-              <input
-                className={inputClass}
+              <ImageUploader
                 value={item.afterImageUrl}
-                onChange={(e) => {
+                onChange={(url) => {
                   const next = [...items];
-                  next[i] = { ...next[i], afterImageUrl: e.target.value };
+                  next[i] = { ...next[i], afterImageUrl: url };
                   update({ items: next });
                 }}
-                placeholder="https://... (image apres)"
+                label="Image apres"
+                previewAspect="16 / 9"
               />
             </div>
           ))}

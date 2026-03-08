@@ -46,9 +46,9 @@ function GalleryStackedStoryboardBlockPreviewInner({ content }: { content: Galle
               }}
             >
               {item.imageUrl ? (
-                <div className="w-full aspect-[16/9] overflow-hidden">
+                <div className="w-full overflow-hidden" style={{ maxHeight: "480px" }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" style={{ minHeight: "200px" }} />
                 </div>
               ) : (
                 <div className="p-4 pb-0">

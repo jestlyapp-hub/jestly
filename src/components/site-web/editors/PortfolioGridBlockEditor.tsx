@@ -3,6 +3,7 @@
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block, Link } from "@/types";
 import LinkPicker from "./LinkPicker";
+import ImageUploader from "./ImageUploader";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-9 h-5 rounded-full transition-colors cursor-pointer";
@@ -100,6 +101,7 @@ export default function PortfolioGridBlockEditor({ block }: { block: Extract<Blo
           <input type="text" value={item.title} onChange={(e) => updateItem(i, "title", e.target.value)} placeholder="Titre" className={inputClass} />
           <input type="text" value={item.category} onChange={(e) => updateItem(i, "category", e.target.value)} placeholder="Catégorie" className={inputClass} />
           <input type="text" value={item.slug ?? ""} onChange={(e) => updateItem(i, "slug", e.target.value)} placeholder="Slug (ex: mon-projet)" className={inputClass} />
+          <ImageUploader value={item.imageUrl} onChange={(url) => updateItem(i, "imageUrl", url)} label="Image" />
           <div className="flex items-center justify-between">
             <span className="text-[11px] text-[#666]">En vedette</span>
             <button onClick={() => updateItem(i, "featured", !item.featured)} className={`${toggleClass} ${item.featured ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"}`}>

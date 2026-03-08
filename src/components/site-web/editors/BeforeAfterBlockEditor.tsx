@@ -2,6 +2,7 @@
 
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
+import ImageUploader from "./ImageUploader";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
@@ -11,14 +12,18 @@ export default function BeforeAfterBlockEditor({ block }: { block: Extract<Block
 
   return (
     <div className="space-y-3">
-      <div>
-        <label className="block text-[11px] font-medium text-[#999] mb-1">Image Avant (URL)</label>
-        <input type="text" value={block.content.beforeImageUrl} onChange={(e) => update({ beforeImageUrl: e.target.value })} placeholder="https://..." className={inputClass} />
-      </div>
-      <div>
-        <label className="block text-[11px] font-medium text-[#999] mb-1">Image Après (URL)</label>
-        <input type="text" value={block.content.afterImageUrl} onChange={(e) => update({ afterImageUrl: e.target.value })} placeholder="https://..." className={inputClass} />
-      </div>
+      <ImageUploader
+        value={block.content.beforeImageUrl}
+        onChange={(url) => update({ beforeImageUrl: url })}
+        label="Image Avant"
+        previewAspect="16 / 9"
+      />
+      <ImageUploader
+        value={block.content.afterImageUrl}
+        onChange={(url) => update({ afterImageUrl: url })}
+        label="Image Apres"
+        previewAspect="16 / 9"
+      />
       <div className="flex gap-3">
         <div className="flex-1">
           <label className="block text-[11px] font-medium text-[#999] mb-1">Label Avant</label>

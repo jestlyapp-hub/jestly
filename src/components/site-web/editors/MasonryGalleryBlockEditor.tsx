@@ -2,6 +2,7 @@
 
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
+import ImageUploader from "./ImageUploader";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-9 h-5 rounded-full transition-colors cursor-pointer";
@@ -55,7 +56,7 @@ export default function MasonryGalleryBlockEditor({ block }: { block: Extract<Bl
         {items.map((item, i) => (
           <div key={i} className="rounded-lg border border-[#E6E6E4] p-3 space-y-2 relative">
             <button onClick={() => removeItem(i)} className="absolute top-2 right-2 text-[#999] hover:text-red-500 text-[16px] leading-none">&times;</button>
-            <input type="text" value={item.imageUrl} onChange={(e) => updateItem(i, "imageUrl", e.target.value)} placeholder="URL de l'image" className={inputClass} />
+            <ImageUploader value={item.imageUrl} onChange={(url) => updateItem(i, "imageUrl", url)} label="Image" />
             <input type="text" value={item.title ?? ""} onChange={(e) => updateItem(i, "title", e.target.value)} placeholder="Titre (optionnel)" className={inputClass} />
           </div>
         ))}

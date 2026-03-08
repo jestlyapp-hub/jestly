@@ -36,11 +36,29 @@ function PreviewSandboxInner({ type }: { type: BlockType | null }) {
     visible: true,
   } as Block;
 
+  // Render at desktop width (1024px) then scale down to fit the 300px panel
+  const desktopWidth = 1024;
+  const scaleFactor = 0.27; // ~270px effective = fits 300px panel with padding
+
   return (
     <div className="h-full overflow-y-auto">
-      <div className="p-4">
-        <div className="rounded-xl border border-[#E6E6E4] overflow-hidden shadow-sm" style={{ ...themeStyle, backgroundColor: resolved.backgroundColor || "#ffffff" }}>
-          <BlockPreview block={previewBlock} />
+      <div className="p-2">
+        <div
+          className="origin-top-left"
+          style={{
+            width: desktopWidth,
+            transform: `scale(${scaleFactor})`,
+          }}
+        >
+          <div
+            className="rounded-xl border border-[#E6E6E4] overflow-hidden shadow-sm"
+            style={{
+              ...themeStyle,
+              backgroundColor: resolved.backgroundColor || "#ffffff",
+            }}
+          >
+            <BlockPreview block={previewBlock} />
+          </div>
         </div>
       </div>
     </div>

@@ -33,16 +33,15 @@ function ProjectMasonryWallBlockPreviewInner({ content }: { content: ProjectMaso
           }}
         >
           {content.items.map((item, i) => {
-            // Varied heights for masonry effect
-            const heights = ["200px", "260px", "180px", "300px", "220px", "240px"];
-            const h = heights[i % heights.length];
+            // Varied aspect ratios for placeholder masonry effect
+            const placeholderAspects = ["3/4", "4/3", "1/1", "3/5", "5/3", "4/5"];
+            const aspect = placeholderAspects[i % placeholderAspects.length];
 
             return (
               <div
                 key={i}
                 className="relative rounded-lg overflow-hidden mb-4 group"
                 style={{
-                  height: h,
                   breakInside: "avoid",
                   border: "1px solid var(--site-border, #E6E6E4)",
                 }}
@@ -51,12 +50,16 @@ function ProjectMasonryWallBlockPreviewInner({ content }: { content: ProjectMaso
                   <img
                     src={item.imageUrl}
                     alt={item.title}
-                    className="w-full h-full object-cover"
+                    className="w-full object-cover"
+                    style={{ minHeight: "160px", maxHeight: "320px" }}
                   />
                 ) : (
                   <div
-                    className="w-full h-full flex items-center justify-center"
-                    style={{ backgroundColor: "var(--site-surface, #F7F7F5)" }}
+                    className="w-full flex items-center justify-center"
+                    style={{
+                      aspectRatio: aspect,
+                      backgroundColor: "var(--site-surface, #F7F7F5)",
+                    }}
                   >
                     <svg
                       width="32"

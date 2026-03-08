@@ -888,7 +888,7 @@ export interface HeroCreatorBrandBlockContent { title: string; subtitle: string;
 export interface HeroVideoShowreelBlockContent { title: string; subtitle: string; ctaLabel?: string; videoUrl?: string; tags?: string[]; }
 export interface ProjectsGridCasesBlockContent { title: string; subtitle?: string; projects: { imageUrl?: string; title: string; category: string; result: string }[]; }
 export interface ProjectsHorizontalBlockContent { title: string; subtitle?: string; projects: { imageUrl?: string; title: string; category: string }[]; ctaLabel?: string; }
-export interface ProjectBeforeAfterBlockContent { title: string; items: { beforeLabel: string; afterLabel: string; resultText: string; description: string }[]; }
+export interface ProjectBeforeAfterBlockContent { title: string; subtitle?: string; items: { beforeLabel: string; afterLabel: string; beforeImageUrl?: string; afterImageUrl?: string; resultText: string; metricBadge?: string; description: string; category?: string }[]; }
 export interface ProjectTimelineBlockContent { title: string; subtitle?: string; steps: { title: string; description: string; tag?: string }[]; resultSummary?: string; }
 export interface ProjectMasonryWallBlockContent { title?: string; items: { imageUrl?: string; title: string; category: string }[]; columns?: number; }
 export interface Services3CardPremiumBlockContent { title: string; subtitle?: string; services: { title: string; description: string; features: string[]; ctaLabel: string }[]; }
