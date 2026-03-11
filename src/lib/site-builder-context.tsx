@@ -480,6 +480,8 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const initializedRef = useRef(false);
   const saveAbortRef = useRef<AbortController | null>(null);
+  const savePendingRef = useRef<Promise<void> | null>(null);
+  const retryDirtyRef = useRef(false);
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -491,40 +493,56 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     }
   }, [siteLoading, loadedSite]);
 
-  // Autosave: debounced 800ms after any dirty change
+  // Autosave: debounced 800ms after any dirty change — serialized (no concurrent saves)
   useEffect(() => {
     if (!state.isDirty || !siteId || !initializedRef.current) return;
 
-    const timer = setTimeout(async () => {
-      saveAbortRef.current?.abort();
-      const ctrl = new AbortController();
-      saveAbortRef.current = ctrl;
-
-      setSaveStatus("saving");
-      try {
-        const snapshot = serializeSiteForSave(state.site);
-        const res = await fetch(`/api/sites/${siteId}/draft`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(snapshot),
-          signal: ctrl.signal,
-        });
-        if (ctrl.signal.aborted) return;
-        if (!res.ok) {
-          const errBody = await res.json().catch(() => null);
-          console.error("[autosave] server error:", res.status, JSON.stringify(errBody));
-          throw new Error(`${res.status}`);
-        }
-
-        setSaveStatus("saved");
-        dispatch({ type: "MARK_CLEAN" });
-        // Refresh SiteProvider cache for other tabs (fire & forget)
-        mutate();
-      } catch (err: unknown) {
-        if (err instanceof Error && err.name === "AbortError") return;
-        console.error("[autosave] error:", err);
-        setSaveStatus("error");
+    const timer = setTimeout(() => {
+      // If a save is already in flight, mark for retry when it finishes
+      if (savePendingRef.current) {
+        retryDirtyRef.current = true;
+        return;
       }
+
+      const doSave = async () => {
+        saveAbortRef.current?.abort();
+        const ctrl = new AbortController();
+        saveAbortRef.current = ctrl;
+
+        setSaveStatus("saving");
+        try {
+          const snapshot = serializeSiteForSave(stateRef.current.site);
+          const res = await fetch(`/api/sites/${siteId}/draft`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(snapshot),
+            signal: ctrl.signal,
+          });
+          if (ctrl.signal.aborted) return;
+          if (!res.ok) {
+            const errBody = await res.json().catch(() => null);
+            console.error("[autosave] server error:", res.status, JSON.stringify(errBody));
+            throw new Error(`${res.status}`);
+          }
+
+          setSaveStatus("saved");
+          dispatch({ type: "MARK_CLEAN" });
+          mutate();
+        } catch (err: unknown) {
+          if (err instanceof Error && err.name === "AbortError") return;
+          console.error("[autosave] error:", err);
+          setSaveStatus("error");
+        } finally {
+          savePendingRef.current = null;
+          // If new changes came in during save, trigger another save
+          if (retryDirtyRef.current) {
+            retryDirtyRef.current = false;
+            savePendingRef.current = doSave();
+          }
+        }
+      };
+
+      savePendingRef.current = doSave();
     }, 800);
 
     return () => clearTimeout(timer);
