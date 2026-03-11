@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useReducer, useEffect, useState, useRef, type ReactNode } from "react";
+import { createContext, useContext, useReducer, useEffect, useState, useRef, useCallback, type ReactNode } from "react";
 import type { Site, Block, BlockType, BlockContentMap, BlockSettings, SitePage } from "@/types";
 import { getVariant } from "@/lib/block-variants";
 import { useSite } from "@/lib/hooks/use-site";
@@ -472,7 +472,8 @@ const BuilderContext = createContext<{
   dispatch: React.Dispatch<BuilderAction>;
   saveStatus: SaveStatus;
   siteId: string;
-}>({ state: initialState, dispatch: () => {}, saveStatus: "idle", siteId: "" });
+  acquireSaveLock: () => Promise<() => void>;
+}>({ state: initialState, dispatch: () => {}, saveStatus: "idle", siteId: "", acquireSaveLock: async () => () => {} });
 
 export function BuilderProvider({ children }: { children: ReactNode }) {
   const { site: loadedSite, siteId, loading: siteLoading, error: siteError, mutate } = useSite();
@@ -482,6 +483,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   const saveAbortRef = useRef<AbortController | null>(null);
   const savePendingRef = useRef<Promise<void> | null>(null);
   const retryDirtyRef = useRef(false);
+  const saveLockRef = useRef(false);
   const stateRef = useRef(state);
   stateRef.current = state;
 
@@ -498,8 +500,8 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     if (!state.isDirty || !siteId || !initializedRef.current) return;
 
     const timer = setTimeout(() => {
-      // If a save is already in flight, mark for retry when it finishes
-      if (savePendingRef.current) {
+      // If locked (publish in progress) or a save is in flight, defer
+      if (saveLockRef.current || savePendingRef.current) {
         retryDirtyRef.current = true;
         return;
       }
@@ -549,6 +551,21 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.site, state.isDirty, siteId]);
 
+  // Acquire exclusive save lock — waits for in-flight autosave, blocks future ones
+  // Returns an unlock function to call when done
+  const acquireSaveLock = useCallback(async () => {
+    // 1. Abort any pending autosave fetch
+    saveAbortRef.current?.abort();
+    // 2. Wait for in-flight save to finish
+    if (savePendingRef.current) {
+      await savePendingRef.current.catch(() => {});
+    }
+    // 3. Lock autosave
+    saveLockRef.current = true;
+    retryDirtyRef.current = false;
+    return () => { saveLockRef.current = false; };
+  }, []);
+
   // Flush pending changes on unmount (tab switch)
   useEffect(() => {
     return () => {
@@ -595,7 +612,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <BuilderContext.Provider value={{ state, dispatch, saveStatus, siteId: siteId || "" }}>
+    <BuilderContext.Provider value={{ state, dispatch, saveStatus, siteId: siteId || "", acquireSaveLock }}>
       {children}
     </BuilderContext.Provider>
   );

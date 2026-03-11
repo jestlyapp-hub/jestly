@@ -38,7 +38,7 @@ const breakpoints: { id: Breakpoint; label: string; icon: React.ReactNode }[] = 
 ];
 
 export default function BuilderToolbar({ activePanel, onPanelChange }: { activePanel: RightPanel; onPanelChange: (p: RightPanel) => void }) {
-  const { state, dispatch, saveStatus } = useBuilder();
+  const { state, dispatch, saveStatus, acquireSaveLock } = useBuilder();
   const { siteId } = useSite();
   const [publishStatus, setPublishStatus] = useState<"idle" | "publishing" | "published" | "error">("idle");
   const [publishError, setPublishError] = useState<string | null>(null);
@@ -58,7 +58,11 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
       return;
     }
     setPublishStatus("publishing");
+    let unlock: (() => void) | null = null;
     try {
+      // Lock autosave to prevent concurrent writes during publish
+      unlock = await acquireSaveLock();
+
       const snapshot = serializeSiteForSave(state.site);
       const saveRes = await fetch(`/api/sites/${siteId}/draft`, {
         method: "POST",
@@ -87,8 +91,10 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
       setPublishStatus("error");
       setPublishError(err instanceof Error ? err.message : "Erreur de publication");
       setTimeout(() => { setPublishStatus("idle"); setPublishError(null); }, 6000);
+    } finally {
+      unlock?.();
     }
-  }, [siteId, state.site, dispatch]);
+  }, [siteId, state.site, dispatch, acquireSaveLock]);
 
   // Keyboard shortcuts
   useEffect(() => {
