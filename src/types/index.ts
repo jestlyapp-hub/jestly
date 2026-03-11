@@ -214,6 +214,13 @@ export interface Project {
   portfolioSlug?: string;
   portfolioCtaLabel?: string;
   portfolioCtaUrl?: string;
+  portfolioIntroText?: string;
+  portfolioChallengeText?: string;
+  portfolioSolutionText?: string;
+  portfolioResultText?: string;
+  portfolioGalleryItemIds?: string[];
+  portfolioSeoTitle?: string;
+  portfolioSeoDescription?: string;
   portfolioFeatured?: boolean;
   portfolioDisplayOrder?: number;
   portfolioVisibility?: "draft" | "public";
