@@ -202,6 +202,21 @@ export interface Project {
   orderId?: string;
   isPortfolio: boolean;
   portfolioDescription?: string;
+  portfolioDisplayTitle?: string;
+  portfolioSubtitle?: string;
+  portfolioResult?: string;
+  portfolioSummary?: string;
+  portfolioCoverUrl?: string;
+  portfolioCoverItemId?: string;
+  portfolioCategory?: string;
+  portfolioImages?: string[];
+  portfolioExternalUrl?: string;
+  portfolioSlug?: string;
+  portfolioCtaLabel?: string;
+  portfolioCtaUrl?: string;
+  portfolioFeatured?: boolean;
+  portfolioDisplayOrder?: number;
+  portfolioVisibility?: "draft" | "public";
   shareToken?: string;
   deadline?: string;
   startDate?: string;
@@ -960,11 +975,38 @@ export interface HeroMinimalServiceBlockContent { trustBadge?: string; title: st
 export interface HeroDarkSaasBlockContent { title: string; subtitle: string; ctaLabel: string; secondaryCtaLabel?: string; features?: { title: string; description: string }[]; imageUrl?: string; }
 export interface HeroCreatorBrandBlockContent { title: string; subtitle: string; credentials?: string[]; ctaLabel: string; secondaryCtaLabel?: string; imageUrl?: string; socialProof?: { value: string; label: string }[]; }
 export interface HeroVideoShowreelBlockContent { title: string; subtitle: string; ctaLabel?: string; videoUrl?: string; tags?: string[]; }
-export interface ProjectsGridCasesBlockContent { title: string; subtitle?: string; projects: { imageUrl?: string; title: string; category: string; result: string }[]; }
+/** Resolved portfolio card used by linked_projects blocks */
+export interface PortfolioCard {
+  projectId: string;
+  imageUrl?: string;
+  title: string;
+  category: string;
+  result?: string;
+  summary?: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+  slug?: string;
+}
+
+export interface ProjectsGridCasesBlockContent {
+  title: string;
+  subtitle?: string;
+  source?: "manual" | "linked_projects";
+  linkedProjectIds?: string[];
+  resolvedProjects?: PortfolioCard[];
+  projects: { imageUrl?: string; title: string; category: string; result: string }[];
+}
 export interface ProjectsHorizontalBlockContent { title: string; subtitle?: string; projects: { imageUrl?: string; title: string; category: string }[]; ctaLabel?: string; }
 export interface ProjectBeforeAfterBlockContent { title: string; subtitle?: string; items: { beforeLabel: string; afterLabel: string; beforeImageUrl?: string; afterImageUrl?: string; resultText: string; metricBadge?: string; description: string; category?: string }[]; }
 export interface ProjectTimelineBlockContent { title: string; subtitle?: string; steps: { title: string; description: string; tag?: string }[]; resultSummary?: string; }
-export interface ProjectMasonryWallBlockContent { title?: string; items: { imageUrl?: string; title: string; category: string }[]; columns?: number; }
+export interface ProjectMasonryWallBlockContent {
+  title?: string;
+  source?: "manual" | "linked_projects";
+  linkedProjectIds?: string[];
+  resolvedProjects?: PortfolioCard[];
+  items: { imageUrl?: string; title: string; category: string }[];
+  columns?: number;
+}
 export interface Services3CardPremiumBlockContent { title: string; subtitle?: string; services: { title: string; description: string; features: string[]; ctaLabel: string }[]; }
 export interface ServicesIconGridBlockContent { title: string; subtitle?: string; services: { icon: string; title: string; description: string }[]; }
 export interface ServicesSplitValueBlockContent { title: string; subtitle: string; description: string; pillars: { title: string; description: string }[]; }
