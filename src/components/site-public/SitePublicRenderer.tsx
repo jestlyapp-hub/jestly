@@ -187,11 +187,11 @@ function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: stri
     case "hero-dark-saas": return <HeroDarkSaasBlockPreview content={block.content} />;
     case "hero-creator-brand": return <HeroCreatorBrandBlockPreview content={block.content} />;
     case "hero-video-showreel": return <HeroVideoShowreelBlockPreview content={block.content} />;
-    case "projects-grid-cases": return <ProjectsGridCasesBlockPreview content={block.content} />;
+    case "projects-grid-cases": return <ProjectsGridCasesBlockPreview content={block.content} siteSlug={ctx?.siteSlug} />;
     case "projects-horizontal": return <ProjectsHorizontalBlockPreview content={block.content} />;
     case "project-before-after": return <ProjectBeforeAfterBlockPreview content={block.content} />;
     case "project-timeline": return <ProjectTimelineBlockPreview content={block.content} />;
-    case "project-masonry-wall": return <ProjectMasonryWallBlockPreview content={block.content} />;
+    case "project-masonry-wall": return <ProjectMasonryWallBlockPreview content={block.content} siteSlug={ctx?.siteSlug} />;
     case "services-3card-premium": return <Services3CardPremiumBlockPreview content={block.content} />;
     case "services-icon-grid": return <ServicesIconGridBlockPreview content={block.content} />;
     case "services-split-value": return <ServicesSplitValueBlockPreview content={block.content} />;

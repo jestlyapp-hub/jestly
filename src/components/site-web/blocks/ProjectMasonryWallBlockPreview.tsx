@@ -3,17 +3,18 @@
 import { memo } from "react";
 import type { ProjectMasonryWallBlockContent, PortfolioCard } from "@/types";
 
-function ProjectMasonryWallBlockPreviewInner({ content }: { content: ProjectMasonryWallBlockContent }) {
+function ProjectMasonryWallBlockPreviewInner({ content, siteSlug }: { content: ProjectMasonryWallBlockContent; siteSlug?: string }) {
   const cols = content.columns || 3;
   const source = content.source || "manual";
 
   // Determine items to render
-  const items: { imageUrl?: string; title: string; category: string }[] =
+  const items: { imageUrl?: string; title: string; category: string; slug?: string }[] =
     source === "linked_projects" && content.resolvedProjects?.length
       ? content.resolvedProjects.map((p: PortfolioCard) => ({
           imageUrl: p.imageUrl,
           title: p.title,
           category: p.category,
+          slug: p.slug,
         }))
       : content.items;
 
@@ -52,14 +53,19 @@ function ProjectMasonryWallBlockPreviewInner({ content }: { content: ProjectMaso
             {items.map((item, i) => {
               const placeholderAspects = ["3/4", "4/3", "1/1", "3/5", "5/3", "4/5"];
               const aspect = placeholderAspects[i % placeholderAspects.length];
+              const href = siteSlug && item.slug ? `/s/${siteSlug}/portfolio/${item.slug}` : undefined;
+              const Wrapper = href ? "a" : "div";
 
               return (
-                <div
+                <Wrapper
                   key={i}
-                  className="relative rounded-lg overflow-hidden mb-4 group"
+                  {...(href ? { href } : {})}
+                  className={`relative rounded-lg overflow-hidden mb-4 group block`}
                   style={{
-                    breakInside: "avoid",
+                    breakInside: "avoid" as const,
                     border: "1px solid var(--site-border, #E6E6E4)",
+                    textDecoration: "none",
+                    color: "inherit",
                   }}
                 >
                   {item.imageUrl ? (
@@ -117,7 +123,7 @@ function ProjectMasonryWallBlockPreviewInner({ content }: { content: ProjectMaso
                       {item.title}
                     </span>
                   </div>
-                </div>
+                </Wrapper>
               );
             })}
           </div>
