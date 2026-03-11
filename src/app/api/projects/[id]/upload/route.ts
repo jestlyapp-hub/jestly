@@ -30,8 +30,17 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     .eq("id", projectId)
     .single();
 
-  if (projErr || !project) {
-    return NextResponse.json({ error: "Projet introuvable" }, { status: 404 });
+  if (projErr) {
+    if (projErr.code === "PGRST205" || projErr.code === "42P01") {
+      return NextResponse.json({ error: "Table 'projects' manquante. Exécutez la migration.", errorType: "migration" }, { status: 503 });
+    }
+    if (projErr.code === "PGRST116") {
+      return NextResponse.json({ error: "Projet introuvable", errorType: "not_found" }, { status: 404 });
+    }
+    return NextResponse.json({ error: projErr.message || "Erreur serveur", errorType: "database" }, { status: 500 });
+  }
+  if (!project) {
+    return NextResponse.json({ error: "Projet introuvable", errorType: "not_found" }, { status: 404 });
   }
 
   const formData = await req.formData();

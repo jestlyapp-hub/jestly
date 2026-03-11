@@ -96,9 +96,13 @@ export async function POST(
   // 5. Publier chaque page + créer les snapshots
   const snapshots = [];
   for (const page of pages || []) {
-    await (supabase.from("site_pages") as any)
+    const { error: pageUpdateError } = await (supabase.from("site_pages") as any)
       .update({ status: "published", published_at: now })
       .eq("id", page.id);
+
+    if (pageUpdateError) {
+      console.error(`[publish] page update error for ${page.id}:`, pageUpdateError);
+    }
 
     snapshots.push({
       site_id: id,
@@ -127,7 +131,11 @@ export async function POST(
   }
 
   if (snapshots.length > 0) {
-    await (supabase.from("site_published_snapshots") as any).insert(snapshots);
+    const { error: snapshotError } = await (supabase.from("site_published_snapshots") as any).insert(snapshots);
+    if (snapshotError) {
+      console.error("[publish] snapshot insert error:", snapshotError);
+      return NextResponse.json({ error: "Erreur lors de la sauvegarde des snapshots" }, { status: 500 });
+    }
   }
 
   // 6. Versioning (optionnel — ignore si la table n'existe pas encore)

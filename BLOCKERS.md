@@ -22,3 +22,7 @@ No blockers encountered during Projects V2 sprint.
 *(Migration 028 executed successfully via direct PostgreSQL connection — tables projects, project_folders, project_items created.)*
 No blockers encountered during Projects V3 sprint.
 *(Migration 029 executed successfully — added brief_template_id, portfolio_images, portfolio_category, portfolio_external_url, share_enabled columns.)*
+No blockers encountered during Beta Hardening sprint.
+*(10 fixes applied: 1 security, 3 builder, 4 leads, 2 projects. Build passes.)*
+No blockers encountered during Projects FK fix sprint.
+*(Root cause: migration 029 added `brief_template_id` column without FK constraint → PostgREST PGRST200 error → false "migration manquante" detection. Fixed: added FK constraint via migration 031, corrected all error detection to use error codes instead of message string matching.)*

@@ -13,14 +13,23 @@ export async function GET() {
     .order("updated_at", { ascending: false });
 
   if (error) {
-    // Detect missing table
-    if (error.message?.includes("schema cache") || error.code === "PGRST205") {
+    // Missing table (PGRST205 = table not found, 42P01 = PostgreSQL undefined_table)
+    if (error.code === "PGRST205" || error.code === "42P01") {
       return NextResponse.json(
-        { error: "La table 'projects' n'existe pas encore. Exécutez la migration 028_projects_system.sql dans le SQL Editor de Supabase." },
+        { error: "La table 'projects' n'existe pas encore. Exécutez la migration 028_projects_system.sql dans le SQL Editor de Supabase.", errorType: "migration" },
         { status: 503 }
       );
     }
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    // Missing FK relationship (PGRST200)
+    if (error.code === "PGRST200") {
+      console.error("[projects] FK relationship missing:", error.details);
+      return NextResponse.json(
+        { error: "Relation manquante en base de données. Exécutez la migration 031_projects_brief_fk.sql.", errorType: "migration" },
+        { status: 503 }
+      );
+    }
+    console.error("[projects] list error:", error);
+    return NextResponse.json({ error: error.message, errorType: "database" }, { status: 500 });
   }
 
   const projects = (data ?? []).map((row: any) => ({
@@ -104,14 +113,14 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (error) {
-    if (error.message?.includes("schema cache") || error.code === "PGRST205") {
+    if (error.code === "PGRST205" || error.code === "42P01") {
       return NextResponse.json(
-        { error: "La table 'projects' n'existe pas encore. Exécutez la migration 028_projects_system.sql dans le SQL Editor de Supabase." },
+        { error: "La table 'projects' n'existe pas encore. Exécutez la migration 028_projects_system.sql dans le SQL Editor de Supabase.", errorType: "migration" },
         { status: 503 }
       );
     }
     console.error("[projects] create error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message, errorType: "database" }, { status: 500 });
   }
 
   return NextResponse.json({ id: data.id }, { status: 201 });

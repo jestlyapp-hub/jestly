@@ -8,15 +8,19 @@ import { useProducts } from "@/lib/product-context";
 const inputClass = "w-full rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[var(--site-primary)]/20 transition-all border"
   + " bg-[var(--site-surface,#F7F7F5)] border-[var(--site-border,#E6E6E4)] text-[var(--site-text,#1A1A1A)] placeholder:text-[var(--site-muted,#999)]";
 
-function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockContent }) {
+interface LeadCtx { siteId: string; pagePath: string; blockType: string; }
+
+function ContactFormBlockPreviewInner({ content, leadCtx }: { content: ContactFormBlockContent; leadCtx?: LeadCtx }) {
   const { isPublic, siteId } = useProducts();
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [submitError, setSubmitError] = useState(false);
 
   const handleSubmit = async () => {
     if (!isPublic) return;
     setLoading(true);
+    setSubmitError(false);
     try {
       // Build field mappings from mapTo attributes
       const fieldMappings: Record<string, string> = {};
@@ -26,12 +30,13 @@ function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockCo
         }
       }
 
-      await fetch("/api/public/leads", {
+      const res = await fetch("/api/public/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          site_id: siteId,
+          site_id: leadCtx?.siteId || siteId,
           source: "contact-form",
+          page_path: leadCtx?.pagePath,
           name: formData["Nom"] || formData["Name"] || "",
           email: formData["Email"] || "",
           fields: formData,
@@ -39,9 +44,10 @@ function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockCo
           field_mappings: Object.keys(fieldMappings).length > 0 ? fieldMappings : undefined,
         }),
       });
+      if (!res.ok) throw new Error("submit failed");
       setSubmitted(true);
     } catch {
-      // Silently fail
+      setSubmitError(true);
     } finally {
       setLoading(false);
     }
@@ -107,6 +113,7 @@ function ContactFormBlockPreviewInner({ content }: { content: ContactFormBlockCo
         >
           {loading ? "Envoi..." : content.submitLabel}
         </button>
+        {submitError && <p className="text-[12px] text-red-500 mt-2 text-center">Une erreur est survenue. Veuillez réessayer.</p>}
       </div>
     );
   }

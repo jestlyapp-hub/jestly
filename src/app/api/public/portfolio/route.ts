@@ -36,6 +36,7 @@ export async function GET(req: NextRequest) {
     .select("id, name, description, project_type, color, status, tags, cover_url, is_portfolio, portfolio_description, portfolio_images, portfolio_category, portfolio_external_url, clients(name, company), created_at")
     .eq("user_id", targetUserId)
     .eq("is_portfolio", true)
+    .neq("status", "archived")
     .order("updated_at", { ascending: false });
 
   if (error) {

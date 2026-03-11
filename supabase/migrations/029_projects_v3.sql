@@ -3,10 +3,17 @@
 -- Brief integration + portfolio fields
 -- ============================================================
 
--- Add brief_template_id to projects
+-- Add brief_template_id to projects (with FK to brief_templates)
 DO $$ BEGIN
   IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='projects' AND column_name='brief_template_id') THEN
-    ALTER TABLE projects ADD COLUMN brief_template_id uuid;
+    ALTER TABLE projects ADD COLUMN brief_template_id uuid REFERENCES brief_templates(id) ON DELETE SET NULL;
+  END IF;
+END $$;
+
+-- Add FK constraint if column exists but FK is missing (idempotent fix)
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.table_constraints WHERE constraint_name='fk_projects_brief_template' AND table_name='projects') THEN
+    ALTER TABLE projects ADD CONSTRAINT fk_projects_brief_template FOREIGN KEY (brief_template_id) REFERENCES brief_templates(id) ON DELETE SET NULL;
   END IF;
 END $$;
 

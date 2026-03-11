@@ -7,6 +7,7 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import DatabaseError, { detectErrorVariant } from "@/components/ui/DatabaseError";
 import type { Project, ProjectFolder, ProjectItem, ProjectItemType, ProjectStatus, ProjectPriority } from "@/types";
 
 /* ─── Constants ──────────────────────────────────────────── */
@@ -673,7 +674,7 @@ function RenameFolderModal({ folder, projectId, open, onClose, onSaved }: { fold
     try {
       await apiFetch(`/api/projects/${projectId}/items/${folder.id}`, { method: "PATCH", body: { _type: "folder", name, color } });
       onSaved(); onClose();
-    } catch { /* */ } finally { setSaving(false); }
+    } catch { alert("Erreur lors du renommage du dossier"); } finally { setSaving(false); }
   };
 
   const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
@@ -713,7 +714,7 @@ function MoveItemModal({ item, projectId, folders, open, onClose, onMoved }: { i
     try {
       await apiFetch(`/api/projects/${projectId}/items/${item.id}`, { method: "PATCH", body: { folderId: target || null } });
       onMoved(); onClose();
-    } catch { /* */ } finally { setSaving(false); }
+    } catch { alert("Erreur lors du déplacement"); } finally { setSaving(false); }
   };
 
   const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
@@ -754,7 +755,7 @@ function BatchMoveModal({ open, folders, projectId, selectedIds, onClose, onMove
     try {
       await apiFetch(`/api/projects/${projectId}/batch`, { body: { action: "move", itemIds: selectedIds, folderId: target || null } });
       onMoved(); onClose();
-    } catch { /* */ } finally { setSaving(false); }
+    } catch { alert("Erreur lors du déplacement groupé"); } finally { setSaving(false); }
   };
 
   const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
@@ -814,6 +815,10 @@ export default function ProjectDetailPage() {
   // V3: Share state
   const [shareLoading, setShareLoading] = useState(false);
 
+  // Toast error state
+  const [toastError, setToastError] = useState<string | null>(null);
+  const showError = (msg: string) => { setToastError(msg); setTimeout(() => setToastError(null), 4000); };
+
   const project = data?.project;
   const folders = data?.folders ?? [];
   const allItems = data?.items ?? [];
@@ -845,19 +850,19 @@ export default function ProjectDetailPage() {
   }, [allItems, activeFolder, activeTab, itemSearch]);
 
   const handleDeleteItem = useCallback(async (id: string) => {
-    try { await apiFetch(`/api/projects/${projectId}/items/${id}`, { method: "DELETE" }); mutate(); } catch { /* */ }
+    try { await apiFetch(`/api/projects/${projectId}/items/${id}`, { method: "DELETE" }); mutate(); } catch { showError("Erreur lors de la suppression"); }
   }, [projectId, mutate]);
 
   const handleDeleteFolder = useCallback(async (id: string) => {
-    try { await apiFetch(`/api/projects/${projectId}/items/${id}?type=folder`, { method: "DELETE" }); if (activeFolder === id) setActiveFolder(null); mutate(); } catch { /* */ }
+    try { await apiFetch(`/api/projects/${projectId}/items/${id}?type=folder`, { method: "DELETE" }); if (activeFolder === id) setActiveFolder(null); mutate(); } catch { showError("Erreur lors de la suppression du dossier"); }
   }, [projectId, activeFolder, mutate]);
 
   const handleTogglePin = useCallback(async (item: ProjectItem) => {
-    try { await apiFetch(`/api/projects/${projectId}/items/${item.id}`, { method: "PATCH", body: { isPinned: !item.isPinned } }); mutate(); } catch { /* */ }
+    try { await apiFetch(`/api/projects/${projectId}/items/${item.id}`, { method: "PATCH", body: { isPinned: !item.isPinned } }); mutate(); } catch { showError("Erreur lors de l'épinglage"); }
   }, [projectId, mutate]);
 
   const handleDeleteProject = async () => {
-    try { await apiFetch(`/api/projects/${projectId}`, { method: "DELETE" }); router.push("/projets"); } catch { /* */ }
+    try { await apiFetch(`/api/projects/${projectId}`, { method: "DELETE" }); router.push("/projets"); } catch { showError("Erreur lors de la suppression du projet"); }
   };
 
   // V3: DnD handler
@@ -879,7 +884,7 @@ export default function ProjectDetailPage() {
     try {
       await apiFetch(`/api/projects/${projectId}/reorder`, { method: "PATCH", body: { items: updates } });
       mutate();
-    } catch { /* */ }
+    } catch { showError("Erreur lors du réordonnement"); }
   }, [visibleItems, projectId, mutate]);
 
   // V3: Selection handlers
@@ -906,7 +911,7 @@ export default function ProjectDetailPage() {
       setSelectMode(false);
       setConfirmBatchDelete(false);
       mutate();
-    } catch { /* */ }
+    } catch { showError("Erreur lors de la suppression groupée"); }
   }, [projectId, selectedIds, mutate]);
 
   const handleBatchPin = useCallback(async (pin: boolean) => {
@@ -914,7 +919,7 @@ export default function ProjectDetailPage() {
       await apiFetch(`/api/projects/${projectId}/batch`, { body: { action: pin ? "pin" : "unpin", itemIds: Array.from(selectedIds) } });
       setSelectedIds(new Set());
       mutate();
-    } catch { /* */ }
+    } catch { showError("Erreur lors de l'épinglage groupé"); }
   }, [projectId, selectedIds, mutate]);
 
   // V3: Share toggle
@@ -924,7 +929,7 @@ export default function ProjectDetailPage() {
     try {
       await apiFetch(`/api/projects/${projectId}/share`, { body: { enabled: !project.shareEnabled } });
       mutate();
-    } catch { /* */ } finally { setShareLoading(false); }
+    } catch { showError("Erreur lors du partage"); } finally { setShareLoading(false); }
   }, [project, projectId, mutate]);
 
   // Loading
@@ -941,17 +946,17 @@ export default function ProjectDetailPage() {
   }
 
   if (!project) {
+    const errorVariant = detectErrorVariant(loadError);
     return (
-      <div className="flex-1 flex items-center justify-center bg-[#FAFAF9]">
-        <div className="text-center">
-          <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="1.5"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
-          </div>
-          <h2 className="text-[16px] font-semibold text-[#1A1A1A] mb-1">Projet introuvable</h2>
-          {loadError && <p className="text-[12px] text-red-500 mb-2">{loadError}</p>}
-          <button onClick={() => router.push("/projets")} className="text-[13px] text-[#4F46E5] hover:underline cursor-pointer">Retour aux projets</button>
-        </div>
-      </div>
+      <DatabaseError
+        variant={errorVariant}
+        title={errorVariant === "not_found" ? "Projet introuvable" : undefined}
+        message={loadError || undefined}
+        migrationFile={errorVariant === "migration" ? "supabase/migrations/028_projects_system.sql" : undefined}
+        onRetry={mutate}
+        onBack={() => router.push("/projets")}
+        backLabel="Retour aux projets"
+      />
     );
   }
 
@@ -1202,6 +1207,20 @@ export default function ProjectDetailPage() {
       <RenameFolderModal folder={renamingFolder} projectId={projectId} open={!!renamingFolder} onClose={() => setRenamingFolder(null)} onSaved={mutate} />
       <MoveItemModal item={movingItem} projectId={projectId} folders={folders} open={!!movingItem} onClose={() => setMovingItem(null)} onMoved={mutate} />
       <BatchMoveModal open={showBatchMove} folders={folders} projectId={projectId} selectedIds={Array.from(selectedIds)} onClose={() => setShowBatchMove(false)} onMoved={() => { setSelectedIds(new Set()); setSelectMode(false); mutate(); }} />
+
+      {/* Error toast */}
+      <AnimatePresence>
+        {toastError && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-6 right-6 z-50 bg-red-500 text-white text-[13px] font-medium px-4 py-3 rounded-xl shadow-lg flex items-center gap-2"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            {toastError}
+            <button onClick={() => setToastError(null)} className="ml-2 hover:opacity-80 cursor-pointer">✕</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -112,16 +112,21 @@ export default function SiteLeadsPage() {
   // ─── Actions ───
   const updateLead = useCallback(async (id: string, data: { status?: string; notes?: string }) => {
     setSavingStatus(true);
-    await fetch("/api/leads", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, ...data }),
-    });
-    setSavingStatus(false);
-    mutate();
-
-    if (selected && selected.id === id) {
-      setSelected(prev => prev ? { ...prev, ...data } as Lead : null);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, ...data }),
+      });
+      if (!res.ok) throw new Error("update failed");
+      mutate();
+      if (selected && selected.id === id) {
+        setSelected(prev => prev ? { ...prev, ...data } as Lead : null);
+      }
+    } catch {
+      alert("Erreur lors de la mise à jour du lead");
+    } finally {
+      setSavingStatus(false);
     }
   }, [mutate, selected]);
 

@@ -143,7 +143,7 @@ function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: stri
     case "full-image": return <FullImageBlockPreview content={block.content} />;
     case "why-me": return <WhyMeBlockPreview content={block.content} />;
     case "centered-cta": return <CenteredCtaBlockPreview content={block.content} />;
-    case "custom-form": return <CustomFormBlockPreview content={block.content} />;
+    case "custom-form": return <CustomFormBlockPreview content={block.content} leadCtx={lp} />;
     case "calendar-booking": return <CalendarBookingBlockPreview content={block.content} />;
     case "stats-counter": return <StatsCounterBlockPreview content={block.content} />;
     case "newsletter": return <NewsletterBlockPreview content={block.content} leadCtx={lp} />;
@@ -157,7 +157,7 @@ function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: stri
     case "stats-animated": return <StatsAnimatedBlockPreview content={block.content} />;
     case "masonry-gallery": return <MasonryGalleryBlockPreview content={block.content} />;
     case "comparison-table": return <ComparisonTableBlockPreview content={block.content} />;
-    case "contact-form": return <ContactFormBlockPreview content={block.content} />;
+    case "contact-form": return <ContactFormBlockPreview content={block.content} leadCtx={lp} />;
     case "blog-preview": return <BlogPreviewBlockPreview content={block.content} />;
     case "video-text-split": return <VideoTextSplitBlockPreview content={block.content} />;
     case "before-after": return <BeforeAfterBlockPreview content={block.content} />;

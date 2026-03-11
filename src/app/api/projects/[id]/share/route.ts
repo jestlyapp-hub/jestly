@@ -10,6 +10,17 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   const { supabase } = auth;
   const { id: projectId } = await ctx.params;
 
+  // Verify project ownership
+  const { data: project } = await (supabase.from("projects") as any)
+    .select("id")
+    .eq("id", projectId)
+    .eq("user_id", auth.user.id)
+    .single();
+
+  if (!project) {
+    return NextResponse.json({ error: "Projet introuvable" }, { status: 404 });
+  }
+
   let body: { enabled: boolean };
   try {
     body = await req.json();

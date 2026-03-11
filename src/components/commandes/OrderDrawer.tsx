@@ -220,9 +220,11 @@ function CreateProjectFromOrder({ order }: { order: Order }) {
   const router = useRouter();
   const [creating, setCreating] = useState(false);
   const [created, setCreated] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const handleCreate = async () => {
     setCreating(true);
+    setCreateError(null);
     try {
       const categoryToType: Record<string, string> = {
         miniature: "thumbnail", montage: "video", design: "design",
@@ -246,6 +248,7 @@ function CreateProjectFromOrder({ order }: { order: Order }) {
       setTimeout(() => router.push(`/projets/${res.id}`), 500);
     } catch {
       setCreating(false);
+      setCreateError("Erreur lors de la création du projet");
     }
   };
 
@@ -260,14 +263,17 @@ function CreateProjectFromOrder({ order }: { order: Order }) {
           Projet créé ! Redirection...
         </div>
       ) : (
-        <button
-          onClick={handleCreate}
-          disabled={creating}
-          className="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-[#4F46E5] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><line x1="12" y1="11" x2="12" y2="17" /><line x1="9" y1="14" x2="15" y2="14" /></svg>
-          {creating ? "Création..." : "Créer un projet depuis cette commande"}
-        </button>
+        <>
+          <button
+            onClick={handleCreate}
+            disabled={creating}
+            className="flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-[#4F46E5] bg-[#EEF2FF] hover:bg-[#E0E7FF] rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><line x1="12" y1="11" x2="12" y2="17" /><line x1="9" y1="14" x2="15" y2="14" /></svg>
+            {creating ? "Création..." : "Créer un projet depuis cette commande"}
+          </button>
+          {createError && <p className="text-[11px] text-red-500 mt-1">{createError}</p>}
+        </>
       )}
     </div>
   );

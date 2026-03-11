@@ -41,6 +41,7 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
   const { state, dispatch, saveStatus } = useBuilder();
   const { siteId } = useSite();
   const [publishStatus, setPublishStatus] = useState<"idle" | "publishing" | "published" | "error">("idle");
+  const [publishError, setPublishError] = useState<string | null>(null);
   const [showErrors, setShowErrors] = useState(false);
 
   const validationErrors = useMemo(() => validateSite(state.site), [state.site]);
@@ -84,7 +85,8 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
     } catch (err) {
       console.error("[publish] error:", err);
       setPublishStatus("error");
-      setTimeout(() => setPublishStatus("idle"), 5000);
+      setPublishError(err instanceof Error ? err.message : "Erreur de publication");
+      setTimeout(() => { setPublishStatus("idle"); setPublishError(null); }, 6000);
     }
   }, [siteId, state.site, dispatch]);
 
@@ -262,6 +264,14 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
               </>
             )}
           </button>
+
+          {/* Publish error tooltip */}
+          {publishStatus === "error" && publishError && (
+            <div className="absolute right-0 top-full mt-2 z-50 w-72 bg-red-50 border border-red-200 rounded-xl shadow-lg px-3 py-2">
+              <div className="text-[11px] font-semibold text-red-700 mb-0.5">Échec de la publication</div>
+              <div className="text-[10px] text-red-600">{publishError}</div>
+            </div>
+          )}
 
           {/* Error dropdown */}
           {showErrors && hasBlockingErrors && (

@@ -15,11 +15,36 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
     .eq("id", id)
     .single();
 
-  if (error || !data) {
-    if (error?.message?.includes("schema cache") || error?.code === "PGRST205") {
-      return NextResponse.json({ error: "Table 'projects' manquante. Exécutez la migration." }, { status: 503 });
+  if (error) {
+    // Missing table (PGRST205 = table not found, 42P01 = PostgreSQL undefined_table)
+    if (error.code === "PGRST205" || error.code === "42P01") {
+      return NextResponse.json(
+        { error: "Table 'projects' manquante. Exécutez la migration 028_projects_system.sql.", errorType: "migration" },
+        { status: 503 }
+      );
     }
-    return NextResponse.json({ error: "Projet introuvable" }, { status: 404 });
+    // Row not found (PostgREST returns PGRST116 for .single() with no rows)
+    if (error.code === "PGRST116") {
+      return NextResponse.json({ error: "Projet introuvable", errorType: "not_found" }, { status: 404 });
+    }
+    // Missing FK relationship (PGRST200) — likely missing migration for a join
+    if (error.code === "PGRST200") {
+      console.error("[projects] FK relationship missing — run migration 031:", error.details);
+      return NextResponse.json(
+        { error: "Relation manquante en base de données. Exécutez la migration 031_projects_brief_fk.sql.", errorType: "migration" },
+        { status: 503 }
+      );
+    }
+    // Any other database/server error
+    console.error("[projects] GET detail error:", error);
+    return NextResponse.json(
+      { error: error.message || "Erreur serveur", errorType: "database" },
+      { status: 500 }
+    );
+  }
+
+  if (!data) {
+    return NextResponse.json({ error: "Projet introuvable", errorType: "not_found" }, { status: 404 });
   }
 
   // Fetch folders

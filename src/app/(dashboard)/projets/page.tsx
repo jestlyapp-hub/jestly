@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import DatabaseError, { detectErrorVariant } from "@/components/ui/DatabaseError";
 import type { Project, ProjectType, ProjectStatus, ProjectPriority } from "@/types";
 
 /* ─── Constants ──────────────────────────────────────────── */
@@ -416,8 +417,21 @@ export default function ProjetsPage() {
     router.push(`/projets/${id}`);
   };
 
-  // Migration required state
-  const isMigrationNeeded = loadError?.includes("n'existe pas") || loadError?.includes("schema cache");
+  // Error classification
+  const errorVariant = loadError ? detectErrorVariant(loadError) : null;
+  const isCriticalError = errorVariant === "migration" || errorVariant === "database";
+
+  // Full-screen error for migration / database errors
+  if (loadError && isCriticalError && !loading) {
+    return (
+      <DatabaseError
+        variant={errorVariant!}
+        message={loadError}
+        migrationFile={errorVariant === "migration" ? "supabase/migrations/028_projects_system.sql" : undefined}
+        onRetry={mutate}
+      />
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto bg-[#FAFAF9]">
@@ -435,24 +449,8 @@ export default function ProjetsPage() {
           </button>
         </div>
 
-        {/* Migration banner */}
-        {isMigrationNeeded && (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-            <h3 className="text-[14px] font-semibold text-amber-800 mb-1">Migration requise</h3>
-            <p className="text-[12px] text-amber-700 mb-2">
-              Les tables du système Projects n&apos;existent pas encore. Exécutez le SQL suivant dans le SQL Editor de Supabase :
-            </p>
-            <code className="block text-[11px] bg-amber-100 rounded p-2 text-amber-900 overflow-x-auto">
-              supabase/migrations/028_projects_system.sql
-            </code>
-            <button onClick={mutate} className="mt-2 text-[12px] font-medium text-amber-700 hover:text-amber-900 underline cursor-pointer">
-              Réessayer après migration
-            </button>
-          </div>
-        )}
-
-        {/* Error banner (non-migration) */}
-        {loadError && !isMigrationNeeded && (
+        {/* Non-critical error banner */}
+        {loadError && !isCriticalError && (
           <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl">
             <p className="text-[12px] text-red-600">{loadError}</p>
             <button onClick={mutate} className="mt-1 text-[12px] text-red-500 hover:underline cursor-pointer">Réessayer</button>
@@ -518,7 +516,7 @@ export default function ProjetsPage() {
         )}
 
         {/* Empty state */}
-        {!loading && !isMigrationNeeded && filtered.length === 0 && (
+        {!loading && !isCriticalError && filtered.length === 0 && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center justify-center py-20">
             <div className="w-20 h-20 rounded-2xl bg-[#EEF2FF] flex items-center justify-center mb-4">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><line x1="12" y1="11" x2="12" y2="17" /><line x1="9" y1="14" x2="15" y2="14" /></svg>

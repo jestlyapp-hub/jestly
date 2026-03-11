@@ -32,6 +32,10 @@ CREATE TABLE IF NOT EXISTS projects (
 CREATE INDEX IF NOT EXISTS idx_projects_user ON projects(user_id);
 CREATE INDEX IF NOT EXISTS idx_projects_client ON projects(client_id);
 CREATE INDEX IF NOT EXISTS idx_projects_status ON projects(status);
+CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at);
+CREATE INDEX IF NOT EXISTS idx_projects_updated_at ON projects(updated_at DESC);
+CREATE INDEX IF NOT EXISTS idx_projects_share_token ON projects(share_token) WHERE share_token IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_projects_portfolio ON projects(user_id, is_portfolio) WHERE is_portfolio = true;
 
 -- ─── Project Folders ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS project_folders (
