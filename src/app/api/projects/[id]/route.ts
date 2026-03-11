@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
   const { id } = await ctx.params;
 
   const { data, error } = await (supabase.from("projects") as any)
-    .select("*, clients(id, name, email, company, phone), project_items(count), brief_templates:brief_template_id(id, name, schema)")
+    .select("*, clients(id, name, email, company, phone), project_items!project_items_project_id_fkey(count), brief_templates:brief_template_id(id, name, schema)")
     .eq("id", id)
     .single();
 

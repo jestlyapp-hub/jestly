@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
       portfolio_cta_label, portfolio_cta_url, portfolio_featured, portfolio_display_order,
       portfolio_visibility,
       clients(name),
-      project_items(id, file_path, thumbnail_url, mime_type, item_type)
+      project_items!project_items_project_id_fkey(id, file_path, thumbnail_url, mime_type, item_type)
     `)
     .eq("user_id", user.id)
     .order("updated_at", { ascending: false });

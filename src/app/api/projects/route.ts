@@ -8,7 +8,7 @@ export async function GET() {
   const { user, supabase } = auth;
 
   const { data, error } = await (supabase.from("projects") as any)
-    .select("*, clients(name, email, company), project_items(count), project_folders(count)")
+    .select("*, clients(name, email, company), project_items!project_items_project_id_fkey(count), project_folders(count)")
     .eq("user_id", user.id)
     .order("updated_at", { ascending: false });
 
