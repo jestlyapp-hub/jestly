@@ -412,7 +412,7 @@ function PortfolioContentGrid({ sections }: { sections: { label: string; icon: s
 }
 
 /* ═══════════════════════════════════════════════════
-   6. GALLERY — Premium masonry-style grid
+   6. GALLERY — Vertical editorial, native aspect ratios
    ═══════════════════════════════════════════════════ */
 
 function PortfolioGallery({ gallery }: { gallery: GalleryItem[] }) {
@@ -423,62 +423,50 @@ function PortfolioGallery({ gallery }: { gallery: GalleryItem[] }) {
         backgroundColor: "color-mix(in srgb, var(--site-surface, #F7F7F5) 40%, var(--site-bg, #fff))",
       }}
     >
-      <div className="max-w-6xl mx-auto px-6 sm:px-8">
+      <div className="max-w-5xl mx-auto px-6 sm:px-8">
         <FadeIn>
           <SectionLabel className="mb-10 sm:mb-12">Galerie</SectionLabel>
         </FadeIn>
 
-        <FadeIn delay={0.1}>
-          {gallery.length === 1 ? (
-            <GalleryMedia item={gallery[0]} className="rounded-xl sm:rounded-2xl aspect-[16/10]" />
-          ) : gallery.length === 2 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {gallery.map((item) => (
-                <GalleryMedia key={item.id} item={item} className="rounded-xl sm:rounded-2xl aspect-[4/3]" />
-              ))}
-            </div>
-          ) : gallery.length === 3 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <GalleryMedia item={gallery[0]} className="rounded-xl sm:rounded-2xl aspect-[4/3] sm:row-span-2 sm:aspect-auto sm:h-full" />
-              <GalleryMedia item={gallery[1]} className="rounded-xl sm:rounded-2xl aspect-[16/10]" />
-              <GalleryMedia item={gallery[2]} className="rounded-xl sm:rounded-2xl aspect-[16/10]" />
-            </div>
-          ) : (
-            /* 4+ images: hero image + grid */
-            <div className="space-y-4">
-              <GalleryMedia item={gallery[0]} className="rounded-xl sm:rounded-2xl aspect-[21/9]" />
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                {gallery.slice(1).map((item) => (
-                  <GalleryMedia key={item.id} item={item} className="rounded-xl sm:rounded-2xl aspect-[4/3]" />
-                ))}
-              </div>
-            </div>
-          )}
-        </FadeIn>
+        <div className="space-y-8 sm:space-y-10">
+          {gallery.map((item, i) => (
+            <FadeIn key={item.id} delay={i * 0.06}>
+              <GalleryMedia item={item} />
+            </FadeIn>
+          ))}
+        </div>
       </div>
     </section>
   );
 }
 
-function GalleryMedia({ item, className }: { item: GalleryItem; className?: string }) {
-  const base = `w-full object-cover overflow-hidden transition-transform duration-500 hover:scale-[1.02] ${className || ""}`;
-  const borderStyle = { border: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 40%, transparent)" };
+function GalleryMedia({ item }: { item: GalleryItem }) {
+  const borderStyle: React.CSSProperties = {
+    border: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 40%, transparent)",
+  };
 
   if (item.type === "video") {
     return (
-      <div className={`${className || ""} overflow-hidden`} style={borderStyle}>
-        <video src={item.url} controls className="w-full h-full object-cover" />
+      <div className="flex justify-center">
+        <div className="w-full overflow-hidden rounded-xl sm:rounded-2xl shadow-sm" style={borderStyle}>
+          <video src={item.url} controls className="w-full h-auto" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`overflow-hidden ${className || ""}`} style={borderStyle}>
-      <img
-        src={item.url}
-        alt={item.title || ""}
-        className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
-      />
+    <div className="flex justify-center">
+      <div
+        className="w-full overflow-hidden rounded-xl sm:rounded-2xl shadow-sm transition-transform duration-500 hover:scale-[1.01]"
+        style={borderStyle}
+      >
+        <img
+          src={item.url}
+          alt={item.title || ""}
+          className="max-w-full w-full h-auto block"
+        />
+      </div>
     </div>
   );
 }
