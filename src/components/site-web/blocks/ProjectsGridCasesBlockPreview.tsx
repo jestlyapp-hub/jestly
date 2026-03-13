@@ -3,7 +3,8 @@
 import { memo } from "react";
 import type { ProjectsGridCasesBlockContent, PortfolioCard } from "@/types";
 
-function ProjectsGridCasesBlockPreviewInner({ content, siteSlug }: { content: ProjectsGridCasesBlockContent; siteSlug?: string }) {
+function ProjectsGridCasesBlockPreviewInner({ content, siteSlug, basePath }: { content: ProjectsGridCasesBlockContent; siteSlug?: string; basePath?: string }) {
+  const base = basePath ?? (siteSlug ? `/s/${siteSlug}` : "");
   const source = content.source || "manual";
 
   // Determine cards to render
@@ -52,7 +53,7 @@ function ProjectsGridCasesBlockPreviewInner({ content, siteSlug }: { content: Pr
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {cards.map((project, i) => {
-              const href = siteSlug && project.slug ? `/s/${siteSlug}/portfolio/${project.slug}` : undefined;
+              const href = (siteSlug || basePath !== undefined) && project.slug ? `${base}/portfolio/${project.slug}` : undefined;
               const Wrapper = href ? "a" : "div";
 
               return (

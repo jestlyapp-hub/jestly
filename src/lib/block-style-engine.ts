@@ -33,9 +33,6 @@ export function computeSectionStyle(style: BlockStyle): React.CSSProperties {
   if (style.paddingLeft != null) css.paddingLeft = style.paddingLeft;
   if (style.paddingRight != null) css.paddingRight = style.paddingRight;
 
-  // Margin — no vertical margin to prevent gaps; use padding instead
-  // (margins create visible parent-background gaps between blocks)
-
   // Typography
   if (style.fontSize != null) css.fontSize = style.fontSize;
   if (style.fontWeight) css.fontWeight = style.fontWeight;

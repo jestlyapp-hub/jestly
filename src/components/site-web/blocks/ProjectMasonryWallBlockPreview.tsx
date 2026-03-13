@@ -3,7 +3,8 @@
 import { memo } from "react";
 import type { ProjectMasonryWallBlockContent, PortfolioCard } from "@/types";
 
-function ProjectMasonryWallBlockPreviewInner({ content, siteSlug }: { content: ProjectMasonryWallBlockContent; siteSlug?: string }) {
+function ProjectMasonryWallBlockPreviewInner({ content, siteSlug, basePath }: { content: ProjectMasonryWallBlockContent; siteSlug?: string; basePath?: string }) {
+  const base = basePath ?? (siteSlug ? `/s/${siteSlug}` : "");
   const cols = content.columns || 3;
   const source = content.source || "manual";
 
@@ -53,7 +54,7 @@ function ProjectMasonryWallBlockPreviewInner({ content, siteSlug }: { content: P
             {items.map((item, i) => {
               const placeholderAspects = ["3/4", "4/3", "1/1", "3/5", "5/3", "4/5"];
               const aspect = placeholderAspects[i % placeholderAspects.length];
-              const href = siteSlug && item.slug ? `/s/${siteSlug}/portfolio/${item.slug}` : undefined;
+              const href = (siteSlug || basePath !== undefined) && item.slug ? `${base}/portfolio/${item.slug}` : undefined;
               const Wrapper = href ? "a" : "div";
 
               return (

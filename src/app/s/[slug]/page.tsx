@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { getSiteBySlug, getPageByPath } from "@/lib/site-resolver";
 import { getPublicProductsByIds } from "@/lib/product-resolver";
 import { extractProductIdsFromBlocks } from "@/lib/product-context-utils";
@@ -19,7 +20,12 @@ export default async function PublicSiteHomePage({
     return <NotFoundPage type="site" />;
   }
 
-  const page = getPageByPath(site, "/");
+  // Detect subdomain mode (set by middleware rewrite)
+  const hdrs = await headers();
+  const isSubdomain = hdrs.get("x-subdomain-mode") === "1";
+  const siteWithBasePath = { ...site, basePath: isSubdomain ? "" : `/s/${slug}` };
+
+  const page = getPageByPath(siteWithBasePath, "/");
 
   if (!page) {
     return <NotFoundPage type="page" />;
@@ -29,5 +35,5 @@ export default async function PublicSiteHomePage({
   const productIds = extractProductIdsFromBlocks(page.blocks);
   const products = productIds.length > 0 ? await getPublicProductsByIds(productIds) : [];
 
-  return <SitePublicRenderer site={site} page={page} products={products} />;
+  return <SitePublicRenderer site={siteWithBasePath} page={page} products={products} />;
 }

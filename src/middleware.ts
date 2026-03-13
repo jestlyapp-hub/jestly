@@ -47,17 +47,27 @@ export async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // ── 2. Wildcard subdomain: {sub}.jestly.site or {sub}.jestly.fr ──
+  // ── 2. Wildcard subdomain: {sub}.jestly.fr (or legacy {sub}.jestly.site) ──
   const parts = hostname.split(".");
   const subdomain = parts[0];
   const rest = parts.slice(1).join(".");
 
   const matchedRoot = ROOT_DOMAINS.find((d) => rest === d);
   if (matchedRoot && subdomain && !RESERVED.has(subdomain)) {
-    // Rewrite to /s/{subdomain}{path}
+    // Strip redundant /s/{subdomain} prefix → redirect to clean URL
+    const sPrefix = `/s/${subdomain}`;
+    if (url.pathname.startsWith(sPrefix)) {
+      const clean = url.pathname.slice(sPrefix.length) || "/";
+      url.pathname = clean;
+      return NextResponse.redirect(url, 301);
+    }
+
+    // Rewrite to /s/{subdomain}{path} (internal, invisible to user)
     const pathname = url.pathname === "/" ? "" : url.pathname;
     url.pathname = `/s/${subdomain}${pathname}`;
-    return NextResponse.rewrite(url);
+    const response = NextResponse.rewrite(url);
+    response.headers.set("x-subdomain-mode", "1");
+    return response;
   }
 
   // ── 3. Custom domain support ──

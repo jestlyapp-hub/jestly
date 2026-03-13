@@ -11,6 +11,7 @@ const pageLabels: Record<string, string> = {
   "/projets": "Projets",
   "/produits": "Produits / Briefs",
   "/facturation": "Facturation",
+  "/facturation/templates": "Modèles & Récurrences",
   "/abonnements": "Abonnements",
   "/analytics": "Analytics",
   "/parametres": "Paramètres",

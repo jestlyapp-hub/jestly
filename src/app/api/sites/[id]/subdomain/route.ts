@@ -48,7 +48,7 @@ export async function POST(
   if (site.slug === normalized) {
     return NextResponse.json({
       subdomain: normalized,
-      fullDomain: `https://${normalized}.jestly.site`,
+      fullDomain: `https://${normalized}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || "jestly.fr"}`,
     });
   }
 
@@ -80,6 +80,6 @@ export async function POST(
 
   return NextResponse.json({
     subdomain: updated.slug,
-    fullDomain: `https://${updated.slug}.jestly.site`,
+    fullDomain: `https://${updated.slug}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || "jestly.fr"}`,
   });
 }

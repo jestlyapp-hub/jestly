@@ -13,6 +13,7 @@ interface Props {
   portfolio: PortfolioData;
   site: Site;
   siteSlug: string;
+  basePath?: string;
 }
 
 type GalleryItem = PortfolioData["gallery"][number];
@@ -63,7 +64,8 @@ function FadeIn({ children, className, delay = 0 }: { children: React.ReactNode;
    Main Page Component
    ═══════════════════════════════════════════════════ */
 
-export default function PortfolioCaseStudyPage({ portfolio, site, siteSlug }: Props) {
+export default function PortfolioCaseStudyPage({ portfolio, site, siteSlug, basePath }: Props) {
+  const siteUrl = basePath ?? `/s/${siteSlug}`;
   const resolvedTheme = resolveTheme(site.theme, site.design);
   const themeVars = computeThemeVars(resolvedTheme);
 
@@ -89,7 +91,7 @@ export default function PortfolioCaseStudyPage({ portfolio, site, siteSlug }: Pr
       }}
     >
       {/* ─── Minimal nav ─── */}
-      <PortfolioNav siteName={site.settings.name} siteSlug={siteSlug} />
+      <PortfolioNav siteName={site.settings.name} siteUrl={siteUrl || "/"} />
 
       {/* ─── HERO ─── */}
       <PortfolioHero portfolio={p} />
@@ -113,7 +115,7 @@ export default function PortfolioCaseStudyPage({ portfolio, site, siteSlug }: Pr
       {hasCta && <PortfolioCTA ctaLabel={p.ctaLabel!} ctaUrl={p.ctaUrl!} />}
 
       {/* ─── Footer ─── */}
-      <PortfolioFooter siteName={site.settings.name} siteSlug={siteSlug} />
+      <PortfolioFooter siteName={site.settings.name} siteUrl={siteUrl || "/"} />
     </div>
   );
 }
@@ -122,7 +124,7 @@ export default function PortfolioCaseStudyPage({ portfolio, site, siteSlug }: Pr
    1. NAV
    ═══════════════════════════════════════════════════ */
 
-function PortfolioNav({ siteName, siteSlug }: { siteName: string; siteSlug: string }) {
+function PortfolioNav({ siteName, siteUrl }: { siteName: string; siteUrl: string }) {
   return (
     <nav
       className="sticky top-0 z-50 backdrop-blur-md"
@@ -133,7 +135,7 @@ function PortfolioNav({ siteName, siteSlug }: { siteName: string; siteSlug: stri
     >
       <div className="max-w-6xl mx-auto px-6 sm:px-8 h-14 flex items-center justify-between">
         <a
-          href={`/s/${siteSlug}`}
+          href={siteUrl || "/"}
           className="text-[13px] font-medium flex items-center gap-2 transition-opacity hover:opacity-70"
           style={{ color: "var(--site-muted, #8A8A88)" }}
         >
@@ -143,7 +145,7 @@ function PortfolioNav({ siteName, siteSlug }: { siteName: string; siteSlug: stri
           {siteName}
         </a>
         <a
-          href={`/s/${siteSlug}`}
+          href={siteUrl || "/"}
           className="text-[11px] font-medium uppercase tracking-widest transition-opacity hover:opacity-70"
           style={{ color: "var(--site-muted, #8A8A88)" }}
         >
@@ -576,7 +578,7 @@ function PortfolioCTA({ ctaLabel, ctaUrl }: { ctaLabel: string; ctaUrl: string }
    9. FOOTER
    ═══════════════════════════════════════════════════ */
 
-function PortfolioFooter({ siteName, siteSlug }: { siteName: string; siteSlug: string }) {
+function PortfolioFooter({ siteName, siteUrl }: { siteName: string; siteUrl: string }) {
   return (
     <footer
       className="py-10"
@@ -586,7 +588,7 @@ function PortfolioFooter({ siteName, siteSlug }: { siteName: string; siteSlug: s
     >
       <div className="max-w-6xl mx-auto px-6 sm:px-8 flex items-center justify-between">
         <a
-          href={`/s/${siteSlug}`}
+          href={siteUrl || "/"}
           className="text-[13px] font-medium flex items-center gap-2 transition-opacity hover:opacity-70"
           style={{ color: "var(--site-muted, #8A8A88)" }}
         >

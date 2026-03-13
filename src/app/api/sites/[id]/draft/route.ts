@@ -146,7 +146,7 @@ export async function POST(
         const blocks = pages[i].blocks || [];
         for (let j = 0; j < blocks.length; j++) {
           const b = blocks[j];
-          blockRows.push({
+          const blockRow: Record<string, unknown> = {
             page_id: pageId,
             type: b.type,
             sort_order: b.sort_order ?? j,
@@ -154,7 +154,10 @@ export async function POST(
             style: b.style || {},
             settings: b.settings || {},
             visible: b.visible ?? true,
-          });
+          };
+          // Preserve block ID if provided (keeps navbar anchor links stable)
+          if (b.id) blockRow.id = b.id;
+          blockRows.push(blockRow);
         }
       }
 

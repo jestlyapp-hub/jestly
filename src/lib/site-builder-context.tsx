@@ -17,6 +17,8 @@ interface BuilderState {
   previewMode: boolean;
   history: Site[];
   historyIndex: number;
+  /** History index at last successful save — used to detect if undo/redo returns to saved state */
+  savedHistoryIndex: number;
 }
 
 type BuilderAction =
@@ -153,7 +155,12 @@ const defaultContent: { [K in BlockType]: BlockContentMap[K] } = {
   "signature-creative-closing": { title: "Construisons quelque chose d'exceptionnel ensemble", subtitle: "Chaque grand projet commence par une conversation. La votre commence ici.", ctaLabel: "Lancer votre projet", signatureNote: "Concu avec passion et precision." },
 };
 
-let blockCounter = 100;
+/** Generate a stable UUID for new blocks.
+ *  Full UUID so it can be persisted to the DB `site_blocks.id` column directly,
+ *  keeping navbar blockId references valid across save cycles. */
+function newBlockId(): string {
+  return crypto.randomUUID();
+}
 
 const MAX_HISTORY = 50;
 const COALESCE_MS = 500;
@@ -205,11 +212,12 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
         isDirty: false,
         history: [JSON.parse(JSON.stringify(action.site))],
         historyIndex: 0,
+        savedHistoryIndex: 0,
       };
     }
 
     case "MARK_CLEAN":
-      return { ...state, isDirty: false };
+      return { ...state, isDirty: false, savedHistoryIndex: state.historyIndex };
 
     case "SET_ACTIVE_PAGE":
       return { ...state, activePageId: action.pageId, activeBlockId: null };
@@ -226,13 +234,13 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
     case "UNDO": {
       if (state.historyIndex <= 0) return state;
       const newIndex = state.historyIndex - 1;
-      return { ...state, site: JSON.parse(JSON.stringify(state.history[newIndex])), historyIndex: newIndex, isDirty: true };
+      return { ...state, site: JSON.parse(JSON.stringify(state.history[newIndex])), historyIndex: newIndex, isDirty: newIndex !== state.savedHistoryIndex };
     }
 
     case "REDO": {
       if (state.historyIndex >= state.history.length - 1) return state;
       const newIndex = state.historyIndex + 1;
-      return { ...state, site: JSON.parse(JSON.stringify(state.history[newIndex])), historyIndex: newIndex, isDirty: true };
+      return { ...state, site: JSON.parse(JSON.stringify(state.history[newIndex])), historyIndex: newIndex, isDirty: newIndex !== state.savedHistoryIndex };
     }
 
     case "UPDATE_BLOCK_CONTENT": {
@@ -276,17 +284,17 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
     }
 
     case "DUPLICATE_BLOCK": {
-      blockCounter++;
+      const dupId = newBlockId();
       const site = { ...state.site, pages: state.site.pages.map((p) => {
         const idx = p.blocks.findIndex((b) => b.id === action.blockId);
         if (idx === -1) return p;
         const source = p.blocks[idx];
-        const dup = { ...source, id: `BLK-DUP-${blockCounter}`, content: { ...source.content }, style: { ...source.style }, settings: { ...source.settings } } as Block;
+        const dup = { ...source, id: dupId, content: { ...source.content }, style: { ...source.style }, settings: { ...source.settings } } as Block;
         const blocks = [...p.blocks];
         blocks.splice(idx + 1, 0, dup);
         return { ...p, blocks };
       }) };
-      return { ...withHistory(state, site), activeBlockId: `BLK-DUP-${blockCounter}` };
+      return { ...withHistory(state, site), activeBlockId: dupId };
     }
 
     case "REORDER_BLOCKS": {
@@ -301,13 +309,12 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
     }
 
     case "ADD_BLOCK": {
-      blockCounter++;
       const variant = action.variantKey ? getVariant(action.blockType, action.variantKey) : undefined;
       const newBlock = {
-        id: `BLK-NEW-${blockCounter}`,
+        id: newBlockId(),
         type: action.blockType,
         content: { ...defaultContent[action.blockType], ...(variant?.contentOverrides || {}) },
-        style: { paddingTop: 40, paddingBottom: 40, ...(variant?.style || {}) },
+        style: { paddingTop: 0, paddingBottom: 0, ...(variant?.style || {}) },
         settings: { variantKey: action.variantKey },
         visible: true,
       } as Block;
@@ -417,6 +424,7 @@ const initialState: BuilderState = {
   previewMode: false,
   history: [JSON.parse(JSON.stringify(emptySite))],
   historyIndex: 0,
+  savedHistoryIndex: 0,
 };
 
 // ── Serialize Site → draft payload for autosave ──
@@ -454,6 +462,7 @@ function serializeSiteForSave(site: Site) {
           seo_title: p.seoTitle || null,
           seo_description: p.seoDescription || null,
           blocks: p.blocks.map((b, j) => ({
+            id: b.id,
             type: b.type,
             sort_order: j,
             content: b.content,
@@ -564,6 +573,17 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
     saveLockRef.current = true;
     retryDirtyRef.current = false;
     return () => { saveLockRef.current = false; };
+  }, []);
+
+  // Warn user before closing tab with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (stateRef.current.isDirty) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, []);
 
   // Flush pending changes on unmount (tab switch)

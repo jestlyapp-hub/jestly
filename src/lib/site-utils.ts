@@ -1,4 +1,4 @@
-import type { Site, SitePage, Block } from "@/types";
+import type { Site, SitePage, Block, NavLink, FooterLink } from "@/types";
 
 /**
  * Find a published page by its path within a site.
@@ -16,10 +16,11 @@ export function getPageByPath(site: Site, path: string): SitePage | null {
 
 /**
  * Get the base path for a site.
- * On localhost / preview: /s/{subdomain}
- * On custom domain (future): empty string
+ * On subdomain (cinema.jestly.fr): "" (empty — paths are relative to root)
+ * On localhost / preview: "/s/{subdomain}"
  */
 function siteBasePath(site: Site): string {
+  if (site.basePath !== undefined) return site.basePath;
   return `/s/${site.domain.subdomain}`;
 }
 
@@ -31,8 +32,9 @@ export function resolvePageSlug(site: Site, pageId: string): string {
   const page = site.pages.find((p) => p.id === pageId);
   const slug = page?.slug ?? "/";
   const base = siteBasePath(site);
-  // Homepage → /s/{subdomain}, subpage → /s/{subdomain}/services
-  return slug === "/" ? base : `${base}${slug}`;
+  // Homepage → "/" (subdomain) or "/s/{slug}" (dev), subpage → "/services" or "/s/{slug}/services"
+  if (slug === "/") return base || "/";
+  return `${base}${slug}`;
 }
 
 /**
@@ -83,14 +85,35 @@ export function resolveNavLinkHref(
   // Internal page with optional block anchor
   if (link.pageId) {
     const base = resolvePageSlug(site, link.pageId);
+    if (link.blockId === "__top") return `${base}#top`;
     if (link.blockId) return `${base}#block-${link.blockId}`;
     return base;
   }
+
+  // "Top of page" shortcut on current page
+  if (link.blockId === "__top") return "#top";
 
   // Block anchor on current page (no pageId, just blockId)
   if (link.blockId) return `#block-${link.blockId}`;
 
   return "#";
+}
+
+/**
+ * Infer destinationType from existing NavLink fields (backward compat).
+ * Works for both NavLink and FooterLink.
+ */
+export function inferDestinationType(
+  link: { pageId?: string; url?: string; blockId?: string; destinationType?: string }
+): "section" | "page" | "external" {
+  if (link.destinationType === "section" || link.destinationType === "page" || link.destinationType === "external") {
+    return link.destinationType;
+  }
+  if (link.url && !link.pageId) return "external";
+  if (link.blockId && !link.pageId) return "section";
+  if (link.pageId && !link.blockId) return "page";
+  if (link.pageId && link.blockId) return "section";
+  return "section";
 }
 
 /**
@@ -110,4 +133,108 @@ export function getBlockLabel(block: Block): string {
   }
 
   return typeLabel;
+}
+
+/* ─── NavLink / FooterLink Validation ─── */
+
+export type LinkValidationStatus = "valid" | "warning" | "error";
+
+export interface LinkValidation {
+  status: LinkValidationStatus;
+  message?: string;
+}
+
+/**
+ * Validate a NavLink or FooterLink against available pages and blocks.
+ * Returns validation status + user-facing message.
+ */
+export function validateNavLink(
+  link: NavLink | FooterLink,
+  pages: SitePage[],
+  currentPageBlocks: Block[],
+): LinkValidation {
+  const destType = inferDestinationType(link as NavLink);
+
+  switch (destType) {
+    case "section": {
+      if (!link.blockId) {
+        return { status: "warning", message: "Aucune section choisie" };
+      }
+      if (link.blockId === "__top") {
+        return { status: "valid" };
+      }
+      const visibleBlocks = currentPageBlocks.filter(b => b.visible);
+      const found = visibleBlocks.some(b => b.id === link.blockId);
+      if (!found) {
+        // Also check hidden blocks to differentiate "deleted" vs "hidden"
+        const inAllBlocks = currentPageBlocks.some(b => b.id === link.blockId);
+        if (inAllBlocks) {
+          return { status: "warning", message: "Cette section est masquée" };
+        }
+        return { status: "error", message: "Cette section n'existe plus" };
+      }
+      return { status: "valid" };
+    }
+
+    case "page": {
+      if (!link.pageId) {
+        return { status: "warning", message: "Aucune page choisie" };
+      }
+      const pageExists = pages.some(p => p.id === link.pageId);
+      if (!pageExists) {
+        return { status: "error", message: "Cette page n'existe plus" };
+      }
+      return { status: "valid" };
+    }
+
+    case "external": {
+      const url = (link as NavLink).url || "";
+      if (!url) {
+        return { status: "warning", message: "URL non renseignée" };
+      }
+      if (!url.startsWith("http://") && !url.startsWith("https://") && !url.startsWith("mailto:") && !url.startsWith("tel:")) {
+        return { status: "warning", message: "L'URL doit commencer par https://, mailto: ou tel:" };
+      }
+      return { status: "valid" };
+    }
+
+    default:
+      return { status: "valid" };
+  }
+}
+
+/**
+ * Get a human-readable description of the link destination (for UI summary).
+ */
+export function getNavLinkDestinationLabel(
+  link: NavLink | FooterLink,
+  pages: SitePage[],
+  currentPageBlocks: Block[],
+): string {
+  const destType = inferDestinationType(link as NavLink);
+
+  switch (destType) {
+    case "section": {
+      if (!link.blockId) return "Aucune section";
+      if (link.blockId === "__top") return "Haut de page";
+      const block = currentPageBlocks.find(b => b.id === link.blockId);
+      return block ? getBlockLabel(block) : "Section introuvable";
+    }
+    case "page": {
+      if (!link.pageId) return "Aucune page";
+      const page = pages.find(p => p.id === link.pageId);
+      return page ? page.name : "Page introuvable";
+    }
+    case "external": {
+      const url = (link as NavLink).url || "";
+      if (!url) return "Aucune URL";
+      try {
+        return new URL(url).hostname;
+      } catch {
+        return url.slice(0, 30);
+      }
+    }
+    default:
+      return "";
+  }
 }

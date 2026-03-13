@@ -290,6 +290,137 @@ export interface Activity {
   time: string;
 }
 
+/* ─── Billing System Types ─── */
+
+export type BillingItemStatus = "draft" | "to_validate" | "validated" | "ready" | "exported" | "invoiced" | "paid" | "cancelled";
+export type BillingItemSource = "manual" | "order" | "task" | "template" | "recurring";
+
+export interface BillingItem {
+  id: string;
+  clientId: string | null;
+  clientName?: string;
+  orderId: string | null;
+  title: string;
+  description: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+  total: number;
+  currency: string;
+  taxRate: number;
+  taxAmount: number;
+  totalTtc: number;
+  status: BillingItemStatus;
+  performedAt: string | null;
+  deliveredAt: string | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+  source: BillingItemSource;
+  tags: string[];
+  notes: string;
+  recurring: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type BillingExportStatus = "completed" | "failed" | "archived";
+
+export interface BillingExport {
+  id: string;
+  label: string;
+  format: "pdf" | "csv" | "excel" | "json";
+  periodStart: string | null;
+  periodEnd: string | null;
+  totalHt: number;
+  totalTva: number;
+  totalTtc: number;
+  itemCount: number;
+  clientCount: number;
+  filename: string | null;
+  fileUrl: string | null;
+  status: BillingExportStatus;
+  notes: string;
+  createdAt: string;
+}
+
+export type PeriodClosureStatus = "closed" | "reopened";
+
+export interface PeriodClosure {
+  id: string;
+  periodYear: number;
+  periodMonth: number;
+  periodLabel: string;
+  totalHt: number;
+  totalTva: number;
+  totalTtc: number;
+  itemCount: number;
+  clientCount: number;
+  snapshot: {
+    drafts: number;
+    to_validate: number;
+    validated: number;
+    ready: number;
+    exported: number;
+    invoiced: number;
+    cancelled: number;
+    health_score: number;
+    anomaly_count: number;
+    top_clients: { id: string; name: string; total_ht: number }[];
+    categories: { name: string; total_ht: number }[];
+    export_ids: string[];
+  };
+  status: PeriodClosureStatus;
+  closedAt: string;
+  reopenedAt: string | null;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BillingTemplate {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+  currency: string;
+  taxRate: number;
+  tags: string[];
+  sortOrder: number;
+  archived: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type RecurringStatus = "active" | "paused" | "ended";
+
+export interface RecurringProfile {
+  id: string;
+  clientId: string | null;
+  clientName?: string;
+  templateId: string | null;
+  title: string;
+  description: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+  currency: string;
+  taxRate: number;
+  tags: string[];
+  frequency: "monthly";
+  genDay: number;
+  autoGenerate: boolean;
+  status: RecurringStatus;
+  startDate: string;
+  endDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 /* ─── Site Builder Types ─── */
 
 export type LinkType = "none" | "internal_page" | "external_url" | "product" | "anchor";
@@ -434,8 +565,6 @@ export interface BlockStyle {
   paddingBottom?: number;
   paddingLeft?: number;
   paddingRight?: number;
-  marginTop?: number;
-  marginBottom?: number;
   fontSize?: number;
   fontWeight?: string;
   lineHeight?: number;
@@ -1209,9 +1338,10 @@ export type NavbarVariant =
 export interface NavLink {
   id?: string;
   label: string;
+  destinationType?: "section" | "page" | "external";
   pageId?: string;
   url?: string;
-  blockId?: string;       // target block id for scroll-to (same or other page)
+  blockId?: string;       // target block id for scroll-to, or "__top" for top of page
   openNewTab?: boolean;
   children?: NavLink[];   // dropdown submenu items
 }
@@ -1226,10 +1356,22 @@ export interface NavConfig {
   links: NavLink[];
   showCta: boolean;
   ctaLabel: string;
-  ctaLink?: Link;
+  ctaLink?: Link; // legacy — use ctaDestinationType/ctaPageId/ctaBlockId/ctaUrl instead
+  // CTA destination (same shape as NavLink for DestinationPicker compatibility)
+  ctaDestinationType?: "section" | "page" | "external";
+  ctaPageId?: string;
+  ctaBlockId?: string;
+  ctaUrl?: string;
+  ctaOpenNewTab?: boolean;
   showSecondaryCta?: boolean;
   secondaryCtaLabel?: string;
-  secondaryCtaLink?: Link;
+  secondaryCtaLink?: Link; // legacy
+  // Secondary CTA destination
+  secondaryCtaDestinationType?: "section" | "page" | "external";
+  secondaryCtaPageId?: string;
+  secondaryCtaBlockId?: string;
+  secondaryCtaUrl?: string;
+  secondaryCtaOpenNewTab?: boolean;
   showSocials?: boolean;
   socials?: NavSocialLink[];
   sticky?: boolean;
@@ -1247,9 +1389,11 @@ export interface NavConfig {
 
 export interface FooterLink {
   label: string;
+  destinationType?: "section" | "page" | "external";
   pageId?: string;
   url?: string;
-  blockId?: string;       // target block id for scroll-to
+  blockId?: string;       // target block id for scroll-to, or "__top"
+  openNewTab?: boolean;
 }
 
 export interface FooterConfig {
@@ -1486,6 +1630,12 @@ export interface Site {
   nav?: NavConfig;
   footer?: FooterConfig;
   members?: SiteMember[];
+  /** Base path for internal links. "" on subdomain, "/s/{slug}" on localhost/preview. */
+  basePath?: string;
+  /** Site publication status from DB. */
+  status?: "draft" | "published";
+  /** ISO timestamp of last publication. */
+  publishedAt?: string;
 }
 
 export type SiteOrderStatus = "pending" | "in_progress" | "delivered" | "cancelled";

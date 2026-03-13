@@ -158,25 +158,30 @@ function NavDropdown({ item, resolveHref, isBuilder }: { item: NavLink; resolveH
             boxShadow: "0 8px 30px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04)",
           }}
         >
-          {item.children?.map((child, j) => (
-            <a
-              key={j}
-              href={isBuilder ? undefined : resolveHref(child)}
-              onClick={e => { if (isBuilder) e.preventDefault(); setOpen(false); }}
-              className="block px-4 py-2 text-[13px] font-medium transition-colors"
-              style={{ color: "var(--site-muted, #666)" }}
-              onMouseEnter={e => {
-                e.currentTarget.style.color = "var(--site-text, #1A1A1A)";
-                e.currentTarget.style.backgroundColor = "var(--site-surface, #F7F7F5)";
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.color = "var(--site-muted, #666)";
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
-            >
-              {child.label}
-            </a>
-          ))}
+          {item.children?.map((child, j) => {
+            const isExt = child.url && !child.pageId && !child.blockId;
+            return (
+              <a
+                key={j}
+                href={isBuilder ? undefined : resolveHref(child)}
+                onClick={e => { if (isBuilder) e.preventDefault(); setOpen(false); }}
+                target={isExt && child.openNewTab ? "_blank" : undefined}
+                rel={isExt && child.openNewTab ? "noopener noreferrer" : undefined}
+                className="block px-4 py-2 text-[13px] font-medium transition-colors"
+                style={{ color: "var(--site-muted, #666)" }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = "var(--site-text, #1A1A1A)";
+                  e.currentTarget.style.backgroundColor = "var(--site-surface, #F7F7F5)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = "var(--site-muted, #666)";
+                  e.currentTarget.style.backgroundColor = "transparent";
+                }}
+              >
+                {child.label}
+              </a>
+            );
+          })}
         </div>
       )}
     </div>
@@ -258,7 +263,8 @@ function MobileMenu({
             <div className="pt-4 space-y-2">
               {nav.showSecondaryCta && nav.secondaryCtaLabel && (
                 <a
-                  href="#"
+                  href={isBuilder ? undefined : resolveCtaHref(nav, false, resolveHref)}
+                  onClick={() => setOpen(false)}
                   className="block text-center text-[14px] font-semibold py-3 rounded-lg border transition-colors"
                   style={{ color: "var(--site-text, #1A1A1A)", borderColor: "var(--site-border, #E6E6E4)" }}
                 >
@@ -267,7 +273,8 @@ function MobileMenu({
               )}
               {nav.showCta && nav.ctaLabel && (
                 <a
-                  href="#"
+                  href={isBuilder ? undefined : resolveCtaHref(nav, true, resolveHref)}
+                  onClick={() => setOpen(false)}
                   className="block text-center text-[14px] font-semibold py-3 rounded-lg transition-colors"
                   style={{
                     backgroundColor: nav.ctaBgColor || "var(--btn-bg, var(--site-primary, #4F46E5))",
@@ -299,10 +306,13 @@ function NavItem({ item, resolveHref, isBuilder }: { item: NavLink; resolveHref:
   if (item.children && item.children.length > 0) {
     return <NavDropdown item={item} resolveHref={resolveHref} isBuilder={isBuilder} />;
   }
+  const isExternal = item.url && !item.pageId && !item.blockId;
   return (
     <a
       href={isBuilder ? undefined : resolveHref(item)}
       onClick={e => { if (isBuilder) e.preventDefault(); }}
+      target={isExternal && item.openNewTab ? "_blank" : undefined}
+      rel={isExternal && item.openNewTab ? "noopener noreferrer" : undefined}
       className="text-[13px] font-medium transition-colors"
       style={{ color: "var(--site-muted, #666)" }}
       onMouseEnter={e => (e.currentTarget.style.color = "var(--site-text, #1A1A1A)")}
@@ -313,17 +323,40 @@ function NavItem({ item, resolveHref, isBuilder }: { item: NavLink; resolveHref:
   );
 }
 
-// ─── CTA Button (reads nav config for custom styles) ───
+// ─── CTA href resolution ───
 
-function CtaButton({ label, isPrimary, nav }: { label: string; isPrimary?: boolean; nav?: NavConfig }) {
+function resolveCtaHref(nav: NavConfig, isPrimary: boolean, resolveHref: (link: NavLink) => string): string {
+  const destType = isPrimary ? nav.ctaDestinationType : nav.secondaryCtaDestinationType;
+  const pageId = isPrimary ? nav.ctaPageId : nav.secondaryCtaPageId;
+  const blockId = isPrimary ? nav.ctaBlockId : nav.secondaryCtaBlockId;
+  const url = isPrimary ? nav.ctaUrl : nav.secondaryCtaUrl;
+
+  if (!destType) return "#";
+
+  // Build a NavLink-compatible object and reuse the same resolver
+  return resolveHref({ label: "", destinationType: destType, pageId, blockId, url });
+}
+
+// ─── CTA Button (reads nav config for custom styles + destination) ───
+
+function CtaButton({ label, isPrimary, nav, href }: { label: string; isPrimary?: boolean; nav?: NavConfig; href?: string }) {
   const base = "text-[13px] font-semibold px-5 py-2 transition-all";
   const style = isPrimary !== false
     ? (nav?.ctaStyle || "filled")
     : "outline";
 
+  // Resolve target & rel for external links
+  const isExternal = href && (href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:"));
+  const openNewTab = isPrimary !== false ? nav?.ctaOpenNewTab : nav?.secondaryCtaOpenNewTab;
+  const target = isExternal && openNewTab ? "_blank" : undefined;
+  const rel = target ? "noopener noreferrer" : undefined;
+  const resolvedHref = href || "#";
+
+  const linkProps = { href: resolvedHref, target, rel };
+
   if (style === "filled") {
     return (
-      <a href="#" className={`${base} hover:opacity-90`} style={{
+      <a {...linkProps} className={`${base} hover:opacity-90`} style={{
         backgroundColor: nav?.ctaBgColor || "var(--btn-bg, var(--site-primary, #4F46E5))",
         color: nav?.ctaTextColor || "var(--btn-text, #fff)",
         borderRadius: nav?.ctaBorderRadius || "var(--site-btn-radius, 8px)",
@@ -334,7 +367,7 @@ function CtaButton({ label, isPrimary, nav }: { label: string; isPrimary?: boole
   }
   if (style === "outline") {
     return (
-      <a href="#" className={`${base} border hover:opacity-80`} style={{
+      <a {...linkProps} className={`${base} border hover:opacity-80`} style={{
         color: nav?.ctaBgColor || "var(--site-text, #1A1A1A)",
         borderColor: nav?.ctaBgColor || "var(--site-border, #E6E6E4)",
         borderRadius: nav?.ctaBorderRadius || "var(--site-btn-radius, 8px)",
@@ -345,7 +378,7 @@ function CtaButton({ label, isPrimary, nav }: { label: string; isPrimary?: boole
   }
   if (style === "soft") {
     return (
-      <a href="#" className={`${base} hover:opacity-80`} style={{
+      <a {...linkProps} className={`${base} hover:opacity-80`} style={{
         backgroundColor: nav?.ctaBgColor
           ? `color-mix(in srgb, ${nav.ctaBgColor} 15%, transparent)`
           : "var(--site-primary-light, #EEF2FF)",
@@ -358,7 +391,7 @@ function CtaButton({ label, isPrimary, nav }: { label: string; isPrimary?: boole
   }
   // ghost
   return (
-    <a href="#" className={`${base} hover:opacity-70`} style={{
+    <a {...linkProps} className={`${base} hover:opacity-70`} style={{
       color: nav?.ctaBgColor || "var(--site-primary, #4F46E5)",
     }}>
       {label}
@@ -427,7 +460,7 @@ function NavClassicFloating(props: NavbarProps) {
           </div>
           <div className="flex items-center gap-3">
             {nav.showCta && nav.ctaLabel && (
-              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
             )}
             <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
           </div>
@@ -452,7 +485,7 @@ function NavDarkPremium(props: NavbarProps) {
         </div>
         <div className="flex items-center gap-3">
           {nav.showCta && nav.ctaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
           )}
           <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
         </div>
@@ -511,7 +544,7 @@ function NavCapsule(props: NavbarProps) {
 
           <div className="flex items-center gap-3">
             {nav.showCta && nav.ctaLabel && (
-              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
             )}
             <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
           </div>
@@ -560,7 +593,7 @@ function NavBrandHeavy(props: NavbarProps) {
               <div className="hidden lg:flex"><SocialIcons socials={nav.socials} /></div>
             )}
             {nav.showCta && nav.ctaLabel && (
-              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
             )}
             <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
           </div>
@@ -588,10 +621,10 @@ function NavDualCta(props: NavbarProps) {
 
           <div className="flex items-center gap-2">
             {nav.showSecondaryCta && nav.secondaryCtaLabel && (
-              <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} /></div>
+              <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} href={resolveCtaHref(nav, false, resolveHref)} /></div>
             )}
             {nav.showCta && nav.ctaLabel && (
-              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
             )}
             <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
           </div>
@@ -622,10 +655,10 @@ function NavDropdownRich(props: NavbarProps) {
               <div className="hidden lg:flex"><SocialIcons socials={nav.socials} /></div>
             )}
             {nav.showSecondaryCta && nav.secondaryCtaLabel && (
-              <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} /></div>
+              <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} href={resolveCtaHref(nav, false, resolveHref)} /></div>
             )}
             {nav.showCta && nav.ctaLabel && (
-              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+              <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
             )}
             <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
           </div>
@@ -669,7 +702,7 @@ function NavCreativeSplit(props: NavbarProps) {
         {/* Right nav group */}
         <div className="hidden md:flex items-center gap-5 flex-1 justify-end">
           {rightLinks.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
-          {nav.showCta && nav.ctaLabel && <CtaButton label={nav.ctaLabel} nav={nav} />}
+          {nav.showCta && nav.ctaLabel && <CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} />}
         </div>
 
         <div className="md:hidden ml-auto">
@@ -760,10 +793,10 @@ function NavSignature(props: NavbarProps) {
         {/* Right section */}
         <div className="flex items-center gap-2">
           {nav.showSecondaryCta && nav.secondaryCtaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} /></div>
+            <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} href={resolveCtaHref(nav, false, resolveHref)} /></div>
           )}
           {nav.showCta && nav.ctaLabel && (
-            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} /></div>
+            <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
           )}
           <MobileMenu nav={nav} siteName={siteName} resolveHref={resolveHref} isBuilder={isBuilder} />
         </div>

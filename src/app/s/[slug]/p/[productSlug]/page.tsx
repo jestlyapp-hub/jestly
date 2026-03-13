@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { getSiteBySlug } from "@/lib/site-resolver";
 import { getPublicProductBySlug } from "@/lib/product-resolver";
 import { createClient } from "@/lib/supabase/server";
@@ -56,6 +57,9 @@ export default async function PublicProductPage({
   params: Promise<{ slug: string; productSlug: string }>;
 }) {
   const { slug, productSlug } = await params;
+  const hdrs = await headers();
+  const isSubdomain = hdrs.get("x-subdomain-mode") === "1";
+  const backHref = isSubdomain ? "/" : `/s/${slug}`;
   const { site, product } = await resolveProduct(slug, productSlug);
 
   if (!site) {
@@ -82,11 +86,11 @@ export default async function PublicProductPage({
           </div>
           <h1 className="text-xl font-semibold text-[#191919] mb-2">Offre introuvable</h1>
           <p className="text-sm text-[#8A8A88]">Cette offre n&apos;existe pas ou n&apos;est plus disponible.</p>
-          <a href={`/s/${slug}`} className="inline-block mt-6 text-sm font-medium text-[#4F46E5] hover:underline">&larr; Retour au site</a>
+          <a href={backHref} className="inline-block mt-6 text-sm font-medium text-[#4F46E5] hover:underline">&larr; Retour au site</a>
         </div>
       </div>
     );
   }
 
-  return <ProductPublicPage product={product} siteSlug={slug} siteName={site.settings.name} />;
+  return <ProductPublicPage product={product} siteSlug={slug} siteName={site.settings.name} basePath={isSubdomain ? "" : undefined} />;
 }

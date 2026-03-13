@@ -270,13 +270,12 @@ export default function BuilderPageList() {
     useSensor(PointerSensor, { activationConstraint: { distance: 3 } }),
   );
 
-  let blockCounter = 0;
   const handleAddPageFromTemplate = (template?: PageTemplate) => {
-    const id = `PAGE-NEW-${Date.now()}`;
+    const id = `PAGE-${crypto.randomUUID().slice(0, 8)}`;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const blocks: Block[] = template
       ? template.blocks.map((tb) => ({
-          id: `BLK-TPL-${Date.now()}-${blockCounter++}`,
+          id: crypto.randomUUID(),
           type: tb.type,
           content: { ...defaultContent[tb.type as BlockType] },
           style: { paddingTop: 40, paddingBottom: 40, ...tb.style },

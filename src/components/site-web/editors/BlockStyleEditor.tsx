@@ -193,7 +193,7 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
             <div className="flex flex-col items-center gap-1">
               <input
                 type="number"
-                value={block.style.paddingTop ?? 40}
+                value={block.style.paddingTop ?? 0}
                 onChange={(e) => update({ paddingTop: parseInt(e.target.value) || 0 })}
                 className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40"
               />
@@ -214,30 +214,9 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
               </div>
               <input
                 type="number"
-                value={block.style.paddingBottom ?? 40}
+                value={block.style.paddingBottom ?? 0}
                 onChange={(e) => update({ paddingBottom: parseInt(e.target.value) || 0 })}
                 className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40"
-              />
-            </div>
-          </div>
-          {/* Margin */}
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="block text-[10px] font-medium text-[#BBB] mb-1">Margin haut</label>
-              <input
-                type="number"
-                value={block.style.marginTop ?? 0}
-                onChange={(e) => update({ marginTop: parseInt(e.target.value) || 0 })}
-                className={smallInputClass}
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-medium text-[#BBB] mb-1">Margin bas</label>
-              <input
-                type="number"
-                value={block.style.marginBottom ?? 0}
-                onChange={(e) => update({ marginBottom: parseInt(e.target.value) || 0 })}
-                className={smallInputClass}
               />
             </div>
           </div>

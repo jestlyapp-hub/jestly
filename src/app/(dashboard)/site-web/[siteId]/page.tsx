@@ -36,7 +36,8 @@ export default function SiteWebApercu() {
   // Source de vérité = site.domain.subdomain (depuis le SiteProvider partagé)
   const subdomain = site.domain.subdomain;
   const hasSubdomain = !!subdomain;
-  const siteUrl = hasSubdomain ? `${subdomain}.jestly.site` : "";
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || "jestly.fr";
+  const siteUrl = hasSubdomain ? `${subdomain}.${baseDomain}` : "";
   const fullUrl = hasSubdomain ? `https://${siteUrl}` : "";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -141,7 +142,7 @@ export default function SiteWebApercu() {
                   <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
                 </div>
                 <div className="flex-1 bg-[#F7F7F5] rounded px-3 py-1 text-[11px] text-[#999] text-center">
-                  {hasSubdomain ? siteUrl : "votre-site.jestly.site"}
+                  {hasSubdomain ? siteUrl : "votre-site.jestly.fr"}
                 </div>
               </div>
               {/* Site preview placeholder */}

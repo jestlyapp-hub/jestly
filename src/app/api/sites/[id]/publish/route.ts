@@ -175,7 +175,7 @@ export async function POST(
   return NextResponse.json({
     ok: true,
     subdomain,
-    url: `https://${subdomain}.jestly.site`,
+    url: `https://${subdomain}.${process.env.NEXT_PUBLIC_BASE_DOMAIN || "jestly.fr"}`,
     version: nextVersion,
     published_pages: pages?.length || 0,
     published_at: now,

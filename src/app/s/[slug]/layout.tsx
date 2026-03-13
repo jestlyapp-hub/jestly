@@ -13,12 +13,19 @@ export async function generateMetadata({
     return { title: "Site introuvable" };
   }
 
+  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || "jestly.fr";
+  const canonicalUrl = `https://${slug}.${baseDomain}`;
+
   return {
     title: site.seo.globalTitle || site.settings.name,
     description: site.seo.globalDescription || site.settings.description,
+    alternates: {
+      canonical: canonicalUrl,
+    },
     openGraph: {
       title: site.seo.globalTitle || site.settings.name,
       description: site.seo.globalDescription || site.settings.description,
+      url: canonicalUrl,
       ...(site.seo.ogImageUrl ? { images: [site.seo.ogImageUrl] } : {}),
     },
     robots: site.settings.maintenanceMode ? "noindex, nofollow" : undefined,

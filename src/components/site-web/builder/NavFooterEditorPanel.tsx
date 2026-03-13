@@ -2,18 +2,185 @@
 
 import { useState } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
-import type { NavConfig, NavLink, NavSocialLink, FooterConfig, FooterLink, NavbarVariant } from "@/types";
-import { getBlockLabel } from "@/lib/site-utils";
+import type { NavConfig, NavLink, NavSocialLink, FooterConfig, FooterLink, NavbarVariant, Block, SitePage } from "@/types";
+import { getBlockLabel, inferDestinationType, validateNavLink } from "@/lib/site-utils";
+import type { LinkValidation } from "@/lib/site-utils";
 import { NAVBAR_VARIANTS, defaultNavConfig } from "@/components/site-web/navbar/NavbarRenderer";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const smallInputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 transition-all";
 const sectionLabel = "block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-2";
+const selectClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-2 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 transition-all";
 
 function genId() { return Math.random().toString(36).slice(2, 9); }
 
 type Tab = "nav" | "footer";
 type NavSection = "variant" | "links" | "cta" | "socials" | "style";
+
+// ═══════════════════════════════════════════════
+// Validation message renderer
+// ═══════════════════════════════════════════════
+
+function ValidationMessage({ validation }: { validation: LinkValidation }) {
+  if (validation.status === "valid" || !validation.message) return null;
+  const isError = validation.status === "error";
+  return (
+    <p className={`text-[10px] mt-1 flex items-center gap-1 ${isError ? "text-red-500" : "text-amber-600"}`}>
+      <span>{isError ? "⚠" : "●"}</span>
+      {validation.message}
+    </p>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// Destination Type Picker — reusable for nav + footer links
+// ═══════════════════════════════════════════════
+
+const DEST_TYPES = [
+  { value: "section" as const, label: "Section", icon: "↓", hint: "Scroll vers une section" },
+  { value: "page" as const, label: "Page", icon: "◇", hint: "Vers une autre page" },
+  { value: "external" as const, label: "Externe", icon: "↗", hint: "Lien externe" },
+];
+
+function DestinationPicker({
+  link,
+  pages,
+  currentPageBlocks,
+  onChange,
+}: {
+  link: NavLink | FooterLink;
+  pages: SitePage[];
+  currentPageBlocks: Block[];
+  onChange: (patch: Partial<NavLink>) => void;
+}) {
+  const destType = inferDestinationType(link as NavLink);
+  const visibleBlocks = currentPageBlocks.filter(b => b.visible);
+  const validation = validateNavLink(link, pages, currentPageBlocks);
+
+  const handleTypeChange = (newType: "section" | "page" | "external") => {
+    // Clear irrelevant fields when switching type
+    if (newType === "section") {
+      onChange({ destinationType: newType, pageId: undefined, url: undefined, openNewTab: undefined, blockId: undefined });
+    } else if (newType === "page") {
+      onChange({ destinationType: newType, blockId: undefined, url: undefined, openNewTab: undefined });
+    } else {
+      onChange({ destinationType: newType, pageId: undefined, blockId: undefined, openNewTab: true });
+    }
+  };
+
+  const handleSectionChange = (blockId: string) => {
+    onChange({ blockId: blockId || undefined });
+  };
+
+  return (
+    <div className="space-y-2">
+      {/* Destination type tabs */}
+      <div>
+        <span className="text-[10px] font-semibold text-[#999] uppercase tracking-wider">Destination</span>
+        <div className="flex gap-1 mt-1">
+          {DEST_TYPES.map(dt => (
+            <button
+              key={dt.value}
+              onClick={() => handleTypeChange(dt.value)}
+              title={dt.hint}
+              className={`flex-1 flex items-center justify-center gap-1 py-1.5 rounded-md text-[10px] font-semibold transition-all ${
+                destType === dt.value
+                  ? "bg-[#EEF2FF] text-[#4F46E5] border border-[#4F46E5]/30"
+                  : "text-[#999] hover:text-[#666] hover:bg-[#F7F7F5] border border-transparent"
+              }`}
+            >
+              <span className="text-[11px]">{dt.icon}</span>
+              {dt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Section destination ── */}
+      {destType === "section" && (
+        <div>
+          {visibleBlocks.length === 0 ? (
+            <p className="text-[11px] text-[#999] italic py-2">
+              Aucune section visible sur cette page.
+              Ajoutez des blocs pour pouvoir les cibler.
+            </p>
+          ) : (
+            <select
+              value={link.blockId || ""}
+              onChange={(e) => handleSectionChange(e.target.value)}
+              className={`${selectClass} ${
+                validation.status === "error" ? "border-red-400 text-red-600" :
+                validation.status === "warning" ? "border-amber-400" : ""
+              }`}
+            >
+              <option value="">Choisir une section...</option>
+              <option value="__top">↑ Haut de page</option>
+              {visibleBlocks.map((b) => (
+                <option key={b.id} value={b.id}>{getBlockLabel(b)}</option>
+              ))}
+            </select>
+          )}
+          <ValidationMessage validation={validation} />
+        </div>
+      )}
+
+      {/* ── Page destination ── */}
+      {destType === "page" && (
+        <div>
+          {pages.length === 0 ? (
+            <p className="text-[11px] text-[#999] italic py-2">
+              Aucune page disponible. Créez des pages dans le builder.
+            </p>
+          ) : (
+            <select
+              value={link.pageId || ""}
+              onChange={(e) => onChange({ pageId: e.target.value || undefined })}
+              className={`${selectClass} ${
+                validation.status === "error" ? "border-red-400 text-red-600" :
+                validation.status === "warning" ? "border-amber-400" : ""
+              }`}
+            >
+              <option value="">Choisir une page...</option>
+              {pages.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          )}
+          <ValidationMessage validation={validation} />
+        </div>
+      )}
+
+      {/* ── External destination ── */}
+      {destType === "external" && (
+        <div className="space-y-1.5">
+          <input
+            type="url"
+            value={(link as NavLink).url || ""}
+            onChange={(e) => onChange({ url: e.target.value || undefined })}
+            className={`${smallInputClass} ${
+              validation.status === "warning" && (link as NavLink).url ? "border-amber-400" : ""
+            }`}
+            placeholder="https://calendly.com/..."
+          />
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={(link as NavLink).openNewTab ?? true}
+              onChange={(e) => onChange({ openNewTab: e.target.checked })}
+              className="rounded border-[#E6E6E4] text-[#4F46E5] focus:ring-[#4F46E5]/20"
+            />
+            <span className="text-[11px] text-[#666]">Ouvrir dans un nouvel onglet</span>
+          </label>
+          <ValidationMessage validation={validation} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// Main Panel
+// ═══════════════════════════════════════════════
 
 export default function NavFooterEditorPanel({ onClose }: { onClose: () => void }) {
   const { state, dispatch } = useBuilder();
@@ -22,6 +189,16 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
 
   const nav: NavConfig = state.site.nav || defaultNavConfig();
   const footer: FooterConfig = state.site.footer || { links: [], showSocials: false, copyright: "" };
+
+  // Current page blocks (for section targeting)
+  const activePage = state.site.pages.find(p => p.id === state.activePageId);
+  const currentPageBlocks = activePage?.blocks || [];
+
+  // Count link warnings/errors for the "Liens" tab badge
+  const linkIssueCount = nav.links.reduce((count, link) => {
+    const v = validateNavLink(link, state.site.pages, currentPageBlocks);
+    return count + (v.status !== "valid" ? 1 : 0);
+  }, 0);
 
   const updateNav = (updates: Partial<NavConfig>) => {
     dispatch({ type: "UPDATE_NAV", nav: { ...nav, ...updates } });
@@ -42,13 +219,13 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
   };
 
   const addLink = () => {
-    updateNav({ links: [...nav.links, { id: genId(), label: "Nouveau lien" }] });
+    updateNav({ links: [...nav.links, { id: genId(), label: "Nouveau lien", destinationType: "section" }] });
   };
 
   const addChildLink = (parentIndex: number) => {
     const links = [...nav.links];
     const parent = { ...links[parentIndex] };
-    parent.children = [...(parent.children || []), { id: genId(), label: "Sous-lien" }];
+    parent.children = [...(parent.children || []), { id: genId(), label: "Sous-lien", destinationType: "section" }];
     links[parentIndex] = parent;
     updateNav({ links });
   };
@@ -79,9 +256,9 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
     updateNav({ links });
   };
 
-  const navSections: { id: NavSection; label: string; icon: string }[] = [
+  const navSections: { id: NavSection; label: string; icon: string; badge?: number }[] = [
     { id: "variant", label: "Style", icon: "◆" },
-    { id: "links", label: "Liens", icon: "≡" },
+    { id: "links", label: "Liens", icon: "≡", badge: linkIssueCount || undefined },
     { id: "cta", label: "CTA", icon: "→" },
     { id: "socials", label: "Social", icon: "@" },
     { id: "style", label: "Options", icon: "⚙" },
@@ -131,12 +308,17 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
               <button
                 key={s.id}
                 onClick={() => setNavSection(s.id)}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[10px] font-semibold transition-all whitespace-nowrap ${
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[10px] font-semibold transition-all whitespace-nowrap relative ${
                   navSection === s.id ? "bg-[#EEF2FF] text-[#4F46E5]" : "text-[#999] hover:text-[#666] hover:bg-[#F7F7F5]"
                 }`}
               >
                 <span className="text-[11px]">{s.icon}</span>
                 {s.label}
+                {s.badge ? (
+                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-amber-500 text-white text-[8px] flex items-center justify-center font-bold">
+                    {s.badge}
+                  </span>
+                ) : null}
               </button>
             ))}
           </div>
@@ -192,127 +374,94 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
             {navSection === "links" && (
               <div>
                 <label className={sectionLabel}>Liens de navigation</label>
-                <div className="space-y-2">
-                  {nav.links.map((link, i) => (
-                    <div key={link.id || i} className="border border-[#E6E6E4] rounded-lg p-2.5 space-y-2 bg-[#FAFAFA]">
-                      <div className="flex items-center gap-1.5">
-                        {/* Reorder buttons */}
-                        <div className="flex flex-col gap-px">
-                          <button onClick={() => moveLink(i, "up")} className="text-[#BBB] hover:text-[#666] disabled:opacity-30" disabled={i === 0}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="18 15 12 9 6 15" /></svg>
-                          </button>
-                          <button onClick={() => moveLink(i, "down")} className="text-[#BBB] hover:text-[#666] disabled:opacity-30" disabled={i === nav.links.length - 1}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
+                {nav.links.length === 0 ? (
+                  <p className="text-[11px] text-[#999] italic py-3">
+                    Aucun lien. Ajoutez votre premier lien de navigation.
+                  </p>
+                ) : null}
+                <div className="space-y-3">
+                  {nav.links.map((link, i) => {
+                    const linkValidation = validateNavLink(link, state.site.pages, currentPageBlocks);
+                    const hasIssue = linkValidation.status !== "valid";
+                    return (
+                      <div
+                        key={link.id || i}
+                        className={`border rounded-lg p-3 space-y-2.5 ${
+                          hasIssue
+                            ? "border-amber-300 bg-amber-50/30"
+                            : "border-[#E6E6E4] bg-[#FAFAFA]"
+                        }`}
+                      >
+                        {/* Header row: reorder + label + delete */}
+                        <div className="flex items-center gap-1.5">
+                          <div className="flex flex-col gap-px">
+                            <button onClick={() => moveLink(i, "up")} className="text-[#BBB] hover:text-[#666] disabled:opacity-30" disabled={i === 0}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="18 15 12 9 6 15" /></svg>
+                            </button>
+                            <button onClick={() => moveLink(i, "down")} className="text-[#BBB] hover:text-[#666] disabled:opacity-30" disabled={i === nav.links.length - 1}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="6 9 12 15 18 9" /></svg>
+                            </button>
+                          </div>
+                          <input
+                            type="text"
+                            value={link.label}
+                            onChange={(e) => updateLink(i, { label: e.target.value })}
+                            className={smallInputClass}
+                            placeholder="Nom du lien"
+                          />
+                          <button onClick={() => removeLink(i)} className="text-[#999] hover:text-red-500 flex-shrink-0">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                           </button>
                         </div>
-                        <input
-                          type="text"
-                          value={link.label}
-                          onChange={(e) => updateLink(i, { label: e.target.value })}
-                          className={smallInputClass}
-                          placeholder="Label"
+
+                        {/* Destination picker */}
+                        <DestinationPicker
+                          link={link}
+                          pages={state.site.pages}
+                          currentPageBlocks={currentPageBlocks}
+
+                          onChange={(patch) => updateLink(i, patch)}
                         />
-                        <select
-                          value={link.pageId || ""}
-                          onChange={(e) => updateLink(i, { pageId: e.target.value || undefined })}
-                          className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[11px] text-[#1A1A1A] max-w-[90px]"
+
+                        {/* Dropdown children */}
+                        {link.children && link.children.length > 0 && (
+                          <div className="pl-4 space-y-2.5 border-l-2 border-[#E6E6E4] ml-2 pt-1">
+                            <span className="text-[9px] text-[#BBB] font-semibold uppercase">Sous-liens</span>
+                            {link.children.map((child, j) => (
+                              <div key={child.id || j} className="space-y-2 bg-white rounded-md p-2 border border-[#EFEFEF]">
+                                <div className="flex items-center gap-1.5">
+                                  <input
+                                    type="text"
+                                    value={child.label}
+                                    onChange={(e) => updateChildLink(i, j, { label: e.target.value })}
+                                    className={smallInputClass}
+                                    placeholder="Nom du sous-lien"
+                                  />
+                                  <button onClick={() => removeChildLink(i, j)} className="text-[#BBB] hover:text-red-500">
+                                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                                  </button>
+                                </div>
+                                <DestinationPicker
+                                  link={child}
+                                  pages={state.site.pages}
+                                  currentPageBlocks={currentPageBlocks}
+        
+                                  onChange={(patch) => updateChildLink(i, j, patch)}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <button
+                          onClick={() => addChildLink(i)}
+                          className="text-[10px] text-[#4F46E5] hover:text-[#4338CA] font-medium"
                         >
-                          <option value="">Page…</option>
-                          {state.site.pages.map((p) => (
-                            <option key={p.id} value={p.id}>{p.name}</option>
-                          ))}
-                        </select>
-                        <button onClick={() => removeLink(i)} className="text-[#999] hover:text-red-500 flex-shrink-0">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                          + Ajouter un sous-lien
                         </button>
                       </div>
-
-                      {/* Block target (scroll-to) — when a page is selected */}
-                      {link.pageId && (() => {
-                        const targetPage = state.site.pages.find(p => p.id === link.pageId);
-                        const blocks = targetPage?.blocks.filter(b => b.visible) || [];
-                        return blocks.length > 0 ? (
-                          <select
-                            value={link.blockId || ""}
-                            onChange={(e) => updateLink(i, { blockId: e.target.value || undefined })}
-                            className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[10px] text-[#1A1A1A] w-full"
-                          >
-                            <option value="">Page entiere</option>
-                            {blocks.map((b) => (
-                              <option key={b.id} value={b.id}>{getBlockLabel(b)}</option>
-                            ))}
-                          </select>
-                        ) : null;
-                      })()}
-
-                      {/* External URL */}
-                      {!link.pageId && (
-                        <input
-                          type="text"
-                          value={link.url || ""}
-                          onChange={(e) => updateLink(i, { url: e.target.value || undefined })}
-                          className={smallInputClass}
-                          placeholder="URL externe (optionnel)"
-                        />
-                      )}
-
-                      {/* Dropdown children */}
-                      {link.children && link.children.length > 0 && (
-                        <div className="pl-4 space-y-1.5 border-l-2 border-[#E6E6E4] ml-2">
-                          <span className="text-[9px] text-[#BBB] font-semibold uppercase">Sous-liens</span>
-                          {link.children.map((child, j) => (
-                            <div key={child.id || j} className="space-y-1">
-                              <div className="flex items-center gap-1.5">
-                                <input
-                                  type="text"
-                                  value={child.label}
-                                  onChange={(e) => updateChildLink(i, j, { label: e.target.value })}
-                                  className={smallInputClass}
-                                  placeholder="Sous-lien"
-                                />
-                                <select
-                                  value={child.pageId || ""}
-                                  onChange={(e) => updateChildLink(i, j, { pageId: e.target.value || undefined, blockId: undefined })}
-                                  className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[10px] max-w-[80px]"
-                                >
-                                  <option value="">Page…</option>
-                                  {state.site.pages.map((p) => (
-                                    <option key={p.id} value={p.id}>{p.name}</option>
-                                  ))}
-                                </select>
-                                <button onClick={() => removeChildLink(i, j)} className="text-[#BBB] hover:text-red-500">
-                                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
-                                </button>
-                              </div>
-                              {child.pageId && (() => {
-                                const tp = state.site.pages.find(p => p.id === child.pageId);
-                                const bl = tp?.blocks.filter(b => b.visible) || [];
-                                return bl.length > 0 ? (
-                                  <select
-                                    value={child.blockId || ""}
-                                    onChange={(e) => updateChildLink(i, j, { blockId: e.target.value || undefined })}
-                                    className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[9px] text-[#666] w-full"
-                                  >
-                                    <option value="">Page entiere</option>
-                                    {bl.map((b) => (
-                                      <option key={b.id} value={b.id}>{getBlockLabel(b)}</option>
-                                    ))}
-                                  </select>
-                                ) : null;
-                              })()}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <button
-                        onClick={() => addChildLink(i)}
-                        className="text-[10px] text-[#4F46E5] hover:text-[#4338CA] font-medium"
-                      >
-                        + Ajouter un sous-lien
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <button
                     onClick={addLink}
                     className="text-[11px] text-[#4F46E5] hover:text-[#4338CA] font-medium"
@@ -334,13 +483,34 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                     <span className="text-[11px] text-[#666]">{nav.showCta ? "Activé" : "Désactivé"}</span>
                   </div>
                   {nav.showCta && (
-                    <input
-                      type="text"
-                      value={nav.ctaLabel}
-                      onChange={(e) => updateNav({ ctaLabel: e.target.value })}
-                      className={inputClass}
-                      placeholder="Texte du CTA"
-                    />
+                    <div className="space-y-2.5">
+                      <input
+                        type="text"
+                        value={nav.ctaLabel}
+                        onChange={(e) => updateNav({ ctaLabel: e.target.value })}
+                        className={inputClass}
+                        placeholder="Texte du CTA"
+                      />
+                      <DestinationPicker
+                        link={{
+                          label: nav.ctaLabel,
+                          destinationType: nav.ctaDestinationType,
+                          pageId: nav.ctaPageId,
+                          blockId: nav.ctaBlockId,
+                          url: nav.ctaUrl,
+                          openNewTab: nav.ctaOpenNewTab,
+                        }}
+                        pages={state.site.pages}
+                        currentPageBlocks={activePage?.blocks || []}
+                        onChange={(patch) => updateNav({
+                          ctaDestinationType: patch.destinationType ?? nav.ctaDestinationType,
+                          ctaPageId: patch.pageId !== undefined ? patch.pageId : nav.ctaPageId,
+                          ctaBlockId: patch.blockId !== undefined ? patch.blockId : nav.ctaBlockId,
+                          ctaUrl: patch.url !== undefined ? patch.url : nav.ctaUrl,
+                          ctaOpenNewTab: patch.openNewTab !== undefined ? patch.openNewTab : nav.ctaOpenNewTab,
+                        })}
+                      />
+                    </div>
                   )}
                 </div>
 
@@ -352,13 +522,34 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                     <span className="text-[11px] text-[#666]">{nav.showSecondaryCta ? "Activé" : "Désactivé"}</span>
                   </div>
                   {nav.showSecondaryCta && (
-                    <input
-                      type="text"
-                      value={nav.secondaryCtaLabel || ""}
-                      onChange={(e) => updateNav({ secondaryCtaLabel: e.target.value })}
-                      className={inputClass}
-                      placeholder="Texte du bouton secondaire"
-                    />
+                    <div className="space-y-2.5">
+                      <input
+                        type="text"
+                        value={nav.secondaryCtaLabel || ""}
+                        onChange={(e) => updateNav({ secondaryCtaLabel: e.target.value })}
+                        className={inputClass}
+                        placeholder="Texte du bouton secondaire"
+                      />
+                      <DestinationPicker
+                        link={{
+                          label: nav.secondaryCtaLabel || "",
+                          destinationType: nav.secondaryCtaDestinationType,
+                          pageId: nav.secondaryCtaPageId,
+                          blockId: nav.secondaryCtaBlockId,
+                          url: nav.secondaryCtaUrl,
+                          openNewTab: nav.secondaryCtaOpenNewTab,
+                        }}
+                        pages={state.site.pages}
+                        currentPageBlocks={activePage?.blocks || []}
+                        onChange={(patch) => updateNav({
+                          secondaryCtaDestinationType: patch.destinationType ?? nav.secondaryCtaDestinationType,
+                          secondaryCtaPageId: patch.pageId !== undefined ? patch.pageId : nav.secondaryCtaPageId,
+                          secondaryCtaBlockId: patch.blockId !== undefined ? patch.blockId : nav.secondaryCtaBlockId,
+                          secondaryCtaUrl: patch.url !== undefined ? patch.url : nav.secondaryCtaUrl,
+                          secondaryCtaOpenNewTab: patch.openNewTab !== undefined ? patch.openNewTab : nav.secondaryCtaOpenNewTab,
+                        })}
+                      />
+                    </div>
                   )}
                 </div>
 
@@ -628,9 +819,9 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
           {/* Footer links */}
           <div>
             <label className={sectionLabel}>Liens</label>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {footer.links.map((link, i) => (
-                <div key={i} className="space-y-1.5">
+                <div key={i} className="border border-[#E6E6E4] rounded-lg p-3 space-y-2.5 bg-[#FAFAFA]">
                   <div className="flex items-center gap-1.5">
                     <input
                       type="text"
@@ -641,22 +832,8 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                         updateFooter({ links });
                       }}
                       className={smallInputClass}
-                      placeholder="Label"
+                      placeholder="Nom du lien"
                     />
-                    <select
-                      value={link.pageId || ""}
-                      onChange={(e) => {
-                        const links = [...footer.links];
-                        links[i] = { ...links[i], pageId: e.target.value || undefined, blockId: undefined };
-                        updateFooter({ links });
-                      }}
-                      className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[11px] text-[#1A1A1A]"
-                    >
-                      <option value="">Aucune page</option>
-                      {state.site.pages.map((p) => (
-                        <option key={p.id} value={p.id}>{p.name}</option>
-                      ))}
-                    </select>
                     <button
                       onClick={() => updateFooter({ links: footer.links.filter((_, j) => j !== i) })}
                       className="text-[#999] hover:text-red-500 flex-shrink-0"
@@ -664,26 +841,16 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                     </button>
                   </div>
-                  {link.pageId && (() => {
-                    const tp = state.site.pages.find(p => p.id === link.pageId);
-                    const bl = tp?.blocks.filter(b => b.visible) || [];
-                    return bl.length > 0 ? (
-                      <select
-                        value={link.blockId || ""}
-                        onChange={(e) => {
-                          const links = [...footer.links];
-                          links[i] = { ...links[i], blockId: e.target.value || undefined };
-                          updateFooter({ links });
-                        }}
-                        className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2 py-1.5 text-[10px] text-[#666] w-full"
-                      >
-                        <option value="">Page entiere</option>
-                        {bl.map((b) => (
-                          <option key={b.id} value={b.id}>{getBlockLabel(b)}</option>
-                        ))}
-                      </select>
-                    ) : null;
-                  })()}
+                  <DestinationPicker
+                    link={link}
+                    pages={state.site.pages}
+                    currentPageBlocks={currentPageBlocks}
+                    onChange={(patch) => {
+                      const links = [...footer.links];
+                      links[i] = { ...links[i], ...patch };
+                      updateFooter({ links });
+                    }}
+                  />
                 </div>
               ))}
               <button

@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { getSiteBySlug } from "@/lib/site-resolver";
 import type { Metadata } from "next";
 import PortfolioCaseStudyPage from "@/components/site-public/PortfolioCaseStudyPage";
@@ -74,6 +75,9 @@ export default async function PublicPortfolioPage({
   params: Promise<{ slug: string; projectSlug: string }>;
 }) {
   const { slug, projectSlug } = await params;
+  const hdrs = await headers();
+  const isSubdomain = hdrs.get("x-subdomain-mode") === "1";
+  const backHref = isSubdomain ? "/" : `/s/${slug}`;
   const { site, portfolio } = await resolvePortfolio(slug, projectSlug);
 
   if (!site) {
@@ -100,7 +104,7 @@ export default async function PublicPortfolioPage({
           </div>
           <h1 className="text-xl font-semibold text-[#191919] mb-2">Projet introuvable</h1>
           <p className="text-sm text-[#8A8A88]">Ce projet n&apos;existe pas ou n&apos;est pas encore publié.</p>
-          <a href={`/s/${slug}`} className="inline-block mt-6 text-sm font-medium text-[#4F46E5] hover:underline">&larr; Retour au site</a>
+          <a href={backHref} className="inline-block mt-6 text-sm font-medium text-[#4F46E5] hover:underline">&larr; Retour au site</a>
         </div>
       </div>
     );
@@ -111,6 +115,7 @@ export default async function PublicPortfolioPage({
       portfolio={portfolio}
       site={site}
       siteSlug={slug}
+      basePath={isSubdomain ? "" : undefined}
     />
   );
 }

@@ -58,6 +58,8 @@ function transformDbSite(raw: any): Site {
     nav: raw.nav || undefined,
     footer: raw.footer || undefined,
     design: raw.design || undefined,
+    status: raw.status === "published" ? "published" : "draft",
+    publishedAt: raw.published_at || undefined,
   };
 }
 

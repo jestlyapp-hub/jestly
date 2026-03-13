@@ -51,7 +51,7 @@ export default function NotFoundPage({ type = "site" }: NotFoundPageProps) {
 
         {/* Back link */}
         <a
-          href="https://jestly.site"
+          href="https://jestly.fr"
           className="inline-flex items-center gap-2 text-sm font-medium text-[#5A5A58] hover:text-[#191919] transition-colors"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

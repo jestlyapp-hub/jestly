@@ -129,7 +129,7 @@ import SignatureCreativeClosingBlockPreview from "@/components/site-web/blocks/S
 // Block Content Renderer (same content, different wrapper)
 // ═══════════════════════════════════════════════
 
-function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: string; siteSlug?: string }) {
+function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: string; siteSlug?: string; basePath?: string }) {
   const lp = ctx ? { siteId: ctx.siteId, pagePath: ctx.pagePath, blockType: block.type } : undefined;
   switch (block.type) {
     case "hero": return <HeroBlockPreview content={block.content} />;
@@ -187,11 +187,11 @@ function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: stri
     case "hero-dark-saas": return <HeroDarkSaasBlockPreview content={block.content} />;
     case "hero-creator-brand": return <HeroCreatorBrandBlockPreview content={block.content} />;
     case "hero-video-showreel": return <HeroVideoShowreelBlockPreview content={block.content} />;
-    case "projects-grid-cases": return <ProjectsGridCasesBlockPreview content={block.content} siteSlug={ctx?.siteSlug} />;
+    case "projects-grid-cases": return <ProjectsGridCasesBlockPreview content={block.content} siteSlug={ctx?.siteSlug} basePath={ctx?.basePath} />;
     case "projects-horizontal": return <ProjectsHorizontalBlockPreview content={block.content} />;
     case "project-before-after": return <ProjectBeforeAfterBlockPreview content={block.content} />;
     case "project-timeline": return <ProjectTimelineBlockPreview content={block.content} />;
-    case "project-masonry-wall": return <ProjectMasonryWallBlockPreview content={block.content} siteSlug={ctx?.siteSlug} />;
+    case "project-masonry-wall": return <ProjectMasonryWallBlockPreview content={block.content} siteSlug={ctx?.siteSlug} basePath={ctx?.basePath} />;
     case "services-3card-premium": return <Services3CardPremiumBlockPreview content={block.content} />;
     case "services-icon-grid": return <ServicesIconGridBlockPreview content={block.content} />;
     case "services-split-value": return <ServicesSplitValueBlockPreview content={block.content} />;
@@ -296,7 +296,7 @@ function PublicBlockSection({ block, site, pagePath }: { block: Block; site: Sit
         delay={block.settings?.animationDelay}
       >
         <div className={`relative z-[1] ${isFullBleed ? "" : `${containerClass} px-6`}`}>
-          {renderBlockContent(block, { siteId: site.id, pagePath, siteSlug: site.domain?.subdomain })}
+          {renderBlockContent(block, { siteId: site.id, pagePath, siteSlug: site.domain?.subdomain, basePath: site.basePath })}
         </div>
       </AnimateOnScroll>
     </section>
@@ -429,10 +429,13 @@ function SitePublicFooter({ site }: { site: Site }) {
           <div className="flex flex-wrap items-center justify-center gap-6">
             {footer.links.map((link, i) => {
               const href = resolveNavLinkHref(link, site);
+              const isExternal = link.url && !link.pageId && !link.blockId;
               return (
                 <a
                   key={i}
                   href={href}
+                  target={isExternal && link.openNewTab ? "_blank" : undefined}
+                  rel={isExternal && link.openNewTab ? "noopener noreferrer" : undefined}
                   className="text-[13px] transition-colors"
                   style={{ color: "var(--site-muted)" }}
                   onMouseEnter={e => (e.currentTarget.style.color = "var(--site-text)")}
@@ -505,86 +508,159 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
   const isDark = resolvedTheme.mode === "dark";
 
   // ── Scrollspy: track active section ──
-  const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+  // Uses scroll position directly (not IntersectionObserver) for reliable results.
+  // Determines which section's top edge is closest to (but above) the scroll trigger line.
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
 
   useEffect(() => {
-    const sections = document.querySelectorAll<HTMLElement>("section[data-block]");
-    if (sections.length === 0) return;
+    let ticking = false;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        // Find the topmost visible section
-        let topSection: HTMLElement | null = null;
-        let topY = Infinity;
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const rect = entry.boundingClientRect;
-            if (rect.top < topY) {
-              topY = rect.top;
-              topSection = entry.target as HTMLElement;
-            }
-          }
-        }
-        if (topSection) {
-          setActiveBlockId(topSection.getAttribute("data-block"));
-        }
-      },
-      { rootMargin: "-80px 0px -50% 0px", threshold: 0 }
-    );
+    const updateActiveSection = () => {
+      const sections = document.querySelectorAll<HTMLElement>("section[id^='block-']");
+      if (sections.length === 0) return;
 
-    sections.forEach((s) => observer.observe(s));
-    return () => observer.disconnect();
+      const navHeight = document.querySelector("nav")?.getBoundingClientRect().height || 0;
+      // Trigger line: just below the sticky navbar + some breathing room
+      const triggerY = window.scrollY + navHeight + 40;
+
+      let activeId: string | null = null;
+
+      // Walk sections in DOM order; pick the last one whose top is above the trigger line
+      for (const section of sections) {
+        const sectionTop = section.offsetTop;
+        if (sectionTop <= triggerY) {
+          activeId = section.id; // e.g. "block-bf91c2c2-..."
+        } else {
+          break; // sections are in DOM order (top to bottom), no need to continue
+        }
+      }
+
+      // If scrolled near top of page, no active section
+      if (window.scrollY < 100) activeId = null;
+
+      setActiveSectionId(activeId);
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          updateActiveSection();
+          ticking = false;
+        });
+      }
+    };
+
+    // Initial + scroll
+    updateActiveSection();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, [visibleBlocks]);
 
-  // Apply active class to nav links matching the active block
+  // Apply active attribute to nav links matching the active section
   useEffect(() => {
-    if (!activeBlockId) return;
-    const blockEl = document.getElementById(`block-${activeBlockId}`);
-    const anchorId = blockEl?.id;
-    if (!anchorId) return;
+    const isAtTop = !activeSectionId;
 
-    // Find all nav links and update active state via data attribute
     document.querySelectorAll<HTMLAnchorElement>("nav a[href*='#']").forEach((a) => {
       const href = a.getAttribute("href") || "";
       const hash = href.includes("#") ? href.slice(href.indexOf("#") + 1) : "";
-      if (hash === anchorId) {
+
+      const isActive =
+        (hash === "top" && isAtTop) ||
+        (activeSectionId && hash === activeSectionId);
+
+      if (isActive) {
         a.setAttribute("data-scrollspy-active", "true");
       } else {
         a.removeAttribute("data-scrollspy-active");
       }
     });
-  }, [activeBlockId]);
+  }, [activeSectionId]);
+
+  // ── Helper: scroll to a hash target with navbar offset ──
+  const scrollToHash = useCallback((hash: string) => {
+    if (!hash) return;
+    if (hash === "#top") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    const targetId = hash.replace(/^#/, "");
+    const el = document.getElementById(targetId);
+
+    if (!el) return;
+
+    const navHeight = document.querySelector("nav")?.getBoundingClientRect().height || 0;
+    const top = el.getBoundingClientRect().top + window.scrollY - navHeight - 16;
+    window.scrollTo({ top, behavior: "smooth" });
+  }, []);
+
+  // ── Scroll to hash on initial load (cross-page navigation) ──
+  // Retries via MutationObserver if the target element isn't rendered yet.
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (!hash) return;
+
+    const tryScroll = () => {
+      if (hash === "#top") { window.scrollTo({ top: 0, behavior: "smooth" }); return true; }
+      const el = document.getElementById(hash.replace(/^#/, ""));
+      if (el) { scrollToHash(hash); return true; }
+      return false;
+    };
+
+    if (tryScroll()) return;
+
+    // Element not found yet — wait for it (max 3s)
+    let done = false;
+    const observer = new MutationObserver(() => {
+      if (!done && tryScroll()) { done = true; observer.disconnect(); }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    const timeout = setTimeout(() => {
+      done = true; observer.disconnect();
+    }, 3000);
+
+    return () => { done = true; observer.disconnect(); clearTimeout(timeout); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     document.documentElement.classList.add("smooth-scroll");
 
-    // Smooth scroll with sticky navbar offset for anchor links
+    // ── Click handler: intercept same-page anchor links ──
     const handleClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement).closest("a[href*='#block-']");
-      if (!target) return;
-      const href = target.getAttribute("href");
-      if (!href) return;
-      const hash = href.includes("#") ? href.slice(href.indexOf("#")) : null;
-      if (!hash) return;
-      // Only intercept same-page anchors
-      const issamePage = href.startsWith("#") || href.split("#")[0] === window.location.pathname;
-      if (!issamePage) return;
-      const el = document.querySelector(hash);
-      if (!el) return;
+      const anchor = (e.target as HTMLElement).closest("a[href*='#']");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href || !href.includes("#")) return;
+      const hash = href.slice(href.indexOf("#"));
+      if (!hash || hash === "#") return;
+
+      // Normalize: compare pathnames without trailing slash
+      const linkPath = href.split("#")[0].replace(/\/+$/, "");
+      const currentPath = window.location.pathname.replace(/\/+$/, "");
+      const isSamePage = href.startsWith("#") || linkPath === currentPath;
+
+      if (!isSamePage) return;
+
       e.preventDefault();
-      const navHeight = document.querySelector("nav")?.getBoundingClientRect().height || 0;
-      const top = el.getBoundingClientRect().top + window.scrollY - navHeight - 16;
-      window.scrollTo({ top, behavior: "smooth" });
-      // Update URL hash without jumping
+      e.stopPropagation();
+      scrollToHash(hash);
       history.pushState(null, "", hash);
     };
 
-    document.addEventListener("click", handleClick);
+    // ── hashchange handler: browser back/forward between anchors ──
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash) scrollToHash(hash);
+    };
+
+    document.addEventListener("click", handleClick, true);
+    window.addEventListener("hashchange", handleHashChange);
     return () => {
       document.documentElement.classList.remove("smooth-scroll");
-      document.removeEventListener("click", handleClick);
+      document.removeEventListener("click", handleClick, true);
+      window.removeEventListener("hashchange", handleHashChange);
     };
-  }, []);
+  }, [scrollToHash]);
 
   // Background config
   const siteBgConfig = resolveBackgroundConfig(site.design);

@@ -6,12 +6,15 @@ interface ProductPublicPageProps {
   product: Product;
   siteSlug: string;
   siteName: string;
+  basePath?: string;
 }
 
 import { formatPrice } from "@/lib/productTypes";
 
-export default function ProductPublicPage({ product, siteSlug, siteName }: ProductPublicPageProps) {
-  const checkoutUrl = `/s/${siteSlug}/order/${product.slug}`;
+export default function ProductPublicPage({ product, siteSlug, siteName, basePath }: ProductPublicPageProps) {
+  const base = basePath ?? `/s/${siteSlug}`;
+  const checkoutUrl = `${base}/order/${product.slug}`;
+  const siteUrl = base || "/";
   const isFree = product.type === "lead_magnet" || product.priceCents === 0;
   const ctaLabel = product.ctaLabel || (isFree ? "Obtenir gratuitement" : "Commander");
 
@@ -20,10 +23,10 @@ export default function ProductPublicPage({ product, siteSlug, siteName }: Produ
       {/* Header */}
       <header className="border-b border-[#E6E6E4] bg-white">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <a href={`/s/${siteSlug}`} className="text-sm font-medium text-[#191919] hover:text-[#4F46E5] transition-colors">
+          <a href={siteUrl} className="text-sm font-medium text-[#191919] hover:text-[#4F46E5] transition-colors">
             {siteName}
           </a>
-          <a href={`/s/${siteSlug}`} className="text-sm text-[#8A8A88] hover:text-[#191919] transition-colors">
+          <a href={siteUrl} className="text-sm text-[#8A8A88] hover:text-[#191919] transition-colors">
             &larr; Retour au site
           </a>
         </div>
@@ -132,7 +135,7 @@ export default function ProductPublicPage({ product, siteSlug, siteName }: Produ
       {/* Footer */}
       <footer className="border-t border-[#E6E6E4] bg-[#F7F7F5] mt-12">
         <div className="max-w-5xl mx-auto px-6 py-6 text-center">
-          <a href={`/s/${siteSlug}`} className="text-sm text-[#8A8A88] hover:text-[#191919] transition-colors">
+          <a href={siteUrl} className="text-sm text-[#8A8A88] hover:text-[#191919] transition-colors">
             {siteName}
           </a>
         </div>

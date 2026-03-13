@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { getSiteBySlug } from "@/lib/site-resolver";
 import { getPublicProductBySlug } from "@/lib/product-resolver";
 import CheckoutStepper from "@/components/site-public/CheckoutStepper";
@@ -14,6 +15,9 @@ export default async function PublicOrderPage({
 }) {
   const { slug, productSlug } = await params;
   const { brief: briefTemplateId } = await searchParams;
+  const hdrs = await headers();
+  const isSubdomain = hdrs.get("x-subdomain-mode") === "1";
+  const backHref = isSubdomain ? "/" : `/s/${slug}`;
   const site = await getSiteBySlug(slug);
 
   if (!site) {
@@ -60,7 +64,7 @@ export default async function PublicOrderPage({
           </div>
           <h1 className="text-xl font-semibold text-[#191919] mb-2">Offre introuvable</h1>
           <p className="text-sm text-[#8A8A88]">Cette offre n&apos;existe pas ou n&apos;est plus disponible.</p>
-          <a href={`/s/${slug}`} className="inline-block mt-6 text-sm font-medium text-[#4F46E5] hover:underline">&larr; Retour au site</a>
+          <a href={backHref} className="inline-block mt-6 text-sm font-medium text-[#4F46E5] hover:underline">&larr; Retour au site</a>
         </div>
       </div>
     );
@@ -71,6 +75,7 @@ export default async function PublicOrderPage({
       product={product}
       siteId={siteId}
       siteSlug={slug}
+      basePath={isSubdomain ? "" : undefined}
       briefTemplateId={briefTemplateId || null}
       useProductDefaultBrief={!briefTemplateId}
     />

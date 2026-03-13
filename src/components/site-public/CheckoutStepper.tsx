@@ -12,6 +12,7 @@ interface CheckoutStepperProps {
   product: Product;
   siteId: string;
   siteSlug: string;
+  basePath?: string;
   /** Block-level brief override (from sale block settings) */
   briefTemplateId?: string | null;
   /** Whether the block uses the product's default brief */
@@ -31,11 +32,12 @@ interface BriefConfig {
 type Step = "contact" | "briefing" | "recap" | "success";
 
 export default function CheckoutStepper({
-  product, siteId, siteSlug,
+  product, siteId, siteSlug, basePath,
   briefTemplateId,
   useProductDefaultBrief = true,
   briefRequired: blockBriefRequired,
 }: CheckoutStepperProps) {
+  const siteUrl = basePath ?? `/s/${siteSlug}`;
   const [step, setStep] = useState<Step>("contact");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -163,7 +165,7 @@ export default function CheckoutStepper({
     <div className="min-h-screen bg-white">
       <div className="max-w-lg mx-auto px-6 py-16">
         {/* Back link */}
-        <a href={`/s/${siteSlug}`} className="text-sm text-[#8A8A88] hover:text-[#191919] transition-colors mb-6 inline-block">&larr; Retour au site</a>
+        <a href={siteUrl || "/"} className="text-sm text-[#8A8A88] hover:text-[#191919] transition-colors mb-6 inline-block">&larr; Retour au site</a>
 
         {/* Product summary */}
         <div className="mb-8 pb-6 border-b border-[#E6E6E4]">
@@ -327,7 +329,7 @@ export default function CheckoutStepper({
                   <span className="font-bold text-[var(--site-primary)]">{formatPrice(product.priceCents)}</span>
                 </div>
               </div>
-              <a href={`/s/${siteSlug}`} className="inline-block mt-6 text-sm font-medium text-[var(--site-primary)] hover:underline">&larr; Retour au site</a>
+              <a href={siteUrl || "/"} className="inline-block mt-6 text-sm font-medium text-[var(--site-primary)] hover:underline">&larr; Retour au site</a>
             </motion.div>
           )}
         </AnimatePresence>

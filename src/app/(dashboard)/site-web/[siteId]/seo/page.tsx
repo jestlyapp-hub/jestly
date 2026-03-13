@@ -76,7 +76,7 @@ export default function SiteSeoPage() {
           <div className="mt-5 p-4 bg-[#F7F7F5] rounded-lg">
             <div className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-2">Aperçu Google</div>
             <div className="text-[14px] text-[#1a0dab] font-medium truncate">{globalTitle || "Titre de la page"}</div>
-            <div className="text-[11px] text-[#006621] mb-0.5">studionova.jestly.site</div>
+            <div className="text-[11px] text-[#006621] mb-0.5">studionova.jestly.fr</div>
             <div className="text-[12px] text-[#545454] line-clamp-2">{globalDesc || "Description de la page..."}</div>
           </div>
         </motion.section>
@@ -176,7 +176,7 @@ export default function SiteSeoPage() {
           <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-3">Sitemap</h2>
           <div className="p-3 bg-[#F7F7F5] rounded-lg">
             <div className="text-[12px] font-mono text-[#999]">
-              https://studionova.jestly.site/sitemap.xml
+              https://studionova.jestly.fr/sitemap.xml
             </div>
           </div>
           <p className="text-[11px] text-[#BBB] mt-2">
