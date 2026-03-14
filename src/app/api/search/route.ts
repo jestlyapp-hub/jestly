@@ -137,7 +137,7 @@ async function legacySearch(supabase: any, userId: string, q: string, entityType
   if (shouldSearch("order")) {
     try {
       const { data: orders } = await (supabase.from("orders") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .select("id, title, status, amount, priority, created_at, product_id, clients(name)")
+        .select("id, title, status, amount, priority, created_at, clients(name)")
         .eq("user_id", userId)
         .limit(20);
 

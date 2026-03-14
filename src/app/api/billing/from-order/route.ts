@@ -26,13 +26,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  // Fetch product name separately if product_id exists
+  // Fetch product name separately if service_id exists
   let productName: string | null = null;
-  if (order.product_id) {
+  if (order.service_id) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: prod } = await (supabase.from("products") as any)
       .select("name")
-      .eq("id", order.product_id)
+      .eq("id", order.service_id)
       .maybeSingle();
     productName = prod?.name ?? null;
   }

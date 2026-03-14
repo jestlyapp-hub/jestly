@@ -192,7 +192,7 @@ export async function GET() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let ordersResult = await (supabase.from("orders") as any)
-      .select("id, title, deadline, status, amount, priority, notes, created_at, product_id, clients(name, email)")
+      .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email)")
       .eq("user_id", user.id);
 
     if (ordersResult.error || !ordersResult.data) {
