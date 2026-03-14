@@ -192,12 +192,12 @@ export async function GET() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let ordersResult = await (supabase.from("orders") as any)
-      .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email), products!service_id(name)")
+      .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email)")
       .eq("user_id", user.id);
 
     if (ordersResult.error || !ordersResult.data) {
       ordersResult = await (supabase.from("orders") as any)
-        .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email), products!service_id(name)")
+        .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email)")
         .eq("user_id", user.id);
     }
 
@@ -216,7 +216,7 @@ export async function GET() {
           ? rawDate.substring(0, 10)
           : new Date(rawDate).toISOString().substring(0, 10);
 
-        const productName = o.products?.name || o.products?.name || o.title || "Commande";
+        const productName = o.title || "Commande";
         const clientName = o.clients?.name || "Client";
 
         return {

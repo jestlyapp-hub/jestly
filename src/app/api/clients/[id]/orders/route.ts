@@ -16,7 +16,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from("orders") as any)
-    .select("*, products!service_id(name)", { count: "exact" })
+    .select("*", { count: "exact" })
     .eq("client_id", id)
     .eq("user_id", user.id);
 

@@ -69,7 +69,7 @@ export function orderRecordToOrder(
     clientEmail: row.clients?.email ?? "",
     clientId: row.client_id,
     clientPhone: row.clients?.phone ?? undefined,
-    product: row.products?.name ?? row.services?.title ?? row.title,
+    product: row.title,
     price: Number(row.amount),
     status: row.status as Order["status"],
     date: row.created_at.split("T")[0],

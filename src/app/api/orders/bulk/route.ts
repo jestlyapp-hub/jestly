@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: created, error: insertErr } = await (supabase.from("orders") as any)
           .insert(copies)
-          .select("*, clients(name, email, phone), products!service_id(name)");
+          .select("*, clients(name, email, phone)");
         if (insertErr) {
           console.error("[BULK duplicate] insert:", insertErr.code, insertErr.message, insertErr.details);
           return NextResponse.json({ error: insertErr.message }, { status: 500 });
