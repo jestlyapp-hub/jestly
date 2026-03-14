@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { enrichOrdersWithProducts } from "@/lib/supabase-helpers";
 
 // GET /api/clients/[id]/orders?status=&page=1&limit=20&search=
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from("orders") as any)
-    .select("*, services(title)", { count: "exact" })
+    .select("*", { count: "exact" })
     .eq("client_id", id)
     .eq("user_id", user.id);
 
@@ -39,8 +40,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
   const total = count ?? 0;
 
+  const enriched = await enrichOrdersWithProducts(supabase, orders || [], user.id);
+
   return NextResponse.json({
-    orders: orders || [],
+    orders: enriched,
     total,
     page,
     totalPages: Math.ceil(total / limit),

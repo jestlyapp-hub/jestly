@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { enrichOrdersWithProducts } from "@/lib/supabase-helpers";
 
 // POST /api/orders/bulk — bulk operations: delete, duplicate, move
 export async function POST(req: NextRequest) {
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
           const copy: Record<string, any> = {
             user_id: user.id,
             client_id: o.client_id,
-            service_id: o.service_id || null,
+            product_id: o.product_id || null,
             title: `${o.title || "Sans titre"} (copie)`,
             description: o.description || "",
             amount: o.amount ?? 0,
@@ -82,12 +83,13 @@ export async function POST(req: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: created, error: insertErr } = await (supabase.from("orders") as any)
           .insert(copies)
-          .select("*, clients(name, email, phone), services(title)");
+          .select("*, clients(name, email, phone)");
         if (insertErr) {
           console.error("[BULK duplicate] insert:", insertErr.code, insertErr.message, insertErr.details);
           return NextResponse.json({ error: insertErr.message }, { status: 500 });
         }
-        return NextResponse.json({ duplicated: created?.length ?? 0, orders: created });
+        const enriched = await enrichOrdersWithProducts(supabase, created || [], user.id);
+        return NextResponse.json({ duplicated: enriched.length, orders: enriched });
       }
 
       case "move": {

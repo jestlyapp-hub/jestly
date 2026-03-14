@@ -37,7 +37,8 @@ export function dbToProduct(row: ProductRow): Product {
 export function orderRecordToOrder(
   row: OrderRecord & {
     clients?: { name: string; email: string; phone?: string | null } | null;
-    services?: { title: string } | null;
+    products?: { name: string; price_cents?: number } | null;
+    services?: { title: string } | null; // Legacy fallback
   }
 ): Order {
   // Parse checklist safely
@@ -52,7 +53,7 @@ export function orderRecordToOrder(
     clientEmail: row.clients?.email ?? "",
     clientId: row.client_id,
     clientPhone: row.clients?.phone ?? undefined,
-    product: row.services?.title ?? row.title,
+    product: row.products?.name ?? row.services?.title ?? row.title,
     price: Number(row.amount),
     status: row.status as Order["status"],
     date: row.created_at.split("T")[0],

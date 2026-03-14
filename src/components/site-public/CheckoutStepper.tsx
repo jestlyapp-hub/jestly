@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { formatPrice } from "@/lib/productTypes";
+import { trackOrderStart } from "@/lib/analytics";
 import BriefFormRenderer from "@/components/briefs/BriefFormRenderer";
 import type { Product, BriefField } from "@/types";
 
@@ -47,6 +48,11 @@ export default function CheckoutStepper({
   const [briefAnswers, setBriefAnswers] = useState<Record<string, unknown>>({});
   const [briefConfig, setBriefConfig] = useState<BriefConfig | null>(null);
   const [message, setMessage] = useState("");
+
+  // Track checkout start for funnel analytics
+  useEffect(() => {
+    trackOrderStart(siteId, product.slug);
+  }, [siteId, product.slug]);
 
   // Brief resolution: block.briefTemplateId > product default > none
   useEffect(() => {

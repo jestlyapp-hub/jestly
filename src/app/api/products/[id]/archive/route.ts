@@ -9,10 +9,10 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   const { user, supabase } = auth;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("services") as any)
-    .update({ is_active: false })
+  const { data, error } = await (supabase.from("products") as any)
+    .update({ status: "archived" })
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("owner_id", user.id)
     .select()
     .single();
 

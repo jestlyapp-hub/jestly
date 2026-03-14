@@ -192,19 +192,19 @@ export async function GET() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let ordersResult = await (supabase.from("orders") as any)
-      .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email), services(title)")
+      .select("id, title, deadline, status, amount, priority, notes, created_at, product_id, clients(name, email)")
       .eq("user_id", user.id);
-
-    if (ordersResult.error || !ordersResult.data) {
-      ordersResult = await (supabase.from("orders") as any)
-        .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email), products(name)")
-        .eq("user_id", user.id);
-    }
 
     if (ordersResult.error || !ordersResult.data) {
       ordersResult = await (supabase.from("orders") as any)
         .select("id, title, deadline, status, amount, priority, notes, created_at")
         .eq("user_id", user.id);
+    }
+
+    // Enrich with product names (separate query — PostgREST FK issue)
+    if (ordersResult.data) {
+      const { enrichOrdersWithProducts } = await import("@/lib/supabase-helpers");
+      ordersResult.data = await enrichOrdersWithProducts(supabase, ordersResult.data, user.id);
     }
 
     if (ordersResult.data) {
@@ -216,7 +216,7 @@ export async function GET() {
           ? rawDate.substring(0, 10)
           : new Date(rawDate).toISOString().substring(0, 10);
 
-        const productName = o.services?.title || o.products?.name || o.title || "Commande";
+        const productName = o.products?.name || o.title || "Commande";
         const clientName = o.clients?.name || "Client";
 
         return {

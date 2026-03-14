@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { enrichOrdersWithProducts } from "@/lib/supabase-helpers";
 
-// GET /api/orders — list user's orders with client+service join
+// GET /api/orders — list user's orders with client join + product enrichment
+// NOTE: We do NOT use nested select `products(name)` because PostgREST
+// cannot resolve the FK after migration 017 renamed services→products.
+// Instead we fetch products separately via enrichOrdersWithProducts().
 export async function GET(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
@@ -11,19 +15,20 @@ export async function GET(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from("orders") as any)
-    .select("*, clients(name, email, phone), services(title), order_brief_responses(order_id)")
+    .select("*, clients(name, email, phone), order_brief_responses(order_id)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  // Filter by source (site orders only come from service_id not null)
   if (source === "site") {
-    query = query.not("service_id", "is", null);
+    query = query.not("product_id", "is", null);
   }
 
   const { data, error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+
+  const enriched = await enrichOrdersWithProducts(supabase, data || [], user.id);
+  return NextResponse.json(enriched);
 }
 
 // POST /api/orders — create one or many orders (bulk via quantity)
@@ -34,9 +39,10 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const {
-    client_id, service_id, title, description, amount, status, priority,
+    client_id, product_id, title, description, amount, status, priority,
     deadline, custom_fields, briefing, resources, category, external_ref,
     quantity,
+    service_id, // Legacy field name support
   } = body;
 
   if (!client_id || !title || amount == null) {
@@ -45,12 +51,11 @@ export async function POST(req: NextRequest) {
 
   const qty = Math.max(1, Math.min(50, Math.floor(Number(quantity) || 1)));
 
-  // Build base row
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const base: Record<string, any> = {
     user_id: user.id,
     client_id,
-    service_id: service_id || null,
+    product_id: product_id || service_id || null,
     description: description || "",
     amount,
     status: status || "new",
@@ -63,21 +68,20 @@ export async function POST(req: NextRequest) {
   };
   if (custom_fields) base.custom_fields = custom_fields;
 
-  // Single order
   if (qty === 1) {
     base.title = title;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.from("orders") as any)
       .insert(base)
-      .select("*, clients(name, email, phone), services(title)")
+      .select("*, clients(name, email, phone)")
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-    return NextResponse.json(data, { status: 201 });
+    const [enriched] = await enrichOrdersWithProducts(supabase, [data], user.id);
+    return NextResponse.json(enriched, { status: 201 });
   }
 
-  // Bulk: N rows with group_id + title suffixes
   const groupId = crypto.randomUUID();
   const rows = Array.from({ length: qty }, (_, i) => ({
     ...base,
@@ -90,8 +94,9 @@ export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("orders") as any)
     .insert(rows)
-    .select("*, clients(name, email, phone), services(title)");
+    .select("*, clients(name, email, phone)");
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data, { status: 201 });
+  const enriched = await enrichOrdersWithProducts(supabase, data || [], user.id);
+  return NextResponse.json(enriched, { status: 201 });
 }

@@ -28,9 +28,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   if (!links || links.length === 0) {
     // Return all user products (attachable)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: products } = await (supabase.from("services") as any)
+    const { data: products } = await (supabase.from("products") as any)
       .select("*")
-      .eq("user_id", user.id)
+      .eq("owner_id", user.id)
       .order("created_at", { ascending: false });
 
     return NextResponse.json({ linked: [], available: products || [] });
@@ -39,14 +39,14 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const linkedIds = links.map((l: { product_id: string }) => l.product_id);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: linkedProducts } = await (supabase.from("services") as any)
+  const { data: linkedProducts } = await (supabase.from("products") as any)
     .select("*")
     .in("id", linkedIds);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: available } = await (supabase.from("services") as any)
+  const { data: available } = await (supabase.from("products") as any)
     .select("*")
-    .eq("user_id", user.id)
+    .eq("owner_id", user.id)
     .not("id", "in", `(${linkedIds.join(",")})`)
     .order("created_at", { ascending: false });
 

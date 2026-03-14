@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 
-// GET /api/analytics/summary — aggregated analytics for the dashboard
+// GET /api/analytics/summary — lightweight analytics (used by simple analytics views)
 export async function GET() {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
@@ -17,10 +17,10 @@ export async function GET() {
 
     const allOrders = orders || [];
 
-    // Compute stats
+    // Compute stats — amount is in EUROS (NUMERIC), not cents
     const totalRevenue = allOrders
-      .filter((o: { status: string }) => o.status !== "cancelled")
-      .reduce((sum: number, o: { amount: number }) => sum + (o.amount || 0), 0);
+      .filter((o: { status: string }) => o.status !== "cancelled" && o.status !== "refunded")
+      .reduce((sum: number, o: { amount: number }) => sum + (Number(o.amount) || 0), 0);
     const totalOrders = allOrders.length;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -35,18 +35,16 @@ export async function GET() {
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const monthKey = d.toLocaleDateString("fr-FR", { month: "short" });
       const start = d.toISOString();
       const end = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
 
       const monthOrders = allOrders.filter(
-        (o: { created_at: string }) => o.created_at >= start && o.created_at < end
+        (o: { created_at: string; status: string }) =>
+          o.created_at >= start && o.created_at < end && o.status !== "cancelled" && o.status !== "refunded"
       );
       months.push({
-        month: monthKey,
-        revenue: monthOrders
-          .filter((o: { status: string }) => o.status !== "cancelled")
-          .reduce((s: number, o: { amount: number }) => s + (o.amount || 0), 0),
+        month: d.toLocaleDateString("fr-FR", { month: "short" }),
+        revenue: monthOrders.reduce((s: number, o: { amount: number }) => s + (Number(o.amount) || 0), 0),
         orders: monthOrders.length,
       });
     }
