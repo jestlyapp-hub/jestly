@@ -15,9 +15,9 @@ export async function GET(req: NextRequest) {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  // Filter by source (site orders only come from product_id not null)
+  // Filter by source (site orders only come from service_id not null)
   if (source === "site") {
-    query = query.not("product_id", "is", null);
+    query = query.not("service_id", "is", null);
   }
 
   const { data, error } = await query;
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const {
-    client_id, product_id, title, description, amount, status, priority,
+    client_id, service_id, title, description, amount, status, priority,
     deadline, custom_fields, briefing, resources, category, external_ref,
     quantity,
   } = body;
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   const base: Record<string, any> = {
     user_id: user.id,
     client_id,
-    product_id: product_id || null,
+    service_id: service_id || null,
     description: description || "",
     amount,
     status: status || "new",
