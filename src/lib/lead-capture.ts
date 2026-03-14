@@ -1,3 +1,5 @@
+import { getAttributionForLead } from "./attribution";
+
 /**
  * Shared lead capture context passed to form blocks in public site rendering.
  * When present, form blocks become functional and submit to /api/public/leads.
@@ -10,6 +12,7 @@ export interface LeadCaptureContext {
 
 /**
  * Submit a lead to the unified ingestion pipeline.
+ * Automatically includes UTM/referrer/anonymous_id attribution fields.
  */
 export async function submitLead(
   ctx: LeadCaptureContext,
@@ -24,6 +27,9 @@ export async function submitLead(
   }
 ): Promise<{ ok: boolean; id?: string; error?: string }> {
   try {
+    // Gather attribution data from client-side storage & current URL
+    const attribution = getAttributionForLead();
+
     const res = await fetch("/api/public/leads", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -38,6 +44,16 @@ export async function submitLead(
         company: data.company || null,
         message: data.message || null,
         fields: data.fields || {},
+        // Attribution fields
+        utm_source: attribution.utm_source,
+        utm_medium: attribution.utm_medium,
+        utm_campaign: attribution.utm_campaign,
+        utm_content: attribution.utm_content,
+        utm_term: attribution.utm_term,
+        referrer: attribution.referrer,
+        anonymous_id: attribution.anonymous_id,
+        first_touch_source: attribution.first_touch_source,
+        last_touch_source: attribution.last_touch_source,
       }),
     });
     const json = await res.json();

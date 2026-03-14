@@ -81,11 +81,11 @@ export default function AdminWaitlistPage() {
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  // Check admin status
+  // Check admin status via le champ is_admin de /api/auth/me
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
-      .then((d) => setIsAdmin(d.email === "jestlyapp@gmail.com"))
+      .then((d) => setIsAdmin(d.is_admin === true))
       .catch(() => setIsAdmin(false));
   }, []);
 

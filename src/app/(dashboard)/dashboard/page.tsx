@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi } from "@/lib/hooks/use-api";
+import { ProductEvents } from "@/lib/product-events";
 import BadgeStatus from "@/components/ui/BadgeStatus";
 import type { OrderStatus } from "@/types";
 import {
@@ -305,6 +306,9 @@ function Sk({ className = "" }: { className?: string }) {
 // ═══════════════════════════════════════
 export default function DashboardPage() {
   const { data, loading, error, mutate } = useApi<DashboardData>("/api/dashboard/stats");
+
+  // Track la vue du dashboard
+  useEffect(() => { ProductEvents.pageViewed("/dashboard"); }, []);
 
   // ── Loading ──
   if (loading) {

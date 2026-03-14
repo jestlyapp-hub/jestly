@@ -2,6 +2,12 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ensureProfile } from "@/lib/ensure-profile";
 import { isAdmin } from "@/lib/admin";
+import AdminSidebar from "@/components/admin/AdminSidebar";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminLayout({
   children,
@@ -15,5 +21,12 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
-  return <>{children}</>;
+  return (
+    <div className="flex h-full">
+      <AdminSidebar />
+      <div className="flex-1 min-w-0 overflow-y-auto p-6">
+        {children}
+      </div>
+    </div>
+  );
 }

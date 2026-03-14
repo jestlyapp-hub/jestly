@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/api-auth";
-import { isAdmin } from "@/lib/admin";
+import { requireAdmin } from "@/lib/admin";
 import { getTemplatePreviewHtml, getTemplateSubject } from "@/lib/email/templates";
 import type { WaitlistTemplateKey } from "@/lib/email/types";
 
@@ -12,11 +11,8 @@ const VALID: WaitlistTemplateKey[] = [
 ];
 
 export async function GET(req: NextRequest) {
-  const auth = await getAuthUser();
+  const auth = await requireAdmin();
   if (auth.error) return auth.error;
-  if (!isAdmin(auth.user)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
 
   const template = req.nextUrl.searchParams.get("template") as WaitlistTemplateKey | null;
   if (!template || !VALID.includes(template)) {

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/api-auth";
-import { isAdmin } from "@/lib/admin";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin, logAdminAction, escapeIlike, sanitizeSearchTerm, checkAdminRateLimit, ADMIN_ACTIONS } from "@/lib/admin";
 import { sendWaitlistEmail } from "@/lib/email/send-waitlist-email";
 import type { WaitlistTemplateKey, SendEmailPayload, SendEmailResult } from "@/lib/email/types";
 
@@ -13,12 +11,15 @@ const VALID_TEMPLATES: WaitlistTemplateKey[] = [
 
 export async function POST(req: NextRequest) {
   // Auth + admin check
-  const auth = await getAuthUser();
+  const auth = await requireAdmin();
   if (auth.error) return auth.error;
   const { user } = auth;
 
-  if (!isAdmin(user)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  // Rate limit : 5 requêtes/min (route très sensible)
+  const rateLimitResponse = checkAdminRateLimit(user.id, "send_email", 5);
+  if (rateLimitResponse) {
+    await logAdminAction(user.id, ADMIN_ACTIONS.RATE_LIMIT_HIT, undefined, { endpoint: "send_email" });
+    return rateLimitResponse;
   }
 
   const body: SendEmailPayload = await req.json();
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Resolve recipients
-  const supabase = createAdminClient();
+  const supabase = auth.adminClient;
   let recipients: { id: string; email: string; first_name: string }[] = [];
 
   if (audience === "selected") {
@@ -59,8 +60,9 @@ export async function POST(req: NextRequest) {
       query = query.eq("job_type", filters.job_type);
     }
     if (filters?.search) {
+      const safe = escapeIlike(sanitizeSearchTerm(filters.search));
       query = query.or(
-        `email.ilike.%${filters.search}%,first_name.ilike.%${filters.search}%,twitter.ilike.%${filters.search}%`
+        `email.ilike.%${safe}%,first_name.ilike.%${safe}%,twitter.ilike.%${safe}%`
       );
     }
 
@@ -102,6 +104,8 @@ export async function POST(req: NextRequest) {
       if (res.error) result.errors.push(`${r.email}: ${res.error}`);
     }
   }
+
+  await logAdminAction(user.id, "send_email", undefined, { template, audience, count: recipients.length });
 
   return NextResponse.json(result);
 }

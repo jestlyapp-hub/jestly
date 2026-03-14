@@ -1,27 +1,33 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/api-auth";
-import { isAdmin } from "@/lib/admin";
-import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  requireAdmin,
+  logAdminAction,
+  escapeIlike,
+  sanitizeSearchTerm,
+  validateSort,
+  validatePagination,
+  checkAdminRateLimit,
+  ADMIN_ACTIONS,
+} from "@/lib/admin";
 
 // GET — List all waitlist entries (admin only)
 export async function GET(req: NextRequest) {
-  const auth = await getAuthUser();
+  const auth = await requireAdmin();
   if (auth.error) return auth.error;
-  if (!isAdmin(auth.user)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
 
-  // Use admin client (service_role) to bypass RLS
-  const supabase = createAdminClient();
+  // Client admin (service_role) fourni par requireAdmin()
+  const supabase = auth.adminClient;
 
   const url = new URL(req.url);
   const status = url.searchParams.get("status");
   const job_type = url.searchParams.get("job_type");
   const search = url.searchParams.get("search");
-  const sort = url.searchParams.get("sort") || "created_at";
+  const sort = validateSort(url.searchParams.get("sort") || "created_at", ["created_at", "email", "first_name", "status", "score"]);
   const order = url.searchParams.get("order") || "desc";
-  const limit = parseInt(url.searchParams.get("limit") || "200");
-  const offset = parseInt(url.searchParams.get("offset") || "0");
+  const { limit, offset } = validatePagination({
+    limit: url.searchParams.get("limit") || "200",
+    offset: url.searchParams.get("offset") || "0",
+  });
 
   let query = (supabase.from("waitlist") as ReturnType<typeof supabase.from>).select("*", { count: "exact" });
 
@@ -37,8 +43,9 @@ export async function GET(req: NextRequest) {
     query = query.eq("job_type", job_type);
   }
   if (search) {
+    const safe = escapeIlike(sanitizeSearchTerm(search));
     query = query.or(
-      `email.ilike.%${search}%,first_name.ilike.%${search}%,twitter.ilike.%${search}%`
+      `email.ilike.%${safe}%,first_name.ilike.%${safe}%,twitter.ilike.%${safe}%`
     );
   }
 
@@ -57,13 +64,18 @@ export async function GET(req: NextRequest) {
 
 // PATCH — Update waitlist entry (status, notes, tags, score)
 export async function PATCH(req: NextRequest) {
-  const auth = await getAuthUser();
+  const auth = await requireAdmin();
   if (auth.error) return auth.error;
-  if (!isAdmin(auth.user)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { user } = auth;
+
+  // Rate limit : 20 requêtes/min
+  const rateLimitResponse = checkAdminRateLimit(user.id, "waitlist_patch", 20);
+  if (rateLimitResponse) {
+    await logAdminAction(user.id, ADMIN_ACTIONS.RATE_LIMIT_HIT, undefined, { endpoint: "waitlist_patch" });
+    return rateLimitResponse;
   }
 
-  const supabase = createAdminClient();
+  const supabase = auth.adminClient;
   const body = await req.json();
   const { id, ...updates } = body;
 
@@ -90,18 +102,25 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 
+  await logAdminAction(user.id, "update_waitlist", id);
+
   return NextResponse.json({ data });
 }
 
 // DELETE — Delete waitlist entry
 export async function DELETE(req: NextRequest) {
-  const auth = await getAuthUser();
+  const auth = await requireAdmin();
   if (auth.error) return auth.error;
-  if (!isAdmin(auth.user)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const { user } = auth;
+
+  // Rate limit : 20 requêtes/min
+  const rateLimitResponse = checkAdminRateLimit(user.id, "waitlist_delete", 20);
+  if (rateLimitResponse) {
+    await logAdminAction(user.id, ADMIN_ACTIONS.RATE_LIMIT_HIT, undefined, { endpoint: "waitlist_delete" });
+    return rateLimitResponse;
   }
 
-  const supabase = createAdminClient();
+  const supabase = auth.adminClient;
   const url = new URL(req.url);
   const id = url.searchParams.get("id");
 
@@ -117,6 +136,8 @@ export async function DELETE(req: NextRequest) {
     console.error("[admin/waitlist] DELETE error:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
+
+  await logAdminAction(user.id, "delete_waitlist", id);
 
   return NextResponse.json({ success: true });
 }

@@ -22,6 +22,7 @@ import { ProductProvider } from "@/lib/product-context";
 import { LinkProvider } from "@/lib/link-context";
 import AnimateOnScroll from "@/components/site-public/AnimateOnScroll";
 import SiteAnalyticsTracker from "@/components/site-public/SiteAnalyticsTracker";
+import AttributionTracker from "@/components/site-public/AttributionTracker";
 
 // ── Block Preview imports (reuse existing block content renderers) ──
 import HeroBlockPreview from "@/components/site-web/blocks/HeroBlockPreview";
@@ -691,6 +692,7 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
           ` }} />
           {siteBgOverlayStyle && <div className="fixed inset-0 pointer-events-none z-0" style={siteBgOverlayStyle} />}
           <SiteAnalyticsTracker siteId={site.id} pageSlug={page.slug} />
+          <AttributionTracker />
           {/* Navbar — new variant system or legacy fallback */}
           {resolvedSite.nav && (
             resolvedSite.nav.variant

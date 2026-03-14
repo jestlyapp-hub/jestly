@@ -4,6 +4,7 @@ import { ensureProfile } from "@/lib/ensure-profile";
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 import Toaster from "@/components/ui/Toaster";
+import ProductEventTracker from "@/components/ProductEventTracker";
 
 export default async function DashboardLayout({
   children,
@@ -29,6 +30,7 @@ export default async function DashboardLayout({
           {children}
         </main>
         <Toaster />
+        <ProductEventTracker />
       </div>
     </div>
   );

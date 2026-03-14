@@ -1,208 +1,598 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area,
+  AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,
 } from "recharts";
+import AdminHeader from "@/components/admin/AdminHeader";
 
-interface Stats {
-  total: number;
-  thisWeek: number;
-  thisMonth: number;
-  avgScore: number;
-  statusCounts: Record<string, number>;
-  jobCounts: Record<string, number>;
-  sourceCounts: Record<string, number>;
-  utmCounts: Record<string, number>;
-  dailySignups: { date: string; count: number }[];
+// ── Types ────────────────────────────────────────────────────────
+interface DashboardData {
+  total_users: number;
+  total_orders: number;
+  total_revenue: number;
+  total_products: number;
+  total_clients: number;
+  total_sites: number;
+  total_waitlist: number;
+  total_leads: number;
+  total_projects: number;
+  users_this_week: number;
+  orders_this_week: number;
+  revenue_this_week: number;
+  recent_signups: {
+    id: string;
+    email: string;
+    full_name: string | null;
+    plan: string | null;
+    created_at: string;
+  }[];
+  daily_signups_30d: { date: string; count: number }[];
 }
 
-const JOB_LABELS: Record<string, string> = {
-  "freelance-creative": "Créatif",
-  "freelance-dev": "Dev / Tech",
-  "agency": "Agence",
-  "freelance-other": "Autre freelance",
-  "curious": "Curieux",
+interface HealthData {
+  total_users: number;
+  scored_users: number;
+  avg_score: number;
+  distribution: {
+    healthy: number;
+    watch: number;
+    risky: number;
+    critical: number;
+  };
+  at_risk: {
+    account_id: string;
+    score: number;
+    tier: string;
+    signals: Record<string, unknown>;
+    computed_at: string;
+    profile?: {
+      id: string;
+      email: string;
+      full_name: string | null;
+      plan: string | null;
+      created_at: string;
+    };
+  }[];
+}
+
+interface AnalyticsData {
+  dau: number;
+  wau: number;
+  mau: number;
+  total_users: number;
+  daily_dau: { date: string; count: number }[];
+  activation: {
+    total: number;
+    activated: number;
+  };
+}
+
+// ── Formatters ───────────────────────────────────────────────────
+const fmtEur = (v: number) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(v);
+
+const fmtDate = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+
+const fmtChartDate = (d: string) => d.slice(5); // "MM-DD"
+
+// ── Tier badge config ────────────────────────────────────────────
+const TIER_STYLES: Record<string, string> = {
+  healthy: "bg-emerald-50 text-emerald-700",
+  watch: "bg-amber-50 text-amber-700",
+  risky: "bg-orange-50 text-orange-700",
+  critical: "bg-red-50 text-red-700",
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  new: "Nouveau",
-  contacted: "Contacté",
-  qualified: "Qualifié",
-  invited: "Invité",
-  active: "Actif",
-  rejected: "Rejeté",
+const TIER_LABELS: Record<string, string> = {
+  healthy: "Sain",
+  watch: "Vigilance",
+  risky: "Risque",
+  critical: "Critique",
 };
 
-const PIE_COLORS = ["#7C3AED", "#6366F1", "#A78BFA", "#818CF8", "#C4B5FD", "#DDD6FE"];
+const TIER_BAR_COLORS: Record<string, string> = {
+  healthy: "#10b981",
+  watch: "#f59e0b",
+  risky: "#f97316",
+  critical: "#ef4444",
+};
 
-export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats | null>(null);
+function scoreColor(score: number): string {
+  if (score >= 70) return "text-emerald-600";
+  if (score >= 45) return "text-amber-600";
+  if (score >= 20) return "text-orange-600";
+  return "text-red-600";
+}
+
+function scoreBgColor(score: number): string {
+  if (score >= 70) return "bg-emerald-50 text-emerald-700";
+  if (score >= 45) return "bg-amber-50 text-amber-700";
+  if (score >= 20) return "bg-orange-50 text-orange-700";
+  return "bg-red-50 text-red-700";
+}
+
+// ── Skeleton block ───────────────────────────────────────────────
+function Skeleton({ className }: { className?: string }) {
+  return <div className={`bg-[#F0F0EE] rounded animate-pulse ${className || ""}`} />;
+}
+
+// ── Component ────────────────────────────────────────────────────
+export default function AdminDashboardV3() {
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
+  const [health, setHealth] = useState<HealthData | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [recalculating, setRecalculating] = useState(false);
 
   useEffect(() => {
-    fetch("/api/admin/stats")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.total !== undefined) setStats(d);
+    Promise.all([
+      fetch("/api/admin/dashboard").then((r) => r.ok ? r.json() : null),
+      fetch("/api/admin/health").then((r) => r.ok ? r.json() : null),
+      fetch("/api/admin/analytics").then((r) => r.ok ? r.json() : null),
+    ])
+      .then(([d, h, a]) => {
+        setDashboard(d);
+        setHealth(h);
+        setAnalytics(a);
+        if (!d) setError(true);
       })
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
 
+  const handleRecalculate = useCallback(async () => {
+    setRecalculating(true);
+    try {
+      const res = await fetch("/api/admin/health", { method: "POST" });
+      if (res.ok) {
+        // Refresh health data
+        const fresh = await fetch("/api/admin/health").then((r) => r.ok ? r.json() : null);
+        if (fresh) setHealth(fresh);
+      }
+    } catch {
+      // silently fail
+    } finally {
+      setRecalculating(false);
+    }
+  }, []);
+
+  // ── Loading skeleton ────────────────────────────────────────────
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-6 h-6 border-2 border-violet-300 border-t-violet-600 rounded-full animate-spin" />
+      <div className="space-y-6">
+        <AdminHeader title="Dashboard" description="Chargement..." />
+        {/* Hero KPIs */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-[#E6E6E4] p-5 h-28 animate-pulse">
+              <Skeleton className="h-3 w-24 mb-4" />
+              <Skeleton className="h-7 w-16" />
+            </div>
+          ))}
+        </div>
+        {/* Product Intelligence */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-[#E6E6E4] p-4 h-20 animate-pulse">
+              <Skeleton className="h-3 w-16 mb-3" />
+              <Skeleton className="h-6 w-12" />
+            </div>
+          ))}
+        </div>
+        {/* Health */}
+        <div className="bg-white rounded-xl border border-[#E6E6E4] p-5 h-32 animate-pulse">
+          <Skeleton className="h-4 w-40 mb-4" />
+          <Skeleton className="h-6 w-full" />
+        </div>
+        {/* Charts */}
+        <div className="grid lg:grid-cols-2 gap-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-[#E6E6E4] p-5 h-72 animate-pulse" />
+          ))}
+        </div>
+        {/* Tables */}
+        <div className="grid lg:grid-cols-2 gap-4">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-[#E6E6E4] p-5 h-60 animate-pulse" />
+          ))}
+        </div>
       </div>
     );
   }
 
-  if (!stats) {
-    return <p className="text-sm text-[#999] p-8">Erreur de chargement des statistiques.</p>;
+  if (error || !dashboard) {
+    return (
+      <div className="space-y-6">
+        <AdminHeader title="Dashboard" description="Vue d'ensemble de Jestly" />
+        <p className="text-sm text-[#8A8A88] p-8">Erreur de chargement des statistiques.</p>
+      </div>
+    );
   }
 
-  const jobData = Object.entries(stats.jobCounts).map(([key, value]) => ({
-    name: JOB_LABELS[key] || key,
-    value,
-  }));
+  const activationRate =
+    analytics && analytics.total_users > 0
+      ? Math.round((analytics.activation.activated / analytics.total_users) * 100)
+      : 0;
 
-  const statusData = Object.entries(stats.statusCounts).map(([key, value]) => ({
-    name: STATUS_LABELS[key] || key,
-    value,
-  }));
+  const healthTotal = health
+    ? health.distribution.healthy + health.distribution.watch + health.distribution.risky + health.distribution.critical
+    : 0;
 
+  const atRiskCount = health
+    ? health.distribution.risky + health.distribution.critical
+    : 0;
+
+  // ── Render ──────────────────────────────────────────────────────
   return (
     <div className="space-y-6">
-      {/* Title */}
-      <div>
-        <h1 className="text-xl font-bold text-[#1A1A1A]">Admin Dashboard</h1>
-        <p className="text-sm text-[#666] mt-1">Vue d&apos;ensemble de la waitlist Jestly</p>
-      </div>
+      <AdminHeader
+        title="Dashboard"
+        description="Vue d'ensemble globale de Jestly"
+      />
 
-      {/* KPI Cards */}
+      {/* ── Section 1: Business KPIs (hero row) ──────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Total inscrits", value: stats.total, icon: "M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z", color: "#7C3AED" },
-          { label: "Cette semaine", value: stats.thisWeek, icon: "M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5", color: "#6366F1" },
-          { label: "Ce mois", value: stats.thisMonth, icon: "M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z", color: "#A78BFA" },
-          { label: "Score moyen", value: stats.avgScore, icon: "M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z", color: "#8B5CF6" },
-        ].map((kpi) => (
-          <div key={kpi.label} className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: kpi.color + "15" }}>
-                <svg className="w-5 h-5" style={{ color: kpi.color }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d={kpi.icon} />
-                </svg>
-              </div>
-              <span className="text-[12px] font-medium text-[#666]">{kpi.label}</span>
-            </div>
-            <p className="text-2xl font-bold text-[#1A1A1A]">{kpi.value}</p>
+        {([
+          {
+            label: "Utilisateurs",
+            value: dashboard.total_users.toLocaleString("fr-FR"),
+            change: dashboard.users_this_week,
+            changeLabel: "cette semaine",
+            color: "#4F46E5",
+          },
+          {
+            label: "Revenu",
+            value: fmtEur(dashboard.total_revenue),
+            change: dashboard.revenue_this_week,
+            changeLabel: "cette semaine",
+            isCurrency: true,
+            color: "#16a34a",
+          },
+          {
+            label: "Commandes",
+            value: dashboard.total_orders.toLocaleString("fr-FR"),
+            change: dashboard.orders_this_week,
+            changeLabel: "cette semaine",
+            color: "#4F46E5",
+          },
+          {
+            label: "Waitlist",
+            value: dashboard.total_waitlist.toLocaleString("fr-FR"),
+            change: null,
+            color: "#8B5CF6",
+          },
+        ] as const).map((kpi) => (
+          <div
+            key={kpi.label}
+            className="bg-white rounded-xl border border-[#E6E6E4] p-5"
+          >
+            <p className="text-[12px] font-medium text-[#8A8A88] uppercase tracking-wide mb-1">
+              {kpi.label}
+            </p>
+            <p className="text-[26px] font-bold text-[#191919] tracking-[-0.02em]">
+              {kpi.value}
+            </p>
+            {kpi.change !== null && kpi.change !== undefined && (
+              <p className="text-[12px] text-[#5A5A58] mt-1">
+                <span className="font-semibold" style={{ color: kpi.color }}>
+                  +{"isCurrency" in kpi && kpi.isCurrency ? fmtEur(kpi.change) : kpi.change}
+                </span>{" "}
+                {kpi.changeLabel}
+              </p>
+            )}
           </div>
         ))}
       </div>
 
-      {/* Charts Row */}
+      {/* ── Section 2: Product Intelligence ──────────────────── */}
+      <div>
+        <h2 className="text-[14px] font-semibold text-[#191919] mb-3">Intelligence Produit</h2>
+        {analytics && (analytics.dau > 0 || analytics.wau > 0 || analytics.mau > 0) ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { label: "DAU", value: analytics.dau, sub: "Aujourd'hui" },
+              { label: "WAU", value: analytics.wau, sub: "7 jours" },
+              { label: "MAU", value: analytics.mau, sub: "30 jours" },
+              { label: "Taux d'activation", value: `${activationRate}%`, sub: `${analytics.activation.activated}/${analytics.total_users}` },
+            ].map((m) => (
+              <div key={m.label} className="bg-white rounded-xl border border-[#E6E6E4] p-4">
+                <p className="text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide mb-1">
+                  {m.label}
+                </p>
+                <p className="text-[22px] font-bold text-[#191919]">{m.value}</p>
+                <p className="text-[11px] text-[#8A8A88] mt-0.5">{m.sub}</p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-[#E6E6E4] p-6 text-center">
+            <p className="text-[13px] text-[#8A8A88]">
+              {"\u00C9"}v{"\u00E9"}nements produit en cours de collecte...
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* ── Section 3: Health Overview ────────────────────────── */}
+      <div>
+        <h2 className="text-[14px] font-semibold text-[#191919] mb-3">Sant{"\u00E9"} des comptes</h2>
+        {health && health.scored_users > 0 ? (
+          <div className="bg-white rounded-xl border border-[#E6E6E4] p-5 space-y-4">
+            {/* Distribution bar */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[13px] text-[#5A5A58]">
+                  Distribution ({health.scored_users} comptes analys{"\u00E9"}s)
+                </p>
+                <span className={`inline-block px-2.5 py-0.5 text-[12px] font-semibold rounded-md ${scoreBgColor(health.avg_score)}`}>
+                  Score moyen : {health.avg_score}
+                </span>
+              </div>
+              <div className="flex h-5 rounded-md overflow-hidden">
+                {(["healthy", "watch", "risky", "critical"] as const).map((tier) => {
+                  const count = health.distribution[tier];
+                  const pct = healthTotal > 0 ? (count / healthTotal) * 100 : 0;
+                  if (pct === 0) return null;
+                  return (
+                    <div
+                      key={tier}
+                      className="h-full relative group cursor-default"
+                      style={{ width: `${pct}%`, backgroundColor: TIER_BAR_COLORS[tier] }}
+                      title={`${TIER_LABELS[tier]}: ${count} (${Math.round(pct)}%)`}
+                    />
+                  );
+                })}
+              </div>
+              <div className="flex gap-4 mt-2">
+                {(["healthy", "watch", "risky", "critical"] as const).map((tier) => (
+                  <div key={tier} className="flex items-center gap-1.5">
+                    <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: TIER_BAR_COLORS[tier] }} />
+                    <span className="text-[11px] text-[#5A5A58]">
+                      {TIER_LABELS[tier]} ({health.distribution[tier]})
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Alert + recalculate */}
+            <div className="flex items-center justify-between">
+              <div>
+                {atRiskCount > 0 && (
+                  <p className="text-[13px] font-medium text-orange-600">
+                    {atRiskCount} compte{atRiskCount > 1 ? "s" : ""} {"\u00E0"} risque
+                  </p>
+                )}
+              </div>
+              <button
+                onClick={handleRecalculate}
+                disabled={recalculating}
+                className="text-[13px] font-medium text-[#4F46E5] hover:text-[#4338CA] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {recalculating ? "Recalcul en cours..." : "Recalculer les scores"}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
+            <div className="flex items-center justify-between">
+              <p className="text-[13px] text-[#8A8A88]">Non calcul{"\u00E9"}</p>
+              <button
+                onClick={handleRecalculate}
+                disabled={recalculating}
+                className="text-[13px] font-medium text-[#4F46E5] hover:text-[#4338CA] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {recalculating ? "Recalcul en cours..." : "Recalculer les scores"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Section 4: Charts (2 columns) ────────────────────── */}
       <div className="grid lg:grid-cols-2 gap-4">
-        {/* Daily signups area chart */}
+        {/* Inscriptions 30j */}
         <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-          <h3 className="text-[14px] font-semibold text-[#1A1A1A] mb-4">Inscriptions (30 derniers jours)</h3>
+          <h3 className="text-[14px] font-semibold text-[#191919] mb-4">
+            Inscriptions 30j
+          </h3>
           <div className="h-[220px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={stats.dailySignups}>
-                <defs>
-                  <linearGradient id="colorSignups" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  dataKey="date"
-                  tick={{ fontSize: 10, fill: "#999" }}
-                  tickFormatter={(v) => v.slice(5)}
-                  interval="preserveStartEnd"
-                />
-                <YAxis tick={{ fontSize: 10, fill: "#999" }} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 8, border: "1px solid #E6E6E4", fontSize: 12 }}
-                  labelFormatter={(v) => `${v}`}
-                />
-                <Area type="monotone" dataKey="count" stroke="#7C3AED" fill="url(#colorSignups)" strokeWidth={2} name="Inscrits" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {dashboard.daily_signups_30d.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={dashboard.daily_signups_30d}>
+                  <defs>
+                    <linearGradient id="gradSignups" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#4F46E5" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 10, fill: "#8A8A88" }}
+                    tickFormatter={fmtChartDate}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis tick={{ fontSize: 10, fill: "#8A8A88" }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: "1px solid #E6E6E4",
+                      fontSize: 12,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    }}
+                    labelFormatter={(v) => `${v}`}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#4F46E5"
+                    fill="url(#gradSignups)"
+                    strokeWidth={2}
+                    name="Inscrits"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <p className="text-[13px] text-[#8A8A88]">Aucune donn{"\u00E9"}e</p>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Job type pie */}
+        {/* DAU 7j */}
         <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-          <h3 className="text-[14px] font-semibold text-[#1A1A1A] mb-4">Par m&eacute;tier</h3>
-          <div className="h-[220px] flex items-center">
-            <ResponsiveContainer width="50%" height="100%">
-              <PieChart>
-                <Pie data={jobData} dataKey="value" cx="50%" cy="50%" innerRadius={45} outerRadius={75} paddingAngle={3}>
-                  {jobData.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E6E6E4", fontSize: 12 }} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex-1 space-y-2">
-              {jobData.map((d, i) => (
-                <div key={d.name} className="flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: PIE_COLORS[i % PIE_COLORS.length] }} />
-                  <span className="text-[12px] text-[#666]">{d.name}</span>
-                  <span className="text-[12px] font-semibold text-[#1A1A1A] ml-auto">{d.value}</span>
-                </div>
-              ))}
-            </div>
+          <h3 className="text-[14px] font-semibold text-[#191919] mb-4">
+            DAU 7j
+          </h3>
+          <div className="h-[220px]">
+            {analytics && analytics.daily_dau.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={analytics.daily_dau}>
+                  <defs>
+                    <linearGradient id="gradDau" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis
+                    dataKey="date"
+                    tick={{ fontSize: 10, fill: "#8A8A88" }}
+                    tickFormatter={fmtChartDate}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis tick={{ fontSize: 10, fill: "#8A8A88" }} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: "1px solid #E6E6E4",
+                      fontSize: 12,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                    }}
+                    labelFormatter={(v) => `${v}`}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#8B5CF6"
+                    fill="url(#gradDau)"
+                    strokeWidth={2}
+                    name="Utilisateurs actifs"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center">
+                <p className="text-[13px] text-[#8A8A88]">Aucune donn{"\u00E9"}e</p>
+              </div>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Status bar chart */}
-      {statusData.length > 0 && (
+      {/* ── Section 5: Operational Intelligence (2 columns) ─── */}
+      <div className="grid lg:grid-cols-2 gap-4">
+        {/* Comptes a risque */}
         <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-          <h3 className="text-[14px] font-semibold text-[#1A1A1A] mb-4">Par statut</h3>
-          <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={statusData}>
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#666" }} />
-                <YAxis tick={{ fontSize: 11, fill: "#999" }} allowDecimals={false} />
-                <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E6E6E4", fontSize: 12 }} />
-                <Bar dataKey="value" fill="#7C3AED" radius={[6, 6, 0, 0]} name="Inscrits" />
-              </BarChart>
-            </ResponsiveContainer>
+          <h3 className="text-[14px] font-semibold text-[#191919] mb-4">
+            Comptes {"\u00E0"} risque
+          </h3>
+          <div className="overflow-x-auto">
+            {health && health.at_risk.length > 0 ? (
+              <table className="w-full text-[13px]">
+                <thead>
+                  <tr className="border-b border-[#E6E6E4]">
+                    <th className="text-left py-2 pr-3 text-[#8A8A88] font-medium">Nom</th>
+                    <th className="text-left py-2 pr-3 text-[#8A8A88] font-medium">Email</th>
+                    <th className="text-left py-2 pr-3 text-[#8A8A88] font-medium">Score</th>
+                    <th className="text-left py-2 pr-3 text-[#8A8A88] font-medium">Tier</th>
+                    <th className="text-left py-2 text-[#8A8A88] font-medium">Signal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {health.at_risk.map((a) => {
+                    const topSignal = a.signals
+                      ? Object.keys(a.signals)[0] || "—"
+                      : "—";
+                    return (
+                      <tr key={a.account_id} className="border-b border-[#EFEFEF] hover:bg-[#FBFBFA]">
+                        <td className="py-2 pr-3 text-[#191919]">
+                          {a.profile?.full_name || "—"}
+                        </td>
+                        <td className="py-2 pr-3 text-[#5A5A58] max-w-[160px] truncate">
+                          {a.profile?.email || "—"}
+                        </td>
+                        <td className="py-2 pr-3">
+                          <span className={`font-semibold ${scoreColor(a.score)}`}>
+                            {a.score}
+                          </span>
+                        </td>
+                        <td className="py-2 pr-3">
+                          <span className={`inline-block px-2 py-0.5 text-[11px] rounded-md font-medium ${TIER_STYLES[a.tier] || ""}`}>
+                            {TIER_LABELS[a.tier] || a.tier}
+                          </span>
+                        </td>
+                        <td className="py-2 text-[#5A5A58] max-w-[120px] truncate">
+                          {topSignal}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            ) : (
+              <p className="text-[13px] text-[#8A8A88] py-2">Aucun compte {"\u00E0"} risque</p>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Quick insights */}
-      <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-        <h3 className="text-[14px] font-semibold text-[#1A1A1A] mb-3">Insights rapides</h3>
-        <div className="space-y-2 text-[13px] text-[#666]">
-          {stats.total > 0 && (
-            <>
-              <p>
-                Taux d&apos;inscription cette semaine : <span className="font-semibold text-[#1A1A1A]">{stats.thisWeek}</span> nouveau{stats.thisWeek > 1 ? "x" : ""}
-                {stats.thisMonth > 0 && ` (${Math.round((stats.thisWeek / stats.thisMonth) * 100)}% du mois)`}
-              </p>
-              {Object.keys(stats.utmCounts).length > 0 && (
-                <p>
-                  Top source UTM : <span className="font-semibold text-[#7C3AED]">{Object.entries(stats.utmCounts).sort((a, b) => b[1] - a[1])[0][0]}</span>
-                </p>
-              )}
-              {Object.keys(stats.jobCounts).length > 0 && (
-                <p>
-                  Profil dominant : <span className="font-semibold text-[#7C3AED]">
-                    {JOB_LABELS[Object.entries(stats.jobCounts).sort((a, b) => b[1] - a[1])[0][0]] || Object.entries(stats.jobCounts).sort((a, b) => b[1] - a[1])[0][0]}
-                  </span>
-                </p>
-              )}
-            </>
-          )}
-          {stats.total === 0 && <p>Aucune inscription pour le moment.</p>}
+        {/* Dernieres inscriptions */}
+        <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
+          <h3 className="text-[14px] font-semibold text-[#191919] mb-4">
+            Derni{"\u00E8"}res inscriptions
+          </h3>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[13px]">
+              <thead>
+                <tr className="border-b border-[#E6E6E4]">
+                  <th className="text-left py-2 pr-3 text-[#8A8A88] font-medium">Nom</th>
+                  <th className="text-left py-2 pr-3 text-[#8A8A88] font-medium">Email</th>
+                  <th className="text-left py-2 pr-3 text-[#8A8A88] font-medium">Plan</th>
+                  <th className="text-left py-2 text-[#8A8A88] font-medium">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dashboard.recent_signups.map((u) => (
+                  <tr key={u.id} className="border-b border-[#EFEFEF] hover:bg-[#FBFBFA]">
+                    <td className="py-2 pr-3 text-[#191919]">
+                      {u.full_name || "—"}
+                    </td>
+                    <td className="py-2 pr-3 text-[#5A5A58] max-w-[160px] truncate">
+                      {u.email}
+                    </td>
+                    <td className="py-2 pr-3">
+                      <span className="inline-block px-2 py-0.5 text-[11px] rounded-md bg-[#F7F7F5] text-[#5A5A58] border border-[#EFEFEF]">
+                        {u.plan || "free"}
+                      </span>
+                    </td>
+                    <td className="py-2 text-[#8A8A88] whitespace-nowrap">
+                      {fmtDate(u.created_at)}
+                    </td>
+                  </tr>
+                ))}
+                {dashboard.recent_signups.length === 0 && (
+                  <tr>
+                    <td colSpan={4} className="py-4 text-center text-[#8A8A88]">
+                      Aucun inscrit
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

@@ -75,8 +75,6 @@ const bottomNav: NavItem[] = [
   { label: "Paramètres", href: "/parametres", icon: <Settings size={18} strokeWidth={1.7} /> },
 ];
 
-const ADMIN_EMAIL = "jestlyapp@gmail.com";
-
 // ── User profile type ──
 interface UserProfile {
   email: string | null;
@@ -85,6 +83,7 @@ interface UserProfile {
   avatar_url: string | null;
   plan: "free" | "pro";
   subdomain: string | null;
+  is_admin: boolean;
 }
 
 // ── Account Menu ─────────────────────────────────────────────────
@@ -279,8 +278,9 @@ export default function Sidebar() {
             avatar_url: d.avatar_url || null,
             plan: d.plan || "free",
             subdomain: d.subdomain || null,
+            is_admin: d.is_admin || false,
           });
-          if (d.email.toLowerCase() === ADMIN_EMAIL) setIsAdminUser(true);
+          if (d.is_admin) setIsAdminUser(true);
         }
       })
       .catch(() => {});

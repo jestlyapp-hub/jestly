@@ -10,7 +10,8 @@ export async function POST(req: NextRequest) {
   const {
     site_id, name, email, phone, company, source, message, fields,
     page_path, block_type, block_label,
-    utm_source, utm_medium, utm_campaign, referrer,
+    utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+    referrer, anonymous_id, first_touch_source, last_touch_source,
     product_name, amount,
     create_order, field_mappings,
   } = body as {
@@ -28,7 +29,12 @@ export async function POST(req: NextRequest) {
     utm_source?: string;
     utm_medium?: string;
     utm_campaign?: string;
+    utm_content?: string;
+    utm_term?: string;
     referrer?: string;
+    anonymous_id?: string;
+    first_touch_source?: string;
+    last_touch_source?: string;
     product_name?: string;
     amount?: number;
     create_order?: boolean;
@@ -62,7 +68,12 @@ export async function POST(req: NextRequest) {
     utm_source: utm_source || null,
     utm_medium: utm_medium || null,
     utm_campaign: utm_campaign || null,
+    utm_content: utm_content || null,
+    utm_term: utm_term || null,
     referrer: referrer || null,
+    anonymous_id: anonymous_id || null,
+    first_touch_source: first_touch_source || null,
+    last_touch_source: last_touch_source || null,
     product_name: product_name || null,
     amount: amount ?? null,
   };
@@ -74,6 +85,14 @@ export async function POST(req: NextRequest) {
 
   if (leadErr) {
     return NextResponse.json({ error: leadErr.message }, { status: 500 });
+  }
+
+  // Link any existing attribution touches with same anonymous_id to this lead
+  if (anonymous_id) {
+    await (supabase.from("lead_attribution_touches") as any)
+      .update({ lead_id: leadData.id })
+      .eq("anonymous_id", anonymous_id)
+      .is("lead_id", null);
   }
 
   // If createOrder mode: also create client + order via fn_upsert_client + order insert

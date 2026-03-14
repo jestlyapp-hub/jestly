@@ -1,16 +1,10 @@
 import { NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/api-auth";
-import { isAdmin } from "@/lib/admin";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/admin";
 
 export async function GET() {
-  const auth = await getAuthUser();
+  const auth = await requireAdmin();
   if (auth.error) return auth.error;
-  if (!isAdmin(auth.user)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  const supabase = createAdminClient();
+  const supabase = auth.adminClient;
 
   // Fetch all waitlist entries for stats computation
   const { data: entries, error } = await (supabase.from("waitlist") as ReturnType<typeof supabase.from>)

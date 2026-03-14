@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/admin";
 
 export async function GET() {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      return NextResponse.json({ email: null });
+      return NextResponse.json({ email: null, is_admin: false });
     }
 
     // Fetch profile for sidebar display
@@ -23,8 +24,9 @@ export async function GET() {
       avatar_url: profile?.avatar_url || null,
       plan: profile?.plan || "free",
       subdomain: profile?.subdomain || null,
+      is_admin: isAdmin(user),
     });
   } catch {
-    return NextResponse.json({ email: null });
+    return NextResponse.json({ email: null, is_admin: false });
   }
 }
