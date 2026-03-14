@@ -137,7 +137,7 @@ async function legacySearch(supabase: any, userId: string, q: string, entityType
   if (shouldSearch("order")) {
     try {
       const { data: orders } = await (supabase.from("orders") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .select("id, title, status, amount, priority, created_at, clients(name), services(title)")
+        .select("id, title, status, amount, priority, created_at, clients(name), products(name)")
         .eq("user_id", userId)
         .limit(20);
 
@@ -145,7 +145,7 @@ async function legacySearch(supabase: any, userId: string, q: string, entityType
         const lq = q.toLowerCase();
         for (const o of orders) {
           const clientName = o.clients?.name ?? "";
-          const productName = o.services?.title ?? "";
+          const productName = o.products?.name ?? "";
           const orderTitle = o.title ?? "";
           if (
             clientName.toLowerCase().includes(lq) ||
@@ -170,13 +170,13 @@ async function legacySearch(supabase: any, userId: string, q: string, entityType
     } catch { /* table may not exist */ }
   }
 
-  // Products (table is actually called "services")
+  // Products
   if (shouldSearch("product")) {
     try {
-      const { data: products } = await (supabase.from("services") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .select("id, title, price, category, is_active, short_description")
-        .eq("user_id", userId)
-        .or(`title.ilike.${pattern},category.ilike.${pattern},short_description.ilike.${pattern}`)
+      const { data: products } = await (supabase.from("products") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .select("id, name, price_cents, category, status, short_description")
+        .eq("owner_id", userId)
+        .or(`name.ilike.${pattern},category.ilike.${pattern},short_description.ilike.${pattern}`)
         .limit(5);
 
       if (products) {
@@ -184,10 +184,10 @@ async function legacySearch(supabase: any, userId: string, q: string, entityType
           results.push({
             id: p.id,
             type: "product",
-            title: p.title,
+            title: p.name,
             subtitle: [p.category, p.short_description].filter(Boolean).join(" · ").slice(0, 100),
-            amount: p.price ? Number(p.price) : undefined,
-            status: p.is_active ? "active" : "inactive",
+            amount: p.price_cents ? Number(p.price_cents) : undefined,
+            status: p.status ?? "active",
             href: "/produits",
           });
         }

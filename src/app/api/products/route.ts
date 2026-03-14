@@ -8,9 +8,9 @@ export async function GET() {
   const { user, supabase } = auth;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("services") as any)
+  const { data, error } = await (supabase.from("products") as any)
     .select("*")
-    .eq("user_id", user.id)
+    .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -24,19 +24,19 @@ export async function POST(req: NextRequest) {
   const { user, supabase } = auth;
 
   const body = await req.json();
-  const { title, description, price, type, slug, short_description, long_description, features, delivery_time_days, thumbnail_url, is_featured, category, form_schema_json } = body;
+  const { name, description, price_cents, type, slug, short_description, long_description, features, delivery_time_days, thumbnail_url, is_featured, category, form_schema_json } = body;
 
-  if (!title || price == null || !type) {
-    return NextResponse.json({ error: "title, price and type are required" }, { status: 400 });
+  if (!name || price_cents == null || !type) {
+    return NextResponse.json({ error: "name, price_cents and type are required" }, { status: 400 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("services") as any)
+  const { data, error } = await (supabase.from("products") as any)
     .insert({
-      user_id: user.id,
-      title,
+      owner_id: user.id,
+      name,
       description: description || "",
-      price,
+      price_cents,
       type,
       slug: slug || null,
       short_description: short_description || "",

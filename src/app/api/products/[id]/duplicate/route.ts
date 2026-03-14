@@ -10,10 +10,10 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   // Fetch original
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: original, error: fetchErr } = await (supabase.from("services") as any)
+  const { data: original, error: fetchErr } = await (supabase.from("products") as any)
     .select("*")
     .eq("id", id)
-    .eq("user_id", user.id)
+    .eq("owner_id", user.id)
     .single();
 
   if (fetchErr || !original) {
@@ -23,20 +23,20 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
   // Build copy
   const {
     id: _id, created_at: _ca, updated_at: _ua, sales_count: _sc,
-    slug: originalSlug, title: originalTitle, ...rest
+    slug: originalSlug, name: originalName, ...rest
   } = original;
 
   const newSlug = originalSlug ? `${originalSlug}-copy` : null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("services") as any)
+  const { data, error } = await (supabase.from("products") as any)
     .insert({
       ...rest,
-      user_id: user.id,
-      title: `${originalTitle} (copie)`,
+      owner_id: user.id,
+      name: `${originalName} (copie)`,
       slug: newSlug,
       sales_count: 0,
-      is_active: false,
+      status: "draft",
     })
     .select()
     .single();

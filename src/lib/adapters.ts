@@ -1,4 +1,4 @@
-import type { Product, Order, Client, ClientDetail, ClientNote, ClientEvent } from "@/types";
+import type { Product, ProductStatus, ProductMode, Order, Client, ClientDetail, ClientNote, ClientEvent } from "@/types";
 import type { ProductRow, OrderRecord, ClientRecord } from "@/types/database";
 import { normalizeResources } from "@/lib/brief-column-compat";
 
@@ -6,11 +6,26 @@ import { normalizeResources } from "@/lib/brief-column-compat";
  * Convert a DB product row to the frontend Product type.
  */
 export function dbToProduct(row: ProductRow): Product {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const r = row as any;
+
+  // Resilient: try new column names first, fall back to old ones
+  const name: string = r.name || r.title || "";
+  const priceCents: number =
+    r.price_cents != null
+      ? Number(r.price_cents) || 0
+      : Math.round(parseFloat(String(r.price ?? 0).replace(/[€\s]/g, "").replace(",", ".")) * 100) || 0;
+  const status: ProductStatus =
+    r.status != null
+      ? (r.status as ProductStatus)
+      : r.is_active ? "active" : "draft";
+  const mode: ProductMode = (r.mode ?? r.checkout_mode ?? "checkout") as ProductMode;
+
   return {
     id: row.id,
-    name: row.title,
-    priceCents: Math.round(parseFloat(String(row.price ?? 0).replace(/[€\s]/g, "").replace(",", ".")) * 100) || 0,
-    status: row.is_active ? "active" : "draft",
+    name,
+    priceCents,
+    status,
     sales: row.sales_count,
     category: row.category,
     type: row.type,
@@ -22,7 +37,7 @@ export function dbToProduct(row: ProductRow): Product {
     thumbnailUrl: row.thumbnail_url ?? row.image_url ?? undefined,
     coverImageUrl: row.cover_image_url ?? undefined,
     featured: row.is_featured,
-    mode: row.checkout_mode ?? "checkout",
+    mode,
     deliveryType: row.delivery_type ?? "none",
     deliveryFileUrl: row.delivery_file_path ?? undefined,
     deliveryUrl: row.delivery_url ?? undefined,
@@ -37,6 +52,8 @@ export function dbToProduct(row: ProductRow): Product {
 export function orderRecordToOrder(
   row: OrderRecord & {
     clients?: { name: string; email: string; phone?: string | null } | null;
+    products?: { name: string } | null;
+    /** @deprecated kept for resilience during migration */
     services?: { title: string } | null;
   }
 ): Order {
@@ -52,7 +69,7 @@ export function orderRecordToOrder(
     clientEmail: row.clients?.email ?? "",
     clientId: row.client_id,
     clientPhone: row.clients?.phone ?? undefined,
-    product: row.services?.title ?? row.title,
+    product: row.products?.name ?? row.services?.title ?? row.title,
     price: Number(row.amount),
     status: row.status as Order["status"],
     date: row.created_at.split("T")[0],

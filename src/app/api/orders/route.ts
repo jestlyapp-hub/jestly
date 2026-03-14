@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 
-// GET /api/orders — list user's orders with client+service join
+// GET /api/orders — list user's orders with client+product join
 export async function GET(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
@@ -11,13 +11,13 @@ export async function GET(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from("orders") as any)
-    .select("*, clients(name, email, phone), services(title), order_brief_responses(order_id)")
+    .select("*, clients(name, email, phone), products(name), order_brief_responses(order_id)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  // Filter by source (site orders only come from service_id not null)
+  // Filter by source (site orders only come from product_id not null)
   if (source === "site") {
-    query = query.not("service_id", "is", null);
+    query = query.not("product_id", "is", null);
   }
 
   const { data, error } = await query;
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const {
-    client_id, service_id, title, description, amount, status, priority,
+    client_id, product_id, title, description, amount, status, priority,
     deadline, custom_fields, briefing, resources, category, external_ref,
     quantity,
   } = body;
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
   const base: Record<string, any> = {
     user_id: user.id,
     client_id,
-    service_id: service_id || null,
+    product_id: product_id || null,
     description: description || "",
     amount,
     status: status || "new",
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.from("orders") as any)
       .insert(base)
-      .select("*, clients(name, email, phone), services(title)")
+      .select("*, clients(name, email, phone), products(name)")
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("orders") as any)
     .insert(rows)
-    .select("*, clients(name, email, phone), services(title)");
+    .select("*, clients(name, email, phone), products(name)");
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data, { status: 201 });

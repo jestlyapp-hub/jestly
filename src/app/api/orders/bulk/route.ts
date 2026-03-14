@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
           const copy: Record<string, any> = {
             user_id: user.id,
             client_id: o.client_id,
-            service_id: o.service_id || null,
+            product_id: o.product_id || null,
             title: `${o.title || "Sans titre"} (copie)`,
             description: o.description || "",
             amount: o.amount ?? 0,
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { data: created, error: insertErr } = await (supabase.from("orders") as any)
           .insert(copies)
-          .select("*, clients(name, email, phone), services(title)");
+          .select("*, clients(name, email, phone), products(name)");
         if (insertErr) {
           console.error("[BULK duplicate] insert:", insertErr.code, insertErr.message, insertErr.details);
           return NextResponse.json({ error: insertErr.message }, { status: 500 });
