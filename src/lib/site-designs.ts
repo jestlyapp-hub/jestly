@@ -139,6 +139,7 @@ const creatorDesign: FullDesignPreset = {
     mode: "dark",
     containerWidth: "default",
     buttonRadius: "full",
+    sectionGap: "none",
   },
   design: {
     designKey: "creator",
@@ -193,6 +194,7 @@ const productDesign: FullDesignPreset = {
     mode: "dark",
     containerWidth: "default",
     buttonRadius: "md",
+    sectionGap: "none",
   },
   design: {
     designKey: "product",
@@ -248,6 +250,7 @@ const cinemaDesign: FullDesignPreset = {
     mode: "dark",
     containerWidth: "wide",
     buttonRadius: "sm",
+    sectionGap: "none",
   },
   design: {
     designKey: "cinema",
@@ -280,11 +283,183 @@ const cinemaDesign: FullDesignPreset = {
   },
 };
 
+/* ── 4. STUDIO — Minimal Design Portfolio ── */
+const studioDesign: FullDesignPreset = {
+  key: "studio",
+  name: "Studio",
+  description: "Design minimaliste premium pour studios et directeurs artistiques",
+  audience: "Designers, studios branding, DA, product designers",
+  theme: {
+    primaryColor: "#C8FF2E",
+    secondaryColor: "#A8E600",
+    backgroundColor: "#0F0F10",
+    surfaceColor: "#1A1A1C",
+    textColor: "#F5F5F5",
+    mutedTextColor: "#888888",
+    borderColor: "#2A2A2C",
+    fontFamily: "'Inter Tight', 'Inter', sans-serif",
+    headingFont: "'Inter Tight', 'Inter', sans-serif",
+    borderRadius: "rounded",
+    shadow: "sm",
+    mode: "dark",
+    containerWidth: "default",
+    buttonRadius: "md",
+    sectionGap: "none",
+  },
+  design: {
+    designKey: "studio",
+    backgroundPreset: "noise",
+    heroVariant: "hero-split-glow",
+    cardStyle: "bordered",
+    buttonVariant: "solid",
+    navStyle: "solid",
+    footerStyle: "minimal",
+  },
+  nav: {
+    variant: "capsule",
+    links: [
+      { id: "s1", label: "Projets" },
+      { id: "s2", label: "Services" },
+      { id: "s3", label: "A propos" },
+      { id: "s4", label: "Contact" },
+    ],
+    showCta: true,
+    ctaLabel: "Collaborer",
+  },
+  footer: {
+    links: [
+      { label: "Projets" },
+      { label: "Services" },
+      { label: "Contact" },
+      { label: "Mentions legales" },
+    ],
+    showSocials: true,
+    copyright: "Tous droits reserves.",
+  },
+};
+
+/* ── 5. NEON — Cyberpunk Digital Creator ── */
+const neonDesign: FullDesignPreset = {
+  key: "neon",
+  name: "Neon",
+  description: "Design cyberpunk futuriste pour createurs digitaux et gamers",
+  audience: "YouTubers, streamers, gaming, AI, artistes digitaux",
+  theme: {
+    primaryColor: "#7B61FF",
+    secondaryColor: "#00F0FF",
+    backgroundColor: "#050508",
+    surfaceColor: "#0D0D14",
+    textColor: "#EEEEF0",
+    mutedTextColor: "#7A7A8C",
+    borderColor: "#1A1A2E",
+    fontFamily: "'Space Grotesk', sans-serif",
+    headingFont: "'Space Grotesk', sans-serif",
+    borderRadius: "rounded",
+    shadow: "lg",
+    mode: "dark",
+    containerWidth: "wide",
+    buttonRadius: "md",
+    buttonBg: "#7B61FF",
+    buttonText: "#FFFFFF",
+    buttonHoverBg: "#9580FF",
+    buttonHoverShadow: "lg",
+    buttonHoverScale: 1.03,
+    sectionGap: "none",
+  },
+  design: {
+    designKey: "neon",
+    backgroundPreset: "mesh",
+    heroVariant: "hero-centered-mesh",
+    cardStyle: "glass",
+    buttonVariant: "gradient",
+    navStyle: "blur",
+    footerStyle: "centered",
+  },
+  nav: {
+    variant: "dark-premium",
+    links: [
+      { id: "n1", label: "Showreel" },
+      { id: "n2", label: "Services" },
+      { id: "n3", label: "Portfolio" },
+      { id: "n4", label: "Tarifs" },
+    ],
+    showCta: true,
+    ctaLabel: "Let's go",
+  },
+  footer: {
+    links: [
+      { label: "Showreel" },
+      { label: "Portfolio" },
+      { label: "Contact" },
+    ],
+    showSocials: true,
+    copyright: "All rights reserved.",
+  },
+};
+
+/* ── 6. EDITORIAL — Modern Editorial Portfolio ── */
+const editorialDesign: FullDesignPreset = {
+  key: "editorial",
+  name: "Editorial",
+  description: "Design editorial haut de gamme pour photographes et artistes visuels",
+  audience: "Photographes, ecrivains, artistes visuels, studios creatifs",
+  theme: {
+    primaryColor: "#D48B5C",
+    secondaryColor: "#A5A58D",
+    backgroundColor: "#FAF7F2",
+    surfaceColor: "#F0EDE6",
+    textColor: "#111111",
+    mutedTextColor: "#6B6B6B",
+    borderColor: "#DDD8D0",
+    fontFamily: "'Inter', sans-serif",
+    headingFont: "'Playfair Display', serif",
+    borderRadius: "rounded",
+    shadow: "sm",
+    mode: "light",
+    containerWidth: "default",
+    buttonRadius: "sm",
+    sectionGap: "none",
+  },
+  design: {
+    designKey: "editorial",
+    backgroundPreset: "noise",
+    heroVariant: "hero-split-glow",
+    cardStyle: "flat",
+    buttonVariant: "solid",
+    navStyle: "solid",
+    footerStyle: "columns",
+  },
+  nav: {
+    variant: "brand-heavy",
+    links: [
+      { id: "e1", label: "Portfolio" },
+      { id: "e2", label: "Journal" },
+      { id: "e3", label: "A propos" },
+      { id: "e4", label: "Contact" },
+    ],
+    showCta: true,
+    ctaLabel: "Prendre rendez-vous",
+  },
+  footer: {
+    links: [
+      { label: "Portfolio" },
+      { label: "Journal" },
+      { label: "Contact" },
+      { label: "Mentions legales" },
+    ],
+    showSocials: true,
+    copyright: "Tous droits reserves.",
+  },
+};
+
 /* ── Registry ── */
 export const designPresets: FullDesignPreset[] = [
   creatorDesign,
   productDesign,
   cinemaDesign,
+  studioDesign,
+  neonDesign,
+  editorialDesign,
 ];
 
 export function getDesignPreset(key: DesignKey): FullDesignPreset | undefined {

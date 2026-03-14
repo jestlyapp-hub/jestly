@@ -61,6 +61,7 @@ function SegmentedControl<T extends string>({ options, value, onChange }: { opti
 
 const fontOptions = [
   { value: "Inter, sans-serif", label: "Inter" },
+  { value: "'Inter Tight', 'Inter', sans-serif", label: "Inter Tight" },
   { value: "'Space Grotesk', sans-serif", label: "Space Grotesk" },
   { value: "'DM Sans', sans-serif", label: "DM Sans" },
   { value: "'Outfit', sans-serif", label: "Outfit" },
@@ -106,6 +107,14 @@ const containerOptions: { value: NonNullable<SiteTheme["containerWidth"]>; label
   { value: "narrow", label: "Etroit" },
   { value: "default", label: "Defaut" },
   { value: "wide", label: "Large" },
+];
+
+const sectionGapOptions: { value: NonNullable<SiteTheme["sectionGap"]>; label: string; desc: string }[] = [
+  { value: "none", label: "0", desc: "0px" },
+  { value: "compact", label: "S", desc: "24px" },
+  { value: "normal", label: "M", desc: "48px" },
+  { value: "large", label: "L", desc: "72px" },
+  { value: "hero", label: "XL", desc: "120px" },
 ];
 
 export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
@@ -447,6 +456,26 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
             <div>
               <label className="block text-[10px] font-medium text-[#BBB] mb-1">Largeur contenu</label>
               <SegmentedControl options={containerOptions} value={theme.containerWidth || "default"} onChange={(v) => updateTheme({ containerWidth: v })} />
+            </div>
+            <div>
+              <label className="block text-[10px] font-medium text-[#BBB] mb-1">Espacement sections</label>
+              <div className="flex gap-1">
+                {sectionGapOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => updateTheme({ sectionGap: opt.value })}
+                    title={opt.desc}
+                    className={`flex-1 py-1.5 rounded-md border text-[10px] font-medium transition-all ${
+                      (theme.sectionGap || "none") === opt.value
+                        ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                        : "border-[#E6E6E4] text-[#666] hover:border-[#4F46E5]/30"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              <p className="text-[9px] text-[#BBB] mt-1">Gap vertical entre les sections ({sectionGapOptions.find(o => o.value === (theme.sectionGap || "none"))?.desc || "0px"})</p>
             </div>
           </div>
         </div>

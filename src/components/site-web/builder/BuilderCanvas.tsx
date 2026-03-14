@@ -251,6 +251,7 @@ export default function BuilderCanvas() {
               onDragEnd={handleDragEnd}
             >
               <SortableContext items={blockIds} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col" style={{ gap: `var(--site-section-gap, 0px)` }}>
                 {activePage.blocks.map((block) => (
                   <SortableBlock
                     key={block.id}
@@ -264,6 +265,7 @@ export default function BuilderCanvas() {
                     dispatch={dispatch}
                   />
                 ))}
+                </div>
               </SortableContext>
 
               <DragOverlay>

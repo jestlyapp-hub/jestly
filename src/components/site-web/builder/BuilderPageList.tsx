@@ -278,7 +278,7 @@ export default function BuilderPageList() {
           id: crypto.randomUUID(),
           type: tb.type,
           content: { ...defaultContent[tb.type as BlockType] },
-          style: { paddingTop: 40, paddingBottom: 40, ...tb.style },
+          style: { paddingTop: 0, paddingBottom: 0, ...tb.style },
           settings: { animation: "none" as const, ...tb.settings },
           visible: true,
         } as any))

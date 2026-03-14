@@ -126,6 +126,7 @@ export function computeThemeVars(theme: SiteTheme): Record<string, string> {
   if (theme.buttonHoverBorder) vars["--btn-hover-border"] = theme.buttonHoverBorder;
   if (theme.buttonHoverShadow) vars["--btn-hover-shadow"] = shadowMap[theme.buttonHoverShadow] ?? "none";
   if (theme.buttonHoverScale != null) vars["--btn-hover-scale"] = String(theme.buttonHoverScale);
+  if (theme.sectionGap) vars["--site-section-gap"] = `${sectionGapValues[theme.sectionGap] ?? 0}px`;
   return vars;
 }
 
@@ -279,6 +280,26 @@ export const spacingPresetValues: Record<SpacingPreset, { paddingTop: number; pa
   large: { paddingTop: 80, paddingBottom: 80 },
   hero: { paddingTop: 100, paddingBottom: 100 },
 };
+
+/**
+ * Section gap values — controlled by theme, applied between blocks.
+ * When blocks have 0 padding, the renderer applies this gap as margin.
+ */
+export const sectionGapValues: Record<string, number> = {
+  none: 0,
+  compact: 24,
+  normal: 48,
+  large: 72,
+  hero: 120,
+};
+
+/**
+ * Resolve the section gap in px from a SiteTheme.
+ */
+export function resolveSectionGap(theme?: SiteTheme): number {
+  if (!theme?.sectionGap) return 0;
+  return sectionGapValues[theme.sectionGap] ?? 0;
+}
 
 /* ═══════════════════════════════════════════════════════════
    BACKGROUND CONFIG — site-level & block-level backgrounds

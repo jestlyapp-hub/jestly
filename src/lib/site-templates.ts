@@ -6,8 +6,8 @@ function darkStyle(accent: string, bg = "#0A0A0F", overrides?: Partial<BlockStyl
   return {
     backgroundColor: bg,
     textColor: "#ffffff",
-    paddingTop: 80,
-    paddingBottom: 80,
+    paddingTop: 0,
+    paddingBottom: 0,
     containerWidth: "boxed",
     buttonStyle: {
       bg: accent,
@@ -92,7 +92,7 @@ function creatorPages(): TemplatePage[] {
             secondaryBlockLink: { type: "none" },
             glowColor: ORANGE,
           },
-          style: s({ paddingTop: 100, paddingBottom: 100 }),
+          style: s(),
           settings: {},
           visible: true,
         },
@@ -168,7 +168,7 @@ function creatorPages(): TemplatePage[] {
             secondaryLabel: "Voir les tarifs",
             secondaryBlockLink: { type: "none" },
           },
-          style: s({ paddingTop: 60, paddingBottom: 60 }),
+          style: s(),
           settings: {},
           visible: true,
         },
@@ -205,7 +205,7 @@ function creatorPages(): TemplatePage[] {
             showSocials: true,
             socials: { instagram: "#", twitter: "#" },
           },
-          style: s({ paddingTop: 60, paddingBottom: 40 }),
+          style: s(),
           settings: {},
           visible: true,
         },
@@ -241,7 +241,7 @@ function productPages(): TemplatePage[] {
             blockLink: { type: "none" },
             trustLogos: [{ name: "Next.js" }, { name: "React" }, { name: "Supabase" }, { name: "Stripe" }, { name: "Vercel" }],
           },
-          style: s({ paddingTop: 100, paddingBottom: 100 }),
+          style: s(),
           settings: {},
           visible: true,
         },
@@ -316,7 +316,7 @@ function productPages(): TemplatePage[] {
             secondaryLabel: "Voir mes realisations",
             secondaryBlockLink: { type: "none" },
           },
-          style: s({ paddingTop: 60, paddingBottom: 60 }),
+          style: s(),
           settings: {},
           visible: true,
         },
@@ -354,7 +354,7 @@ function productPages(): TemplatePage[] {
             showSocials: true,
             socials: { github: "#", linkedin: "#", twitter: "#" },
           },
-          style: s({ paddingTop: 60, paddingBottom: 40 }),
+          style: s(),
           settings: {},
           visible: true,
         },
@@ -392,7 +392,7 @@ function cinemaPages(): TemplatePage[] {
             secondaryBlockLink: { type: "none" },
             glowColor: CYAN,
           },
-          style: s({ paddingTop: 100, paddingBottom: 100 }),
+          style: s(),
           settings: {},
           visible: true,
         },
@@ -484,7 +484,7 @@ function cinemaPages(): TemplatePage[] {
             secondaryLabel: "Voir les tarifs",
             secondaryBlockLink: { type: "none" },
           },
-          style: s({ paddingTop: 60, paddingBottom: 60 }),
+          style: s(),
           settings: {},
           visible: true,
         },
@@ -521,7 +521,7 @@ function cinemaPages(): TemplatePage[] {
             showSocials: true,
             socials: { youtube: "#", instagram: "#", twitter: "#" },
           },
-          style: s({ paddingTop: 60, paddingBottom: 40 }),
+          style: s(),
           settings: {},
           visible: true,
         },
@@ -572,6 +572,534 @@ const CINEMA_BRIEF: TemplateBriefDefinition = {
 };
 
 /* ═══════════════════════════════════════════════════════
+   TEMPLATE 4 — STUDIO (Lime / Minimal Design)
+   Cible: Designer, studio branding, DA, product designer
+   ═══════════════════════════════════════════════════════ */
+
+const LIME = "#C8FF2E";
+const DARK4 = "#0F0F10";
+
+function studioPages(): TemplatePage[] {
+  const s = (ov?: Partial<BlockStyle>) => ds(LIME, DARK4, ov);
+
+  return [
+    {
+      title: "Accueil",
+      slug: "accueil",
+      is_home: true,
+      blocks: [
+        {
+          type: "hero-split-glow",
+          content: {
+            badge: "Studio Design",
+            title: "Design that sells.",
+            subtitle: "Identite visuelle, branding et direction artistique. Des designs minimalistes qui font la difference.",
+            primaryCtaLabel: "Voir les projets",
+            primaryBlockLink: { type: "none" },
+            secondaryCtaLabel: "Collaborer",
+            secondaryBlockLink: { type: "none" },
+            glowColor: LIME,
+          },
+          style: s(),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "services-premium",
+          content: {
+            title: "Expertise",
+            subtitle: "Des solutions design pensees pour convertir.",
+            services: [
+              { icon: "palette", title: "Identite visuelle", description: "Logo, typographie et charte graphique complete.", features: ["Logo vectoriel", "Charte graphique", "Guide de marque"] },
+              { icon: "layout", title: "UI / UX Design", description: "Interfaces modernes et parcours utilisateur optimises.", features: ["Wireframes", "Maquettes HD", "Design system"] },
+              { icon: "pen-tool", title: "Direction artistique", description: "Vision creative globale pour votre marque.", features: ["Concept creatif", "Storytelling visuel", "Coherence de marque"] },
+              { icon: "monitor", title: "Web Design", description: "Sites premium qui reflètent votre identite.", features: ["Landing pages", "Sites vitrines", "E-commerce"] },
+            ],
+            columns: 4,
+          },
+          style: s({ backgroundGradient: `linear-gradient(180deg, ${DARK4} 0%, #141416 100%)` }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "portfolio-masonry",
+          content: {
+            title: "Projets selectionnes",
+            subtitle: "Une selection de travaux recents.",
+            items: [
+              { imageUrl: "", title: "Rebranding Startup", category: "Branding", description: "Refonte complete de l'identite visuelle" },
+              { imageUrl: "", title: "App Mobile Finance", category: "UI/UX", description: "Design d'interface pour app fintech" },
+              { imageUrl: "", title: "E-commerce Luxe", category: "Web Design", description: "Boutique en ligne haut de gamme" },
+              { imageUrl: "", title: "Packaging Bio", category: "Direction artistique", description: "Gamme packaging pour marque bio" },
+            ],
+            columns: 2,
+          },
+          style: s(),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "testimonials-dark",
+          content: {
+            title: "Ce qu'ils en disent",
+            testimonials: [
+              { name: "Thomas Renard", role: "CEO", company: "Finova", text: "Un oeil impeccable et une execution parfaite. Notre branding a transforme notre image.", rating: 5 },
+              { name: "Lea Martin", role: "Fondatrice", company: "Maison Verte", text: "Le packaging est sublime. Les ventes ont augmente de 40% depuis le rebranding.", rating: 5 },
+              { name: "Antoine Giraud", role: "CTO", company: "TechWave", text: "L'interface est intuitive et elegante. Nos utilisateurs adorent.", rating: 5 },
+            ],
+          },
+          style: s({ backgroundGradient: `linear-gradient(180deg, #141416 0%, ${DARK4} 100%)` }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "pricing-modern",
+          content: {
+            title: "Formules",
+            subtitle: "Des offres adaptees a chaque besoin.",
+            plans: [
+              { name: "Essential", price: "800", period: "par projet", description: "Logo + charte de base", features: ["Logo vectoriel", "Palette couleurs", "2 typographies", "2 revisions"], isPopular: false, ctaLabel: "Choisir" },
+              { name: "Premium", price: "2 500", period: "par projet", description: "Identite complete", features: ["Logo + variations", "Charte graphique", "Templates social media", "Guide de marque", "5 revisions"], isPopular: true, ctaLabel: "Choisir" },
+              { name: "Studio", price: "Sur devis", period: "", description: "Direction artistique", features: ["Strategie de marque", "Identite complete", "UI/UX design", "Motion design", "Support continu"], isPopular: false, ctaLabel: "Discuter" },
+            ],
+          },
+          style: s(),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "cta-banner",
+          content: {
+            title: "Un projet en tete ?",
+            description: "Parlons de votre vision. Premier echange gratuit, proposition sous 48h.",
+            ctaLabel: "Prendre rendez-vous",
+            blockLink: { type: "none" },
+            secondaryLabel: "Voir les projets",
+            secondaryBlockLink: { type: "none" },
+          },
+          style: s(),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "contact-premium",
+          content: {
+            title: "Parlons design",
+            subtitle: "Decrivez votre projet et je reviens vers vous sous 24h.",
+            fields: [
+              { label: "Nom", type: "text", required: true, placeholder: "Votre nom" },
+              { label: "Email", type: "email", required: true, placeholder: "votre@email.com" },
+              { label: "Type de projet", type: "select", required: true, options: ["Identite visuelle", "UI/UX Design", "Web Design", "Direction artistique", "Autre"] },
+              { label: "Message", type: "textarea", required: true, placeholder: "Votre vision, vos references, votre budget..." },
+            ],
+            submitLabel: "Envoyer",
+            successMessage: "Merci ! Je reviens vers vous rapidement.",
+            saveAsLead: true,
+          },
+          style: s({ backgroundGradient: `linear-gradient(180deg, ${DARK4} 0%, #0D0D0E 100%)` }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "footer-block",
+          content: {
+            siteName: "Studio",
+            description: "Design & direction artistique.",
+            columns: [
+              { title: "Services", links: [{ label: "Branding" }, { label: "UI/UX" }, { label: "Web Design" }] },
+              { title: "Liens", links: [{ label: "Projets" }, { label: "Tarifs" }, { label: "Contact" }] },
+              { title: "Legal", links: [{ label: "Mentions legales" }, { label: "CGV" }] },
+            ],
+            copyright: "Tous droits reserves.",
+            showSocials: true,
+            socials: { instagram: "#", dribbble: "#", linkedin: "#" },
+          },
+          style: s(),
+          settings: {},
+          visible: true,
+        },
+      ],
+    },
+  ];
+}
+
+/* ═══════════════════════════════════════════════════════
+   TEMPLATE 5 — NEON (Purple / Cyberpunk)
+   Cible: YouTuber, streamer, gaming, AI, digital art
+   ═══════════════════════════════════════════════════════ */
+
+const NEON_PURPLE = "#7B61FF";
+const DARK5 = "#050508";
+
+function neonPages(): TemplatePage[] {
+  const s = (ov?: Partial<BlockStyle>) => ds(NEON_PURPLE, DARK5, ov);
+
+  return [
+    {
+      title: "Accueil",
+      slug: "accueil",
+      is_home: true,
+      blocks: [
+        {
+          type: "hero-centered-mesh",
+          content: {
+            badge: "Digital Creator",
+            title: "Create the future.",
+            subtitle: "Contenu premium pour l'ere digitale. Videos, streams, designs et experiences immersives.",
+            ctaLabel: "Decouvrir",
+            blockLink: { type: "none" },
+            trustLogos: [{ name: "YouTube" }, { name: "Twitch" }, { name: "TikTok" }, { name: "Discord" }, { name: "Midjourney" }],
+          },
+          style: s(),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "services-premium",
+          content: {
+            title: "Services",
+            subtitle: "Du contenu qui marque les esprits.",
+            services: [
+              { icon: "video", title: "Montage Premium", description: "Montage dynamique et effets visuels.", features: ["YouTube / Shorts", "Motion design", "VFX & transitions"] },
+              { icon: "image", title: "Thumbnails & Design", description: "Visuels accrocheurs qui maximisent les clics.", features: ["Thumbnails YouTube", "Bannieres", "Overlays stream"] },
+              { icon: "zap", title: "Branding Creator", description: "Identite visuelle pour createurs.", features: ["Logo anime", "Emotes / badges", "Pack complet"] },
+            ],
+            columns: 3,
+          },
+          style: s({ backgroundGradient: `linear-gradient(180deg, ${DARK5} 0%, #0A0A14 100%)` }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "video-showcase",
+          content: {
+            title: "Showreel 2026",
+            subtitle: "Un apercu de mes dernieres creations.",
+            videoUrl: "",
+            stats: [
+              { value: "500+", label: "Videos editees" },
+              { value: "100M+", label: "Vues totales" },
+              { value: "200+", label: "Clients" },
+            ],
+            ctaLabel: "Voir le portfolio",
+            blockLink: { type: "none" },
+          },
+          style: s(),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "portfolio-masonry",
+          content: {
+            title: "Portfolio",
+            subtitle: "Mes realisations recentes.",
+            items: [
+              { imageUrl: "", title: "Gaming Montage", category: "YouTube", description: "Serie de montages gaming viraux" },
+              { imageUrl: "", title: "Stream Pack", category: "Twitch", description: "Pack complet overlays et alertes" },
+              { imageUrl: "", title: "AI Art Collection", category: "Digital Art", description: "Collection generative premium" },
+              { imageUrl: "", title: "Music Video", category: "Video", description: "Clip musical avec VFX" },
+            ],
+            columns: 2,
+          },
+          style: s({ backgroundGradient: `linear-gradient(180deg, #0A0A14 0%, ${DARK5} 100%)` }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "testimonials-dark",
+          content: {
+            title: "Retours",
+            testimonials: [
+              { name: "MaxGaming", role: "YouTuber", company: "2.5M abonnes", text: "Les montages sont insane. Mon audience a triple en 6 mois.", rating: 5 },
+              { name: "Luna_Art", role: "Streameuse", company: "Twitch Partner", text: "Le branding est parfait. Mon stream a un look pro maintenant.", rating: 5 },
+              { name: "CyberKev", role: "Createur AI", company: "500K followers", text: "Des thumbnails qui cartonnent. CTR multiplie par 3.", rating: 5 },
+            ],
+          },
+          style: s(),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "pricing-modern",
+          content: {
+            title: "Tarifs",
+            subtitle: "Des offres claires pour chaque besoin.",
+            plans: [
+              { name: "Starter", price: "99", period: "par video", description: "Montage Short / Reel", features: ["Montage dynamique", "Sous-titres", "Musique libre", "1 revision"], isPopular: false, ctaLabel: "Go" },
+              { name: "Creator", price: "299", period: "par video", description: "Montage YouTube complet", features: ["Montage + habillage", "Motion design", "Color grading", "Sound design", "3 revisions"], isPopular: true, ctaLabel: "Go" },
+              { name: "Legend", price: "Sur devis", period: "", description: "Pack creator complet", features: ["Montage illimite", "Branding complet", "Thumbnails", "Overlays stream", "Support prioritaire"], isPopular: false, ctaLabel: "Contact" },
+            ],
+          },
+          style: s({ backgroundGradient: `linear-gradient(180deg, ${DARK5} 0%, #080812 100%)` }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "cta-banner",
+          content: {
+            title: "Ready to level up ?",
+            description: "Transformez votre contenu. Premier projet livre en 48h.",
+            ctaLabel: "Let's go",
+            blockLink: { type: "none" },
+            secondaryLabel: "Voir les tarifs",
+            secondaryBlockLink: { type: "none" },
+          },
+          style: s(),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "contact-premium",
+          content: {
+            title: "Contact",
+            subtitle: "Decrivez votre projet et je vous reponds en 24h.",
+            fields: [
+              { label: "Pseudo / Nom", type: "text", required: true, placeholder: "Votre pseudo ou nom" },
+              { label: "Email", type: "email", required: true, placeholder: "votre@email.com" },
+              { label: "Plateforme", type: "select", required: true, options: ["YouTube", "Twitch", "TikTok", "Instagram", "Discord", "Autre"] },
+              { label: "Type de projet", type: "select", required: true, options: ["Montage video", "Thumbnails", "Branding / Emotes", "Pack stream", "Autre"] },
+              { label: "Message", type: "textarea", required: true, placeholder: "Votre projet, vos refs, votre budget..." },
+            ],
+            submitLabel: "Envoyer",
+            successMessage: "GG ! Je reviens vers vous rapidement.",
+            saveAsLead: true,
+          },
+          style: s({ backgroundGradient: `linear-gradient(180deg, #080812 0%, ${DARK5} 100%)` }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "footer-block",
+          content: {
+            siteName: "Neon Studio",
+            description: "Contenu premium pour createurs digitaux.",
+            columns: [
+              { title: "Services", links: [{ label: "Montage" }, { label: "Thumbnails" }, { label: "Branding" }] },
+              { title: "Liens", links: [{ label: "Portfolio" }, { label: "Tarifs" }, { label: "Contact" }] },
+              { title: "Social", links: [{ label: "YouTube" }, { label: "Twitter" }, { label: "Discord" }] },
+            ],
+            copyright: "All rights reserved.",
+            showSocials: true,
+            socials: { youtube: "#", twitter: "#", discord: "#" },
+          },
+          style: s(),
+          settings: {},
+          visible: true,
+        },
+      ],
+    },
+  ];
+}
+
+/* ═══════════════════════════════════════════════════════
+   TEMPLATE 6 — EDITORIAL (Warm / Magazine)
+   Cible: Photographe, ecrivain, artiste visuel, studio creatif
+   ═══════════════════════════════════════════════════════ */
+
+const WARM = "#D48B5C";
+const LIGHT6 = "#FAF7F2";
+
+function editorialPages(): TemplatePage[] {
+  const s = (ov?: Partial<BlockStyle>): BlockStyle => ({
+    backgroundColor: LIGHT6,
+    textColor: "#111111",
+    paddingTop: 0,
+    paddingBottom: 0,
+    containerWidth: "boxed",
+    buttonStyle: {
+      bg: WARM,
+      text: "#ffffff",
+      radius: 4,
+      hoverShadow: "md",
+      hoverScale: 1.01,
+      transitionMs: 250,
+    },
+    ...ov,
+  });
+
+  return [
+    {
+      title: "Accueil",
+      slug: "accueil",
+      is_home: true,
+      blocks: [
+        {
+          type: "hero-split-glow",
+          content: {
+            badge: "Photographe",
+            title: "Stories through images.",
+            subtitle: "Photographie d'auteur, reportage et portraits. Des images qui racontent une histoire.",
+            primaryCtaLabel: "Voir le portfolio",
+            primaryBlockLink: { type: "none" },
+            secondaryCtaLabel: "Me contacter",
+            secondaryBlockLink: { type: "none" },
+            glowColor: WARM,
+          },
+          style: s({ backgroundColor: "#F5F1EA" }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "services-premium",
+          content: {
+            title: "Prestations",
+            subtitle: "Des images qui subliment votre histoire.",
+            services: [
+              { icon: "camera", title: "Reportage", description: "Couverture d'evenements et reportages immersifs.", features: ["Evenementiel", "Corporate", "Lifestyle"] },
+              { icon: "user", title: "Portraits", description: "Portraits d'auteur et seances photo personnalisees.", features: ["Studio", "Exterieur", "Retouche fine"] },
+              { icon: "image", title: "Produit", description: "Photos produit et packshot pour e-commerce.", features: ["Fond blanc", "Mise en scene", "Multi-angles"] },
+            ],
+            columns: 3,
+          },
+          style: s({ backgroundColor: LIGHT6 }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "portfolio-masonry",
+          content: {
+            title: "Portfolio",
+            subtitle: "Une selection de travaux recents.",
+            items: [
+              { imageUrl: "", title: "Mariage en Provence", category: "Reportage", description: "Couverture photo d'un mariage en exterieur" },
+              { imageUrl: "", title: "Portrait Corporate", category: "Portrait", description: "Serie portrait pour equipe dirigeante" },
+              { imageUrl: "", title: "Collection Automne", category: "Mode", description: "Shooting mode pour marque ethique" },
+              { imageUrl: "", title: "Gastronomie", category: "Produit", description: "Photos culinaires pour restaurant etoile" },
+              { imageUrl: "", title: "Voyage au Japon", category: "Reportage", description: "Carnet de voyage photographique" },
+              { imageUrl: "", title: "Architecture", category: "Art", description: "Serie sur l'architecture contemporaine" },
+            ],
+            columns: 3,
+          },
+          style: s({ backgroundColor: "#F5F1EA" }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "testimonials-dark",
+          content: {
+            title: "Temoignages",
+            testimonials: [
+              { name: "Claire Beaumont", role: "Mariee", company: "", text: "Des photos magnifiques qui capturent parfaitement l'emotion de notre mariage.", rating: 5 },
+              { name: "Jean-Pierre Morel", role: "Chef etoile", company: "Le Jardin", text: "Mes plats n'ont jamais ete aussi beaux en photo. Un vrai artiste.", rating: 5 },
+              { name: "Sophie Laurent", role: "Directrice", company: "Maison Riviere", text: "Le shooting mode etait parfait. Les images sont sublimes.", rating: 5 },
+            ],
+          },
+          style: s({ backgroundColor: LIGHT6 }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "pricing-modern",
+          content: {
+            title: "Tarifs",
+            subtitle: "Des formules adaptees a chaque projet.",
+            plans: [
+              { name: "Essentiel", price: "350", period: "par seance", description: "Seance photo 1h", features: ["1h de shooting", "20 photos retouchees", "Galerie en ligne", "1 revision"], isPopular: false, ctaLabel: "Reserver" },
+              { name: "Premium", price: "900", period: "par seance", description: "Seance photo demi-journee", features: ["4h de shooting", "60 photos retouchees", "Galerie en ligne", "Tirages inclus", "3 revisions"], isPopular: true, ctaLabel: "Reserver" },
+              { name: "Sur mesure", price: "Sur devis", period: "", description: "Evenement / Reportage", features: ["Journee complete", "Photos illimitees", "Reportage complet", "Livre photo", "Livraison sous 7j"], isPopular: false, ctaLabel: "Me contacter" },
+            ],
+          },
+          style: s({ backgroundColor: "#F5F1EA" }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "cta-banner",
+          content: {
+            title: "Racontons votre histoire",
+            description: "Chaque image merite d'etre exceptionnelle. Parlons de votre prochain projet.",
+            ctaLabel: "Prendre rendez-vous",
+            blockLink: { type: "none" },
+            secondaryLabel: "Voir le portfolio",
+            secondaryBlockLink: { type: "none" },
+          },
+          style: s({ backgroundColor: LIGHT6 }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "contact-premium",
+          content: {
+            title: "Contact",
+            subtitle: "Decrivez votre projet et je vous reponds sous 48h.",
+            fields: [
+              { label: "Nom", type: "text", required: true, placeholder: "Votre nom" },
+              { label: "Email", type: "email", required: true, placeholder: "votre@email.com" },
+              { label: "Type de projet", type: "select", required: true, options: ["Reportage", "Portrait", "Mariage", "Produit", "Mode", "Autre"] },
+              { label: "Date souhaitee", type: "date", required: false },
+              { label: "Message", type: "textarea", required: true, placeholder: "Lieu, ambiance, nombre de personnes..." },
+            ],
+            submitLabel: "Envoyer",
+            successMessage: "Merci ! Je reviens vers vous dans les 48h.",
+            saveAsLead: true,
+          },
+          style: s({ backgroundColor: "#F5F1EA" }),
+          settings: {},
+          visible: true,
+        },
+        {
+          type: "footer-block",
+          content: {
+            siteName: "Studio Photo",
+            description: "Photographie d'auteur & reportage.",
+            columns: [
+              { title: "Services", links: [{ label: "Reportage" }, { label: "Portraits" }, { label: "Produit" }] },
+              { title: "Liens", links: [{ label: "Portfolio" }, { label: "Journal" }, { label: "Contact" }] },
+              { title: "Legal", links: [{ label: "Mentions legales" }, { label: "CGV" }] },
+            ],
+            copyright: "Tous droits reserves.",
+            showSocials: true,
+            socials: { instagram: "#", pinterest: "#" },
+          },
+          style: s({ backgroundColor: "#111111", textColor: "#F5F5F5" }),
+          settings: {},
+          visible: true,
+        },
+      ],
+    },
+  ];
+}
+
+/* ═══════════════════════════════════════════════════════
+   BRIEFS NEW THEMES
+   ═══════════════════════════════════════════════════════ */
+
+const STUDIO_BRIEF: TemplateBriefDefinition = {
+  name: "Brief Design / Branding",
+  description: "Formulaire de brief pour projet de design ou branding.",
+  fields: [
+    { key: "project_type", label: "Type de projet", type: "select", required: true, options: ["Identite visuelle", "UI/UX Design", "Web Design", "Direction artistique", "Packaging", "Autre"], target_kind: "order_field", target_ref: "category" },
+    { key: "briefing", label: "Votre vision", type: "textarea", required: true, placeholder: "Objectifs, valeurs de marque, public cible, references visuelles...", target_kind: "order_field", target_ref: "briefing" },
+    { key: "deadline", label: "Deadline souhaitee", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
+    { key: "resources", label: "Fichiers / references", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
+    { key: "budget", label: "Budget estimatif", type: "select", required: false, options: ["< 1 000 EUR", "1 000 - 3 000 EUR", "3 000 - 10 000 EUR", "> 10 000 EUR"] },
+  ],
+};
+
+const NEON_BRIEF: TemplateBriefDefinition = {
+  name: "Brief Creator Digital",
+  description: "Formulaire de brief pour contenu digital / gaming.",
+  fields: [
+    { key: "platform", label: "Plateforme", type: "select", required: true, options: ["YouTube", "Twitch", "TikTok", "Instagram", "Discord", "Autre"] },
+    { key: "project_type", label: "Type de projet", type: "select", required: true, options: ["Montage video", "Thumbnails", "Branding / Emotes", "Pack stream", "Motion design", "Autre"], target_kind: "order_field", target_ref: "category" },
+    { key: "briefing", label: "Briefing", type: "textarea", required: true, placeholder: "Style, references, chaine YouTube...", target_kind: "order_field", target_ref: "briefing" },
+    { key: "deadline", label: "Deadline", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
+    { key: "resources", label: "Fichiers / rushes", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
+  ],
+};
+
+const EDITORIAL_BRIEF: TemplateBriefDefinition = {
+  name: "Brief Photo / Reportage",
+  description: "Formulaire de brief pour seance photo ou reportage.",
+  fields: [
+    { key: "project_type", label: "Type de prestation", type: "select", required: true, options: ["Reportage", "Portrait", "Mariage", "Produit / Packshot", "Mode", "Evenementiel", "Autre"], target_kind: "order_field", target_ref: "category" },
+    { key: "date", label: "Date souhaitee", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
+    { key: "briefing", label: "Description du projet", type: "textarea", required: true, placeholder: "Lieu, ambiance, nombre de personnes, style souhaite...", target_kind: "order_field", target_ref: "briefing" },
+    { key: "resources", label: "References / moodboard", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
+  ],
+};
+
+/* ═══════════════════════════════════════════════════════
    REGISTRY
    ═══════════════════════════════════════════════════════ */
 
@@ -588,7 +1116,7 @@ export const TEMPLATES: TemplateDefinition[] = [
       backgroundColor: DARK1, surfaceColor: "#141419", textColor: "#ffffff", mutedTextColor: "#999999", borderColor: "#ffffff15",
       fontFamily: "'Space Grotesk', sans-serif", headingFont: "'Playfair Display', serif",
       borderRadius: "rounded", shadow: "md", mode: "dark",
-      containerWidth: "default", buttonRadius: "full",
+      containerWidth: "default", buttonRadius: "full", sectionGap: "none",
     },
     design: {
       designKey: "creator",
@@ -624,7 +1152,7 @@ export const TEMPLATES: TemplateDefinition[] = [
       backgroundColor: DARK2, surfaceColor: "#111113", textColor: "#ffffff", mutedTextColor: "#999999", borderColor: "#ffffff15",
       fontFamily: "'Space Grotesk', sans-serif", headingFont: "'Space Grotesk', sans-serif",
       borderRadius: "rounded", shadow: "sm", mode: "dark",
-      containerWidth: "default", buttonRadius: "md",
+      containerWidth: "default", buttonRadius: "md", sectionGap: "none",
     },
     design: {
       designKey: "product",
@@ -660,7 +1188,7 @@ export const TEMPLATES: TemplateDefinition[] = [
       backgroundColor: DARK3, surfaceColor: "#0D0D1A", textColor: "#ffffff", mutedTextColor: "#999999", borderColor: "#ffffff15",
       fontFamily: "'Sora', sans-serif", headingFont: "'Outfit', sans-serif",
       borderRadius: "rounded", shadow: "lg", mode: "dark",
-      containerWidth: "wide", buttonRadius: "sm",
+      containerWidth: "wide", buttonRadius: "sm", sectionGap: "none",
     },
     design: {
       designKey: "cinema",
@@ -683,6 +1211,115 @@ export const TEMPLATES: TemplateDefinition[] = [
     },
     pages: cinemaPages(),
     brief: CINEMA_BRIEF,
+  },
+  {
+    id: "studio",
+    name: "Studio",
+    description: "Template minimaliste premium pour studios design et DA.",
+    audience: "Designers, studios branding, DA",
+    bullets: ["Hero minimal", "Portfolio masonry", "Pricing modern", "Temoignages", "Contact premium"],
+    gradient: "from-lime-400 to-lime-300",
+    theme: {
+      primaryColor: LIME, secondaryColor: "#A8E600",
+      backgroundColor: DARK4, surfaceColor: "#1A1A1C", textColor: "#F5F5F5", mutedTextColor: "#888888", borderColor: "#2A2A2C",
+      fontFamily: "'Inter Tight', 'Inter', sans-serif", headingFont: "'Inter Tight', 'Inter', sans-serif",
+      borderRadius: "rounded", shadow: "sm", mode: "dark",
+      containerWidth: "default", buttonRadius: "md", sectionGap: "none",
+    },
+    design: {
+      designKey: "studio",
+      backgroundPreset: "noise",
+      heroVariant: "hero-split-glow",
+      cardStyle: "bordered",
+      buttonVariant: "solid",
+      navStyle: "solid",
+      footerStyle: "minimal",
+    },
+    nav: {
+      links: [{ label: "Accueil" }, { label: "Services" }, { label: "Projets" }, { label: "Tarifs" }, { label: "Contact" }],
+      showCta: true,
+      ctaLabel: "Collaborer",
+    },
+    footer: {
+      links: [{ label: "Accueil" }, { label: "Projets" }, { label: "Tarifs" }, { label: "Contact" }],
+      showSocials: true,
+      copyright: "Tous droits reserves.",
+    },
+    pages: studioPages(),
+    brief: STUDIO_BRIEF,
+  },
+  {
+    id: "neon",
+    name: "Neon",
+    description: "Template cyberpunk futuriste pour createurs digitaux.",
+    audience: "YouTubers, streamers, gaming, AI",
+    bullets: ["Hero neon mesh", "Showreel video", "Portfolio masonry", "Pricing gaming", "Contact premium"],
+    gradient: "from-purple-500 to-cyan-400",
+    theme: {
+      primaryColor: NEON_PURPLE, secondaryColor: "#00F0FF",
+      backgroundColor: DARK5, surfaceColor: "#0D0D14", textColor: "#EEEEF0", mutedTextColor: "#7A7A8C", borderColor: "#1A1A2E",
+      fontFamily: "'Space Grotesk', sans-serif", headingFont: "'Space Grotesk', sans-serif",
+      borderRadius: "rounded", shadow: "lg", mode: "dark",
+      containerWidth: "wide", buttonRadius: "md", sectionGap: "none",
+      buttonHoverScale: 1.03,
+    },
+    design: {
+      designKey: "neon",
+      backgroundPreset: "mesh",
+      heroVariant: "hero-centered-mesh",
+      cardStyle: "glass",
+      buttonVariant: "gradient",
+      navStyle: "blur",
+      footerStyle: "centered",
+    },
+    nav: {
+      links: [{ label: "Accueil" }, { label: "Services" }, { label: "Portfolio" }, { label: "Tarifs" }, { label: "Contact" }],
+      showCta: true,
+      ctaLabel: "Let's go",
+    },
+    footer: {
+      links: [{ label: "Accueil" }, { label: "Portfolio" }, { label: "Tarifs" }, { label: "Contact" }],
+      showSocials: true,
+      copyright: "All rights reserved.",
+    },
+    pages: neonPages(),
+    brief: NEON_BRIEF,
+  },
+  {
+    id: "editorial",
+    name: "Editorial",
+    description: "Template editorial haut de gamme pour photographes et artistes.",
+    audience: "Photographes, ecrivains, artistes visuels",
+    bullets: ["Hero editorial", "Portfolio masonry 3 col", "Pricing seances", "Temoignages", "Contact premium"],
+    gradient: "from-amber-600 to-amber-400",
+    theme: {
+      primaryColor: WARM, secondaryColor: "#A5A58D",
+      backgroundColor: LIGHT6, surfaceColor: "#F0EDE6", textColor: "#111111", mutedTextColor: "#6B6B6B", borderColor: "#DDD8D0",
+      fontFamily: "'Inter', sans-serif", headingFont: "'Playfair Display', serif",
+      borderRadius: "rounded", shadow: "sm", mode: "light",
+      containerWidth: "default", buttonRadius: "sm", sectionGap: "none",
+    },
+    design: {
+      designKey: "editorial",
+      backgroundPreset: "noise",
+      heroVariant: "hero-split-glow",
+      cardStyle: "flat",
+      buttonVariant: "solid",
+      navStyle: "solid",
+      footerStyle: "columns",
+    },
+    nav: {
+      links: [{ label: "Accueil" }, { label: "Portfolio" }, { label: "Prestations" }, { label: "Tarifs" }, { label: "Contact" }],
+      showCta: true,
+      ctaLabel: "Prendre rendez-vous",
+    },
+    footer: {
+      links: [{ label: "Accueil" }, { label: "Portfolio" }, { label: "Tarifs" }, { label: "Contact" }],
+      showSocials: true,
+      copyright: "Tous droits reserves.",
+    },
+    pages: editorialPages(),
+    brief: EDITORIAL_BRIEF,
   },
 ];
 

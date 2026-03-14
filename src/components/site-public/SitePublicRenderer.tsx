@@ -706,7 +706,7 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
               : <SitePublicNav site={resolvedSite} currentSlug={page.slug} />
           )}
 
-          <main className="flex-1 relative z-[1]">
+          <main className="flex-1 relative z-[1] flex flex-col" style={{ gap: `var(--site-section-gap, 0px)` }}>
             {visibleBlocks.map((block) => (
               <PublicBlockSection key={block.id} block={block} site={resolvedSite} pagePath={page.slug} />
             ))}

@@ -1559,6 +1559,7 @@ export interface SiteTheme {
   buttonHoverBorder?: string;
   buttonHoverShadow?: "none" | "sm" | "md" | "lg";
   buttonHoverScale?: number;
+  sectionGap?: "none" | "compact" | "normal" | "large" | "hero";
 }
 
 export type BackgroundPreset = "none" | "solid" | "glow" | "mesh" | "grid-tech" | "noise" | "dots" | "gradient-radial" | "particles-float" | "particles-constellation" | "particles-aura" | "luxe-waves" | "halo-spotlight";
@@ -1580,7 +1581,7 @@ export interface BackgroundConfig {
   dotSize?: number;       // dot radius (0.5-4 px)
 }
 
-export type DesignKey = "creator" | "product" | "cinema" | "custom";
+export type DesignKey = "creator" | "product" | "cinema" | "studio" | "neon" | "editorial" | "custom";
 
 export interface SiteDesign {
   designKey: DesignKey;
