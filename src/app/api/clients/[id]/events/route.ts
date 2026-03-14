@@ -22,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
   // Fetch orders for synthetic events
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: orders } = await (supabase.from("orders") as any)
-    .select("id, title, amount, status, created_at, products(name)")
+    .select("id, title, amount, status, created_at, products!service_id(name)")
     .eq("client_id", id)
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })

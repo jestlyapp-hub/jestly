@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
   // Fetch the order
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: order, error: oErr } = await (supabase.from("orders") as any)
-    .select("*, clients(name), products(name)")
+    .select("*, clients(name), products!service_id(name)")
     .eq("id", order_id)
     .eq("user_id", user.id)
     .single();

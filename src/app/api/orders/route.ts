@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from("orders") as any)
-    .select("*, clients(name, email, phone), products(name), order_brief_responses(order_id)")
+    .select("*, clients(name, email, phone), products!service_id(name), order_brief_responses(order_id)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await (supabase.from("orders") as any)
       .insert(base)
-      .select("*, clients(name, email, phone), products(name)")
+      .select("*, clients(name, email, phone), products!service_id(name)")
       .single();
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("orders") as any)
     .insert(rows)
-    .select("*, clients(name, email, phone), products(name)");
+    .select("*, clients(name, email, phone), products!service_id(name)");
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data, { status: 201 });
