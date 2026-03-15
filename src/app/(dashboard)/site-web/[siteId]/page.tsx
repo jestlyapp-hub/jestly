@@ -351,8 +351,8 @@ export default function SiteWebDashboard() {
             <tbody>
               {recentOrders.map((o: any) => (
                 <tr key={o.id} className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors">
-                  <td className="px-5 py-3 text-[13px] font-medium text-[#1A1A1A]">{o.client_name || "—"}</td>
-                  <td className="px-5 py-3 text-[13px] text-[#5A5A58]">{o.product_name || "—"}</td>
+                  <td className="px-5 py-3 text-[13px] font-medium text-[#1A1A1A]">{o.clientName || "—"}</td>
+                  <td className="px-5 py-3 text-[13px] text-[#5A5A58]">{o.productName || "—"}</td>
                   <td className="px-5 py-3 text-[13px] font-medium text-[#1A1A1A]">{o.amount ? `${o.amount} €` : "—"}</td>
                   <td className="px-5 py-3"><BadgeStatus status={o.status || "new"} /></td>
                   <td className="px-5 py-3 text-[12px] text-[#8A8A88]">{o.created_at ? new Date(o.created_at).toLocaleDateString("fr-FR") : "—"}</td>

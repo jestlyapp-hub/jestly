@@ -127,7 +127,7 @@ export async function GET(
     // Current period orders
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: currentOrders } = await (supabase.from("orders") as any)
-      .select("id, amount, status, created_at, client_id, service_id, title, clients(name, email)")
+      .select("id, amount, status, created_at, client_id, product_id, title, clients(name, email)")
       .eq("user_id", user.id)
       .gte("created_at", currentStartISO)
       .lte("created_at", nowISO)
@@ -176,17 +176,17 @@ export async function GET(
     const last5 = (currentOrders || []).slice(0, 5);
 
     // Fetch product names for those orders
-    const serviceIds = [...new Set(
+    const productIds = [...new Set(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      last5.map((o: any) => o.service_id).filter(Boolean)
+      last5.map((o: any) => o.product_id).filter(Boolean)
     )];
 
     let productsMap = new Map<string, string>();
-    if (serviceIds.length > 0) {
+    if (productIds.length > 0) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: products } = await (supabase.from("products") as any)
         .select("id, name")
-        .in("id", serviceIds);
+        .in("id", productIds);
       if (products) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         products.forEach((p: any) => productsMap.set(p.id, p.name));
@@ -197,7 +197,7 @@ export async function GET(
     const recentOrders = last5.map((o: any) => ({
       id: o.id,
       clientName: o.clients?.name || "Anonyme",
-      productName: productsMap.get(o.service_id) || o.title || "Sans produit",
+      productName: productsMap.get(o.product_id) || o.title || "Sans produit",
       amount: num(o.amount),
       status: o.status,
       date: o.created_at,

@@ -279,7 +279,7 @@ export async function GET(req: NextRequest) {
     const byProduct = new Map<string, { name: string; revenue: number; orders: number; refunds: number }>();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     activeOrders.forEach((o: any) => {
-      const key = o.service_id || "no_product";
+      const key = o.product_id || "no_product";
       const name = o.products?.name || o.title || "Sans produit";
       const entry = byProduct.get(key) || { name, revenue: 0, orders: 0, refunds: 0 };
       entry.revenue += num(o.amount);
@@ -288,7 +288,7 @@ export async function GET(req: NextRequest) {
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     refundedOrders.forEach((o: any) => {
-      const key = o.service_id || "no_product";
+      const key = o.product_id || "no_product";
       const entry = byProduct.get(key);
       if (entry) entry.refunds += 1;
     });
@@ -306,7 +306,7 @@ export async function GET(req: NextRequest) {
 
     // Check if any orders actually have product_id
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ordersWithProduct = activeOrders.filter((o: any) => o.service_id).length;
+    const ordersWithProduct = activeOrders.filter((o: any) => o.product_id).length;
     const productsLinked = ordersWithProduct > 0;
 
     // ── Top Clients ──
@@ -523,7 +523,7 @@ export async function GET(req: NextRequest) {
           status: o.status,
           created_at: o.created_at,
           client_id: o.client_id,
-          service_id: o.service_id,
+          product_id: o.product_id,
           clientName: o.clients?.name,
           productName: o.title,
         })),

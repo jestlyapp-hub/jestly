@@ -191,7 +191,7 @@ export interface Database {
           id: string;
           user_id: string;
           client_id: string;
-          service_id: string | null;
+          product_id: string | null;
           title: string;
           description: string;
           amount: number;
@@ -370,7 +370,7 @@ export interface Database {
         Row: {
           id: string;
           order_id: string;
-          service_id: string;
+          product_id: string;
           quantity: number;
           unit_price: number;
           created_at: string;
@@ -378,14 +378,14 @@ export interface Database {
         Insert: {
           id?: string;
           order_id: string;
-          service_id: string;
+          product_id: string;
           quantity?: number;
           unit_price: number;
           created_at?: string;
         };
         Update: {
           order_id?: string;
-          service_id?: string;
+          product_id?: string;
           quantity?: number;
           unit_price?: number;
         };
@@ -571,14 +571,14 @@ export interface Database {
         Row: {
           id: string;
           site_id: string;
-          service_id: string;
+          product_id: string;
           display_config: Json;
           created_at: string;
         };
         Insert: {
           id?: string;
           site_id: string;
-          service_id: string;
+          product_id: string;
           display_config?: Json;
         };
         Update: {

@@ -89,7 +89,7 @@ export async function GET() {
 
   // ── Recent orders (with product + client names) ────────────────
   const { data: recent_orders_raw } = await (sb.from("orders") as any)
-    .select("id, amount, status, created_at, service_id, client_id")
+    .select("id, amount, status, created_at, product_id, client_id")
     .order("created_at", { ascending: false })
     .limit(10);
 
@@ -99,10 +99,10 @@ export async function GET() {
       let product_name = null;
       let client_name = null;
 
-      if (o.service_id) {
+      if (o.product_id) {
         const { data: p } = await (sb.from("products") as any)
           .select("name")
-          .eq("id", o.service_id)
+          .eq("id", o.product_id)
           .single();
         product_name = p?.name || null;
       }

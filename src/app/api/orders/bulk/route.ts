@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
           const copy: Record<string, any> = {
             user_id: user.id,
             client_id: o.client_id,
-            service_id: o.service_id || null,
+            product_id: o.product_id || null,
             title: `${o.title || "Sans titre"} (copie)`,
             description: o.description || "",
             amount: o.amount ?? 0,
