@@ -2,8 +2,21 @@
 
 import { memo } from "react";
 import type { ProductFeaturedCardBlockContent } from "@/types";
+import { useProductById } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 
 function ProductFeaturedCardBlockPreviewInner({ content }: { content: ProductFeaturedCardBlockContent }) {
+  const resolvedProduct = useProductById(content.productId || "");
+  const display = content.mode === "product" && resolvedProduct ? {
+    title: resolvedProduct.name,
+    description: resolvedProduct.shortDescription || content.description,
+    price: formatPrice(resolvedProduct.priceCents),
+    benefits: resolvedProduct.features?.length ? resolvedProduct.features : content.benefits,
+    ctaLabel: resolvedProduct.ctaLabel || content.ctaLabel,
+    imageUrl: resolvedProduct.coverImageUrl || content.imageUrl,
+    trustNote: content.trustNote,
+  } : content;
+
   return (
     <section
       className="py-16 px-6"
@@ -23,10 +36,10 @@ function ProductFeaturedCardBlockPreviewInner({ content }: { content: ProductFea
               background: "var(--site-primary-light, rgba(79,70,229,0.1))",
             }}
           >
-            {content.imageUrl ? (
+            {display.imageUrl ? (
               <img
-                src={content.imageUrl}
-                alt={content.title}
+                src={display.imageUrl}
+                alt={display.title}
                 className="w-full h-full object-cover"
               />
             ) : (
@@ -57,27 +70,27 @@ function ProductFeaturedCardBlockPreviewInner({ content }: { content: ProductFea
                 fontFamily: "var(--site-heading-font, inherit)",
               }}
             >
-              {content.title}
+              {display.title}
             </h2>
 
             <p
               className="text-2xl font-bold mb-4"
               style={{ color: "var(--site-primary, #4F46E5)" }}
             >
-              {content.price}
+              {display.price}
             </p>
 
             <p
               className="text-sm leading-relaxed mb-5"
               style={{ color: "var(--site-muted, #6b7280)" }}
             >
-              {content.description}
+              {display.description}
             </p>
 
             {/* Benefits checklist */}
-            {content.benefits.length > 0 && (
+            {display.benefits.length > 0 && (
               <ul className="space-y-2 mb-6">
-                {content.benefits.map((benefit, i) => (
+                {display.benefits.map((benefit, i) => (
                   <li
                     key={i}
                     className="flex items-center gap-2 text-sm"
@@ -111,16 +124,16 @@ function ProductFeaturedCardBlockPreviewInner({ content }: { content: ProductFea
                 borderRadius: "var(--site-btn-radius, 8px)",
               }}
             >
-              {content.ctaLabel}
+              {display.ctaLabel}
             </button>
 
             {/* Trust note */}
-            {content.trustNote && (
+            {display.trustNote && (
               <p
                 className="text-xs mt-3 text-center"
                 style={{ color: "var(--site-muted, #6b7280)" }}
               >
-                {content.trustNote}
+                {display.trustNote}
               </p>
             )}
           </div>

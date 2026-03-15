@@ -1,15 +1,30 @@
 import { memo } from "react";
 import type { PricingTableBlockContent } from "@/types";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
+import { useProductsByIds } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 
 function PricingTableBlockPreviewInner({ content }: { content: PricingTableBlockContent }) {
   const cols = content.columns === 2 ? "grid-cols-2" : content.columns === 4 ? "grid-cols-4" : "grid-cols-3";
+  const resolvedProducts = useProductsByIds(content.productIds || []);
+  const displayPlans = content.mode === "product" && resolvedProducts.length > 0
+    ? resolvedProducts.map(p => ({
+        name: p.name,
+        price: p.priceCents / 100,
+        period: "monthly" as const,
+        description: p.shortDescription || "",
+        features: p.features || [],
+        isPopular: false,
+        ctaLabel: p.ctaLabel || "Choisir",
+        productId: p.id,
+      }))
+    : content.plans;
 
   return (
     <div className="py-6">
       {content.title && <h3 className="text-lg font-bold text-center mb-6" style={{ color: "var(--site-text)" }}>{content.title}</h3>}
       <div className={`grid ${cols} gap-4`}>
-        {content.plans.map((plan, i) => (
+        {displayPlans.map((plan, i) => (
           <div
             key={i}
             className={`rounded-xl p-5 relative ${plan.isPopular ? "shadow-lg" : ""}`}

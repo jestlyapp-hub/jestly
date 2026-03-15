@@ -1,9 +1,18 @@
 "use client";
 
 import { memo } from "react";
-import type { ProjectsHorizontalBlockContent } from "@/types";
+import type { ProjectsHorizontalBlockContent, PortfolioCard } from "@/types";
 
 function ProjectsHorizontalBlockPreviewInner({ content }: { content: ProjectsHorizontalBlockContent }) {
+  // Merge linked projects with manual items
+  const projects: { imageUrl?: string; title: string; category: string }[] =
+    (content as any).source === "linked_projects" && (content as any).resolvedProjects?.length
+      ? ((content as any).resolvedProjects as PortfolioCard[]).map((rp) => ({
+          imageUrl: rp.imageUrl || "",
+          title: rp.title,
+          category: rp.category,
+        }))
+      : content.projects;
   return (
     <section
       className="py-16 px-6"
@@ -30,7 +39,7 @@ function ProjectsHorizontalBlockPreviewInner({ content }: { content: ProjectsHor
 
         <div className="overflow-x-auto -mx-6 px-6 pb-4">
           <div className="flex gap-5 flex-nowrap" style={{ minWidth: "max-content" }}>
-            {content.projects.map((project, i) => (
+            {projects.map((project, i) => (
               <div
                 key={i}
                 className="w-72 flex-shrink-0 rounded-lg overflow-hidden"

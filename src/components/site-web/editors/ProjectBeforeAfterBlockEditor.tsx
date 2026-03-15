@@ -80,6 +80,14 @@ export default function ProjectBeforeAfterBlockEditor({
         />
       </div>
 
+      {/* Linked project hint */}
+      <div className="p-2.5 rounded-lg border border-dashed border-[#E6E6E4] bg-[#FBFBFA]">
+        <div className="flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A88" strokeWidth="2" strokeLinecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+          <span className="text-[11px] text-[#8A8A88]">Lier a un projet Jestly (bientot disponible)</span>
+        </div>
+      </div>
+
       {/* Items */}
       <label className="block text-[12px] font-medium text-[#5A5A58]">
         Transformations

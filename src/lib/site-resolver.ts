@@ -63,6 +63,53 @@ function transformDbPageToFrontend(dbPage: any): SitePage {
   };
 }
 
+/** Block types that represent portfolio/projects sections */
+const PORTFOLIO_BLOCK_TYPES: string[] = [
+  "portfolio-grid", "portfolio-masonry", "projects-grid-cases",
+  "projects-horizontal", "project-before-after", "project-timeline",
+  "project-masonry-wall",
+];
+
+/** Block types that represent sale/product sections */
+const SALE_BLOCK_TYPES: string[] = [
+  "product-featured-card", "products-3card-shop", "product-bundle-compare",
+  "product-benefits-mockup", "pricing-table", "pricing-3tier-saas",
+  "pricing-custom-quote", "pricing-mini-faq", "services-premium",
+  "services-3card-premium", "services-icon-grid", "services-process-offers",
+  "comparison-table",
+];
+
+/** Block types that capture leads via forms */
+const FORM_BLOCK_TYPES: string[] = [
+  "custom-form", "contact-form", "contact-premium", "form-contact-simple",
+  "form-quote-request", "form-newsletter-lead", "newsletter", "lead-magnet",
+];
+
+/**
+ * Migrate block content to ensure new data-binding fields have sensible defaults.
+ * This runs at read time so existing blocks in the DB are forward-compatible
+ * without requiring a SQL migration.
+ */
+function migrateBlockDataBindings(block: Block): void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const c = block.content as any;
+
+  // Portfolio blocks: default source = "manual"
+  if (PORTFOLIO_BLOCK_TYPES.includes(block.type) && c.source === undefined) {
+    c.source = "manual";
+  }
+
+  // Sale blocks without mode: default to "manual"
+  if (SALE_BLOCK_TYPES.includes(block.type) && c.mode === undefined) {
+    c.mode = "manual";
+  }
+
+  // Form blocks: ensure saveAsLead defaults to true
+  if (FORM_BLOCK_TYPES.includes(block.type) && c.saveAsLead === undefined) {
+    c.saveAsLead = true;
+  }
+}
+
 function transformDbBlockToFrontend(dbBlock: any): Block {
   const block = {
     id: dbBlock.id,
@@ -75,6 +122,9 @@ function transformDbBlockToFrontend(dbBlock: any): Block {
 
   // Migrate old link fields → blockLink at read time
   migrateBlockLinks(block);
+
+  // Ensure new data-binding fields have defaults for backward compat
+  migrateBlockDataBindings(block);
 
   return block;
 }

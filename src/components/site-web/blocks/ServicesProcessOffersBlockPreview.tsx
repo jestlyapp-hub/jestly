@@ -2,8 +2,18 @@
 
 import { memo } from "react";
 import type { ServicesProcessOffersBlockContent } from "@/types";
+import { useProductsByIds } from "@/lib/product-context";
 
 function ServicesProcessOffersBlockPreviewInner({ content }: { content: ServicesProcessOffersBlockContent }) {
+  const resolvedProducts = useProductsByIds(content.productIds || []);
+  const displayOffers = content.mode === "product" && resolvedProducts.length > 0
+    ? resolvedProducts.map((p) => ({
+        title: p.name,
+        description: p.shortDescription || "",
+        steps: p.features?.length ? p.features : [],
+      }))
+    : content.offers;
+
   return (
     <section
       className="py-16 px-6"
@@ -24,7 +34,7 @@ function ServicesProcessOffersBlockPreviewInner({ content }: { content: Services
 
         {/* Horizontal offer cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {content.offers.map((offer, i) => (
+          {displayOffers.map((offer, i) => (
             <div
               key={i}
               className="rounded-xl p-6 flex flex-col"

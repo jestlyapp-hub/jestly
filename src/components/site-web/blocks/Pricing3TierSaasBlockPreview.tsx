@@ -2,8 +2,23 @@
 
 import { memo } from "react";
 import type { Pricing3TierSaasBlockContent } from "@/types";
+import { useProductsByIds } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 
 function Pricing3TierSaasBlockPreviewInner({ content }: { content: Pricing3TierSaasBlockContent }) {
+  const resolvedProducts = useProductsByIds(content.productIds || []);
+  const displayPlans = content.mode === "product" && resolvedProducts.length > 0
+    ? resolvedProducts.map(p => ({
+        name: p.name,
+        price: formatPrice(p.priceCents),
+        period: "/ projet",
+        description: p.shortDescription || "",
+        features: p.features || [],
+        isPopular: false,
+        ctaLabel: p.ctaLabel || "Choisir",
+      }))
+    : content.plans;
+
   return (
     <section
       className="py-16 px-6"
@@ -34,7 +49,7 @@ function Pricing3TierSaasBlockPreviewInner({ content }: { content: Pricing3TierS
 
         {/* 3 Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          {content.plans.map((plan, i) => (
+          {displayPlans.map((plan, i) => (
             <div
               key={i}
               className="rounded-xl p-7 flex flex-col relative"

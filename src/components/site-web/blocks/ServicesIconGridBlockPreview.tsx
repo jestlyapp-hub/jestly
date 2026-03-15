@@ -2,8 +2,18 @@
 
 import { memo } from "react";
 import type { ServicesIconGridBlockContent } from "@/types";
+import { useProductsByIds } from "@/lib/product-context";
 
 function ServicesIconGridBlockPreviewInner({ content }: { content: ServicesIconGridBlockContent }) {
+  const resolvedProducts = useProductsByIds(content.productIds || []);
+  const displayServices = content.mode === "product" && resolvedProducts.length > 0
+    ? resolvedProducts.map((p) => ({
+        icon: "package",
+        title: p.name,
+        description: p.shortDescription || "",
+      }))
+    : content.services;
+
   return (
     <section
       className="py-16 px-6"
@@ -34,7 +44,7 @@ function ServicesIconGridBlockPreviewInner({ content }: { content: ServicesIconG
 
         {/* 2x3 Icon Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {content.services.map((service, i) => (
+          {displayServices.map((service, i) => (
             <div
               key={i}
               className="rounded-xl p-6 text-center"

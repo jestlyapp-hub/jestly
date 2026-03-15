@@ -1,9 +1,11 @@
 "use client";
 
+import { useCallback } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
-import type { Block, Link } from "@/types";
+import type { Block, Link, PortfolioCard } from "@/types";
 import LinkPicker from "./LinkPicker";
 import ImageUploader from "./ImageUploader";
+import PortfolioSourceEditor from "./shared/PortfolioSourceEditor";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-9 h-5 rounded-full transition-colors cursor-pointer";
@@ -12,6 +14,14 @@ const toggleDotClass = "absolute top-0.5 w-4 h-4 rounded-full bg-white shadow tr
 export default function PortfolioGridBlockEditor({ block }: { block: Extract<Block, { type: "portfolio-grid" }> }) {
   const { dispatch } = useBuilder();
   const update = (content: Record<string, unknown>) => dispatch({ type: "UPDATE_BLOCK_CONTENT", blockId: block.id, content });
+
+  const source = block.content.source || "manual";
+  const linkedProjectIds = block.content.linkedProjectIds || [];
+
+  const handleResolvedChange = useCallback((cards: PortfolioCard[]) => {
+    update({ resolvedProjects: cards });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateItem = (index: number, field: string, value: unknown) => {
     const items = [...block.content.items];
@@ -77,6 +87,18 @@ export default function PortfolioGridBlockEditor({ block }: { block: Extract<Blo
         </div>
       </div>
 
+      {/* Source selector */}
+      <PortfolioSourceEditor
+        source={source}
+        linkedProjectIds={linkedProjectIds}
+        onSourceChange={(s) => update({ source: s })}
+        onLinkedIdsChange={(ids) => update({ linkedProjectIds: ids })}
+        onResolvedChange={handleResolvedChange}
+      />
+
+      {/* Manual content — only shown in manual mode */}
+      {source === "manual" && (
+      <>
       {/* Categories */}
       <div className="border-t border-[#E6E6E4] pt-3">
         <label className="block text-[11px] font-medium text-[#999] mb-2">Catégories ({categories.length})</label>
@@ -116,6 +138,8 @@ export default function PortfolioGridBlockEditor({ block }: { block: Extract<Blo
         </div>
       ))}
       <button onClick={addItem} className="text-[12px] font-medium text-[#4F46E5] hover:underline">+ Ajouter un projet</button>
+      </>
+      )}
     </div>
   );
 }

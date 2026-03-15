@@ -1,8 +1,19 @@
 import { memo } from "react";
 import type { ComparisonTableBlockContent } from "@/types";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
+import { useProductsByIds } from "@/lib/product-context";
 
 function ComparisonTableBlockPreviewInner({ content }: { content: ComparisonTableBlockContent }) {
+  const resolvedProducts = useProductsByIds(content.productIds || []);
+  const displayPlans = content.mode === "product" && resolvedProducts.length > 0
+    ? content.plans.map((plan, i) => ({
+        ...plan,
+        name: resolvedProducts[i]?.name || plan.name,
+        productId: resolvedProducts[i]?.id || plan.productId,
+        ctaLabel: resolvedProducts[i]?.ctaLabel || plan.ctaLabel,
+      }))
+    : content.plans;
+
   return (
     <div className="py-6">
       {content.title && <h3 className="text-lg font-bold text-center mb-6" style={{ color: "var(--site-text)" }}>{content.title}</h3>}
@@ -11,7 +22,7 @@ function ComparisonTableBlockPreviewInner({ content }: { content: ComparisonTabl
           <thead>
             <tr>
               <th className="text-[12px] font-medium pb-3 pr-4" style={{ color: "var(--site-muted, #999)" }}>Fonctionnalites</th>
-              {content.plans.map((plan, i) => (
+              {displayPlans.map((plan, i) => (
                 <th key={i} className={`text-[13px] font-bold pb-3 px-4 text-center ${plan.isHighlighted ? "text-[var(--site-primary)]" : ""}`} style={!plan.isHighlighted ? { color: "var(--site-text)" } : undefined}>{plan.name}</th>
               ))}
             </tr>
@@ -39,7 +50,7 @@ function ComparisonTableBlockPreviewInner({ content }: { content: ComparisonTabl
           <tfoot>
             <tr style={{ borderTop: "1px solid var(--site-border, #E6E6E4)" }}>
               <td />
-              {content.plans.map((plan, i) => (
+              {displayPlans.map((plan, i) => (
                 <td key={i} className="text-center pt-4 px-4">
                   <SmartLinkButton link={plan.productId ? { type: "product", productId: plan.productId, mode: "checkout" } : { type: "none" }} label={plan.ctaLabel} className="inline-block text-[11px] font-semibold px-4 py-1.5 cursor-pointer" />
                 </td>

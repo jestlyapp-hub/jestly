@@ -2,8 +2,20 @@
 
 import { memo } from "react";
 import type { Services3CardPremiumBlockContent } from "@/types";
+import { useProductsByIds } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 
 function Services3CardPremiumBlockPreviewInner({ content }: { content: Services3CardPremiumBlockContent }) {
+  const resolvedProducts = useProductsByIds(content.productIds || []);
+  const displayServices = content.mode === "product" && resolvedProducts.length > 0
+    ? resolvedProducts.map((p) => ({
+        title: p.name,
+        description: p.shortDescription || "",
+        features: p.features?.length ? p.features : [],
+        ctaLabel: p.ctaLabel || "En savoir plus",
+      }))
+    : content.services;
+
   return (
     <section
       className="py-16 px-6"
@@ -34,7 +46,7 @@ function Services3CardPremiumBlockPreviewInner({ content }: { content: Services3
 
         {/* 3 Service Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {content.services.map((service, i) => (
+          {displayServices.map((service, i) => (
             <div
               key={i}
               className="rounded-xl p-7 flex flex-col"

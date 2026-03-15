@@ -622,6 +622,9 @@ export interface PortfolioGridBlockContent {
   showFilter: boolean;
   showDetailLink: boolean;
   showSearch?: boolean;
+  source?: "manual" | "linked_projects";
+  linkedProjectIds?: string[];
+  resolvedProjects?: PortfolioCard[];
 }
 
 export interface ServicesListBlockContent extends SaleBlockBriefSettings {
@@ -683,6 +686,11 @@ export interface CenteredCtaBlockContent {
 export interface CustomFormBlockContent {
   fields: { label: string; type: "text" | "email" | "textarea" | "select"; required: boolean }[];
   submitLabel: string;
+  successMessage?: string;
+  saveAsLead?: boolean;
+  notifyEmail?: string;
+  leadSource?: LeadSource;
+  leadTags?: string[];
 }
 
 export interface CalendarBookingBlockContent {
@@ -704,11 +712,16 @@ export interface NewsletterBlockContent {
   description: string;
   placeholder: string;
   buttonLabel: string;
+  successMessage?: string;
+  saveAsLead?: boolean;
+  notifyEmail?: string;
+  leadSource?: LeadSource;
+  leadTags?: string[];
 }
 
 /* ─── New V2 Block Content Types ─── */
 
-export interface PricingTableBlockContent {
+export interface PricingTableBlockContent extends SaleBlockBriefSettings {
   title?: string;
   plans: {
     name: string;
@@ -722,6 +735,8 @@ export interface PricingTableBlockContent {
   }[];
   showToggle: boolean;
   columns: 2 | 3 | 4;
+  mode?: "manual" | "product";
+  productIds?: string[];
 }
 
 export interface FeatureGridBlockContent {
@@ -811,7 +826,7 @@ export interface MasonryGalleryBlockContent {
   maxImages: number;
 }
 
-export interface ComparisonTableBlockContent {
+export interface ComparisonTableBlockContent extends SaleBlockBriefSettings {
   title?: string;
   plans: {
     name: string;
@@ -823,6 +838,8 @@ export interface ComparisonTableBlockContent {
     feature: string;
     values: (boolean | string)[];
   }[];
+  mode?: "manual" | "product";
+  productIds?: string[];
 }
 
 export interface ContactFormBlockContent {
@@ -899,6 +916,10 @@ export interface LeadMagnetBlockContent {
   fileUrl: string;
   buttonLabel: string;
   successMessage: string;
+  saveAsLead?: boolean;
+  notifyEmail?: string;
+  leadSource?: LeadSource;
+  leadTags?: string[];
 }
 
 /* ─── V1.5 Sale Block Content Types ─── */
@@ -974,7 +995,7 @@ export interface HeroCenteredMeshBlockContent {
   glowColor?: string;
 }
 
-export interface ServicesPremiumBlockContent {
+export interface ServicesPremiumBlockContent extends SaleBlockBriefSettings {
   title?: string;
   subtitle?: string;
   services: {
@@ -984,6 +1005,8 @@ export interface ServicesPremiumBlockContent {
     features?: string[];
   }[];
   columns: 3 | 4;
+  mode?: "manual" | "product";
+  productIds?: string[];
 }
 
 export interface PortfolioMasonryBlockContent {
@@ -996,6 +1019,9 @@ export interface PortfolioMasonryBlockContent {
     description?: string;
   }[];
   columns: 2 | 3;
+  source?: "manual" | "linked_projects";
+  linkedProjectIds?: string[];
+  resolvedProjects?: PortfolioCard[];
 }
 
 export interface PricingModernBlockContent extends SaleBlockBriefSettings {
@@ -1132,9 +1158,28 @@ export interface ProjectsGridCasesBlockContent {
   resolvedProjects?: PortfolioCard[];
   projects: { imageUrl?: string; title: string; category: string; result: string }[];
 }
-export interface ProjectsHorizontalBlockContent { title: string; subtitle?: string; projects: { imageUrl?: string; title: string; category: string }[]; ctaLabel?: string; }
-export interface ProjectBeforeAfterBlockContent { title: string; subtitle?: string; items: { beforeLabel: string; afterLabel: string; beforeImageUrl?: string; afterImageUrl?: string; resultText: string; metricBadge?: string; description: string; category?: string }[]; }
-export interface ProjectTimelineBlockContent { title: string; subtitle?: string; steps: { title: string; description: string; tag?: string }[]; resultSummary?: string; }
+export interface ProjectsHorizontalBlockContent {
+  title: string;
+  subtitle?: string;
+  projects: { imageUrl?: string; title: string; category: string }[];
+  ctaLabel?: string;
+  source?: "manual" | "linked_projects";
+  linkedProjectIds?: string[];
+  resolvedProjects?: PortfolioCard[];
+}
+export interface ProjectBeforeAfterBlockContent {
+  title: string;
+  subtitle?: string;
+  items: { beforeLabel: string; afterLabel: string; beforeImageUrl?: string; afterImageUrl?: string; resultText: string; metricBadge?: string; description: string; category?: string }[];
+  linkedProjectId?: string;
+}
+export interface ProjectTimelineBlockContent {
+  title: string;
+  subtitle?: string;
+  steps: { title: string; description: string; tag?: string }[];
+  resultSummary?: string;
+  linkedProjectId?: string;
+}
 export interface ProjectMasonryWallBlockContent {
   title?: string;
   source?: "manual" | "linked_projects";
@@ -1143,17 +1188,85 @@ export interface ProjectMasonryWallBlockContent {
   items: { imageUrl?: string; title: string; category: string }[];
   columns?: number;
 }
-export interface Services3CardPremiumBlockContent { title: string; subtitle?: string; services: { title: string; description: string; features: string[]; ctaLabel: string }[]; }
-export interface ServicesIconGridBlockContent { title: string; subtitle?: string; services: { icon: string; title: string; description: string }[]; }
+export interface Services3CardPremiumBlockContent extends SaleBlockBriefSettings {
+  title: string;
+  subtitle?: string;
+  services: { title: string; description: string; features: string[]; ctaLabel: string }[];
+  mode?: "manual" | "product";
+  productIds?: string[];
+}
+export interface ServicesIconGridBlockContent {
+  title: string;
+  subtitle?: string;
+  services: { icon: string; title: string; description: string }[];
+  mode?: "static" | "product";
+  productIds?: string[];
+}
 export interface ServicesSplitValueBlockContent { title: string; subtitle: string; description: string; pillars: { title: string; description: string }[]; }
-export interface ServicesProcessOffersBlockContent { title: string; offers: { title: string; description: string; steps: string[] }[]; }
-export interface ProductFeaturedCardBlockContent { title: string; description: string; price: string; benefits: string[]; ctaLabel: string; imageUrl?: string; trustNote?: string; }
-export interface Products3CardShopBlockContent { title: string; subtitle?: string; products: { imageUrl?: string; title: string; price: string; description: string; ctaLabel: string }[]; }
-export interface ProductBundleCompareBlockContent { title: string; subtitle?: string; bundles: { name: string; price: string; description: string; features: string[]; isPopular?: boolean; ctaLabel: string }[]; }
-export interface ProductBenefitsMockupBlockContent { title: string; subtitle: string; benefits: string[]; ctaLabel: string; imageUrl?: string; }
-export interface Pricing3TierSaasBlockContent { title: string; subtitle?: string; plans: { name: string; price: string; period: string; description: string; features: string[]; isPopular?: boolean; ctaLabel: string }[]; }
-export interface PricingCustomQuoteBlockContent { title: string; subtitle: string; features: string[]; ctaLabel: string; note?: string; }
-export interface PricingMiniFaqBlockContent { title?: string; plans: { name: string; price: string; features: string[]; ctaLabel: string }[]; faq: { question: string; answer: string }[]; }
+export interface ServicesProcessOffersBlockContent extends SaleBlockBriefSettings {
+  title: string;
+  offers: { title: string; description: string; steps: string[] }[];
+  mode?: "manual" | "product";
+  productIds?: string[];
+}
+export interface ProductFeaturedCardBlockContent extends SaleBlockBriefSettings {
+  title: string;
+  description: string;
+  price: string;
+  benefits: string[];
+  ctaLabel: string;
+  imageUrl?: string;
+  trustNote?: string;
+  mode?: "manual" | "product";
+  productId?: string;
+}
+export interface Products3CardShopBlockContent extends SaleBlockBriefSettings {
+  title: string;
+  subtitle?: string;
+  products: { imageUrl?: string; title: string; price: string; description: string; ctaLabel: string }[];
+  mode?: "manual" | "product";
+  productIds?: string[];
+}
+export interface ProductBundleCompareBlockContent extends SaleBlockBriefSettings {
+  title: string;
+  subtitle?: string;
+  bundles: { name: string; price: string; description: string; features: string[]; isPopular?: boolean; ctaLabel: string }[];
+  mode?: "manual" | "product";
+  productIds?: string[];
+}
+export interface ProductBenefitsMockupBlockContent extends SaleBlockBriefSettings {
+  title: string;
+  subtitle: string;
+  benefits: string[];
+  ctaLabel: string;
+  imageUrl?: string;
+  mode?: "manual" | "product";
+  productId?: string;
+}
+export interface Pricing3TierSaasBlockContent extends SaleBlockBriefSettings {
+  title: string;
+  subtitle?: string;
+  plans: { name: string; price: string; period: string; description: string; features: string[]; isPopular?: boolean; ctaLabel: string }[];
+  mode?: "manual" | "product";
+  productIds?: string[];
+}
+export interface PricingCustomQuoteBlockContent extends SaleBlockBriefSettings {
+  title: string;
+  subtitle: string;
+  features: string[];
+  ctaLabel: string;
+  note?: string;
+  mode?: "manual" | "product";
+  productId?: string;
+  blockLink?: BlockLink;
+}
+export interface PricingMiniFaqBlockContent extends SaleBlockBriefSettings {
+  title?: string;
+  plans: { name: string; price: string; features: string[]; ctaLabel: string }[];
+  faq: { question: string; answer: string }[];
+  mode?: "manual" | "product";
+  productIds?: string[];
+}
 export interface Testimonials3DarkBlockContent { title: string; testimonials: { name: string; role: string; company: string; text: string; rating: number }[]; }
 export interface TestimonialsVideoBlockContent { title: string; subtitle?: string; testimonials: { name: string; company: string; quote: string; videoUrl?: string; thumbnailUrl?: string }[]; }
 export interface ResultsLogosQuotesBlockContent { title?: string; logos: { name: string; imageUrl?: string }[]; quotes: { text: string; name: string; role: string }[]; }
@@ -1169,9 +1282,42 @@ export interface Faq2ColumnBlockContent { title: string; subtitle?: string; item
 export interface CtaCenteredStrongBlockContent { title: string; subtitle?: string; ctaLabel: string; secondaryCtaLabel?: string; }
 export interface CtaSplitTextBlockContent { title: string; description: string; ctaLabel: string; secondaryCtaLabel?: string; }
 export interface CtaDarkGlowBlockContent { title: string; subtitle: string; ctaLabel: string; trustBadges?: string[]; }
-export interface FormContactSimpleBlockContent { title: string; subtitle?: string; fields: { label: string; type: string; placeholder?: string; required?: boolean }[]; submitLabel: string; trustNote?: string; }
-export interface FormQuoteRequestBlockContent { title: string; subtitle?: string; fields: { label: string; type: string; placeholder?: string; required?: boolean; options?: string[] }[]; submitLabel: string; sideText?: string; }
-export interface FormNewsletterLeadBlockContent { title: string; subtitle: string; placeholder: string; ctaLabel: string; privacyNote?: string; }
+export interface FormContactSimpleBlockContent {
+  title: string;
+  subtitle?: string;
+  fields: { label: string; type: string; placeholder?: string; required?: boolean }[];
+  submitLabel: string;
+  trustNote?: string;
+  successMessage?: string;
+  saveAsLead?: boolean;
+  notifyEmail?: string;
+  leadSource?: LeadSource;
+  leadTags?: string[];
+}
+export interface FormQuoteRequestBlockContent {
+  title: string;
+  subtitle?: string;
+  fields: { label: string; type: string; placeholder?: string; required?: boolean; options?: string[] }[];
+  submitLabel: string;
+  sideText?: string;
+  successMessage?: string;
+  saveAsLead?: boolean;
+  notifyEmail?: string;
+  leadSource?: LeadSource;
+  leadTags?: string[];
+}
+export interface FormNewsletterLeadBlockContent {
+  title: string;
+  subtitle: string;
+  placeholder: string;
+  ctaLabel: string;
+  privacyNote?: string;
+  successMessage?: string;
+  saveAsLead?: boolean;
+  notifyEmail?: string;
+  leadSource?: LeadSource;
+  leadTags?: string[];
+}
 export interface MediaFeaturedVideoBlockContent { title: string; subtitle?: string; videoUrl?: string; thumbnailUrl?: string; secondaryVideos?: { title: string; thumbnailUrl?: string }[]; }
 export interface Gallery3UpStripBlockContent { title?: string; items: { imageUrl?: string; caption?: string }[]; }
 export interface GalleryStackedStoryboardBlockContent { title?: string; items: { imageUrl?: string; title: string; description: string }[]; }

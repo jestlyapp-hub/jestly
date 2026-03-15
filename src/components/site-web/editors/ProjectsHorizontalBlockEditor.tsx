@@ -1,14 +1,24 @@
 "use client";
 
+import { useCallback } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
-import type { Block } from "@/types";
+import type { Block, PortfolioCard } from "@/types";
 import ImageUploader from "./ImageUploader";
+import PortfolioSourceEditor from "./shared/PortfolioSourceEditor";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 export default function ProjectsHorizontalBlockEditor({ block }: { block: Extract<Block, { type: "projects-horizontal" }> }) {
   const { dispatch } = useBuilder();
   const update = (content: Record<string, unknown>) => dispatch({ type: "UPDATE_BLOCK_CONTENT", blockId: block.id, content });
+
+  const source = block.content.source || "manual";
+  const linkedProjectIds = block.content.linkedProjectIds || [];
+
+  const handleResolvedChange = useCallback((cards: PortfolioCard[]) => {
+    update({ resolvedProjects: cards });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const updateProject = (index: number, field: string, value: unknown) => {
     const projects = [...block.content.projects];
@@ -42,7 +52,18 @@ export default function ProjectsHorizontalBlockEditor({ block }: { block: Extrac
         <input type="text" value={block.content.ctaLabel ?? ""} onChange={(e) => update({ ctaLabel: e.target.value })} placeholder="Voir tous les projets" className={inputClass} />
       </div>
 
-      {/* Projects */}
+      {/* Source selector */}
+      <PortfolioSourceEditor
+        source={source}
+        linkedProjectIds={linkedProjectIds}
+        onSourceChange={(s) => update({ source: s })}
+        onLinkedIdsChange={(ids) => update({ linkedProjectIds: ids })}
+        onResolvedChange={handleResolvedChange}
+      />
+
+      {/* Manual projects — only shown in manual mode */}
+      {source === "manual" && (
+      <>
       {block.content.projects.map((project: { imageUrl?: string; title: string; category: string }, i: number) => (
         <div key={i} className="p-2 rounded-lg border border-[#E6E6E4] space-y-2">
           <div className="flex items-center justify-between">
@@ -57,6 +78,8 @@ export default function ProjectsHorizontalBlockEditor({ block }: { block: Extrac
         </div>
       ))}
       <button onClick={addProject} className="text-[12px] font-medium text-[#4F46E5] hover:underline">+ Ajouter un projet</button>
+      </>
+      )}
     </div>
   );
 }

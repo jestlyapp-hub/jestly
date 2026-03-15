@@ -1,13 +1,23 @@
 "use client";
+import { useCallback } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
-import type { Block } from "@/types";
+import type { Block, PortfolioCard } from "@/types";
 import ImageUploader from "./ImageUploader";
+import PortfolioSourceEditor from "./shared/PortfolioSourceEditor";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 export default function PortfolioMasonryBlockEditor({ block }: { block: Extract<Block, { type: "portfolio-masonry" }> }) {
   const { dispatch } = useBuilder();
   const update = (content: Record<string, unknown>) => dispatch({ type: "UPDATE_BLOCK_CONTENT", blockId: block.id, content });
+
+  const source = block.content.source || "manual";
+  const linkedProjectIds = block.content.linkedProjectIds || [];
+
+  const handleResolvedChange = useCallback((cards: PortfolioCard[]) => {
+    update({ resolvedProjects: cards });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const items = block.content.items ?? [];
 
@@ -59,6 +69,17 @@ export default function PortfolioMasonryBlockEditor({ block }: { block: Extract<
         </select>
       </div>
 
+      {/* Source selector */}
+      <PortfolioSourceEditor
+        source={source}
+        linkedProjectIds={linkedProjectIds}
+        onSourceChange={(s) => update({ source: s })}
+        onLinkedIdsChange={(ids) => update({ linkedProjectIds: ids })}
+        onResolvedChange={handleResolvedChange}
+      />
+
+      {/* Manual items — only shown in manual mode */}
+      {source === "manual" && (
       <div className="space-y-3">
         <label className="block text-[12px] font-medium text-[#5A5A58]">Items</label>
         {items.map((item, index) => (
@@ -103,6 +124,7 @@ export default function PortfolioMasonryBlockEditor({ block }: { block: Extract<
           + Ajouter un item
         </button>
       </div>
+      )}
     </div>
   );
 }

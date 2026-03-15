@@ -3,8 +3,19 @@
 import { memo } from "react";
 import type { ServicesPremiumBlockContent } from "@/types";
 import { getIcon } from "@/lib/icons";
+import { useProductsByIds } from "@/lib/product-context";
 
 function ServicesPremiumBlockPreviewInner({ content }: { content: ServicesPremiumBlockContent }) {
+  const resolvedProducts = useProductsByIds(content.productIds || []);
+  const displayServices = content.mode === "product" && resolvedProducts.length > 0
+    ? resolvedProducts.map(p => ({
+        icon: "package" as const,
+        title: p.name,
+        description: p.shortDescription || "",
+        features: p.features || [],
+      }))
+    : content.services;
+
   const cols = content.columns === 4
     ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
     : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3";
@@ -41,7 +52,7 @@ function ServicesPremiumBlockPreviewInner({ content }: { content: ServicesPremiu
 
         {/* Cards grid */}
         <div className={`grid ${cols} gap-5`}>
-          {content.services.map((service, i) => (
+          {displayServices.map((service, i) => (
             <div
               key={i}
               className="group relative rounded-xl p-6 transition-all duration-300"

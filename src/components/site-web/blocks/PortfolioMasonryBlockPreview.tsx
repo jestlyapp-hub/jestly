@@ -1,10 +1,21 @@
 "use client";
 
 import { memo } from "react";
-import type { PortfolioMasonryBlockContent } from "@/types";
+import type { PortfolioMasonryBlockContent, PortfolioCard } from "@/types";
 
 function PortfolioMasonryBlockPreviewInner({ content }: { content: PortfolioMasonryBlockContent }) {
   const columnCount = content.columns === 2 ? 2 : 3;
+
+  // Merge linked projects with manual items
+  const items: { imageUrl: string; title: string; category: string; description?: string }[] =
+    (content as any).source === "linked_projects" && (content as any).resolvedProjects?.length
+      ? ((content as any).resolvedProjects as PortfolioCard[]).map((rp) => ({
+          imageUrl: rp.imageUrl || "",
+          title: rp.title,
+          category: rp.category,
+          description: rp.summary,
+        }))
+      : content.items;
 
   return (
     <section
@@ -43,7 +54,7 @@ function PortfolioMasonryBlockPreviewInner({ content }: { content: PortfolioMaso
             columnGap: "16px",
           }}
         >
-          {content.items.map((item, i) => {
+          {items.map((item, i) => {
             // Vary heights for masonry feel
             const aspectRatios = ["aspect-[3/4]", "aspect-[4/3]", "aspect-square", "aspect-[3/5]", "aspect-[5/3]"];
             const aspect = aspectRatios[i % aspectRatios.length];

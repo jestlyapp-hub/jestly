@@ -2,8 +2,19 @@
 
 import { memo } from "react";
 import type { ProductBenefitsMockupBlockContent } from "@/types";
+import { useProductById } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 
 function ProductBenefitsMockupBlockPreviewInner({ content }: { content: ProductBenefitsMockupBlockContent }) {
+  const resolvedProduct = useProductById(content.productId || "");
+  const display = content.mode === "product" && resolvedProduct ? {
+    title: resolvedProduct.name,
+    subtitle: resolvedProduct.shortDescription || content.subtitle,
+    benefits: resolvedProduct.features?.length ? resolvedProduct.features : content.benefits,
+    ctaLabel: resolvedProduct.ctaLabel || content.ctaLabel,
+    imageUrl: resolvedProduct.coverImageUrl || content.imageUrl,
+  } : content;
+
   return (
     <section
       className="py-16 px-6"
@@ -17,10 +28,10 @@ function ProductBenefitsMockupBlockPreviewInner({ content }: { content: ProductB
             border: "1px solid var(--site-border, #e5e7eb)",
           }}
         >
-          {content.imageUrl ? (
+          {display.imageUrl ? (
             <img
-              src={content.imageUrl}
-              alt={content.title}
+              src={display.imageUrl}
+              alt={display.title}
               className="w-full h-full object-cover rounded-xl"
             />
           ) : (
@@ -51,19 +62,19 @@ function ProductBenefitsMockupBlockPreviewInner({ content }: { content: ProductB
               fontFamily: "var(--site-heading-font, inherit)",
             }}
           >
-            {content.title}
+            {display.title}
           </h2>
           <p
             className="text-base leading-relaxed mb-6"
             style={{ color: "var(--site-muted, #6b7280)" }}
           >
-            {content.subtitle}
+            {display.subtitle}
           </p>
 
           {/* Benefits list */}
-          {content.benefits.length > 0 && (
+          {display.benefits.length > 0 && (
             <ul className="space-y-3 mb-8">
-              {content.benefits.map((benefit, i) => (
+              {display.benefits.map((benefit, i) => (
                 <li
                   key={i}
                   className="flex items-start gap-3 text-sm"
@@ -97,7 +108,7 @@ function ProductBenefitsMockupBlockPreviewInner({ content }: { content: ProductB
               borderRadius: "var(--site-btn-radius, 8px)",
             }}
           >
-            {content.ctaLabel}
+            {display.ctaLabel}
           </button>
         </div>
       </div>

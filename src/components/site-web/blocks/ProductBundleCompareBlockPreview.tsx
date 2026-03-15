@@ -2,8 +2,22 @@
 
 import { memo } from "react";
 import type { ProductBundleCompareBlockContent } from "@/types";
+import { useProductsByIds } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 
 function ProductBundleCompareBlockPreviewInner({ content }: { content: ProductBundleCompareBlockContent }) {
+  const resolvedProducts = useProductsByIds(content.productIds || []);
+  const displayBundles = content.mode === "product" && resolvedProducts.length > 0
+    ? resolvedProducts.map(p => ({
+        name: p.name,
+        price: formatPrice(p.priceCents),
+        description: p.shortDescription || "",
+        features: p.features || [],
+        isPopular: false,
+        ctaLabel: p.ctaLabel || "Choisir",
+      }))
+    : content.bundles;
+
   return (
     <section
       className="py-16 px-6"
@@ -34,7 +48,7 @@ function ProductBundleCompareBlockPreviewInner({ content }: { content: ProductBu
 
         {/* 3 Bundle columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-          {content.bundles.map((bundle, i) => (
+          {displayBundles.map((bundle, i) => (
             <div
               key={i}
               className="rounded-xl p-7 flex flex-col relative"

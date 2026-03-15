@@ -2,9 +2,20 @@
 
 import { memo, useState } from "react";
 import type { PricingMiniFaqBlockContent } from "@/types";
+import { useProductsByIds } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 
 function PricingMiniFaqBlockPreviewInner({ content }: { content: PricingMiniFaqBlockContent }) {
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const resolvedProducts = useProductsByIds(content.productIds || []);
+  const displayPlans = content.mode === "product" && resolvedProducts.length > 0
+    ? resolvedProducts.map(p => ({
+        name: p.name,
+        price: formatPrice(p.priceCents),
+        features: p.features || [],
+        ctaLabel: p.ctaLabel || "Choisir",
+      }))
+    : content.plans;
 
   return (
     <section className="py-16 px-6">
@@ -20,7 +31,7 @@ function PricingMiniFaqBlockPreviewInner({ content }: { content: PricingMiniFaqB
 
         {/* Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-14">
-          {content.plans.map((plan, i) => (
+          {displayPlans.map((plan, i) => (
             <div
               key={i}
               className="rounded-xl p-6 flex flex-col"

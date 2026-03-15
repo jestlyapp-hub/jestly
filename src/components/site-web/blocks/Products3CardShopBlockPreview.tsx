@@ -2,8 +2,21 @@
 
 import { memo } from "react";
 import type { Products3CardShopBlockContent } from "@/types";
+import { useProductsByIds } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 
 function Products3CardShopBlockPreviewInner({ content }: { content: Products3CardShopBlockContent }) {
+  const resolvedProducts = useProductsByIds(content.productIds || []);
+  const displayProducts = content.mode === "product" && resolvedProducts.length > 0
+    ? resolvedProducts.map(p => ({
+        imageUrl: p.coverImageUrl || p.thumbnailUrl || "",
+        title: p.name,
+        price: formatPrice(p.priceCents),
+        description: p.shortDescription || "",
+        ctaLabel: p.ctaLabel || "Acheter",
+      }))
+    : content.products;
+
   return (
     <section
       className="py-16 px-6"
@@ -34,7 +47,7 @@ function Products3CardShopBlockPreviewInner({ content }: { content: Products3Car
 
         {/* 3 Product Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {content.products.map((product, i) => (
+          {displayProducts.map((product, i) => (
             <div
               key={i}
               className="rounded-xl overflow-hidden flex flex-col"

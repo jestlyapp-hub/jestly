@@ -2,6 +2,7 @@
 
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
+import LeadConfigEditor from "./shared/LeadConfigEditor";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
@@ -27,6 +28,18 @@ export default function NewsletterBlockEditor({ block }: { block: Extract<Block,
         <label className="block text-[11px] font-medium text-[#999] mb-1">Texte du bouton</label>
         <input type="text" value={block.content.buttonLabel} onChange={(e) => update({ buttonLabel: e.target.value })} className={inputClass} />
       </div>
+      <LeadConfigEditor
+        config={{
+          saveAsLead: block.content.saveAsLead,
+          successMessage: block.content.successMessage,
+          notifyEmail: block.content.notifyEmail,
+          leadSource: block.content.leadSource,
+          leadTags: block.content.leadTags,
+        }}
+        onChange={(cfg) => update({ ...cfg })}
+        showSource={false}
+        defaultSource="newsletter"
+      />
     </div>
   );
 }

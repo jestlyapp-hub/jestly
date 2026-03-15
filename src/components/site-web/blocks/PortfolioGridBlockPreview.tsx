@@ -1,7 +1,7 @@
 "use client";
 
 import { memo, useState, useRef, useEffect } from "react";
-import type { PortfolioGridBlockContent } from "@/types";
+import type { PortfolioGridBlockContent, PortfolioCard } from "@/types";
 
 interface PortfolioProject {
   title: string;
@@ -44,7 +44,22 @@ function PortfolioGridBlockPreviewInner({ content, siteSlug }: { content: Portfo
       .catch(() => {});
   }, [(content as any).useRealProjects, siteSlug]);
 
-  const items = liveProjects ?? content.items;
+  // Merge linked projects with manual items
+  // Priority: linked_projects > API fetch > manual items
+  const linkedItems: PortfolioProject[] | null =
+    (content as any).source === "linked_projects" && (content as any).resolvedProjects?.length
+      ? ((content as any).resolvedProjects as PortfolioCard[]).map((rp) => ({
+          title: rp.title,
+          imageUrl: rp.imageUrl || "",
+          category: rp.category,
+          description: rp.summary,
+          result: rp.result,
+          slug: rp.slug,
+          featured: false,
+        }))
+      : null;
+
+  const items = linkedItems ?? liveProjects ?? content.items;
   const cols = content.columns === 2 ? "grid-cols-2" : content.columns === 4 ? "grid-cols-4" : "grid-cols-3";
 
   const sorted = [...items].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
@@ -56,9 +71,9 @@ function PortfolioGridBlockPreviewInner({ content, siteSlug }: { content: Portfo
       )
     : afterCategoryFilter;
 
-  // Derive categories from items if using real projects
-  const categories = liveProjects
-    ? [...new Set(liveProjects.map(p => p.category).filter(Boolean))]
+  // Derive categories from items if using real/linked projects
+  const categories = linkedItems || liveProjects
+    ? [...new Set(items.map(p => p.category).filter(Boolean))]
     : (content.categories || []);
 
   return (

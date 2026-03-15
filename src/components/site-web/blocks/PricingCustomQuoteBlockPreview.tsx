@@ -2,8 +2,19 @@
 
 import { memo } from "react";
 import type { PricingCustomQuoteBlockContent } from "@/types";
+import { useProductById } from "@/lib/product-context";
+import { formatPrice } from "@/lib/productTypes";
 
 function PricingCustomQuoteBlockPreviewInner({ content }: { content: PricingCustomQuoteBlockContent }) {
+  const resolvedProduct = useProductById(content.productId || "");
+  const display = content.mode === "product" && resolvedProduct ? {
+    title: resolvedProduct.name,
+    subtitle: resolvedProduct.shortDescription || content.subtitle,
+    features: resolvedProduct.features?.length ? resolvedProduct.features : content.features,
+    ctaLabel: resolvedProduct.ctaLabel || content.ctaLabel,
+    note: content.note,
+  } : content;
+
   return (
     <section
       className="py-16 px-6"
@@ -17,13 +28,13 @@ function PricingCustomQuoteBlockPreviewInner({ content }: { content: PricingCust
             fontFamily: "var(--site-heading-font, inherit)",
           }}
         >
-          {content.title}
+          {display.title}
         </h2>
         <p
           className="text-base leading-relaxed mb-10"
           style={{ color: "var(--site-muted, #6b7280)" }}
         >
-          {content.subtitle}
+          {display.subtitle}
         </p>
 
         {/* Highlighted card */}
@@ -35,9 +46,9 @@ function PricingCustomQuoteBlockPreviewInner({ content }: { content: PricingCust
           }}
         >
           {/* Features checklist */}
-          {content.features.length > 0 && (
+          {display.features.length > 0 && (
             <ul className="space-y-3 mb-8">
-              {content.features.map((feat, i) => (
+              {display.features.map((feat, i) => (
                 <li
                   key={i}
                   className="flex items-center gap-3 text-sm"
@@ -71,16 +82,16 @@ function PricingCustomQuoteBlockPreviewInner({ content }: { content: PricingCust
               borderRadius: "var(--site-btn-radius, 8px)",
             }}
           >
-            {content.ctaLabel}
+            {display.ctaLabel}
           </button>
 
           {/* Note */}
-          {content.note && (
+          {display.note && (
             <p
               className="text-xs mt-4 text-center"
               style={{ color: "var(--site-muted, #6b7280)" }}
             >
-              {content.note}
+              {display.note}
             </p>
           )}
         </div>
