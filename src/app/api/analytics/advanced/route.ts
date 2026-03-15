@@ -155,26 +155,34 @@ export async function GET(req: NextRequest) {
     }
 
     // ── KPIs ──
-    // Total revenue = sum of ALL active orders (not just paid, as a freelancer considers all non-cancelled orders as revenue pipeline)
-    const totalRevenue = activeOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
-    const prevRevenue = prevActiveOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
+    // Revenue = sum of PAID orders only (paid/invoiced/delivered)
+    // Same definition as Dashboard (lib/dashboard/revenue.ts REVENUE_STATUSES)
+    // This is REAL revenue, not pipeline.
+    const paidRevenue = paidOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
+    const prevPaidOrders = prevOrders.filter(isPaid);
+    const prevPaidRevenue = prevPaidOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
+    const totalRevenue = Math.round(paidRevenue * 100) / 100;
+    const prevRevenue = Math.round(prevPaidRevenue * 100) / 100;
     const revenueChange = prevRevenue > 0 ? ((totalRevenue - prevRevenue) / prevRevenue) * 100 : 0;
 
-    // Net profit = revenue - refunds
+    // Pipeline = total active orders (for info, not displayed as "revenue")
+    const pipelineTotal = activeOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
+
+    // Net profit = paid revenue - refunds (no fake costs)
     const refundAmount = refundedOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
-    const netProfit = totalRevenue - refundAmount;
+    const netProfit = Math.round((totalRevenue - refundAmount) * 100) / 100;
     const prevRefunds = prevOrders.filter((o: { status: string }) => o.status === "refunded").reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
-    const prevNetProfit = prevRevenue - prevRefunds;
+    const prevNetProfit = Math.round((prevRevenue - prevRefunds) * 100) / 100;
     const profitChange = prevNetProfit > 0 ? ((netProfit - prevNetProfit) / prevNetProfit) * 100 : 0;
 
-    // Orders count
-    const totalOrderCount = activeOrders.length;
-    const prevOrderCount = prevActiveOrders.length;
+    // Orders count = paid orders (consistent with revenue definition)
+    const totalOrderCount = paidOrders.length;
+    const prevOrderCount = prevPaidOrders.length;
     const ordersChange = prevOrderCount > 0 ? ((totalOrderCount - prevOrderCount) / prevOrderCount) * 100 : 0;
 
-    // AOV
+    // AOV = revenue / paid orders
     const avgOrderValue = totalOrderCount > 0 ? Math.round(totalRevenue / totalOrderCount) : 0;
-    const prevAvg = prevActiveOrders.length > 0 ? Math.round(prevRevenue / prevActiveOrders.length) : 0;
+    const prevAvg = prevOrderCount > 0 ? Math.round(prevRevenue / prevOrderCount) : 0;
     const aovChange = prevAvg > 0 ? ((avgOrderValue - prevAvg) / prevAvg) * 100 : 0;
 
     // Conversion rate = paid / total
@@ -205,7 +213,7 @@ export async function GET(req: NextRequest) {
     const returningCount = [...clientOrderCount.values()].filter((c) => c > 1).length;
     const returningRate = activeClients > 0 ? Math.round((returningCount / activeClients) * 100) : 0;
 
-    // ── Time Series ──
+    // ── Time Series (uses paid orders only, consistent with KPIs) ──
     const diffDays = Math.ceil((endDate.getTime() - startDate.getTime()) / 86400000);
     let timeSeries: { label: string; revenue: number; orders: number; profit: number }[] = [];
 
@@ -213,7 +221,7 @@ export async function GET(req: NextRequest) {
       // Hourly
       timeSeries = Array.from({ length: 24 }, (_, i) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const hourOrders = activeOrders.filter((o: any) => new Date(o.created_at).getHours() === i);
+        const hourOrders = paidOrders.filter((o: any) => new Date(o.created_at).getHours() === i);
         const rev = hourOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
         return { label: `${i}h`, revenue: Math.round(rev * 100) / 100, orders: hourOrders.length, profit: Math.round(rev * 100) / 100 };
       });
@@ -223,7 +231,7 @@ export async function GET(req: NextRequest) {
       while (cursor <= endDate) {
         const dayStr = cursor.toISOString().slice(0, 10);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const dayOrders = activeOrders.filter((o: any) => o.created_at?.slice(0, 10) === dayStr);
+        const dayOrders = paidOrders.filter((o: any) => o.created_at?.slice(0, 10) === dayStr);
         const rev = dayOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
         timeSeries.push({
           label: cursor.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }),
@@ -241,7 +249,7 @@ export async function GET(req: NextRequest) {
         const next = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
         const mEnd = next.toISOString();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const monthOrders = activeOrders.filter((o: any) => o.created_at >= mStart && o.created_at < mEnd);
+        const monthOrders = paidOrders.filter((o: any) => o.created_at >= mStart && o.created_at < mEnd);
         const rev = monthOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
         timeSeries.push({
           label: cursor.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" }),
@@ -253,21 +261,21 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // ── Revenue by day of week ──
+    // ── Revenue by day of week (paid orders only) ──
     const dayNames = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
     const revenueByDay = dayNames.map((name) => ({ name, revenue: 0, orders: 0 }));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activeOrders.forEach((o: any) => {
+    paidOrders.forEach((o: any) => {
       const day = new Date(o.created_at).getDay();
       revenueByDay[day].revenue += num(o.amount);
       revenueByDay[day].orders += 1;
     });
     revenueByDay.forEach((d) => { d.revenue = Math.round(d.revenue * 100) / 100; });
 
-    // ── Revenue by hour ──
+    // ── Revenue by hour (paid orders only) ──
     const revenueByHour = Array.from({ length: 24 }, (_, i) => ({ hour: `${i}h`, revenue: 0, orders: 0 }));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activeOrders.forEach((o: any) => {
+    paidOrders.forEach((o: any) => {
       const hour = new Date(o.created_at).getHours();
       revenueByHour[hour].revenue += num(o.amount);
       revenueByHour[hour].orders += 1;

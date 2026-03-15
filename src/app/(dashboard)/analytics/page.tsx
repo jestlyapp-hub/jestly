@@ -563,10 +563,10 @@ export default function AnalyticsPage() {
       {activeTab === "overview" && (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <KPICard label="Revenu total" value={fmtEur(kpis.totalRevenue)} change={kpis.revenueChange} icon={DollarSign} sparkData={sparkData} index={0} tooltip="Revenu total hors remboursements sur la période" />
-            <KPICard label="Profit net" value={fmtEur(kpis.netProfit)} change={kpis.profitChange} icon={Wallet} sparkData={sparkData} index={1} tooltip="Revenu - frais - remboursements" />
-            <KPICard label="Commandes" value={fmt(kpis.totalOrders)} change={kpis.ordersChange} icon={ShoppingCart} sparkData={orderSparkData} index={2} tooltip="Nombre total de commandes complétées" />
-            <KPICard label="Taux de conversion" value={`${kpis.conversionRate}%`} change={kpis.conversionChange} icon={Target} index={3} tooltip="Pourcentage de commandes payées / total" />
+            <KPICard label={`Revenu ${RANGES.find(r => r.key === range)?.label || "sur la période"}`} value={fmtEur(kpis.totalRevenue)} change={kpis.revenueChange} icon={DollarSign} sparkData={sparkData} index={0} tooltip="Revenu des commandes payées/livrées/facturées sur la période" />
+            <KPICard label="Revenu net" value={fmtEur(kpis.netProfit)} change={kpis.profitChange} icon={Wallet} sparkData={sparkData} index={1} tooltip="Revenu payé - remboursements sur la période" />
+            <KPICard label="Commandes payées" value={fmt(kpis.totalOrders)} change={kpis.ordersChange} icon={ShoppingCart} sparkData={orderSparkData} index={2} tooltip="Commandes payées/livrées/facturées sur la période" />
+            <KPICard label="Taux de conversion" value={`${kpis.conversionRate}%`} change={kpis.conversionChange} icon={Target} index={3} tooltip="Commandes payées / total commandes sur la période" />
             <KPICard label="Panier moyen" value={fmtEur(kpis.avgOrderValue)} change={kpis.aovChange} icon={ShoppingBag} index={4} tooltip="Montant moyen par commande" />
             <KPICard label="Clients récurrents" value={`${kpis.returningRate}%`} change={0} icon={Repeat} index={5} tooltip="% de clients avec plus d'une commande" />
             <KPICard label="Taux de remboursement" value={`${kpis.refundRate}%`} change={0} icon={RefreshCw} index={6} tooltip="% de commandes remboursées" />
