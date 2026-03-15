@@ -72,7 +72,7 @@ export default function SiteWebDashboard() {
   const [maintenance, setMaintenance] = useState(site.settings.maintenanceMode);
   const [savingMaintenance, setSavingMaintenance] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [iframeLoaded, setIframeLoaded] = useState(false);
+  const [previewError, setPreviewError] = useState(false);
 
   const subdomain = site.domain.subdomain;
   const hasSubdomain = !!subdomain;
@@ -204,7 +204,7 @@ export default function SiteWebDashboard() {
       {/* ─── MAIN GRID ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
 
-        {/* LEFT — Site Preview */}
+        {/* LEFT — Site Preview (image-based, simple & robust) */}
         <motion.div className="lg:col-span-2 bg-white rounded-xl border border-[#E6E6E4] overflow-hidden" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.2 }}>
           <div className="px-5 py-3.5 border-b border-[#E6E6E4] flex items-center justify-between">
             <h2 className="text-[14px] font-semibold text-[#1A1A1A]">Aperçu du site</h2>
@@ -215,47 +215,54 @@ export default function SiteWebDashboard() {
               </a>
             )}
           </div>
-          <div className="bg-[#F7F7F5] rounded-b-xl overflow-hidden">
-            {/* Browser chrome */}
-            <div className="flex items-center gap-2 px-4 py-2 bg-white border-b border-[#E6E6E4]">
-              <div className="flex gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#FF5F57]" />
-                <div className="w-2 h-2 rounded-full bg-[#FEBC2E]" />
-                <div className="w-2 h-2 rounded-full bg-[#28C840]" />
-              </div>
-              <div className="flex-1 bg-[#F7F7F5] rounded px-3 py-1 text-[10px] text-[#999] text-center truncate">
-                {hasSubdomain ? siteUrl : "jestly.fr/s/votre-site"}
-              </div>
+          {/* Browser chrome */}
+          <div className="flex items-center gap-2 px-4 py-2 bg-white border-b border-[#E6E6E4]">
+            <div className="flex gap-1.5">
+              <div className="w-2 h-2 rounded-full bg-[#FF5F57]" />
+              <div className="w-2 h-2 rounded-full bg-[#FEBC2E]" />
+              <div className="w-2 h-2 rounded-full bg-[#28C840]" />
             </div>
-            {/* Real iframe or fallback */}
-            {hasSubdomain ? (
-              <div className="relative h-[300px] overflow-hidden bg-white">
-                {!iframeLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-[#F7F7F5] z-10">
-                    <div className="text-center">
-                      <div className="w-6 h-6 border-2 border-[#E6E6E4] border-t-[#4F46E5] rounded-full animate-spin mx-auto mb-2" />
-                      <div className="text-[11px] text-[#8A8A88]">Chargement de l&apos;aperçu...</div>
-                    </div>
-                  </div>
-                )}
-                <iframe
-                  src={fullUrl}
-                  title="Aperçu du site"
-                  className="w-[1280px] h-[800px] border-0 origin-top-left pointer-events-none"
-                  style={{ transform: "scale(0.234375)" }}
-                  onLoad={() => setIframeLoaded(true)}
-                  loading="lazy"
-                  sandbox="allow-same-origin"
-                />
-              </div>
+            <div className="flex-1 bg-[#F7F7F5] rounded px-3 py-1 text-[10px] text-[#999] text-center truncate">
+              {hasSubdomain ? siteUrl : "jestly.fr/s/votre-site"}
+            </div>
+          </div>
+          {/* Preview body — fixed height, image or fallback */}
+          <div className="h-[280px] bg-[#F7F7F5] overflow-hidden relative">
+            {site.seo.ogImageUrl && !previewError ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img
+                src={site.seo.ogImageUrl}
+                alt={`Aperçu de ${site.settings.name}`}
+                className="w-full h-full object-cover object-top"
+                onError={() => setPreviewError(true)}
+              />
             ) : (
-              <div className="h-[300px] flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-[#4F46E5]/5 to-transparent">
+              <div className="h-full flex flex-col items-center justify-center gap-3">
                 <div className="w-12 h-12 rounded-xl bg-[#EEF2FF] flex items-center justify-center">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                    <line x1="8" y1="21" x2="16" y2="21" />
+                    <line x1="12" y1="17" x2="12" y2="21" />
+                  </svg>
                 </div>
                 <div className="text-[14px] font-semibold text-[#1A1A1A]">{site.settings.name}</div>
-                <div className="text-[12px] text-[#8A8A88] max-w-xs text-center">{site.settings.description || "Configurez un domaine pour voir l'aperçu."}</div>
-                <Link href={`/site-web/${siteId}/domaine`} className="text-[12px] font-medium text-[#4F46E5] hover:underline mt-1">Configurer le domaine</Link>
+                <div className="text-[12px] text-[#8A8A88] max-w-xs text-center">
+                  {hasSubdomain ? "Ajoutez une image OG dans les paramètres SEO pour afficher un aperçu." : "Configurez un domaine pour voir l'aperçu."}
+                </div>
+                {hasSubdomain ? (
+                  <div className="flex gap-2 mt-1">
+                    <Link href={`/site-web/${siteId}/seo`} className="text-[12px] font-medium text-[#4F46E5] border border-[#4F46E5]/20 px-3 py-1.5 rounded-lg hover:bg-[#EEF2FF] transition-colors">
+                      Paramètres SEO
+                    </Link>
+                    <a href={fullUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-white bg-[#4F46E5] px-3 py-1.5 rounded-lg hover:bg-[#4338CA] transition-colors">
+                      Ouvrir le site
+                    </a>
+                  </div>
+                ) : (
+                  <Link href={`/site-web/${siteId}/domaine`} className="text-[12px] font-medium text-[#4F46E5] hover:underline mt-1">
+                    Configurer le domaine
+                  </Link>
+                )}
               </div>
             )}
           </div>
