@@ -17,8 +17,8 @@ const faqData = [
     a: "Absolument. Jestly vous permet de vendre des services, des prestations ponctuelles, des abonnements et des produits numériques comme des formations ou des templates.",
   },
   {
-    q: "Comment fonctionne le sous-domaine ?",
-    a: "À la création de votre compte, vous choisissez votre identifiant. Votre site sera accessible à votrenom.jestly.fr. Vous pourrez aussi connecter votre propre domaine avec le plan Pro.",
+    q: "Comment fonctionne l'adresse de mon site ?",
+    a: "À la création de votre compte, vous choisissez votre identifiant. Votre site sera accessible à jestly.fr/s/votrenom. Avec le plan Pro, vous pourrez connecter votre propre domaine ou activer un sous-domaine dédié.",
   },
   {
     q: "Puis-je connecter mon Stripe existant ?",

@@ -502,12 +502,12 @@ export default function AdminUserDetailPage() {
                 <span>
                   Sous-domaine :{" "}
                   <a
-                    href={`https://${profile.subdomain}.jestly.fr`}
+                    href={`https://jestly.fr/s/${profile.subdomain}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#4F46E5] hover:underline"
                   >
-                    {profile.subdomain}.jestly.fr
+                    jestly.fr/s/{profile.subdomain}
                     <ExternalLink size={10} className="inline ml-0.5" />
                   </a>
                 </span>

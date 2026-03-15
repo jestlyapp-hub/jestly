@@ -404,7 +404,7 @@ export default function PortfolioProfileDrawer({ project, onClose, onSaved }: Po
                   {seoTitle || displayTitle || project.name} — Mon Site
                 </div>
                 <div className="text-[11px] text-emerald-700 truncate mt-0.5">
-                  monsite.jestly.fr/portfolio/{slug || "..."}
+                  jestly.fr/s/monsite/portfolio/{slug || "..."}
                 </div>
                 <div className="text-[12px] text-[#545454] mt-1 line-clamp-2">
                   {seoDescription || summary || "Description du projet..."}
