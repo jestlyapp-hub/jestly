@@ -1,105 +1,95 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { motion, useScroll, useTransform, useSpring, useMotionValue, AnimatePresence } from "framer-motion";
+import { motion, useScroll, useTransform, useMotionValue, useSpring } from "framer-motion";
 import Link from "next/link";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   JESTLY — THE FREELANCE OPERATING SYSTEM
-   Category-defining landing — manifesto + product theater + pixel system
+   JESTLY V4 — THE FREELANCE OPERATING SYSTEM
    ═══════════════════════════════════════════════════════════════════════ */
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-/* ─── DATA ─── */
-const ORBIT_MODULES = [
-  { label: "Portfolio", icon: "◈", angle: -60 },
-  { label: "Orders", icon: "◇", angle: 0 },
-  { label: "Clients", icon: "○", angle: 60 },
-  { label: "Revenue", icon: "△", angle: 120 },
-  { label: "Projects", icon: "□", angle: 180 },
-  { label: "Invoicing", icon: "▽", angle: 240 },
+const ORBIT_EVENTS = [
+  { text: "Lead capturé", badge: "Lead", color: "#6A5CFF", x: -280, y: -60 },
+  { text: "Commande payée — 490 €", badge: "Revenue", color: "#10B981", x: 240, y: -40 },
+  { text: "Projet livré", badge: "Delivery", color: "#8B5CF6", x: -260, y: 80 },
+  { text: "Site publié", badge: "Live", color: "#0EA5E9", x: 260, y: 60 },
+  { text: "Facture envoyée", badge: "Invoice", color: "#F59E0B", x: -180, y: 140 },
+  { text: "Client qualifié", badge: "CRM", color: "#EC4899", x: 200, y: 130 },
 ];
 
-const CHAOS_TOOLS = ["Notion", "Stripe", "Trello", "Calendly", "Drive", "Gmail", "WordPress", "Sheets", "Mailchimp", "Figma"];
+const CHAOS_TOOLS = [
+  { name: "Notion", x: 5, y: 38, r: -8 },
+  { name: "Stripe", x: 68, y: 28, r: 5 },
+  { name: "Trello", x: 15, y: 65, r: -4 },
+  { name: "Calendly", x: 72, y: 60, r: 6 },
+  { name: "Drive", x: 40, y: 80, r: -2 },
+  { name: "Gmail", x: 82, y: 42, r: 3 },
+  { name: "WordPress", x: 8, y: 82, r: -6 },
+  { name: "Sheets", x: 55, y: 72, r: 4 },
+  { name: "Mailchimp", x: 30, y: 40, r: -3 },
+  { name: "Airtable", x: 60, y: 45, r: 2 },
+];
 
-const SYSTEM_LAYERS = [
-  { label: "Présenter", desc: "Site portfolio + builder 100 blocs", color: "#7C3AED" },
-  { label: "Vendre", desc: "Checkout, briefs, offres packagées", color: "#4F46E5" },
-  { label: "Livrer", desc: "Projets, tâches, calendrier, fichiers", color: "#0891B2" },
-  { label: "Facturer", desc: "Factures, exports, récurrence", color: "#059669" },
-  { label: "Piloter", desc: "Dashboard, analytics, KPIs, vision", color: "#D97706" },
+const LAYERS = [
+  { n: "01", label: "Présenter", desc: "Site portfolio + 100 blocs premium + publication 1-clic", color: "#8B5CF6" },
+  { n: "02", label: "Vendre", desc: "Checkout intégré, briefs clients, offres packagées", color: "#6A5CFF" },
+  { n: "03", label: "Livrer", desc: "Projets, tâches, calendrier, fichiers, deadline", color: "#0EA5E9" },
+  { n: "04", label: "Facturer", desc: "Factures, exports, récurrence, clôtures", color: "#10B981" },
+  { n: "05", label: "Piloter", desc: "Dashboard, analytics, KPIs, tendances, vision", color: "#F59E0B" },
 ];
 
 /* ═══════════════════════════════════════════════════════════════════════
-   PIXEL FIELD — Multi-layer topographic system background
+   PIXEL SYSTEM BACKGROUND
    ═══════════════════════════════════════════════════════════════════════ */
-function PixelField() {
+function PixelSystem() {
   return (
-    <div className="fixed inset-0 -z-10 pointer-events-none select-none" aria-hidden>
-      {/* Base */}
+    <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden>
       <div className="absolute inset-0 bg-[#FAFAFA]" />
 
-      {/* L1: Architectural grid */}
-      <div className="absolute inset-0 opacity-[0.018]" style={{
-        backgroundImage: "linear-gradient(#4F46E5 1px, transparent 1px), linear-gradient(90deg, #4F46E5 1px, transparent 1px)",
+      {/* Grid L1 — architecture 80px */}
+      <div className="absolute inset-0" style={{
+        backgroundImage: "linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px)",
         backgroundSize: "80px 80px",
       }} />
 
-      {/* L2: Micro cells */}
-      <div className="absolute inset-0 opacity-[0.012]" style={{
-        backgroundImage: "linear-gradient(#4F46E5 0.5px, transparent 0.5px), linear-gradient(90deg, #4F46E5 0.5px, transparent 0.5px)",
+      {/* Grid L2 — micro 16px */}
+      <div className="absolute inset-0" style={{
+        backgroundImage: "linear-gradient(rgba(0,0,0,0.015) 0.5px, transparent 0.5px), linear-gradient(90deg, rgba(0,0,0,0.015) 0.5px, transparent 0.5px)",
         backgroundSize: "16px 16px",
       }} />
 
-      {/* L3: Dense hero cluster — structured patch */}
-      <div className="absolute top-[-5%] left-[20%] w-[60%] h-[55%] opacity-[0.04]" style={{
-        backgroundImage: "linear-gradient(#4F46E5 1px, transparent 1px), linear-gradient(90deg, #4F46E5 1px, transparent 1px)",
-        backgroundSize: "12px 12px",
-        maskImage: "radial-gradient(ellipse 100% 80% at 50% 40%, black 0%, transparent 70%)",
-        WebkitMaskImage: "radial-gradient(ellipse 100% 80% at 50% 40%, black 0%, transparent 70%)",
-      }} />
-
-      {/* L4: Secondary cluster — right zone */}
-      <div className="absolute top-[30%] right-[0%] w-[35%] h-[40%] opacity-[0.025]" style={{
-        backgroundImage: "linear-gradient(#7C3AED 0.5px, transparent 0.5px), linear-gradient(90deg, #7C3AED 0.5px, transparent 0.5px)",
+      {/* Dense cluster — hero zone */}
+      <div className="absolute top-0 left-[15%] w-[70%] h-[60%]" style={{
+        backgroundImage: "linear-gradient(rgba(106,92,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(106,92,255,0.04) 1px, transparent 1px)",
         backgroundSize: "10px 10px",
-        maskImage: "radial-gradient(ellipse at 70% 50%, black 0%, transparent 60%)",
-        WebkitMaskImage: "radial-gradient(ellipse at 70% 50%, black 0%, transparent 60%)",
+        maskImage: "radial-gradient(ellipse 90% 70% at 50% 35%, black 0%, transparent 65%)",
+        WebkitMaskImage: "radial-gradient(ellipse 90% 70% at 50% 35%, black 0%, transparent 65%)",
       }} />
 
-      {/* L5: Bottom structure */}
-      <div className="absolute bottom-[0%] left-[10%] w-[80%] h-[30%] opacity-[0.02]" style={{
-        backgroundImage: "linear-gradient(#0891B2 0.5px, transparent 0.5px), linear-gradient(90deg, #0891B2 0.5px, transparent 0.5px)",
-        backgroundSize: "20px 20px",
-        maskImage: "linear-gradient(to top, black 0%, transparent 80%)",
-        WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 80%)",
-      }} />
+      {/* Glow — top center */}
+      <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full blur-[140px]" style={{ background: "rgba(106,92,255,0.04)" }} />
+      {/* Glow — right */}
+      <div className="absolute top-[45%] right-[-8%] w-[400px] h-[400px] rounded-full blur-[120px]" style={{ background: "rgba(75,124,255,0.025)" }} />
 
-      {/* Glows */}
-      <div className="absolute -top-32 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[#4F46E5]/[0.025] rounded-full blur-[150px]" />
-      <div className="absolute top-[50%] right-[-10%] w-[500px] h-[500px] bg-[#7C3AED]/[0.015] rounded-full blur-[120px]" />
-      <div className="absolute bottom-[10%] left-[-5%] w-[400px] h-[300px] bg-[#0891B2]/[0.01] rounded-full blur-[100px]" />
-
-      {/* Edge vignette */}
-      <div className="absolute inset-0" style={{
-        background: "radial-gradient(ellipse 70% 50% at 50% 35%, transparent 0%, #FAFAFA 85%)",
-      }} />
+      {/* Vignette */}
+      <div className="absolute inset-0" style={{ background: "radial-gradient(ellipse 65% 50% at 50% 30%, transparent 0%, #FAFAFA 80%)" }} />
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   TOPBAR — Floating glass artifact
+   TOPBAR — Floating system module (XMind-inspired, Jestly premium)
    ═══════════════════════════════════════════════════════════════════════ */
 function Topbar() {
   const [scrolled, setScrolled] = useState(false);
   const hoverX = useMotionValue(0);
   const hoverW = useMotionValue(0);
-  const hoverOpacity = useMotionValue(0);
-  const springX = useSpring(hoverX, { stiffness: 400, damping: 35 });
-  const springW = useSpring(hoverW, { stiffness: 400, damping: 35 });
-  const springO = useSpring(hoverOpacity, { stiffness: 300, damping: 30 });
+  const hoverO = useMotionValue(0);
+  const sX = useSpring(hoverX, { stiffness: 500, damping: 35 });
+  const sW = useSpring(hoverW, { stiffness: 500, damping: 35 });
+  const sO = useSpring(hoverO, { stiffness: 400, damping: 30 });
   const navRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -108,230 +98,241 @@ function Topbar() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  const handleHover = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+  const onHover = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
     if (!navRef.current) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const navRect = navRef.current.getBoundingClientRect();
-    hoverX.set(rect.left - navRect.left);
-    hoverW.set(rect.width);
-    hoverOpacity.set(1);
-  }, [hoverX, hoverW, hoverOpacity]);
-
-  const items = [
-    { label: "Système", href: "#system" },
-    { label: "Builder", href: "#builder" },
-    { label: "Operations", href: "#ops" },
-    { label: "Tarifs", href: "#pricing" },
-  ];
+    const r = e.currentTarget.getBoundingClientRect();
+    const n = navRef.current.getBoundingClientRect();
+    hoverX.set(r.left - n.left);
+    hoverW.set(r.width);
+    hoverO.set(1);
+  }, [hoverX, hoverW, hoverO]);
 
   return (
     <motion.header
-      className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-4"
-      initial={{ y: -40, opacity: 0 }}
+      className="fixed top-0 left-0 right-0 z-50 flex justify-center px-4 pt-5"
+      initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease }}
+      transition={{ duration: 0.9, ease }}
     >
-      <div className={`flex items-center justify-between w-full max-w-[860px] px-4 h-[52px] rounded-2xl transition-all duration-500 ${
-        scrolled
-          ? "bg-white/80 backdrop-blur-2xl border border-black/[0.05] shadow-[0_1px_12px_-2px_rgba(0,0,0,0.06)]"
-          : "bg-white/50 backdrop-blur-xl border border-white/60"
-      }`}>
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-6 h-6 rounded-[7px] bg-[#0A0A0A] flex items-center justify-center group-hover:rounded-lg transition-all">
-            <span className="text-white text-[9px] font-black">J</span>
+      <div
+        className={`flex items-center justify-between w-full transition-all duration-500 ${
+          scrolled ? "shadow-[0_10px_40px_rgba(0,0,0,0.06)]" : "shadow-[0_4px_20px_rgba(0,0,0,0.03)]"
+        }`}
+        style={{
+          maxWidth: 1100,
+          padding: "12px 18px",
+          borderRadius: 18,
+          background: scrolled ? "rgba(255,255,255,0.75)" : "rgba(255,255,255,0.65)",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          border: "1px solid rgba(0,0,0,0.06)",
+        }}
+      >
+        {/* Logo */}
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-[30px] h-[30px] rounded-[10px] bg-[#111] flex items-center justify-center group-hover:scale-105 transition-transform">
+            <span className="text-white text-[11px] font-black">J</span>
           </div>
-          <span className="text-[14px] font-bold text-[#0A0A0A] tracking-[-0.01em]">Jestly</span>
+          <span className="text-[15px] font-semibold text-[#111] tracking-[-0.01em]">Jestly</span>
         </Link>
 
+        {/* Center nav */}
         <nav ref={navRef} className="hidden md:flex items-center relative">
-          {/* Hover highlight */}
           <motion.div
-            className="absolute top-0.5 h-[calc(100%-4px)] rounded-lg bg-black/[0.04]"
-            style={{ x: springX, width: springW, opacity: springO }}
+            className="absolute top-0 h-full rounded-[10px]"
+            style={{ x: sX, width: sW, opacity: sO, background: "rgba(0,0,0,0.04)" }}
           />
-          {items.map((item) => (
+          {["Système", "Builder", "Operations", "Tarifs"].map((label) => (
             <a
-              key={item.label}
-              href={item.href}
-              className="relative z-10 px-3.5 py-1.5 text-[12.5px] font-medium text-[#555] hover:text-[#0A0A0A] transition-colors"
-              onMouseEnter={handleHover}
-              onMouseLeave={() => hoverOpacity.set(0)}
+              key={label}
+              href={`#${label.toLowerCase()}`}
+              className="relative z-10 px-4 py-2 text-[13px] font-medium text-[#111] hover:text-black transition-colors"
+              onMouseEnter={onHover}
+              onMouseLeave={() => hoverO.set(0)}
             >
-              {item.label}
+              {label}
             </a>
           ))}
         </nav>
 
-        <Link
-          href="/login"
-          className="text-[11.5px] font-semibold text-white bg-[#0A0A0A] px-3.5 py-[7px] rounded-[10px] hover:bg-[#222] transition-all hover:shadow-md hover:shadow-black/8"
-        >
-          Démarrer
-        </Link>
+        {/* Right — CTAs */}
+        <div className="flex items-center gap-3">
+          <Link href="/login" className="text-[13px] font-medium text-[#555] hover:text-[#111] transition-colors hidden sm:block">
+            Connexion
+          </Link>
+          <Link
+            href="/login"
+            className="text-[12px] font-semibold text-white px-[18px] py-[10px] rounded-[12px] transition-all hover:-translate-y-0.5"
+            style={{
+              background: "linear-gradient(135deg, #6A5CFF 0%, #4B7CFF 100%)",
+              boxShadow: "0 8px 30px rgba(90,100,255,0.35)",
+            }}
+          >
+            Démarrer
+          </Link>
+        </div>
       </div>
     </motion.header>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   HERO — Full-scene product manifesto
-   Central nucleus + orbiting modules + statement typography
+   HERO — System nucleus + orbiting events + giant statement
    ═══════════════════════════════════════════════════════════════════════ */
 function HeroScene() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
-  const y = useTransform(scrollYProgress, [0, 1], [0, 150]);
+  const y = useTransform(scrollYProgress, [0, 1], [0, 180]);
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
 
   return (
-    <section ref={ref} className="relative min-h-[100vh] flex flex-col items-center justify-center pt-20 pb-24 overflow-hidden">
-      <motion.div className="max-w-6xl mx-auto px-6 w-full" style={{ y, opacity }}>
+    <section ref={ref} className="relative min-h-[100vh] flex flex-col items-center justify-center pt-28 pb-20 overflow-hidden">
+      <motion.div className="w-full max-w-6xl mx-auto px-6" style={{ y, opacity }}>
 
-        {/* ─── CENTRAL COMPOSITION ─── */}
-        <div className="text-center relative">
-
-          {/* System badge */}
+        {/* ─── GIANT STATEMENT ─── */}
+        <div className="text-center mb-16">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0A0A0A] mb-10"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#111] mb-10"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-[#4F46E5] animate-pulse" />
-            <span className="text-[10px] font-bold text-white/90 tracking-[0.15em] uppercase">Freelance Operating System</span>
+            <span className="w-[6px] h-[6px] rounded-full bg-[#6A5CFF] animate-pulse" />
+            <span className="text-[10px] font-bold text-white/90 tracking-[0.18em] uppercase">Freelance Operating System</span>
           </motion.div>
 
-          {/* ─── HEADLINE — architectural typography ─── */}
-          <motion.div
-            initial={{ opacity: 0, y: 50 }}
+          <motion.h1
+            initial={{ opacity: 0, y: 60 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4, duration: 0.8, ease }}
+            transition={{ delay: 0.4, duration: 0.9, ease }}
+            className="text-[clamp(3rem,8vw,7rem)] font-extrabold leading-[0.92] tracking-[-0.05em] text-[#0A0A0A]"
           >
-            <h1 className="text-[clamp(2.8rem,7vw,5.5rem)] font-extrabold leading-[0.95] tracking-[-0.04em] text-[#0A0A0A]">
-              <span className="block">Arrêtez</span>
-              <span className="block relative inline-block">
-                <span className="relative">
-                  d&apos;improviser
-                  {/* Pixel-style underline accent */}
-                  <span className="absolute -bottom-1 left-0 right-0 h-[5px] bg-[#4F46E5] opacity-20" style={{
-                    maskImage: "repeating-linear-gradient(90deg, black 0px, black 3px, transparent 3px, transparent 5px)",
-                    WebkitMaskImage: "repeating-linear-gradient(90deg, black 0px, black 3px, transparent 3px, transparent 5px)",
-                  }} />
-                </span>
+            <span className="block">Arrêtez de</span>
+            <span className="block relative">
+              <span className="relative">
+                bricoler
+                {/* Pixelated strike */}
+                <span className="absolute bottom-[15%] left-0 right-0 h-[6px]" style={{
+                  background: "linear-gradient(135deg, #6A5CFF, #4B7CFF)",
+                  opacity: 0.25,
+                  maskImage: "repeating-linear-gradient(90deg, black 0px, black 4px, transparent 4px, transparent 6px)",
+                  WebkitMaskImage: "repeating-linear-gradient(90deg, black 0px, black 4px, transparent 4px, transparent 6px)",
+                }} />
               </span>
-              <span className="block text-[#BBB]">votre infrastructure.</span>
-            </h1>
-          </motion.div>
+            </span>
+            <span className="block bg-gradient-to-r from-[#CCC] to-[#DDD] bg-clip-text text-transparent">votre business.</span>
+          </motion.h1>
 
-          {/* Sub-statement */}
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6, duration: 0.6 }}
-            className="text-[clamp(0.95rem,1.6vw,1.15rem)] text-[#888] max-w-lg mx-auto mt-7 leading-relaxed"
+            transition={{ delay: 0.65, duration: 0.6 }}
+            className="text-[clamp(0.95rem,1.5vw,1.1rem)] text-[#888] max-w-md mx-auto mt-8 leading-relaxed"
           >
-            Site, ventes, clients, projets, facturation —
-            un seul système structuré au lieu de 10 onglets dispersés.
+            Site, ventes, clients, projets, facturation — un seul système
+            au lieu de 10 onglets.
           </motion.p>
 
-          {/* CTAs */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
-            className="flex items-center justify-center gap-4 mt-9"
+            transition={{ delay: 0.8 }}
+            className="flex items-center justify-center gap-4 mt-10"
           >
             <Link
               href="/login"
-              className="group relative text-[14px] font-semibold text-white px-7 py-3.5 rounded-xl overflow-hidden transition-all shadow-[0_4px_24px_-4px_rgba(79,70,229,0.4)] hover:shadow-[0_8px_32px_-4px_rgba(79,70,229,0.5)] hover:-translate-y-0.5"
+              className="group relative text-[14px] font-semibold text-white px-7 py-3.5 rounded-[14px] overflow-hidden transition-all hover:-translate-y-0.5"
+              style={{ boxShadow: "0 8px 30px rgba(90,100,255,0.35)" }}
             >
-              <span className="absolute inset-0 bg-[#4F46E5]" />
-              <span className="absolute inset-0 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <span className="relative z-10">Commencer gratuitement</span>
+              <span className="absolute inset-0" style={{ background: "linear-gradient(135deg, #6A5CFF 0%, #4B7CFF 100%)" }} />
+              <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: "linear-gradient(135deg, #4B7CFF 0%, #6A5CFF 100%)" }} />
+              <span className="relative z-10">Démarrer gratuitement</span>
             </Link>
-            <a href="#system" className="text-[13px] font-medium text-[#999] hover:text-[#0A0A0A] transition-colors">
+            <a href="#système" className="text-[13px] font-medium text-[#999] hover:text-[#111] transition-colors">
               Explorer le système →
             </a>
           </motion.div>
         </div>
 
-        {/* ─── PRODUCT NUCLEUS — Central system visualization ─── */}
+        {/* ─── SYSTEM NUCLEUS — Dashboard + orbit ─── */}
         <motion.div
-          className="relative mt-20 mx-auto max-w-3xl"
-          initial={{ opacity: 0, scale: 0.85 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.8, duration: 1, ease }}
+          className="relative mx-auto max-w-[700px]"
+          initial={{ opacity: 0, scale: 0.8, y: 40 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.9, duration: 1, ease }}
         >
-          {/* Orbital ring */}
+          {/* Orbital rings */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="w-[480px] h-[480px] rounded-full border border-[#4F46E5]/[0.06] hidden lg:block" />
-            <div className="absolute w-[360px] h-[360px] rounded-full border border-[#4F46E5]/[0.04] hidden lg:block" />
+            <div className="w-[560px] h-[380px] rounded-[50%] border border-black/[0.03] hidden lg:block" />
+            <div className="absolute w-[700px] h-[480px] rounded-[50%] border border-black/[0.02] hidden lg:block" />
           </div>
 
-          {/* Central frame — Dashboard */}
-          <div className="relative z-10 bg-white rounded-2xl border border-black/[0.06] shadow-[0_20px_60px_-12px_rgba(0,0,0,0.08)] overflow-hidden mx-auto max-w-2xl">
+          {/* Dashboard frame */}
+          <div className="relative z-10 bg-white rounded-[20px] border border-black/[0.06] overflow-hidden" style={{
+            boxShadow: "0 24px 80px -16px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.02)",
+          }}>
             {/* Chrome */}
-            <div className="flex items-center gap-1.5 px-4 py-2.5 bg-[#FAFAFA] border-b border-black/[0.04]">
-              <div className="flex gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
-                <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
-                <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+            <div className="flex items-center gap-2 px-5 py-3 bg-[#FAFAFA] border-b border-black/[0.04]">
+              <div className="flex gap-[6px]">
+                <div className="w-[10px] h-[10px] rounded-full bg-[#FF5F57]" />
+                <div className="w-[10px] h-[10px] rounded-full bg-[#FEBC2E]" />
+                <div className="w-[10px] h-[10px] rounded-full bg-[#28C840]" />
               </div>
-              <div className="flex-1 bg-white rounded-md px-3 py-1 text-[9px] text-[#CCC] text-center border border-black/[0.03] ml-3 font-mono">
+              <div className="flex-1 bg-white rounded-[8px] px-4 py-[5px] text-[10px] text-[#CCC] text-center border border-black/[0.03] ml-3 font-mono tracking-wide">
                 jestly.fr / dashboard
               </div>
-              <div className="flex items-center gap-1">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="text-[8px] font-semibold text-emerald-500 uppercase tracking-wider">Live</span>
+              <div className="flex items-center gap-1.5">
+                <div className="w-[6px] h-[6px] rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-widest">Live</span>
               </div>
             </div>
 
-            {/* Dashboard content */}
-            <div className="p-4 bg-[#FAFAFA] min-h-[280px] lg:min-h-[320px]">
+            {/* Content */}
+            <div className="p-5 bg-[#FAFAFA]">
               <div className="flex gap-3">
                 {/* Sidebar */}
-                <div className="w-9 bg-white rounded-xl flex flex-col items-center gap-2 py-3 border border-black/[0.03] flex-shrink-0 hidden sm:flex">
-                  <div className="w-5 h-5 rounded-md bg-[#4F46E5]" />
-                  {[0, 1, 2, 3, 4].map((i) => <div key={i} className="w-5 h-5 rounded-md bg-[#F3F3F3]" />)}
+                <div className="w-10 bg-white rounded-xl flex flex-col items-center gap-2 py-3 border border-black/[0.03] flex-shrink-0 hidden sm:flex">
+                  <div className="w-5 h-5 rounded-[6px]" style={{ background: "linear-gradient(135deg, #6A5CFF, #4B7CFF)" }} />
+                  {[0, 1, 2, 3, 4].map((i) => <div key={i} className="w-5 h-5 rounded-[6px] bg-[#F0F0F0]" />)}
                 </div>
-                <div className="flex-1 space-y-2.5">
+                <div className="flex-1 space-y-3">
                   {/* KPIs */}
                   <div className="grid grid-cols-4 gap-2">
                     {[
-                      { v: "3.2k €", l: "Revenus", c: "#4F46E5" },
-                      { v: "42", l: "Commandes", c: "#0891B2" },
-                      { v: "18", l: "Clients", c: "#7C3AED" },
-                      { v: "89%", l: "Conversion", c: "#059669" },
+                      { v: "3.2k €", l: "Revenus", c: "#6A5CFF" },
+                      { v: "42", l: "Commandes", c: "#0EA5E9" },
+                      { v: "18", l: "Clients", c: "#8B5CF6" },
+                      { v: "89%", l: "Conversion", c: "#10B981" },
                     ].map((k) => (
-                      <div key={k.l} className="bg-white rounded-lg p-2 border border-black/[0.03]">
-                        <div className="text-[8px] text-[#AAA] mb-0.5">{k.l}</div>
-                        <div className="text-[13px] font-bold" style={{ color: k.c }}>{k.v}</div>
+                      <div key={k.l} className="bg-white rounded-[10px] p-2.5 border border-black/[0.03]">
+                        <div className="text-[8px] text-[#BBB] mb-0.5">{k.l}</div>
+                        <div className="text-[14px] font-bold" style={{ color: k.c }}>{k.v}</div>
                       </div>
                     ))}
                   </div>
                   {/* Chart */}
-                  <div className="bg-white rounded-lg p-3 border border-black/[0.03]">
-                    <div className="flex items-end gap-[3px] h-20">
-                      {[30, 50, 38, 65, 45, 72, 55, 80, 60, 90, 68, 85].map((h, i) => (
+                  <div className="bg-white rounded-[10px] p-4 border border-black/[0.03]">
+                    <div className="flex items-end gap-[3px] h-24">
+                      {[28, 48, 35, 62, 42, 70, 52, 78, 58, 88, 65, 82].map((h, i) => (
                         <motion.div
                           key={i}
-                          className="flex-1 rounded-t-sm"
-                          style={{ background: i >= 9 ? "#4F46E5" : i >= 7 ? "#818CF8" : "#EEF2FF" }}
+                          className="flex-1 rounded-t-[3px]"
+                          style={{ background: i >= 9 ? "linear-gradient(to top, #6A5CFF, #4B7CFF)" : i >= 7 ? "#C4B5FD" : "#EDE9FE" }}
                           initial={{ height: 0 }}
                           animate={{ height: `${h}%` }}
-                          transition={{ delay: 1.1 + i * 0.04, duration: 0.6, ease }}
+                          transition={{ delay: 1.2 + i * 0.04, duration: 0.6, ease }}
                         />
                       ))}
                     </div>
                   </div>
-                  {/* Table preview */}
-                  <div className="bg-white rounded-lg p-2.5 border border-black/[0.03] space-y-1.5">
+                  {/* Mini table */}
+                  <div className="bg-white rounded-[10px] p-3 border border-black/[0.03] space-y-1.5">
                     {[0, 1, 2].map((i) => (
                       <div key={i} className="flex items-center gap-2">
-                        <div className="w-5 h-5 rounded-full bg-[#F3F3F3]" />
-                        <div className="flex-1 h-2 bg-[#F7F7F5] rounded" />
-                        <div className="h-2 w-10 bg-[#EEF2FF] rounded" />
-                        <div className="h-4 w-14 rounded-md bg-[#F3F3F3]" />
+                        <div className="w-5 h-5 rounded-full bg-[#F5F5F5]" />
+                        <div className="flex-1 h-[6px] bg-[#F7F7F5] rounded" />
+                        <div className="h-[6px] w-8 bg-[#EDE9FE] rounded" />
+                        <div className="h-5 w-12 rounded-md bg-[#F5F5F5]" />
                       </div>
                     ))}
                   </div>
@@ -340,26 +341,26 @@ function HeroScene() {
             </div>
           </div>
 
-          {/* ─── ORBITING MODULE CARDS ─── */}
-          {ORBIT_MODULES.map((mod, i) => {
-            const a = mod.angle * (Math.PI / 180);
-            const rx = 260, ry = 170;
-            const x = Math.cos(a) * rx;
-            const yPos = Math.sin(a) * ry;
-            return (
-              <motion.div
-                key={mod.label}
-                className="absolute hidden lg:flex items-center gap-1.5 px-3 py-2 bg-white/90 backdrop-blur-sm rounded-xl border border-black/[0.05] shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all z-20"
-                style={{ left: `calc(50% + ${x}px - 44px)`, top: `calc(50% + ${yPos}px - 16px)` }}
-                initial={{ opacity: 0, scale: 0.7 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.3 + i * 0.1, duration: 0.5, ease }}
-              >
-                <span className="text-[14px] text-[#4F46E5]">{mod.icon}</span>
-                <span className="text-[11px] font-semibold text-[#333]">{mod.label}</span>
-              </motion.div>
-            );
-          })}
+          {/* ─── ORBITING EVENT CARDS ─── */}
+          {ORBIT_EVENTS.map((ev, i) => (
+            <motion.div
+              key={ev.text}
+              className="absolute hidden lg:flex items-center gap-2 px-3 py-2 bg-white/95 backdrop-blur-sm rounded-[12px] border border-black/[0.05] z-20"
+              style={{
+                left: `calc(50% + ${ev.x}px)`,
+                top: `calc(50% + ${ev.y}px)`,
+                boxShadow: "0 4px 16px -2px rgba(0,0,0,0.06)",
+              }}
+              initial={{ opacity: 0, scale: 0.6 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 1.5 + i * 0.12, duration: 0.5, ease }}
+            >
+              <span className="text-[8px] font-bold px-1.5 py-[2px] rounded-[5px] text-white uppercase tracking-wider" style={{ background: ev.color }}>
+                {ev.badge}
+              </span>
+              <span className="text-[10px] font-medium text-[#444] whitespace-nowrap">{ev.text}</span>
+            </motion.div>
+          ))}
         </motion.div>
       </motion.div>
     </section>
@@ -367,31 +368,28 @@ function HeroScene() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   MANIFESTO — Category-defining statement
+   MANIFESTO
    ═══════════════════════════════════════════════════════════════════════ */
-function ManifestoSection() {
+function Manifesto() {
   return (
-    <section className="py-32 relative">
-      <div className="max-w-4xl mx-auto px-6">
+    <section className="py-36">
+      <div className="max-w-3xl mx-auto px-6">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
+          viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.9, ease }}
         >
-          <p className="text-[10px] font-bold text-[#4F46E5] uppercase tracking-[0.25em] mb-6">Manifeste</p>
-          <h2 className="text-[clamp(1.8rem,4.5vw,3.2rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-[#0A0A0A] mb-8">
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-6" style={{ color: "#6A5CFF" }}>Manifeste</p>
+          <h2 className="text-[clamp(1.8rem,4.5vw,3.2rem)] font-extrabold leading-[1.08] tracking-[-0.03em] text-[#0A0A0A] mb-8">
             Les freelances n&apos;ont pas besoin
-            <br />
-            d&apos;un outil de plus.
-            <br />
-            <span className="text-[#CCC]">Ils ont besoin d&apos;un système.</span>
+            <br />d&apos;un outil de plus.
+            <br /><span className="text-[#D4D4D4]">Ils ont besoin d&apos;un système.</span>
           </h2>
-          <div className="w-12 h-[2px] bg-[#4F46E5]/30 mb-8" />
-          <p className="text-[17px] text-[#999] max-w-2xl leading-[1.7]">
-            Votre business ne devrait pas vivre entre des onglets, des docs, des DMs et des dashboards.
-            Jestly transforme le travail freelance en couche opérationnelle structurée —
-            du portfolio au paiement, de la livraison à la facturation.
+          <div className="w-10 h-[2px] mb-8" style={{ background: "linear-gradient(90deg, #6A5CFF, #4B7CFF)" }} />
+          <p className="text-[17px] text-[#AAA] leading-[1.8] max-w-xl">
+            Votre business ne devrait pas vivre entre des onglets, des docs, des DMs et des spreadsheets.
+            Jestly est la couche centrale qui transforme le chaos freelance en système structuré.
           </p>
         </motion.div>
       </div>
@@ -400,65 +398,44 @@ function ManifestoSection() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   CHAOS → SYSTEM — Visual choreography of transformation
+   CHAOS → SYSTEM
    ═══════════════════════════════════════════════════════════════════════ */
-function ChaosSystemSection() {
+function ChaosSection() {
   return (
-    <section id="system" className="py-28 overflow-hidden">
+    <section id="système" className="py-28 overflow-hidden">
       <div className="max-w-5xl mx-auto px-6">
-        <motion.div
-          className="text-center mb-20"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-        >
-          <p className="text-[10px] font-bold text-[#4F46E5] uppercase tracking-[0.25em] mb-3">Architecture</p>
-          <h2 className="text-[clamp(1.6rem,3.5vw,2.4rem)] font-extrabold text-[#0A0A0A]">
-            Du chaos dispersé au système centralisé
+        <motion.div className="text-center mb-20" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+          <h2 className="text-[clamp(1.5rem,3.5vw,2.4rem)] font-extrabold text-[#0A0A0A]">
+            10 outils dispersés → 1 système
           </h2>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-6">
           {/* BEFORE */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="relative h-[340px] rounded-2xl bg-gradient-to-br from-[#FEF2F2]/50 to-transparent border border-red-100/50 p-7 overflow-hidden"
+            className="relative h-[360px] rounded-[20px] border border-red-100/60 p-7 overflow-hidden"
+            style={{ background: "linear-gradient(135deg, rgba(254,226,226,0.3), transparent)" }}
           >
-            <div className="text-[10px] font-bold text-red-400/80 uppercase tracking-[0.2em] mb-1">Avant</div>
-            <div className="text-[17px] font-bold text-[#0A0A0A] mb-2">10 outils. 0 système.</div>
-            <div className="text-[12px] text-[#AAA] mb-8">Chaque tâche dans un outil différent.</div>
+            <div className="text-[9px] font-bold text-red-400/70 uppercase tracking-[0.25em] mb-1">Avant Jestly</div>
+            <div className="text-[18px] font-bold text-[#0A0A0A] mb-1">Le bricolage</div>
+            <div className="text-[12px] text-[#BBB]">Chaque tâche dans un outil différent.</div>
 
-            {/* Scattered tool chips */}
-            {CHAOS_TOOLS.map((tool, i) => {
-              const positions = [
-                { l: 10, t: 42 }, { l: 55, t: 35 }, { l: 25, t: 60 }, { l: 68, t: 55 },
-                { l: 8, t: 78 }, { l: 50, t: 75 }, { l: 75, t: 78 }, { l: 38, t: 45 },
-                { l: 62, t: 68 }, { l: 20, t: 85 },
-              ];
-              const p = positions[i];
-              const rot = (i % 2 === 0 ? -1 : 1) * (2 + (i % 5));
-              return (
-                <motion.div
-                  key={tool}
-                  className="absolute px-2.5 py-1 bg-white rounded-lg border border-black/[0.06] shadow-sm text-[10px] font-medium text-[#777]"
-                  style={{ left: `${p.l}%`, top: `${p.t}%`, rotate: rot }}
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 0.6 + (i % 3) * 0.13 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.04 }}
-                >
-                  {tool}
-                </motion.div>
-              );
-            })}
-
-            {/* Connection lines — tangled */}
-            <svg className="absolute inset-0 w-full h-full opacity-[0.06] pointer-events-none" viewBox="0 0 400 340">
-              <path d="M80 160 L200 130 L300 180 L150 220 L250 260 L100 280" fill="none" stroke="#EF4444" strokeWidth="1" strokeDasharray="4 4" />
-              <path d="M60 200 L180 170 L320 210 L120 250" fill="none" stroke="#EF4444" strokeWidth="1" strokeDasharray="4 4" />
-            </svg>
+            {CHAOS_TOOLS.map((t, i) => (
+              <motion.div
+                key={t.name}
+                className="absolute px-2 py-1 bg-white rounded-[8px] border border-black/[0.05] text-[9px] font-medium text-[#888]"
+                style={{ left: `${t.x}%`, top: `${t.y}%`, rotate: t.r, boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 0.55 + (i % 3) * 0.15 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.04 }}
+              >
+                {t.name}
+              </motion.div>
+            ))}
           </motion.div>
 
           {/* AFTER */}
@@ -466,61 +443,56 @@ function ChaosSystemSection() {
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
-            className="relative h-[340px] rounded-2xl bg-gradient-to-br from-[#4F46E5]/[0.03] to-transparent border border-[#4F46E5]/10 p-7"
+            className="relative h-[360px] rounded-[20px] border p-7"
+            style={{ borderColor: "rgba(106,92,255,0.12)", background: "linear-gradient(135deg, rgba(106,92,255,0.03), transparent)" }}
           >
-            <div className="text-[10px] font-bold text-[#4F46E5] uppercase tracking-[0.2em] mb-1">Après</div>
-            <div className="text-[17px] font-bold text-[#0A0A0A] mb-2">1 système. Tout connecté.</div>
-            <div className="text-[12px] text-[#AAA] mb-8">Un noyau central, des modules intégrés.</div>
+            <div className="text-[9px] font-bold uppercase tracking-[0.25em] mb-1" style={{ color: "#6A5CFF" }}>Avec Jestly</div>
+            <div className="text-[18px] font-bold text-[#0A0A0A] mb-1">Le système</div>
+            <div className="text-[12px] text-[#BBB]">Un noyau central, tout connecté.</div>
 
-            {/* Central nucleus */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[30%]">
-              {/* Ring */}
-              <div className="absolute -inset-16 rounded-full border border-[#4F46E5]/[0.08]" />
-              <div className="absolute -inset-24 rounded-full border border-[#4F46E5]/[0.04]" />
-
-              {/* Core */}
+            {/* Nucleus */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[20%]">
+              <div className="absolute -inset-16 rounded-full" style={{ border: "1px solid rgba(106,92,255,0.06)" }} />
+              <div className="absolute -inset-28 rounded-full" style={{ border: "1px solid rgba(106,92,255,0.03)" }} />
               <motion.div
-                className="relative w-14 h-14 rounded-2xl bg-[#0A0A0A] flex items-center justify-center shadow-xl shadow-black/20 z-10"
+                className="relative w-16 h-16 rounded-[18px] bg-[#111] flex items-center justify-center z-10"
+                style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.2)" }}
                 initial={{ scale: 0 }}
                 whileInView={{ scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3, type: "spring", stiffness: 200 }}
               >
-                <span className="text-white text-[16px] font-black">J</span>
+                <span className="text-white text-[18px] font-black">J</span>
               </motion.div>
 
-              {/* Orbiting modules */}
-              {ORBIT_MODULES.slice(0, 6).map((mod, i) => {
-                const a = ((i * 60) - 90) * (Math.PI / 180);
-                const r = 80;
+              {/* Module nodes */}
+              {[
+                { icon: "◈", a: -60 }, { icon: "◇", a: 0 }, { icon: "○", a: 60 },
+                { icon: "△", a: 120 }, { icon: "□", a: 180 }, { icon: "▽", a: 240 },
+              ].map((m, i) => {
+                const rad = m.a * (Math.PI / 180);
+                const r = 72;
                 return (
                   <motion.div
-                    key={mod.label}
-                    className="absolute w-8 h-8 rounded-lg bg-white border border-[#4F46E5]/10 flex items-center justify-center shadow-sm text-[12px] text-[#4F46E5]"
+                    key={i}
+                    className="absolute w-8 h-8 rounded-[10px] bg-white border flex items-center justify-center text-[13px]"
                     style={{
-                      left: `${Math.cos(a) * r - 16 + 28}px`,
-                      top: `${Math.sin(a) * r - 16 + 28}px`,
+                      borderColor: "rgba(106,92,255,0.1)",
+                      color: "#6A5CFF",
+                      left: `${Math.cos(rad) * r - 16 + 32}px`,
+                      top: `${Math.sin(rad) * r - 16 + 32}px`,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
                     }}
                     initial={{ opacity: 0, scale: 0.5 }}
                     whileInView={{ opacity: 1, scale: 1 }}
                     viewport={{ once: true }}
-                    transition={{ delay: 0.5 + i * 0.08 }}
+                    transition={{ delay: 0.5 + i * 0.07 }}
                   >
-                    {mod.icon}
+                    {m.icon}
                   </motion.div>
                 );
               })}
             </div>
-
-            {/* Connection lines — organized */}
-            <svg className="absolute inset-0 w-full h-full opacity-[0.08] pointer-events-none" viewBox="0 0 400 340">
-              <line x1="200" y1="170" x2="140" y2="110" stroke="#4F46E5" strokeWidth="1" />
-              <line x1="200" y1="170" x2="260" y2="110" stroke="#4F46E5" strokeWidth="1" />
-              <line x1="200" y1="170" x2="280" y2="170" stroke="#4F46E5" strokeWidth="1" />
-              <line x1="200" y1="170" x2="260" y2="230" stroke="#4F46E5" strokeWidth="1" />
-              <line x1="200" y1="170" x2="140" y2="230" stroke="#4F46E5" strokeWidth="1" />
-              <line x1="200" y1="170" x2="120" y2="170" stroke="#4F46E5" strokeWidth="1" />
-            </svg>
           </motion.div>
         </div>
       </div>
@@ -529,48 +501,23 @@ function ChaosSystemSection() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   STICKY SYSTEM SHOWCASE — Layer reveal on scroll
+   STICKY SYSTEM SHOWCASE — Scroll-driven layer reveal
    ═══════════════════════════════════════════════════════════════════════ */
 function SystemShowcase() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
-  const activeIndex = useTransform(scrollYProgress, [0, 1], [0, SYSTEM_LAYERS.length - 0.01]);
 
   return (
-    <section ref={ref} className="relative" style={{ height: `${(SYSTEM_LAYERS.length + 1) * 100}vh` }}>
-      <div className="sticky top-0 h-screen flex items-center overflow-hidden">
-        <div className="max-w-5xl mx-auto px-6 w-full">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            {/* Left — Layers stack */}
-            <div className="space-y-3">
-              <p className="text-[10px] font-bold text-[#4F46E5] uppercase tracking-[0.25em] mb-4">Le système</p>
-              <h2 className="text-[clamp(1.4rem,3vw,2rem)] font-extrabold text-[#0A0A0A] mb-8">
-                5 couches. 1 système.
-              </h2>
-              {SYSTEM_LAYERS.map((layer, i) => (
-                <SystemLayerCard key={layer.label} layer={layer} index={i} progress={activeIndex} />
-              ))}
-            </div>
+    <section ref={ref} style={{ height: `${(LAYERS.length + 1) * 100}vh` }}>
+      <div className="sticky top-0 h-screen flex items-center">
+        <div className="max-w-4xl mx-auto px-6 w-full">
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-3" style={{ color: "#6A5CFF" }}>Le système</p>
+          <h2 className="text-[clamp(1.4rem,3vw,2rem)] font-extrabold text-[#0A0A0A] mb-10">5 couches. 1 système.</h2>
 
-            {/* Right — Visual context */}
-            <div className="relative hidden lg:block">
-              <div className="absolute inset-0 bg-gradient-to-br from-[#4F46E5]/5 to-transparent rounded-3xl blur-3xl -z-10" />
-              <div className="bg-white rounded-2xl border border-black/[0.05] shadow-lg p-8 min-h-[400px] flex items-center justify-center">
-                <div className="text-center">
-                  <motion.div
-                    className="w-20 h-20 rounded-3xl bg-[#0A0A0A] mx-auto mb-6 flex items-center justify-center"
-                    animate={{ rotate: [0, 2, -2, 0] }}
-                    transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-                  >
-                    <span className="text-white text-2xl font-black">J</span>
-                  </motion.div>
-                  <p className="text-[14px] font-semibold text-[#0A0A0A] mb-2">Tout converge ici</p>
-                  <p className="text-[12px] text-[#999] max-w-xs mx-auto">
-                    Chaque couche du système renforce les autres. Pas de silos, pas de friction.
-                  </p>
-                </div>
-              </div>
-            </div>
+          <div className="space-y-3">
+            {LAYERS.map((layer, i) => (
+              <LayerCard key={layer.n} layer={layer} index={i} progress={scrollYProgress} total={LAYERS.length} />
+            ))}
           </div>
         </div>
       </div>
@@ -578,103 +525,85 @@ function SystemShowcase() {
   );
 }
 
-function SystemLayerCard({ layer, index, progress }: {
-  layer: typeof SYSTEM_LAYERS[0];
-  index: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  progress: any;
-}) {
-  const isActive = useTransform(progress, (v: number) => Math.floor(v) === index);
-  const opacity = useTransform(progress, (v: number) => {
-    const dist = Math.abs(v - index);
-    return dist < 0.5 ? 1 : dist < 1.5 ? 0.4 : 0.2;
-  });
-  const scale = useTransform(progress, (v: number) => Math.floor(v) === index ? 1.02 : 1);
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function LayerCard({ layer, index, progress, total }: { layer: typeof LAYERS[0]; index: number; progress: any; total: number }) {
+  const start = index / (total + 1);
+  const end = (index + 1) / (total + 1);
+  const opacity = useTransform(progress, [start, start + 0.05, end, end + 0.05], [0.2, 1, 1, 0.2]);
+  const scale = useTransform(progress, [start, start + 0.05, end], [0.98, 1, 1]);
+  const x = useTransform(progress, [start, start + 0.05], [12, 0]);
 
   return (
     <motion.div
-      className="flex items-center gap-4 p-4 rounded-xl border transition-colors"
+      className="flex items-center gap-5 p-5 rounded-[16px] border transition-colors"
       style={{
         opacity,
         scale,
-        borderColor: `${layer.color}15`,
-        backgroundColor: `${layer.color}04`,
+        x,
+        borderColor: `${layer.color}18`,
+        background: `${layer.color}05`,
       }}
     >
-      <div className="w-10 h-10 rounded-xl flex items-center justify-center text-[14px] font-bold text-white flex-shrink-0" style={{ background: layer.color }}>
-        {index + 1}
+      <div className="w-11 h-11 rounded-[12px] flex items-center justify-center text-[13px] font-bold text-white flex-shrink-0" style={{ background: layer.color }}>
+        {layer.n}
       </div>
       <div>
-        <div className="text-[14px] font-bold text-[#0A0A0A]">{layer.label}</div>
-        <div className="text-[12px] text-[#888]">{layer.desc}</div>
+        <div className="text-[15px] font-bold text-[#0A0A0A]">{layer.label}</div>
+        <div className="text-[12px] text-[#999]">{layer.desc}</div>
       </div>
     </motion.div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   BUILDER — Conversion machine
+   BUILDER
    ═══════════════════════════════════════════════════════════════════════ */
 function BuilderSection() {
   return (
     <section id="builder" className="py-28 overflow-hidden">
       <div className="max-w-6xl mx-auto px-6">
-        <div className="grid lg:grid-cols-[1fr_1.15fr] gap-14 items-center">
-          {/* Text */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-          >
-            <p className="text-[10px] font-bold text-[#7C3AED] uppercase tracking-[0.25em] mb-3">Builder</p>
-            <h2 className="text-[clamp(1.5rem,3.2vw,2.2rem)] font-extrabold text-[#0A0A0A] leading-tight mb-5">
-              Construisez le site
-              <br />que vos clients voient.
-              <br />
-              <span className="text-[#CCC]">Opérez le système qu&apos;ils ne voient pas.</span>
+        <div className="grid lg:grid-cols-[1fr_1.2fr] gap-14 items-center">
+          <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}>
+            <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-3" style={{ color: "#8B5CF6" }}>Builder</p>
+            <h2 className="text-[clamp(1.5rem,3vw,2.2rem)] font-extrabold text-[#0A0A0A] leading-tight mb-5">
+              Construisez le site que<br />vos clients voient.
+              <br /><span className="text-[#D4D4D4]">Opérez le système qu&apos;ils ne voient pas.</span>
             </h2>
-            <p className="text-[15px] text-[#888] leading-relaxed mb-8">
-              100+ blocs. Checkout intégré. Formulaires de brief. Templates par métier.
-              Un site qui ne se contente pas d&apos;exister — il convertit.
+            <p className="text-[14px] text-[#999] leading-relaxed mb-7">
+              100+ blocs. Checkout intégré. Formulaires. Templates par métier. Un site qui convertit, pas juste une vitrine.
             </p>
-            <div className="space-y-2.5">
-              {["100+ blocs premium designés", "Checkout et paiement intégrés", "Capture de leads automatique", "SEO et responsive natifs"].map((f) => (
-                <div key={f} className="flex items-center gap-3">
-                  <div className="w-1 h-1 rounded-full bg-[#7C3AED]" />
-                  <span className="text-[13px] text-[#555] font-medium">{f}</span>
+            <div className="space-y-2">
+              {["100+ blocs premium", "Checkout et paiement intégrés", "Capture de leads", "SEO et mobile natifs"].map((f) => (
+                <div key={f} className="flex items-center gap-2.5">
+                  <div className="w-[5px] h-[5px] rounded-full" style={{ background: "#8B5CF6" }} />
+                  <span className="text-[12px] text-[#666] font-medium">{f}</span>
                 </div>
               ))}
             </div>
           </motion.div>
 
-          {/* Visual */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
-            className="relative"
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#7C3AED]/8 to-[#4F46E5]/3 rounded-3xl blur-3xl -z-10 scale-105" />
-            <div className="bg-white rounded-2xl border border-black/[0.05] shadow-[0_16px_48px_-12px_rgba(0,0,0,0.06)] overflow-hidden">
+          <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="relative">
+            <div className="absolute inset-0 rounded-3xl blur-3xl -z-10" style={{ background: "linear-gradient(135deg, rgba(139,92,246,0.06), rgba(106,92,255,0.03))" }} />
+            <div className="bg-white rounded-[20px] border border-black/[0.05] overflow-hidden" style={{ boxShadow: "0 20px 60px -12px rgba(0,0,0,0.06)" }}>
               <div className="flex">
                 <div className="w-40 border-r border-black/[0.03] bg-[#FAFAFA] p-2.5 space-y-1 flex-shrink-0">
-                  <div className="text-[9px] font-bold text-[#AAA] uppercase tracking-wider px-1 mb-2">Blocs</div>
+                  <div className="text-[8px] font-bold text-[#BBB] uppercase tracking-wider px-1 mb-2">Blocs</div>
                   {["Hero", "Portfolio", "Services", "Checkout", "Contact", "Footer"].map((b, i) => (
-                    <div key={b} className={`px-2.5 py-1.5 rounded-lg text-[10px] font-medium ${
-                      i === 1 ? "bg-[#7C3AED] text-white" : "text-[#777] hover:bg-white"
-                    }`}>{b}</div>
+                    <div key={b} className={`px-2.5 py-1.5 rounded-[8px] text-[10px] font-medium ${
+                      i === 1 ? "text-white" : "text-[#888]"
+                    }`} style={i === 1 ? { background: "linear-gradient(135deg, #8B5CF6, #6A5CFF)" } : {}}>
+                      {b}
+                    </div>
                   ))}
                 </div>
                 <div className="flex-1 p-3 space-y-2 min-h-[280px] bg-[#FDFDFD]">
-                  <div className="h-16 bg-gradient-to-r from-[#7C3AED]/6 to-[#4F46E5]/3 rounded-lg border border-[#7C3AED]/8 flex items-center justify-center">
+                  <div className="h-16 rounded-[10px] border flex items-center justify-center" style={{ borderColor: "rgba(139,92,246,0.1)", background: "rgba(139,92,246,0.03)" }}>
                     <div className="h-2 w-20 bg-[#0A0A0A]/8 rounded" />
                   </div>
                   <div className="grid grid-cols-3 gap-1.5">
-                    {[0, 1, 2].map((i) => (
-                      <div key={i} className="aspect-[4/3] bg-[#F5F5F5] rounded-lg border border-black/[0.02]" />
-                    ))}
+                    {[0, 1, 2].map((i) => <div key={i} className="aspect-[4/3] bg-[#F5F5F5] rounded-[8px]" />)}
                   </div>
-                  <div className="h-12 bg-[#F5F5F5] rounded-lg border border-black/[0.02]" />
+                  <div className="h-12 bg-[#F5F5F5] rounded-[10px]" />
                 </div>
               </div>
             </div>
@@ -689,38 +618,38 @@ function BuilderSection() {
    OPS COCKPIT
    ═══════════════════════════════════════════════════════════════════════ */
 function OpsSection() {
-  const modules = [
-    { title: "Pipeline", desc: "Kanban avec statuts custom", accent: "#4F46E5" },
-    { title: "CRM", desc: "Historique et revenus par client", accent: "#7C3AED" },
-    { title: "Analytics", desc: "Revenus, conversion, tendances", accent: "#0891B2" },
-    { title: "Projets", desc: "Folders, fichiers, livraison", accent: "#059669" },
-    { title: "Calendrier", desc: "Jour, semaine, mois", accent: "#D97706" },
-    { title: "Facturation", desc: "Factures, exports, récurrence", accent: "#DC2626" },
+  const mods = [
+    { title: "Pipeline", desc: "Kanban + statuts custom", c: "#6A5CFF" },
+    { title: "CRM", desc: "Historique + revenus par client", c: "#8B5CF6" },
+    { title: "Analytics", desc: "Revenus, conversion, tendances", c: "#0EA5E9" },
+    { title: "Projets", desc: "Folders, fichiers, livraison", c: "#10B981" },
+    { title: "Calendrier", desc: "Jour, semaine, mois", c: "#F59E0B" },
+    { title: "Facturation", desc: "Factures, exports, récurrence", c: "#EC4899" },
   ];
 
   return (
-    <section id="ops" className="py-28">
+    <section id="operations" className="py-28">
       <div className="max-w-5xl mx-auto px-6">
         <motion.div className="text-center mb-14" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <p className="text-[10px] font-bold text-[#0891B2] uppercase tracking-[0.25em] mb-3">Operations</p>
-          <h2 className="text-[clamp(1.5rem,3.2vw,2.2rem)] font-extrabold text-[#0A0A0A]">Le cockpit de votre activité</h2>
+          <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-3" style={{ color: "#0EA5E9" }}>Operations</p>
+          <h2 className="text-[clamp(1.5rem,3vw,2.2rem)] font-extrabold text-[#0A0A0A]">Le cockpit de votre activité</h2>
         </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {modules.map((m, i) => (
+          {mods.map((m, i) => (
             <motion.div
               key={m.title}
-              initial={{ opacity: 0, y: 16 }}
+              initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
-              className="group bg-white rounded-xl border border-black/[0.04] p-5 hover:shadow-lg hover:shadow-black/[0.03] hover:-translate-y-1 transition-all duration-300"
+              transition={{ delay: i * 0.04 }}
+              className="group bg-white rounded-[14px] border border-black/[0.04] p-5 hover:shadow-lg hover:shadow-black/[0.03] hover:-translate-y-1 transition-all duration-300"
             >
-              <div className="flex items-center gap-3 mb-3">
-                <div className="w-2 h-2 rounded-full transition-transform group-hover:scale-150" style={{ background: m.accent }} />
-                <h3 className="text-[15px] font-bold text-[#0A0A0A]">{m.title}</h3>
+              <div className="flex items-center gap-2.5 mb-2.5">
+                <div className="w-[7px] h-[7px] rounded-full group-hover:scale-[1.8] transition-transform" style={{ background: m.c }} />
+                <h3 className="text-[14px] font-bold text-[#0A0A0A]">{m.title}</h3>
               </div>
-              <p className="text-[12px] text-[#999]">{m.desc}</p>
+              <p className="text-[11px] text-[#AAA]">{m.desc}</p>
             </motion.div>
           ))}
         </div>
@@ -732,46 +661,45 @@ function OpsSection() {
 /* ═══════════════════════════════════════════════════════════════════════
    PRICING
    ═══════════════════════════════════════════════════════════════════════ */
-function PricingSection() {
+function Pricing() {
   return (
-    <section id="pricing" className="py-28">
+    <section id="tarifs" className="py-28">
       <div className="max-w-3xl mx-auto px-6">
         <motion.div className="text-center mb-12" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 className="text-[clamp(1.5rem,3.2vw,2.2rem)] font-extrabold text-[#0A0A0A] mb-2">Un prix, pas une surprise</h2>
-          <p className="text-[15px] text-[#999]">Commencez gratuitement. Passez au Pro quand c&apos;est le moment.</p>
+          <h2 className="text-[clamp(1.5rem,3vw,2.2rem)] font-extrabold text-[#0A0A0A] mb-2">Un prix, pas une surprise</h2>
         </motion.div>
 
         <div className="grid md:grid-cols-2 gap-4">
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-white rounded-2xl border border-black/[0.05] p-7">
-            <div className="text-[11px] font-bold text-[#AAA] uppercase tracking-wider mb-1">Free</div>
-            <div className="text-[34px] font-extrabold text-[#0A0A0A] mb-5">0<span className="text-[14px] text-[#CCC] font-semibold ml-1">€/mois</span></div>
+          <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="bg-white rounded-[18px] border border-black/[0.05] p-7">
+            <div className="text-[10px] font-bold text-[#BBB] uppercase tracking-wider mb-1">Free</div>
+            <div className="text-[32px] font-extrabold text-[#0A0A0A] mb-5">0<span className="text-[13px] text-[#DDD] font-semibold ml-1">€/mois</span></div>
             <div className="space-y-2 mb-6">
               {["1 site", "10 commandes/mois", "Blocs essentiels", "Dashboard"].map((f) => (
-                <div key={f} className="flex items-center gap-2 text-[12px] text-[#666]">
-                  <div className="w-3.5 h-3.5 rounded-full bg-[#F3F3F3] flex items-center justify-center text-[8px] text-[#BBB]">✓</div>
+                <div key={f} className="flex items-center gap-2 text-[11px] text-[#777]">
+                  <div className="w-3 h-3 rounded-full bg-[#F5F5F5] flex items-center justify-center text-[7px] text-[#CCC]">✓</div>
                   {f}
                 </div>
               ))}
             </div>
-            <Link href="/login" className="block text-center text-[12px] font-semibold text-[#0A0A0A] border border-black/[0.08] py-2.5 rounded-xl hover:bg-[#F7F7F5] transition-colors">
+            <Link href="/login" className="block text-center text-[12px] font-semibold text-[#111] border border-black/[0.08] py-2.5 rounded-[12px] hover:bg-[#F7F7F5] transition-colors">
               Démarrer
             </Link>
           </motion.div>
 
-          <motion.div initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.06 }} className="bg-[#0A0A0A] rounded-2xl p-7 relative overflow-hidden">
-            <div className="absolute -top-16 -right-16 w-32 h-32 bg-[#4F46E5]/25 rounded-full blur-[50px]" />
+          <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.06 }} className="bg-[#0A0A0A] rounded-[18px] p-7 relative overflow-hidden">
+            <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full blur-[50px]" style={{ background: "rgba(106,92,255,0.3)" }} />
             <div className="relative">
-              <div className="text-[11px] font-bold text-[#4F46E5] uppercase tracking-wider mb-1">Pro</div>
-              <div className="text-[34px] font-extrabold text-white mb-5">7<span className="text-[14px] text-[#666] font-semibold ml-1">€/mois</span></div>
+              <div className="text-[10px] font-bold uppercase tracking-wider mb-1" style={{ color: "#6A5CFF" }}>Pro</div>
+              <div className="text-[32px] font-extrabold text-white mb-5">7<span className="text-[13px] text-[#666] font-semibold ml-1">€/mois</span></div>
               <div className="space-y-2 mb-6">
                 {["Sites illimités", "Commandes illimitées", "100+ blocs premium", "Domaine custom", "Support prioritaire"].map((f) => (
-                  <div key={f} className="flex items-center gap-2 text-[12px] text-[#AAA]">
-                    <div className="w-3.5 h-3.5 rounded-full bg-[#4F46E5]/20 flex items-center justify-center text-[8px] text-[#4F46E5]">✓</div>
+                  <div key={f} className="flex items-center gap-2 text-[11px] text-[#AAA]">
+                    <div className="w-3 h-3 rounded-full flex items-center justify-center text-[7px]" style={{ background: "rgba(106,92,255,0.2)", color: "#6A5CFF" }}>✓</div>
                     {f}
                   </div>
                 ))}
               </div>
-              <Link href="/login" className="block text-center text-[12px] font-semibold text-white bg-[#4F46E5] py-2.5 rounded-xl hover:bg-[#4338CA] transition-colors shadow-lg shadow-[#4F46E5]/25">
+              <Link href="/login" className="block text-center text-[12px] font-semibold text-white py-2.5 rounded-[12px] transition-colors" style={{ background: "linear-gradient(135deg, #6A5CFF, #4B7CFF)", boxShadow: "0 6px 24px rgba(106,92,255,0.3)" }}>
                 Passer au Pro
               </Link>
             </div>
@@ -783,42 +711,34 @@ function PricingSection() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   FINAL CTA — Manifesto closing scene
+   FINAL CTA
    ═══════════════════════════════════════════════════════════════════════ */
 function FinalCTA() {
   return (
-    <section className="py-32 relative">
-      {/* Dense pixel field — signature moment */}
-      <div className="absolute inset-0 opacity-[0.05]" style={{
-        backgroundImage: "linear-gradient(#4F46E5 1px, transparent 1px), linear-gradient(90deg, #4F46E5 1px, transparent 1px)",
-        backgroundSize: "20px 20px",
-        maskImage: "radial-gradient(ellipse 60% 50% at 50% 50%, black 0%, transparent 70%)",
-        WebkitMaskImage: "radial-gradient(ellipse 60% 50% at 50% 50%, black 0%, transparent 70%)",
+    <section className="py-36 relative">
+      <div className="absolute inset-0" style={{
+        backgroundImage: "linear-gradient(rgba(106,92,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(106,92,255,0.04) 1px, transparent 1px)",
+        backgroundSize: "16px 16px",
+        maskImage: "radial-gradient(ellipse 55% 45% at 50% 50%, black 0%, transparent 65%)",
+        WebkitMaskImage: "radial-gradient(ellipse 55% 45% at 50% 50%, black 0%, transparent 65%)",
       }} />
 
       <div className="max-w-3xl mx-auto px-6 text-center relative">
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.8, ease }}
-        >
-          <h2 className="text-[clamp(1.8rem,4.5vw,3rem)] font-extrabold text-[#0A0A0A] leading-[1.08] tracking-[-0.03em] mb-6">
-            Construisez quelque chose
-            <br />de sérieux.
+        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8, ease }}>
+          <h2 className="text-[clamp(1.8rem,4.5vw,3rem)] font-extrabold text-[#0A0A0A] leading-[1.06] tracking-[-0.03em] mb-6">
+            Construisez quelque chose<br />de sérieux.
           </h2>
-          <p className="text-[16px] text-[#999] mb-10 max-w-md mx-auto">
-            Le freelance OS pour ceux qui construisent un vrai business.
-          </p>
+          <p className="text-[15px] text-[#AAA] mb-10">Le freelance OS pour ceux qui ne bricolent plus.</p>
           <Link
             href="/login"
-            className="group inline-flex text-[15px] font-semibold text-white px-8 py-4 rounded-xl transition-all hover:-translate-y-0.5 relative overflow-hidden"
+            className="group inline-flex text-[15px] font-semibold text-white px-8 py-4 rounded-[14px] transition-all hover:-translate-y-0.5 relative overflow-hidden"
+            style={{ boxShadow: "0 8px 30px rgba(90,100,255,0.35)" }}
           >
-            <span className="absolute inset-0 bg-[#0A0A0A]" />
-            <span className="absolute inset-0 bg-gradient-to-r from-[#4F46E5] to-[#7C3AED] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            <span className="relative z-10">Commencer gratuitement</span>
+            <span className="absolute inset-0" style={{ background: "linear-gradient(135deg, #6A5CFF, #4B7CFF)" }} />
+            <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700" style={{ background: "linear-gradient(135deg, #4B7CFF, #6A5CFF)" }} />
+            <span className="relative z-10">Démarrer gratuitement</span>
           </Link>
-          <p className="text-[11px] text-[#CCC] mt-5">Gratuit pour toujours. Sans carte bancaire.</p>
+          <p className="text-[11px] text-[#DDD] mt-5">Gratuit pour toujours. Sans carte bancaire.</p>
         </motion.div>
       </div>
     </section>
@@ -833,14 +753,14 @@ function Footer() {
     <footer className="border-t border-black/[0.03] py-7">
       <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <div className="w-5 h-5 rounded-md bg-[#0A0A0A] flex items-center justify-center">
+          <div className="w-5 h-5 rounded-[6px] bg-[#111] flex items-center justify-center">
             <span className="text-white text-[7px] font-black">J</span>
           </div>
           <span className="text-[11px] text-[#CCC]">© 2026 Jestly</span>
         </div>
         <div className="flex gap-5">
           {["Mentions légales", "CGV", "Contact"].map((l) => (
-            <a key={l} href="#" className="text-[10px] text-[#CCC] hover:text-[#888] transition-colors">{l}</a>
+            <a key={l} href="#" className="text-[10px] text-[#CCC] hover:text-[#999] transition-colors">{l}</a>
           ))}
         </div>
       </div>
@@ -849,21 +769,21 @@ function Footer() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   PAGE ASSEMBLY
+   PAGE
    ═══════════════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
   return (
     <>
-      <PixelField />
+      <PixelSystem />
       <Topbar />
       <main>
         <HeroScene />
-        <ManifestoSection />
-        <ChaosSystemSection />
+        <Manifesto />
+        <ChaosSection />
         <SystemShowcase />
         <BuilderSection />
         <OpsSection />
-        <PricingSection />
+        <Pricing />
         <FinalCTA />
       </main>
       <Footer />
