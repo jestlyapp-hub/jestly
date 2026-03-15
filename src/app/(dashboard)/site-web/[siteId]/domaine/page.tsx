@@ -174,8 +174,8 @@ export default function SiteDomainePage() {
           const reason = data.reason === "taken" ? "taken" : data.reason === "reserved" ? "reserved" : "invalid";
           setCheckStatus(reason);
           setErrorMsg(
-            data.reason === "taken" ? "Ce sous-domaine est déjà pris."
-              : data.reason === "reserved" ? "Ce sous-domaine est réservé."
+            data.reason === "taken" ? "Cette adresse est déjà prise."
+              : data.reason === "reserved" ? "Cette adresse est réservée."
                 : "Format invalide."
           );
         }
@@ -222,7 +222,7 @@ export default function SiteDomainePage() {
 
       if (!res.ok) {
         if (res.status === 401) setErrorMsg("Session expirée, reconnectez-vous.");
-        else if (res.status === 409) { setCheckStatus("taken"); setErrorMsg(data.error || "Ce sous-domaine est déjà pris."); }
+        else if (res.status === 409) { setCheckStatus("taken"); setErrorMsg(data.error || "Cette adresse est déjà prise."); }
         else if (res.status === 429) setErrorMsg(data.error || "Trop de modifications. Réessayez demain.");
         else setErrorMsg(data.error || `Erreur serveur (${res.status})`);
         setSaveState("error");
@@ -265,8 +265,8 @@ export default function SiteDomainePage() {
     checkStatus !== "taken" && checkStatus !== "reserved" && checkStatus !== "invalid" &&
     saveState !== "saving";
 
-  const fullUrl = serverSlug ? `https://${serverSlug}.${baseDomain}` : "";
-  const previewDomain = (editing ? normalized : serverSlug) || "mon-site";
+  const fullUrl = serverSlug ? `https://${baseDomain}/s/${serverSlug}` : "";
+  const previewSlug = (editing ? normalized : serverSlug) || "mon-site";
 
   const handleCopy = () => {
     if (!fullUrl) return;
@@ -337,11 +337,11 @@ export default function SiteDomainePage() {
                 <IconGlobe size={16} />
               </div>
               <div>
-                <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Sous-domaine Jestly</h2>
+                <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Adresse publique Jestly</h2>
                 <p className="text-[12px] text-[#8A8A88] mt-0.5">
                   {serverSlug
                     ? "L'adresse publique de votre site"
-                    : "Choisissez une adresse unique pour votre site"}
+                    : "Choisissez un identifiant unique pour votre site"}
                 </p>
               </div>
             </div>
@@ -361,11 +361,10 @@ export default function SiteDomainePage() {
         <div className="px-6 pb-4">
           <div className="flex items-center gap-2 p-3 bg-[#F7F7F5] rounded-lg border border-[#EFEFEF]">
             <IconLock size={13} />
-            <span className="text-[13px] text-[#8A8A88] select-none">https://</span>
+            <span className="text-[13px] text-[#8A8A88] select-none">https://{baseDomain}/s/</span>
             <span className={`text-[13px] font-semibold ${serverSlug || (editing && normalized) ? "text-[#1A1A1A]" : "text-[#CCCCCC]"}`}>
-              {previewDomain}
+              {previewSlug}
             </span>
-            <span className="text-[13px] text-[#8A8A88] select-none">.{baseDomain}</span>
           </div>
         </div>
 
@@ -403,8 +402,8 @@ export default function SiteDomainePage() {
                   <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
                 <p className="text-[12px] text-amber-700 leading-relaxed">
-                  Votre sous-domaine est réservé, mais votre site n'est pas encore publié.
-                  Publiez-le depuis l'éditeur pour le rendre accessible à l'adresse <strong>{serverSlug}.{baseDomain}</strong>.
+                  Votre adresse est réservée, mais votre site n'est pas encore publié.
+                  Publiez-le depuis l'éditeur pour le rendre accessible à <strong>{baseDomain}/s/{serverSlug}</strong>.
                 </p>
               </div>
             )}
@@ -418,7 +417,7 @@ export default function SiteDomainePage() {
               onClick={() => { setEditing(true); setInput(""); }}
               className="w-full py-3 rounded-lg text-[13px] font-medium text-[#4F46E5] border-2 border-dashed border-[#4F46E5]/20 hover:border-[#4F46E5]/40 hover:bg-[#EEF2FF]/50 transition-colors"
             >
-              Configurer un sous-domaine
+              Configurer l&apos;adresse du site
             </button>
           </div>
         )}
@@ -440,7 +439,7 @@ export default function SiteDomainePage() {
                   checkStatus === "taken" || checkStatus === "reserved" || checkStatus === "invalid" ? "border-red-300 ring-1 ring-red-100" :
                   "border-[#E6E6E4] focus-within:border-[#4F46E5] focus-within:ring-1 focus-within:ring-[#4F46E5]/10"
                 }`}>
-                  <span className="px-3 text-[13px] text-[#999] border-r border-[#EFEFEF] py-2.5 select-none bg-[#FAFAFA]">https://</span>
+                  <span className="px-3 text-[13px] text-[#999] border-r border-[#EFEFEF] py-2.5 select-none bg-[#FAFAFA]">{baseDomain}/s/</span>
                   <input
                     ref={inputRef}
                     type="text"
@@ -451,7 +450,6 @@ export default function SiteDomainePage() {
                     maxLength={40}
                     className="flex-1 bg-transparent px-3 py-2.5 text-[13px] text-[#1A1A1A] font-medium focus:outline-none"
                   />
-                  <span className="px-3 text-[13px] text-[#999] border-l border-[#EFEFEF] py-2.5 select-none bg-[#FAFAFA]">.{baseDomain}</span>
                 </div>
 
                 {/* Validation feedback */}
@@ -471,7 +469,7 @@ export default function SiteDomainePage() {
                       )}
                       {checkStatus === "available" && (
                         <span className="text-[12px] text-emerald-600 font-medium flex items-center gap-1.5">
-                          <IconCheck size={12} /> {normalized}.{baseDomain} est disponible
+                          <IconCheck size={12} /> {baseDomain}/s/{normalized} est disponible
                         </span>
                       )}
                       {(checkStatus === "taken" || checkStatus === "reserved" || checkStatus === "invalid") && (
@@ -492,7 +490,7 @@ export default function SiteDomainePage() {
                       exit={{ opacity: 0 }}
                       className="text-[12px] text-emerald-600 font-medium flex items-center gap-1.5"
                     >
-                      <IconCheck size={12} /> Sous-domaine enregistré avec succès
+                      <IconCheck size={12} /> Adresse enregistrée avec succès
                     </motion.div>
                   )}
                   {saveState === "error" && errorMsg && (
@@ -518,7 +516,7 @@ export default function SiteDomainePage() {
                         : "bg-[#F7F7F5] text-[#CCCCCC] cursor-not-allowed border border-[#EFEFEF]"
                     }`}
                   >
-                    {saveState === "saving" ? <><Spinner size={12} /> Enregistrement...</> : serverSlug ? "Enregistrer" : "Réserver ce sous-domaine"}
+                    {saveState === "saving" ? <><Spinner size={12} /> Enregistrement...</> : serverSlug ? "Enregistrer" : "Réserver cette adresse"}
                   </button>
                   {serverSlug && (
                     <button

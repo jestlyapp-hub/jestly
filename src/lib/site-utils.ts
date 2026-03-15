@@ -1,5 +1,29 @@
 import type { Site, SitePage, Block, NavLink, FooterLink } from "@/types";
 
+const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN || "jestly.fr";
+
+/**
+ * Get the canonical public URL for a site.
+ * This is the SINGLE source of truth for site URLs.
+ *
+ * Format: https://jestly.fr/s/{slug}
+ * (or custom domain if configured and verified)
+ */
+export function getSitePublicUrl(slug: string, customDomain?: string): string {
+  if (customDomain) return `https://${customDomain}`;
+  if (!slug) return "";
+  return `https://${BASE_DOMAIN}/s/${slug}`;
+}
+
+/**
+ * Get the display URL (without https://) for a site.
+ */
+export function getSiteDisplayUrl(slug: string, customDomain?: string): string {
+  if (customDomain) return customDomain;
+  if (!slug) return "";
+  return `${BASE_DOMAIN}/s/${slug}`;
+}
+
 /**
  * Find a published page by its path within a site.
  * "/" → homepage (is_home or slug "/"), "/services" → services page.
