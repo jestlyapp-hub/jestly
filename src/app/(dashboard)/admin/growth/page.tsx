@@ -58,10 +58,9 @@ interface TopReferrer {
 }
 
 interface TopLandingPage {
-  page_path: string;
+  landing_page_id: string;
+  name: string;
   leads_count: number;
-  signups: number;
-  conversion_pct: number | null;
 }
 
 interface DailyBreakdown {
@@ -72,7 +71,8 @@ interface DailyBreakdown {
 }
 
 interface AttributionRow {
-  campaign_name: string;
+  campaign_id: string;
+  name: string;
   first_touch_leads: number;
   last_touch_leads: number;
 }
@@ -434,18 +434,14 @@ export default function AdminGrowthPage() {
               <thead>
                 <tr className="border-b border-[#E6E6E4]">
                   <th className="py-2 pr-4 text-[11px] font-semibold text-[#666] uppercase tracking-wide">Page</th>
-                  <th className="py-2 pr-4 text-[11px] font-semibold text-[#666] uppercase tracking-wide text-right">Leads</th>
-                  <th className="py-2 pr-4 text-[11px] font-semibold text-[#666] uppercase tracking-wide text-right">Signups</th>
-                  <th className="py-2 text-[11px] font-semibold text-[#666] uppercase tracking-wide text-right">Conversion</th>
+                  <th className="py-2 text-[11px] font-semibold text-[#666] uppercase tracking-wide text-right">Leads</th>
                 </tr>
               </thead>
               <tbody>
                 {data.top_landing_pages.map((lp) => (
-                  <tr key={lp.page_path} className="border-b border-[#EFEFEF] hover:bg-[#FBFBFA]">
-                    <td className="py-2.5 pr-4 text-[13px] text-[#191919] font-mono text-[12px]">{lp.page_path}</td>
-                    <td className="py-2.5 pr-4 text-[13px] text-[#191919] text-right tabular-nums">{lp.leads_count}</td>
-                    <td className="py-2.5 pr-4 text-[13px] text-[#191919] text-right tabular-nums">{lp.signups}</td>
-                    <td className="py-2.5 text-[13px] text-[#5A5A58] text-right tabular-nums">{formatPct(lp.conversion_pct)}</td>
+                  <tr key={lp.name} className="border-b border-[#EFEFEF] hover:bg-[#FBFBFA]">
+                    <td className="py-2.5 pr-4 text-[13px] text-[#191919] font-mono text-[12px]">{lp.name}</td>
+                    <td className="py-2.5 text-[13px] text-[#191919] text-right tabular-nums">{lp.leads_count}</td>
                   </tr>
                 ))}
               </tbody>
@@ -554,8 +550,8 @@ export default function AdminGrowthPage() {
                 {data.attribution_comparison.map((row) => {
                   const diff = row.first_touch_leads - row.last_touch_leads;
                   return (
-                    <tr key={row.campaign_name} className="border-b border-[#EFEFEF] hover:bg-[#FBFBFA]">
-                      <td className="py-2.5 pr-4 text-[13px] font-medium text-[#191919]">{row.campaign_name}</td>
+                    <tr key={row.name} className="border-b border-[#EFEFEF] hover:bg-[#FBFBFA]">
+                      <td className="py-2.5 pr-4 text-[13px] font-medium text-[#191919]">{row.name}</td>
                       <td className="py-2.5 pr-4 text-[13px] text-[#191919] text-right tabular-nums">
                         <span className="inline-flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full bg-[#4F46E5]" />

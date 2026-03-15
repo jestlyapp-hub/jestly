@@ -244,18 +244,46 @@ export async function GET(req: NextRequest) {
     ...counts,
   }));
 
+  // Shape response to match frontend GrowthData interface
   return NextResponse.json({
-    totals: {
-      leads: totalLeads,
-      signups: totalSignups,
-      activations: totalActivations,
-      paid: totalPaid,
+    kpis: {
+      total_leads: totalLeads,
+      total_signups: totalSignups,
+      total_activations: totalActivations,
+      total_paid: totalPaid,
+      lead_to_signup_pct: conversionRates.lead_to_signup_pct,
+      signup_to_paid_pct: conversionRates.activation_to_paid_pct,
+      lead_to_paid_pct: conversionRates.lead_to_paid_pct,
+      avg_cpl: costMetrics.cpl || null,
     },
-    conversion_rates: conversionRates,
-    top_campaigns: topCampaigns,
-    top_sources: topSources,
-    top_referrers: topReferrers,
-    top_landing_pages: topLandingPages,
+    top_campaigns: topCampaigns.map((c) => {
+      const camp = campaigns.find((ca: { id: string }) => ca.id === c.campaign_id);
+      const campSignups = filteredConversions.filter((cv: any) =>
+        cv.conversion_type === "signup_completed" &&
+        (cv.first_touch_campaign_id === c.campaign_id || cv.last_touch_campaign_id === c.campaign_id)
+      ).length;
+      const campPaid = filteredConversions.filter((cv: any) =>
+        cv.conversion_type === "paid_conversion" &&
+        (cv.first_touch_campaign_id === c.campaign_id || cv.last_touch_campaign_id === c.campaign_id)
+      ).length;
+      return {
+        id: c.campaign_id,
+        name: c.name,
+        channel: camp?.channel || "other",
+        leads: c.leads,
+        signups: campSignups,
+        paid: campPaid,
+        conversion_pct: c.leads > 0 ? Math.round((campPaid / c.leads) * 10000) / 100 : null,
+        cpl: c.leads > 0 && (camp?.budget_spent || 0) > 0 ? Math.round(((camp?.budget_spent || 0) / c.leads) * 100) / 100 : null,
+      };
+    }),
+    top_sources: topSources.map((s) => ({ source_name: s.source, leads_count: s.leads })),
+    top_referrers: topReferrers.map((r) => ({ referrer: r.referrer, leads_count: r.leads })),
+    top_landing_pages: topLandingPages.map((lp) => ({
+      landing_page_id: lp.landing_page_id,
+      name: lp.name,
+      leads_count: lp.leads,
+    })),
     daily_breakdown: dailyBreakdown,
     cost_metrics: costMetrics,
     attribution_comparison: attributionComparison,
