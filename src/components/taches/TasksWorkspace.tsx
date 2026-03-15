@@ -390,9 +390,10 @@ export default function TasksWorkspace() {
   }
 
   function handleDelete(id: string) {
+    if (!window.confirm("Supprimer cette tâche ? Cette action est irréversible.")) return;
     setData((prev) => (prev || []).filter((t) => t.id !== id));
     setDrawerOpen(false);
-    apiFetch("/api/tasks", { method: "DELETE", body: { id } }).catch((e) => console.error("Task sync error:", e));
+    apiFetch("/api/tasks", { method: "DELETE", body: { id } }).catch((e) => console.error("Task delete error:", e));
   }
 
   async function handleArchive(id: string) {

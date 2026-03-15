@@ -99,11 +99,13 @@ export function DangerZoneSection({ onResetPreferences }: {
         <DangerAction
           icon={Trash2}
           title="Supprimer le compte"
-          description="Supprime définitivement votre compte et toutes vos données. Cette action est irréversible."
+          description="Supprime définitivement votre compte et toutes vos données. Cette action est irréversible. Contactez support@jestly.fr pour effectuer cette action."
           buttonLabel="Supprimer mon compte"
           buttonColor="red"
-          onConfirm={() => {}}
-          implemented={false}
+          onConfirm={() => {
+            window.location.href = "mailto:support@jestly.fr?subject=Suppression%20de%20compte&body=Bonjour%2C%20je%20souhaite%20supprimer%20mon%20compte%20Jestly.";
+          }}
+          implemented={true}
         />
       </div>
     </SectionCard>

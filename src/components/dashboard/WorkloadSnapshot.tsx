@@ -11,11 +11,20 @@ interface SnapshotItem {
   href: string;
 }
 
-function getSnapshotItems(stats?: { pendingOrders: number; clientsCount: number }): SnapshotItem[] {
+interface WorkloadSnapshotProps {
+  pendingOrders: number;
+  activeTasks: number;       // inProgressOrders from dashboard stats
+  pendingInvoices: number;   // pendingOrders (no separate invoice count in API yet)
+  clientsCount: number;
+  weekEvents: number;        // computed from calendarData week days
+  overdueItems: number;      // overdueOrders from dashboard stats
+}
+
+function getSnapshotItems(props: WorkloadSnapshotProps): SnapshotItem[] {
   return [
     {
       label: "Commandes en cours",
-      value: stats?.pendingOrders ?? 3,
+      value: props.pendingOrders,
       href: "/commandes",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -25,7 +34,7 @@ function getSnapshotItems(stats?: { pendingOrders: number; clientsCount: number 
     },
     {
       label: "Taches actives",
-      value: 7, // TODO: brancher sur API taches
+      value: props.activeTasks,
       href: "/taches",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -35,7 +44,7 @@ function getSnapshotItems(stats?: { pendingOrders: number; clientsCount: number 
     },
     {
       label: "Factures en attente",
-      value: "2 (350 EUR)",
+      value: props.pendingInvoices,
       href: "/facturation",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -45,7 +54,7 @@ function getSnapshotItems(stats?: { pendingOrders: number; clientsCount: number 
     },
     {
       label: "Clients actifs",
-      value: stats?.clientsCount ?? 6,
+      value: props.clientsCount,
       href: "/clients",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -55,7 +64,7 @@ function getSnapshotItems(stats?: { pendingOrders: number; clientsCount: number 
     },
     {
       label: "Evenements cette semaine",
-      value: 4, // TODO: brancher sur API calendrier
+      value: props.weekEvents,
       href: "/calendrier",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -65,8 +74,8 @@ function getSnapshotItems(stats?: { pendingOrders: number; clientsCount: number 
     },
     {
       label: "Elements en retard",
-      value: 2, // TODO: brancher sur API retards
-      alert: true,
+      value: props.overdueItems,
+      alert: props.overdueItems > 0,
       href: "/taches",
       icon: (
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -77,12 +86,8 @@ function getSnapshotItems(stats?: { pendingOrders: number; clientsCount: number 
   ];
 }
 
-interface WorkloadSnapshotProps {
-  stats?: { pendingOrders: number; clientsCount: number };
-}
-
-export default function WorkloadSnapshot({ stats }: WorkloadSnapshotProps) {
-  const items = getSnapshotItems(stats);
+export default function WorkloadSnapshot(props: WorkloadSnapshotProps) {
+  const items = getSnapshotItems(props);
 
   return (
     <div className="bg-white rounded-xl border border-[#E6E6E4]">

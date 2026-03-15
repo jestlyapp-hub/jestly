@@ -51,20 +51,11 @@ const typeConfig: Record<Notification["type"], { bg: string; color: string; icon
   },
 };
 
-function getMockNotifications(): Notification[] {
-  return [
-    { id: "n1", type: "overdue", message: "Livraison Logo redesign en retard (Marie Dupont)", time: "il y a 1j", href: "/commandes", read: false },
-    { id: "n2", type: "deadline", message: "Identite visuelle — echeance aujourd'hui", time: "il y a 2h", href: "/commandes", read: false },
-    { id: "n3", type: "invoice", message: "Facture FAC-2025-045 impayee (Sophie Bernard)", time: "il y a 3j", href: "/facturation", read: false },
-    { id: "n4", type: "invoice", message: "Facture FAC-2025-043 en retard (Emma Leroy)", time: "il y a 5j", href: "/facturation", read: true },
-    { id: "n5", type: "event", message: "Appel decouverte avec Hugo Moreau demain a 11h", time: "il y a 6h", href: "/calendrier", read: false },
-    { id: "n6", type: "deadline", message: "Revision Motion intro — echeance dans 2 jours", time: "il y a 8h", href: "/commandes", read: true },
-  ];
-}
+// No mock data — show empty state until real notification system exists
 
 export default function NotificationPanel() {
   const [open, setOpen] = useState(false);
-  const [notifications, setNotifications] = useState(getMockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const ref = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -136,7 +127,7 @@ export default function NotificationPanel() {
                   <svg className="w-8 h-8 text-[#DDD] mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
                   </svg>
-                  <p className="text-[13px] text-[#999]">Aucune notification</p>
+                  <p className="text-[13px] text-[#999]">Pas de nouvelles notifications</p>
                 </div>
               ) : (
                 notifications.map((notif, i) => {

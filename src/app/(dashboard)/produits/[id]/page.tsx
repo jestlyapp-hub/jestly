@@ -604,12 +604,28 @@ export default function EditProductPage({
                 <p className="text-[12px] text-[#8A8A88]">Ventes totales</p>
               </div>
             </div>
-            <div className="py-8 text-center border-t border-[#E6E6E4]">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#E6E6E4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3">
-                <path d="M21.21 15.89A10 10 0 1 1 8 2.83" /><path d="M22 12A10 10 0 0 0 12 2v10z" />
-              </svg>
-              <p className="text-[13px] text-[#8A8A88]">Statistiques détaillées bientôt disponibles</p>
-            </div>
+            {salesCount === 0 && (
+              <div className="py-8 text-center border-t border-[#E6E6E4]">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#E6E6E4" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3">
+                  <path d="M21.21 15.89A10 10 0 1 1 8 2.83" /><path d="M22 12A10 10 0 0 0 12 2v10z" />
+                </svg>
+                <p className="text-[13px] text-[#8A8A88]">Pas encore de donnees de vente pour ce produit.</p>
+              </div>
+            )}
+            {salesCount > 0 && (
+              <div className="border-t border-[#E6E6E4] pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 rounded-lg bg-[#F7F7F5]">
+                    <p className="text-[12px] text-[#8A8A88] mb-1">Chiffre d&apos;affaires</p>
+                    <p className="text-lg font-bold text-[#1A1A1A]">{(salesCount * centsToEuros(product.priceCents)).toFixed(2)} &euro;</p>
+                  </div>
+                  <div className="p-4 rounded-lg bg-[#F7F7F5]">
+                    <p className="text-[12px] text-[#8A8A88] mb-1">Panier moyen</p>
+                    <p className="text-lg font-bold text-[#1A1A1A]">{centsToEuros(product.priceCents).toFixed(2)} &euro;</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </motion.div>

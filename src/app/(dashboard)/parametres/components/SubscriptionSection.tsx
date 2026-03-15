@@ -61,14 +61,12 @@ export function SubscriptionSection({ profile }: {
               <span className="text-[10px] font-semibold bg-[#F5F5F4] px-2 py-0.5 rounded-full">Gestion via Stripe — bientôt</span>
             </div>
           ) : (
-            <button
-              disabled
-              className="flex items-center gap-1.5 text-[13px] font-semibold text-white bg-[#7C3AED] px-5 py-2.5 rounded-lg opacity-60 cursor-not-allowed shadow-sm shadow-[#7C3AED]/20"
-              title="Bientôt disponible"
+            <a
+              href="mailto:support@jestly.fr?subject=Upgrade%20Pro"
+              className="flex items-center gap-1.5 text-[13px] font-semibold text-white bg-[#7C3AED] px-5 py-2.5 rounded-lg hover:bg-[#6D28D9] transition-colors shadow-sm shadow-[#7C3AED]/20"
             >
               Passer au Pro — 7 €/mois
-              <span className="text-[10px] font-normal ml-1 opacity-80">(bientôt)</span>
-            </button>
+            </a>
           )}
         </div>
 

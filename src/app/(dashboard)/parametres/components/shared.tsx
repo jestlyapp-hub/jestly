@@ -153,10 +153,6 @@ export const INTEGRATIONS = [
   { key: "stripe", name: "Stripe", description: "Paiements en ligne, facturation, abonnements", category: "Paiements", status: "available" as const },
   { key: "google_calendar", name: "Google Calendar", description: "Synchronisation agenda et rendez-vous", category: "Productivité", status: "available" as const },
   { key: "apple_calendar", name: "Apple Calendar", description: "Synchronisation iCal", category: "Productivité", status: "available" as const },
-  { key: "gmail", name: "Gmail", description: "Notifications et relances par email", category: "Communication", status: "soon" as const },
-  { key: "google_drive", name: "Google Drive", description: "Stockage et partage de fichiers", category: "Productivité", status: "soon" as const },
-  { key: "notion", name: "Notion", description: "Synchronisation de projets et notes", category: "Productivité", status: "soon" as const },
-  { key: "slack", name: "Slack", description: "Notifications en temps réel", category: "Communication", status: "soon" as const },
 ];
 
 /* Searchable index: keyword → section id */

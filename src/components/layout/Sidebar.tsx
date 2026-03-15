@@ -26,8 +26,6 @@ import {
   CreditCard,
   HelpCircle,
   MessageCircle,
-  Building2,
-  Plus,
   ChevronsUpDown,
 } from "lucide-react";
 
@@ -176,16 +174,6 @@ function AccountMenu({ user, open, onClose, triggerRef }: {
               <MenuLink href="/parametres#abonnement" icon={<CreditCard size={15} strokeWidth={1.7} />} label="Abonnement" onClick={onClose} />
               <MenuButton icon={<HelpCircle size={15} strokeWidth={1.7} />} label="Aide" onClick={() => { window.open("mailto:support@jestly.fr"); onClose(); }} />
               <MenuButton icon={<MessageCircle size={15} strokeWidth={1.7} />} label="Discord" onClick={() => { window.open("https://discord.gg/jestly", "_blank"); onClose(); }} external />
-            </div>
-
-            {/* ── Workspace ── */}
-            <div className="h-px bg-[#F0F0EE] mx-1.5" />
-            <div className="py-1.5 px-1.5">
-              <div className="px-2.5 py-1.5 text-[10px] font-semibold text-[#B0B0AE] uppercase tracking-[0.06em]">
-                Workspace
-              </div>
-              <MenuButton icon={<Building2 size={15} strokeWidth={1.7} />} label="Changer de workspace" disabled onClick={() => {}} hint="Bientôt" />
-              <MenuButton icon={<Plus size={15} strokeWidth={1.7} />} label="Créer un workspace" disabled onClick={() => {}} hint="Bientôt" />
             </div>
 
             {/* ── Déconnexion ── */}

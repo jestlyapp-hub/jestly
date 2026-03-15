@@ -850,10 +850,12 @@ export default function ProjectDetailPage() {
   }, [allItems, activeFolder, activeTab, itemSearch]);
 
   const handleDeleteItem = useCallback(async (id: string) => {
+    if (!window.confirm("Supprimer cet élément ? Cette action est irréversible.")) return;
     try { await apiFetch(`/api/projects/${projectId}/items/${id}`, { method: "DELETE" }); mutate(); } catch { showError("Erreur lors de la suppression"); }
   }, [projectId, mutate]);
 
   const handleDeleteFolder = useCallback(async (id: string) => {
+    if (!window.confirm("Supprimer ce dossier et son contenu ? Cette action est irréversible.")) return;
     try { await apiFetch(`/api/projects/${projectId}/items/${id}?type=folder`, { method: "DELETE" }); if (activeFolder === id) setActiveFolder(null); mutate(); } catch { showError("Erreur lors de la suppression du dossier"); }
   }, [projectId, activeFolder, mutate]);
 
@@ -862,6 +864,7 @@ export default function ProjectDetailPage() {
   }, [projectId, mutate]);
 
   const handleDeleteProject = async () => {
+    if (!window.confirm("Supprimer ce projet ? Cette action est irréversible.")) return;
     try { await apiFetch(`/api/projects/${projectId}`, { method: "DELETE" }); router.push("/projets"); } catch { showError("Erreur lors de la suppression du projet"); }
   };
 

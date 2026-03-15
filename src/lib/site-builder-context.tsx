@@ -597,7 +597,7 @@ export function BuilderProvider({ children }: { children: ReactNode }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(snapshot),
           keepalive: true,
-        }).catch(() => {});
+        }).catch((err) => { console.error("[Builder] Unmount save failed:", err); });
       }
     };
   }, [siteId]);

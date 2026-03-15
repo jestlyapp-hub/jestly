@@ -22,6 +22,8 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const [archiveError, setArchiveError] = useState(false);
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -31,6 +33,7 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
   const handleSave = async () => {
     if (saving) return;
     setSaving(true);
+    setSaveError(false);
     try {
       await apiFetch(`/api/clients/${client.id}`, {
         method: "PATCH",
@@ -50,26 +53,31 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
       });
       setSaved(true);
       onUpdate();
-    } catch {
-      // silently fail
+    } catch (err) {
+      console.error("[ClientSettings] Save failed:", err);
+      setSaveError(true);
     } finally {
       setSaving(false);
     }
   };
 
   const handleArchive = async () => {
+    const action = form.status === "archived" ? "réactiver" : "archiver";
+    if (!window.confirm(`Voulez-vous ${action} ce client ?`)) return;
     const newStatus = form.status === "archived" ? "active" : "archived";
     setForm((prev) => ({ ...prev, status: newStatus }));
     setSaving(true);
+    setArchiveError(false);
     try {
       await apiFetch(`/api/clients/${client.id}`, {
         method: "PATCH",
         body: { status: newStatus },
       });
       onUpdate();
-    } catch {
-      // revert
+    } catch (err) {
+      console.error("[ClientSettings] Archive failed:", err);
       setForm((prev) => ({ ...prev, status: client.status }));
+      setArchiveError(true);
     } finally {
       setSaving(false);
     }
@@ -187,6 +195,9 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
           {saved && (
             <span className="text-[12px] text-emerald-600">Enregistré !</span>
           )}
+          {saveError && (
+            <span className="text-[12px] text-red-500">Erreur lors de l'enregistrement</span>
+          )}
         </div>
       </div>
 
@@ -209,6 +220,9 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
         >
           {form.status === "archived" ? "Réactiver le client" : "Archiver le client"}
         </button>
+        {archiveError && (
+          <p className="text-[12px] text-red-500 mt-2">Erreur lors de l'archivage</p>
+        )}
       </div>
     </div>
   );

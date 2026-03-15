@@ -14,6 +14,7 @@ import type {
   RevenueMonthPoint,
   DashboardRevenueData,
 } from "@/lib/dashboard/types";
+import WorkloadSnapshot from "@/components/dashboard/WorkloadSnapshot";
 import {
   DollarSign,
   ShoppingCart,
@@ -71,6 +72,24 @@ interface DashboardData {
 function fmtEur(n: number): string {
   if (n >= 10000) return `${(n / 1000).toFixed(1)}k €`;
   return `${n.toLocaleString("fr-FR")} €`;
+}
+
+/** Count total events in the current week (Mon–Sun) from calendarData */
+function countWeekEvents(calendarData: DashboardCalendarMonthData): number {
+  const now = new Date();
+  const dayOfWeek = now.getDay(); // 0=Sun
+  const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+  const monday = new Date(now);
+  monday.setDate(now.getDate() + mondayOffset);
+  let total = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    const key = d.toISOString().slice(0, 10);
+    const day = calendarData.days[key];
+    if (day) total += day.totalCount;
+  }
+  return total;
 }
 
 const fadeUp = (delay: number) => ({
@@ -556,6 +575,18 @@ export default function DashboardPage() {
         <KpiCard label="Commandes" value={String(data.activeOrdersCount)} sub={`${data.pendingOrders} en attente`} icon={ShoppingCart} sparkData={sparkOrd} color="bg-violet-50 text-violet-600" delay={0.1} />
         <KpiCard label="Clients" value={String(data.clientsCount)} sub={data.newClientsThisMonth > 0 ? `+${data.newClientsThisMonth} ce mois` : "total"} icon={Users} color="bg-blue-50 text-blue-600" delay={0.15} />
         <KpiCard label="Pipeline" value={`${data.inProgressOrders}`} sub={`${data.deliveredOrders} livrées · ${data.paidOrders} payées`} icon={TrendingUp} color="bg-amber-50 text-amber-600" delay={0.2} />
+      </div>
+
+      {/* ════════════════════════ WORKLOAD SNAPSHOT ════════════════════════ */}
+      <div className="mb-6">
+        <WorkloadSnapshot
+          pendingOrders={data.pendingOrders}
+          activeTasks={data.inProgressOrders}
+          pendingInvoices={data.pendingOrders}
+          clientsCount={data.clientsCount}
+          weekEvents={countWeekEvents(data.calendarData)}
+          overdueItems={data.overdueOrders}
+        />
       </div>
 
       {/* ════════════════════════ ROW 2 — Aujourd'hui + Actions ════════════════════════ */}
