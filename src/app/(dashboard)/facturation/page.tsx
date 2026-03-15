@@ -583,6 +583,7 @@ export default function FacturationPage() {
   const [showArchives, setShowArchives] = useState(false);
   const [healthExpanded, setHealthExpanded] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [mutating, setMutating] = useState(false);
 
   /* ── Bulk selection (state only — functions defined after filteredItems) ── */
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -765,63 +766,81 @@ export default function FacturationPage() {
   }, [mutatePipeline, mutateHealth]);
 
   const handleDelete = useCallback(async (item: PipelineItem) => {
-    if (item.type === "order") {
-      await fetch(`/api/orders/${item.id}`, { method: "DELETE" });
-    } else {
-      await fetch(`/api/billing/items/${item.billingItemId || item.id}`, { method: "DELETE" });
+    if (mutating) return;
+    setMutating(true);
+    try {
+      if (item.type === "order") {
+        await fetch(`/api/orders/${item.id}`, { method: "DELETE" });
+      } else {
+        await fetch(`/api/billing/items/${item.billingItemId || item.id}`, { method: "DELETE" });
+      }
+      await refreshAll();
+      if (detailItem?.id === item.id) setDetailItem(null);
+    } finally {
+      setMutating(false);
     }
-    await refreshAll();
-    if (detailItem?.id === item.id) setDetailItem(null);
-  }, [refreshAll, detailItem]);
+  }, [refreshAll, detailItem, mutating]);
 
   const handleSaveManual = useCallback(async (data: Record<string, unknown>, id?: string) => {
-    const method = id ? "PATCH" : "POST";
-    const url = id ? `/api/billing/items/${id}` : "/api/billing/items";
-    const res = await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-    if (!res.ok) return;
-    setShowCreate(false);
-    setEditItem(null);
-    await refreshAll();
-  }, [refreshAll]);
+    if (mutating) return;
+    setMutating(true);
+    try {
+      const method = id ? "PATCH" : "POST";
+      const url = id ? `/api/billing/items/${id}` : "/api/billing/items";
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) return;
+      setShowCreate(false);
+      setEditItem(null);
+      await refreshAll();
+    } finally {
+      setMutating(false);
+    }
+  }, [refreshAll, mutating]);
 
   const handleBillingStatusChange = useCallback(async (item: PipelineItem, newStatus: BillingStatusKey) => {
-    if (item.type === "order") {
-      const updates: Record<string, unknown> = { status: billingToOrderStatus(newStatus) };
-      if (newStatus === "invoiced") updates.invoiced_at = new Date().toISOString().slice(0, 10);
-      if (newStatus === "paid") {
-        updates.paid = true;
-        updates.paid_at = new Date().toISOString().slice(0, 10);
+    if (mutating) return;
+    setMutating(true);
+    try {
+      if (item.type === "order") {
+        const updates: Record<string, unknown> = { status: billingToOrderStatus(newStatus) };
+        if (newStatus === "invoiced") updates.invoiced_at = new Date().toISOString().slice(0, 10);
+        if (newStatus === "paid") {
+          updates.paid = true;
+          updates.paid_at = new Date().toISOString().slice(0, 10);
+        }
+        if (newStatus === "ready" || newStatus === "in_progress") {
+          updates.paid = false;
+        }
+        await fetch(`/api/orders/${item.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updates),
+        });
+      } else {
+        // Manual billing item
+        const manualStatusMap: Record<BillingStatusKey, BillingItemStatus> = {
+          in_progress: "draft",
+          ready: "ready",
+          invoiced: "invoiced",
+          paid: "paid",
+        };
+        const updates: Record<string, unknown> = { status: manualStatusMap[newStatus] };
+        if (newStatus === "paid") updates.paid_at = new Date().toISOString().slice(0, 10);
+        await fetch(`/api/billing/items/${item.billingItemId || item.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updates),
+        });
       }
-      if (newStatus === "ready" || newStatus === "in_progress") {
-        updates.paid = false;
-      }
-      await fetch(`/api/orders/${item.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
-    } else {
-      // Manual billing item
-      const manualStatusMap: Record<BillingStatusKey, BillingItemStatus> = {
-        in_progress: "draft",
-        ready: "ready",
-        invoiced: "invoiced",
-        paid: "paid",
-      };
-      const updates: Record<string, unknown> = { status: manualStatusMap[newStatus] };
-      if (newStatus === "paid") updates.paid_at = new Date().toISOString().slice(0, 10);
-      await fetch(`/api/billing/items/${item.billingItemId || item.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updates),
-      });
+      await refreshAll();
+    } finally {
+      setMutating(false);
     }
-    await refreshAll();
-  }, [refreshAll]);
+  }, [refreshAll, mutating]);
 
   const handleExportCsv = useCallback(async () => {
     if (filteredItems.length === 0) return;
@@ -842,36 +861,54 @@ export default function FacturationPage() {
   }, [filteredItems, persistExport, refreshAll]);
 
   const handleClosePeriod = useCallback(async (year: number, month: number, notes?: string) => {
-    await fetch("/api/billing/closures", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ year, month, notes }),
-    });
-    await mutateClosures();
-  }, [mutateClosures]);
-
-  const handleReopenPeriod = useCallback(async (closureId: string) => {
-    await fetch(`/api/billing/closures/${closureId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: "reopened" }),
-    });
-    await mutateClosures();
-  }, [mutateClosures]);
-
-  const handleActSuggestion = useCallback(async (suggestion: HealthSuggestion) => {
-    if (suggestion.type === "unbilled_order" && suggestion.orderId) {
-      await fetch("/api/billing/from-order", {
+    if (mutating) return;
+    setMutating(true);
+    try {
+      await fetch("/api/billing/closures", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order_id: suggestion.orderId }),
+        body: JSON.stringify({ year, month, notes }),
       });
-      await refreshAll();
-    } else if (suggestion.type === "missing_recurring" && suggestion.profileId) {
-      await fetch(`/api/billing/recurring/${suggestion.profileId}/generate`, { method: "POST" });
-      await refreshAll();
+      await mutateClosures();
+    } finally {
+      setMutating(false);
     }
-  }, [refreshAll]);
+  }, [mutateClosures, mutating]);
+
+  const handleReopenPeriod = useCallback(async (closureId: string) => {
+    if (mutating) return;
+    setMutating(true);
+    try {
+      await fetch(`/api/billing/closures/${closureId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "reopened" }),
+      });
+      await mutateClosures();
+    } finally {
+      setMutating(false);
+    }
+  }, [mutateClosures, mutating]);
+
+  const handleActSuggestion = useCallback(async (suggestion: HealthSuggestion) => {
+    if (mutating) return;
+    setMutating(true);
+    try {
+      if (suggestion.type === "unbilled_order" && suggestion.orderId) {
+        await fetch("/api/billing/from-order", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ order_id: suggestion.orderId }),
+        });
+        await refreshAll();
+      } else if (suggestion.type === "missing_recurring" && suggestion.profileId) {
+        await fetch(`/api/billing/recurring/${suggestion.profileId}/generate`, { method: "POST" });
+        await refreshAll();
+      }
+    } finally {
+      setMutating(false);
+    }
+  }, [refreshAll, mutating]);
 
   const clearFilters = useCallback(() => {
     setFilterClient("");
@@ -1132,6 +1169,7 @@ export default function FacturationPage() {
             expanded={healthExpanded}
             onToggle={() => setHealthExpanded(!healthExpanded)}
             onActSuggestion={handleActSuggestion}
+            mutating={mutating}
           />
         </motion.div>
       )}
@@ -1318,6 +1356,7 @@ export default function FacturationPage() {
             onRowClick={setDetailItem}
             onStatusChange={handleBillingStatusChange}
             onDelete={handleDelete}
+            mutating={mutating}
           />
         ) : viewMode === "period" ? (
           <GroupedView
@@ -1327,6 +1366,7 @@ export default function FacturationPage() {
             onRowClick={setDetailItem}
             onStatusChange={handleBillingStatusChange}
             onDelete={handleDelete}
+            mutating={mutating}
           />
         ) : (
           <div>
@@ -1415,6 +1455,7 @@ export default function FacturationPage() {
                     onClick={() => setDetailItem(item)}
                     onStatusChange={handleBillingStatusChange}
                     onDelete={handleDelete}
+                    mutating={mutating}
                   />
                 ))}
               </tbody>
@@ -1441,6 +1482,7 @@ export default function FacturationPage() {
             onClose={() => setDetailItem(null)}
             onStatusChange={(status) => handleBillingStatusChange(detailItem, status)}
             onDelete={() => handleDelete(detailItem)}
+            mutating={mutating}
           />
         )}
         {showExports && (
@@ -1579,13 +1621,14 @@ function SummaryBar({ count, total }: { count: number; total: number }) {
    ITEM ROW
    ══════════════════════════════════════════════════════════════════════ */
 
-function ItemRow({ item, selected, onToggle, onClick, onStatusChange, onDelete }: {
+function ItemRow({ item, selected, onToggle, onClick, onStatusChange, onDelete, mutating }: {
   item: PipelineItem;
   selected?: boolean;
   onToggle?: (shiftKey: boolean) => void;
   onClick: () => void;
   onStatusChange: (item: PipelineItem, status: BillingStatusKey) => void;
   onDelete: (item: PipelineItem) => void;
+  mutating?: boolean;
 }) {
   return (
     <tr
@@ -1637,7 +1680,7 @@ function ItemRow({ item, selected, onToggle, onClick, onStatusChange, onDelete }
         </span>
       </td>
       <td className="px-2 py-3.5">
-        <ActionMenu item={item} onStatusChange={onStatusChange} onDelete={onDelete} />
+        <ActionMenu item={item} onStatusChange={onStatusChange} onDelete={onDelete} mutating={mutating} />
       </td>
     </tr>
   );
@@ -1647,13 +1690,14 @@ function ItemRow({ item, selected, onToggle, onClick, onStatusChange, onDelete }
    GROUPED VIEW
    ══════════════════════════════════════════════════════════════════════ */
 
-function GroupedView({ groups, icon, items, onRowClick, onStatusChange, onDelete }: {
+function GroupedView({ groups, icon, items, onRowClick, onStatusChange, onDelete, mutating }: {
   groups: [string, { name?: string; label?: string; items: PipelineItem[]; total: number }][];
   icon: React.ReactNode;
   items: PipelineItem[];
   onRowClick: (item: PipelineItem) => void;
   onStatusChange: (item: PipelineItem, status: BillingStatusKey) => void;
   onDelete: (item: PipelineItem) => void;
+  mutating?: boolean;
 }) {
   const total = items.reduce((s, i) => s + i.amount, 0);
   return (
@@ -1679,6 +1723,7 @@ function GroupedView({ groups, icon, items, onRowClick, onStatusChange, onDelete
                   onClick={() => onRowClick(item)}
                   onStatusChange={onStatusChange}
                   onDelete={onDelete}
+                  mutating={mutating}
                 />
               ))}
             </tbody>
@@ -1694,10 +1739,11 @@ function GroupedView({ groups, icon, items, onRowClick, onStatusChange, onDelete
    ACTION MENU
    ══════════════════════════════════════════════════════════════════════ */
 
-function ActionMenu({ item, onStatusChange, onDelete }: {
+function ActionMenu({ item, onStatusChange, onDelete, mutating }: {
   item: PipelineItem;
   onStatusChange: (item: PipelineItem, status: BillingStatusKey) => void;
   onDelete: (item: PipelineItem) => void;
+  mutating?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1750,7 +1796,8 @@ function ActionMenu({ item, onStatusChange, onDelete }: {
                   <button
                     key={t.next}
                     onClick={(e) => { e.stopPropagation(); onStatusChange(item, t.next); setOpen(false); }}
-                    className="w-full text-left px-3.5 py-2 text-[12px] text-[#57534E] hover:bg-[#FAFAF9] flex items-center gap-2.5 transition-colors"
+                    disabled={mutating}
+                    className="w-full text-left px-3.5 py-2 text-[12px] text-[#57534E] hover:bg-[#FAFAF9] flex items-center gap-2.5 transition-colors disabled:opacity-60 disabled:pointer-events-none"
                   >
                     <ArrowRight size={13} className="text-[#A8A29E]" />
                     {t.label}
@@ -1763,7 +1810,8 @@ function ActionMenu({ item, onStatusChange, onDelete }: {
                 <div className="border-t border-[#F0F0EE] my-1.5 mx-3" />
                 <button
                   onClick={(e) => { e.stopPropagation(); onDelete(item); setOpen(false); }}
-                  className="w-full text-left px-3.5 py-2 text-[12px] text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition-colors"
+                  disabled={mutating}
+                  className="w-full text-left px-3.5 py-2 text-[12px] text-red-600 hover:bg-red-50 flex items-center gap-2.5 transition-colors disabled:opacity-60 disabled:pointer-events-none"
                 >
                   <Trash2 size={13} />
                   Supprimer
@@ -1781,11 +1829,12 @@ function ActionMenu({ item, onStatusChange, onDelete }: {
    DETAIL DRAWER
    ══════════════════════════════════════════════════════════════════════ */
 
-function DetailDrawer({ item, onClose, onStatusChange, onDelete }: {
+function DetailDrawer({ item, onClose, onStatusChange, onDelete, mutating }: {
   item: PipelineItem;
   onClose: () => void;
   onStatusChange: (status: BillingStatusKey) => void;
   onDelete: () => void;
+  mutating?: boolean;
 }) {
   const transitions = billingTransitions[item.billingStatus] || [];
 
@@ -1907,7 +1956,8 @@ function DetailDrawer({ item, onClose, onStatusChange, onDelete }: {
                   <button
                     key={t.next}
                     onClick={() => onStatusChange(t.next)}
-                    className={`w-full text-left px-3.5 py-2.5 text-[13px] bg-[#FAFAF9] hover:bg-[#F0EEFF] border border-[#F0F0EE] hover:border-[#DDD6FE] rounded-lg flex items-center gap-2.5 transition-all ${
+                    disabled={mutating}
+                    className={`w-full text-left px-3.5 py-2.5 text-[13px] bg-[#FAFAF9] hover:bg-[#F0EEFF] border border-[#F0F0EE] hover:border-[#DDD6FE] rounded-lg flex items-center gap-2.5 transition-all disabled:opacity-60 disabled:pointer-events-none ${
                       t.next === "paid" ? "text-emerald-700 font-medium" : "text-[#57534E]"
                     }`}
                   >
@@ -1925,7 +1975,8 @@ function DetailDrawer({ item, onClose, onStatusChange, onDelete }: {
           {item.type !== "order" && (
             <button
               onClick={onDelete}
-              className="px-3.5 py-2.5 text-[12px] font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+              disabled={mutating}
+              className="px-3.5 py-2.5 text-[12px] font-medium text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors disabled:opacity-60 disabled:pointer-events-none"
             >
               <Trash2 size={13} className="inline mr-1.5" />
               Supprimer
@@ -2275,11 +2326,12 @@ function ManualItemDrawer({ clients, onClose, onSave }: {
    BILLING HEALTH PANEL
    ══════════════════════════════════════════════════════════════════════ */
 
-function BillingHealthPanel({ health, expanded, onToggle, onActSuggestion }: {
+function BillingHealthPanel({ health, expanded, onToggle, onActSuggestion, mutating }: {
   health: HealthData;
   expanded: boolean;
   onToggle: () => void;
   onActSuggestion: (suggestion: HealthSuggestion) => void;
+  mutating?: boolean;
 }) {
   const { score, anomalies, suggestions, counts } = health;
   const totalIssues = counts.errors + counts.warnings + counts.suggestions;
@@ -2394,7 +2446,7 @@ function BillingHealthPanel({ health, expanded, onToggle, onActSuggestion }: {
                     </div>
                     <div className="space-y-2">
                       {suggestions.slice(0, 6).map(s => (
-                        <SuggestionCard key={s.id} suggestion={s} onAct={() => onActSuggestion(s)} />
+                        <SuggestionCard key={s.id} suggestion={s} onAct={() => onActSuggestion(s)} disabled={mutating} />
                       ))}
                       {suggestions.length > 6 && (
                         <div className="text-[11px] text-[#A8A29E] pl-3">
@@ -2440,7 +2492,7 @@ function AnomalyCard({ anomaly }: { anomaly: HealthAnomaly }) {
   );
 }
 
-function SuggestionCard({ suggestion, onAct }: { suggestion: HealthSuggestion; onAct?: () => void }) {
+function SuggestionCard({ suggestion, onAct, disabled }: { suggestion: HealthSuggestion; onAct?: () => void; disabled?: boolean }) {
   const isActionable = suggestion.type === "unbilled_order" || suggestion.type === "missing_recurring";
   return (
     <div className="flex items-start gap-2.5 px-3 py-2.5 rounded-lg border border-[#E8E5F5] bg-[#FAFAFF]">
@@ -2455,7 +2507,8 @@ function SuggestionCard({ suggestion, onAct }: { suggestion: HealthSuggestion; o
           {isActionable && onAct ? (
             <button
               onClick={(e) => { e.stopPropagation(); onAct(); }}
-              className="text-[11px] font-semibold text-white bg-[#7C3AED] px-2.5 py-1 rounded-md hover:bg-[#6D28D9] transition-colors"
+              disabled={disabled}
+              className="text-[11px] font-semibold text-white bg-[#7C3AED] px-2.5 py-1 rounded-md hover:bg-[#6D28D9] transition-colors disabled:opacity-60 disabled:pointer-events-none"
             >
               {suggestion.action}
             </button>

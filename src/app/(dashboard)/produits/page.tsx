@@ -416,14 +416,18 @@ function BriefsPane({ templates, loading: briefsLoading, mutate: mutateBriefs }:
   const [editFields, setEditFields] = useState<BriefField[]>([]);
   const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
+  const [briefMutating, setBriefMutating] = useState(false);
 
   const handleCreate = async (useDefault = false) => {
-    if (!createName.trim()) return;
-    await apiFetch("/api/brief-templates", {
-      method: "POST", body: { name: createName, description: createDesc || null, fields: useDefault ? DEFAULT_BRIEF_FIELDS : [] },
-    });
-    setShowCreate(false); setCreateName(""); setCreateDesc("");
-    await mutateBriefs();
+    if (!createName.trim() || briefMutating) return;
+    setBriefMutating(true);
+    try {
+      await apiFetch("/api/brief-templates", {
+        method: "POST", body: { name: createName, description: createDesc || null, fields: useDefault ? DEFAULT_BRIEF_FIELDS : [] },
+      });
+      setShowCreate(false); setCreateName(""); setCreateDesc("");
+      await mutateBriefs();
+    } finally { setBriefMutating(false); }
   };
 
   const startEdit = (t: TemplateRow) => { setEditingId(t.id); setEditFields(t.schema || []); setEditName(t.name); };
@@ -439,15 +443,23 @@ function BriefsPane({ templates, loading: briefsLoading, mutate: mutateBriefs }:
   }, [editingId, editName, editFields, mutateBriefs]);
 
   const handleDuplicate = async (t: TemplateRow) => {
-    await apiFetch("/api/brief-templates", { method: "POST", body: { name: `${t.name} (copie)`, description: t.description, fields: t.schema } });
-    await mutateBriefs();
+    if (briefMutating) return;
+    setBriefMutating(true);
+    try {
+      await apiFetch("/api/brief-templates", { method: "POST", body: { name: `${t.name} (copie)`, description: t.description, fields: t.schema } });
+      await mutateBriefs();
+    } finally { setBriefMutating(false); }
   };
 
   const handleDelete = async (id: string) => {
+    if (briefMutating) return;
     if (!confirm("Supprimer ce template ?")) return;
-    await apiFetch(`/api/brief-templates/${id}`, { method: "DELETE" });
-    if (editingId === id) setEditingId(null);
-    await mutateBriefs();
+    setBriefMutating(true);
+    try {
+      await apiFetch(`/api/brief-templates/${id}`, { method: "DELETE" });
+      if (editingId === id) setEditingId(null);
+      await mutateBriefs();
+    } finally { setBriefMutating(false); }
   };
 
   const briefCount = templates?.length ?? 0;
@@ -489,11 +501,11 @@ function BriefsPane({ templates, loading: briefsLoading, mutate: mutateBriefs }:
                 <textarea value={createDesc} onChange={(e) => setCreateDesc(e.target.value)} className={INPUT_CLASS + " resize-none"} rows={2} placeholder="Optionnel" />
               </div>
               <div className="flex gap-3">
-                <button onClick={() => handleCreate(false)} disabled={!createName.trim()}
+                <button onClick={() => handleCreate(false)} disabled={!createName.trim() || briefMutating}
                   className="flex-1 py-2.5 text-[13px] font-semibold rounded-lg border border-[#E6E6E4] text-[#5A5A58] hover:bg-[#F7F7F5] transition-colors disabled:opacity-40">
                   Vide
                 </button>
-                <button onClick={() => handleCreate(true)} disabled={!createName.trim()}
+                <button onClick={() => handleCreate(true)} disabled={!createName.trim() || briefMutating}
                   className="flex-1 py-2.5 text-[13px] font-semibold rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] transition-colors disabled:opacity-40">
                   Template par défaut
                 </button>
@@ -559,14 +571,14 @@ function BriefsPane({ templates, loading: briefsLoading, mutate: mutateBriefs }:
                   {editingId === t.id && (
                     <span className="text-[10px] font-medium text-[#4F46E5] bg-[#EEF2FF] px-2 py-0.5 rounded-md mr-1">Édition</span>
                   )}
-                  <button onClick={() => handleDuplicate(t)} title="Dupliquer"
-                    className="p-1.5 rounded-md text-[#8A8A88] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors cursor-pointer">
+                  <button onClick={() => handleDuplicate(t)} title="Dupliquer" disabled={briefMutating}
+                    className="p-1.5 rounded-md text-[#8A8A88] hover:text-[#4F46E5] hover:bg-[#EEF2FF] transition-colors cursor-pointer disabled:opacity-40">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                     </svg>
                   </button>
-                  <button onClick={() => handleDelete(t.id)} title="Supprimer"
-                    className="p-1.5 rounded-md text-[#8A8A88] hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer">
+                  <button onClick={() => handleDelete(t.id)} title="Supprimer" disabled={briefMutating}
+                    className="p-1.5 rounded-md text-[#8A8A88] hover:text-red-500 hover:bg-red-50 transition-colors cursor-pointer disabled:opacity-40">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" />
                     </svg>

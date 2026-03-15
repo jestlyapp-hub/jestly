@@ -91,11 +91,12 @@ export default function TaskDetailPage() {
   const persistTask = useCallback(
     (updated: Task) => {
       if (saveTimeout.current) clearTimeout(saveTimeout.current);
+      const prev = task; // capture current state for rollback
       saveTimeout.current = setTimeout(async () => {
         setSaving(true);
         try {
           // Send the full task with id — API will extract and map fields
-          await apiFetch("/api/tasks", {
+          const res = await apiFetch("/api/tasks", {
             method: "PATCH",
             body: {
               id: updated.id,
@@ -114,13 +115,14 @@ export default function TaskDetailPage() {
           });
           lastSavedRef.current = updated;
         } catch (e) {
-          console.error("Task save error:", e);
+          console.error("[Task] Save failed:", e);
+          if (prev) setTask(prev); // rollback optimistic update
         } finally {
           setSaving(false);
         }
       }, 500);
     },
-    []
+    [task]
   );
 
   // Cleanup pending saves on unmount

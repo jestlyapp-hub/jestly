@@ -95,6 +95,7 @@ export default function TemplatesPage() {
   const templates = useMemo(() => (rawTemplates || []).map(dbToTemplate), [rawTemplates]);
   const recurring = useMemo(() => (rawRecurring || []).map(dbToRecurring), [rawRecurring]);
 
+  const [mutating, setMutating] = useState(false);
   const [tab, setTab] = useState<ActiveTab>("templates");
   const [search, setSearch] = useState("");
   const [showArchived, setShowArchived] = useState(false);
@@ -126,46 +127,82 @@ export default function TemplatesPage() {
 
   // Handlers
   const handleSaveTemplate = useCallback(async (data: Record<string, unknown>, id?: string) => {
-    const method = id ? "PATCH" : "POST";
-    const url = id ? `/api/billing/templates/${id}` : "/api/billing/templates";
-    await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-    setCreateTemplate(false);
-    setEditTemplate(null);
-    await mutateT();
-  }, [mutateT]);
+    if (mutating) return;
+    setMutating(true);
+    try {
+      const method = id ? "PATCH" : "POST";
+      const url = id ? `/api/billing/templates/${id}` : "/api/billing/templates";
+      await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+      setCreateTemplate(false);
+      setEditTemplate(null);
+      await mutateT();
+    } finally {
+      setMutating(false);
+    }
+  }, [mutateT, mutating]);
 
   const handleDeleteTemplate = useCallback(async (id: string) => {
-    await fetch(`/api/billing/templates/${id}`, { method: "DELETE" });
-    await mutateT();
-  }, [mutateT]);
+    if (mutating) return;
+    setMutating(true);
+    try {
+      await fetch(`/api/billing/templates/${id}`, { method: "DELETE" });
+      await mutateT();
+    } finally {
+      setMutating(false);
+    }
+  }, [mutateT, mutating]);
 
   const handleArchiveTemplate = useCallback(async (id: string, archived: boolean) => {
-    await fetch(`/api/billing/templates/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ archived }),
-    });
-    await mutateT();
-  }, [mutateT]);
+    if (mutating) return;
+    setMutating(true);
+    try {
+      await fetch(`/api/billing/templates/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived }),
+      });
+      await mutateT();
+    } finally {
+      setMutating(false);
+    }
+  }, [mutateT, mutating]);
 
   const handleSaveRecurring = useCallback(async (data: Record<string, unknown>, id?: string) => {
-    const method = id ? "PATCH" : "POST";
-    const url = id ? `/api/billing/recurring/${id}` : "/api/billing/recurring";
-    await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-    setCreateRecurring(false);
-    setEditRecurring(null);
-    await mutateR();
-  }, [mutateR]);
+    if (mutating) return;
+    setMutating(true);
+    try {
+      const method = id ? "PATCH" : "POST";
+      const url = id ? `/api/billing/recurring/${id}` : "/api/billing/recurring";
+      await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+      setCreateRecurring(false);
+      setEditRecurring(null);
+      await mutateR();
+    } finally {
+      setMutating(false);
+    }
+  }, [mutateR, mutating]);
 
   const handleDeleteRecurring = useCallback(async (id: string) => {
-    await fetch(`/api/billing/recurring/${id}`, { method: "DELETE" });
-    await mutateR();
-  }, [mutateR]);
+    if (mutating) return;
+    setMutating(true);
+    try {
+      await fetch(`/api/billing/recurring/${id}`, { method: "DELETE" });
+      await mutateR();
+    } finally {
+      setMutating(false);
+    }
+  }, [mutateR, mutating]);
 
   const handleGenerate = useCallback(async (id: string) => {
-    await fetch(`/api/billing/recurring/${id}/generate`, { method: "POST" });
-    await mutateR();
-  }, [mutateR]);
+    if (mutating) return;
+    setMutating(true);
+    try {
+      await fetch(`/api/billing/recurring/${id}/generate`, { method: "POST" });
+      await mutateR();
+    } finally {
+      setMutating(false);
+    }
+  }, [mutateR, mutating]);
 
   const loading = loadingT || loadingR;
 
@@ -282,6 +319,7 @@ export default function TemplatesPage() {
                   onEdit={() => setEditTemplate(tpl)}
                   onArchive={() => handleArchiveTemplate(tpl.id, !tpl.archived)}
                   onDelete={() => handleDeleteTemplate(tpl.id)}
+                  mutating={mutating}
                 />
               ))}
             </div>
@@ -309,6 +347,7 @@ export default function TemplatesPage() {
                     const next = rec.status === "active" ? "paused" : "active";
                     await handleSaveRecurring({ status: next }, rec.id);
                   }}
+                  mutating={mutating}
                 />
               ))}
             </div>
@@ -372,11 +411,12 @@ function EmptyState({ icon, title, description, actionLabel, onAction, showActio
    TEMPLATE ROW
    ══════════════════════════════════════════════════════════════════════ */
 
-function TemplateRow({ template: t, onEdit, onArchive, onDelete }: {
+function TemplateRow({ template: t, onEdit, onArchive, onDelete, mutating }: {
   template: BillingTemplate;
   onEdit: () => void;
   onArchive: () => void;
   onDelete: () => void;
+  mutating?: boolean;
 }) {
   return (
     <div className="flex items-center gap-4 px-5 py-4 hover:bg-[#FAFAF9] transition-colors group">
@@ -406,10 +446,10 @@ function TemplateRow({ template: t, onEdit, onArchive, onDelete }: {
         <button onClick={onEdit} className="p-1.5 rounded-md text-[#A8A29E] hover:text-[#57534E] hover:bg-[#F5F5F4] transition-colors" title="Modifier">
           <Pencil size={14} />
         </button>
-        <button onClick={onArchive} className="p-1.5 rounded-md text-[#A8A29E] hover:text-[#57534E] hover:bg-[#F5F5F4] transition-colors" title={t.archived ? "Restaurer" : "Archiver"}>
+        <button onClick={onArchive} disabled={mutating} className="p-1.5 rounded-md text-[#A8A29E] hover:text-[#57534E] hover:bg-[#F5F5F4] transition-colors disabled:opacity-60 disabled:pointer-events-none" title={t.archived ? "Restaurer" : "Archiver"}>
           {t.archived ? <ArchiveRestore size={14} /> : <Archive size={14} />}
         </button>
-        <button onClick={onDelete} className="p-1.5 rounded-md text-[#A8A29E] hover:text-red-500 hover:bg-red-50 transition-colors" title="Supprimer">
+        <button onClick={onDelete} disabled={mutating} className="p-1.5 rounded-md text-[#A8A29E] hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-60 disabled:pointer-events-none" title="Supprimer">
           <Trash2 size={14} />
         </button>
       </div>
@@ -421,12 +461,13 @@ function TemplateRow({ template: t, onEdit, onArchive, onDelete }: {
    RECURRING ROW
    ══════════════════════════════════════════════════════════════════════ */
 
-function RecurringRow({ profile: r, onEdit, onDelete, onGenerate, onToggle }: {
+function RecurringRow({ profile: r, onEdit, onDelete, onGenerate, onToggle, mutating }: {
   profile: RecurringProfile;
   onEdit: () => void;
   onDelete: () => void;
   onGenerate: () => void;
   onToggle: () => void;
+  mutating?: boolean;
 }) {
   const st = recurringStatusConfig[r.status];
   return (
@@ -453,17 +494,17 @@ function RecurringRow({ profile: r, onEdit, onDelete, onGenerate, onToggle }: {
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
         {r.status === "active" && (
-          <button onClick={onGenerate} className="p-1.5 rounded-md text-[#7C3AED] hover:bg-[#F0EEFF] transition-colors" title="Générer ce mois">
+          <button onClick={onGenerate} disabled={mutating} className="p-1.5 rounded-md text-[#7C3AED] hover:bg-[#F0EEFF] transition-colors disabled:opacity-60 disabled:pointer-events-none" title="Générer ce mois">
             <Zap size={14} />
           </button>
         )}
-        <button onClick={onToggle} className="p-1.5 rounded-md text-[#A8A29E] hover:text-[#57534E] hover:bg-[#F5F5F4] transition-colors" title={r.status === "active" ? "Mettre en pause" : "Activer"}>
+        <button onClick={onToggle} disabled={mutating} className="p-1.5 rounded-md text-[#A8A29E] hover:text-[#57534E] hover:bg-[#F5F5F4] transition-colors disabled:opacity-60 disabled:pointer-events-none" title={r.status === "active" ? "Mettre en pause" : "Activer"}>
           {r.status === "active" ? <Pause size={14} /> : <Play size={14} />}
         </button>
         <button onClick={onEdit} className="p-1.5 rounded-md text-[#A8A29E] hover:text-[#57534E] hover:bg-[#F5F5F4] transition-colors" title="Modifier">
           <Pencil size={14} />
         </button>
-        <button onClick={onDelete} className="p-1.5 rounded-md text-[#A8A29E] hover:text-red-500 hover:bg-red-50 transition-colors" title="Supprimer">
+        <button onClick={onDelete} disabled={mutating} className="p-1.5 rounded-md text-[#A8A29E] hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-60 disabled:pointer-events-none" title="Supprimer">
           <Trash2 size={14} />
         </button>
       </div>
