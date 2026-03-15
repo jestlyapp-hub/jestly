@@ -1,6 +1,22 @@
-import type { Site, SitePage, Block, NavLink, FooterLink } from "@/types";
+import type { Site, SitePage, Block, NavLink, FooterLink, PortfolioProject, PortfolioCard } from "@/types";
 
 const BASE_DOMAIN = process.env.NEXT_PUBLIC_BASE_DOMAIN || "jestly.fr";
+
+/**
+ * Resolve the href for a portfolio project card.
+ * Priority: externalUrl → ctaUrl → slug-based page → null.
+ * Returns null if no valid destination exists (card should not be clickable).
+ */
+export function getProjectHref(
+  project: PortfolioProject | PortfolioCard | { externalUrl?: string; ctaUrl?: string; slug?: string },
+  siteSlug?: string
+): { href: string; external: boolean } | null {
+  const ext = (project as PortfolioProject).externalUrl || (project as PortfolioCard).ctaUrl;
+  if (ext) return { href: ext, external: true };
+  if (project.slug && siteSlug) return { href: `/s/${siteSlug}/portfolio/${project.slug}`, external: false };
+  if (project.slug) return { href: `/portfolio/${project.slug}`, external: false };
+  return null;
+}
 
 /**
  * Get the canonical public URL for a site.

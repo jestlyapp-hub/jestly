@@ -2,13 +2,13 @@
 
 import { memo } from "react";
 import type { ProjectsGridCasesBlockContent, PortfolioCard } from "@/types";
+import { getProjectHref } from "@/lib/site-utils";
 
 function ProjectsGridCasesBlockPreviewInner({ content, siteSlug, basePath }: { content: ProjectsGridCasesBlockContent; siteSlug?: string; basePath?: string }) {
-  const base = basePath ?? (siteSlug ? `/s/${siteSlug}` : "");
   const source = content.source || "manual";
 
   // Determine cards to render
-  const cards: { imageUrl?: string; title: string; category: string; result?: string; slug?: string }[] =
+  const cards: { imageUrl?: string; title: string; category: string; result?: string; slug?: string; ctaUrl?: string; externalUrl?: string }[] =
     source === "linked_projects" && content.resolvedProjects?.length
       ? content.resolvedProjects.map((p: PortfolioCard) => ({
           imageUrl: p.imageUrl,
@@ -16,6 +16,7 @@ function ProjectsGridCasesBlockPreviewInner({ content, siteSlug, basePath }: { c
           category: p.category,
           result: p.result,
           slug: p.slug,
+          ctaUrl: p.ctaUrl,
         }))
       : content.projects;
 
@@ -53,14 +54,14 @@ function ProjectsGridCasesBlockPreviewInner({ content, siteSlug, basePath }: { c
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {cards.map((project, i) => {
-              const href = (siteSlug || basePath !== undefined) && project.slug ? `${base}/portfolio/${project.slug}` : undefined;
-              const Wrapper = href ? "a" : "div";
+              const link = getProjectHref(project, siteSlug);
+              const Wrapper = link ? "a" : "div";
 
               return (
                 <Wrapper
                   key={i}
-                  {...(href ? { href } : {})}
-                  className={`rounded-lg overflow-hidden block${href ? " transition-shadow hover:shadow-md" : ""}`}
+                  {...(link ? { href: link.href, target: link.external ? "_blank" : undefined, rel: link.external ? "noopener noreferrer" : undefined } : {})}
+                  className={`rounded-lg overflow-hidden block${link ? " cursor-pointer transition-shadow hover:shadow-md" : ""}`}
                   style={{
                     backgroundColor: "var(--site-surface, #F7F7F5)",
                     border: "1px solid var(--site-border, #E6E6E4)",

@@ -2,6 +2,7 @@
 
 import { memo, useState, useRef, useEffect } from "react";
 import type { PortfolioGridBlockContent, PortfolioCard } from "@/types";
+import { getProjectHref } from "@/lib/site-utils";
 
 interface PortfolioProject {
   title: string;
@@ -11,6 +12,8 @@ interface PortfolioProject {
   featured?: boolean;
   clientName?: string;
   externalUrl?: string;
+  ctaUrl?: string;
+  slug?: string;
 }
 
 function PortfolioGridBlockPreviewInner({ content, siteSlug }: { content: PortfolioGridBlockContent; siteSlug?: string }) {
@@ -55,6 +58,7 @@ function PortfolioGridBlockPreviewInner({ content, siteSlug }: { content: Portfo
           description: rp.summary,
           result: rp.result,
           slug: rp.slug,
+          ctaUrl: rp.ctaUrl,
           featured: false,
         }))
       : null;
@@ -124,30 +128,40 @@ function PortfolioGridBlockPreviewInner({ content, siteSlug }: { content: Portfo
       )}
 
       <div className={`grid ${cols} gap-3`}>
-        {filtered.map((item, i) => (
-          <div key={i} className="rounded-lg overflow-hidden relative group" style={{ border: "1px solid var(--site-border, #E6E6E4)" }}>
-            {item.featured && (
-              <span className="absolute top-2 right-2 z-10 bg-[var(--site-primary)] text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ color: "var(--btn-text, #fff)" }}>
-                En vedette
-              </span>
-            )}
-            <div className="h-24 overflow-hidden" style={{ background: "linear-gradient(135deg, var(--site-primary-light), var(--site-border))" }}>
-              {item.imageUrl && (
-                <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+        {filtered.map((item, i) => {
+          const link = getProjectHref(item, siteSlug);
+          const Wrapper = link ? "a" : "div";
+
+          return (
+            <Wrapper
+              key={i}
+              {...(link ? { href: link.href, target: link.external ? "_blank" : undefined, rel: link.external ? "noopener noreferrer" : undefined } : {})}
+              className={`rounded-lg overflow-hidden relative group block${link ? " cursor-pointer transition-shadow hover:shadow-md" : ""}`}
+              style={{ border: "1px solid var(--site-border, #E6E6E4)", textDecoration: "none", color: "inherit" }}
+            >
+              {item.featured && (
+                <span className="absolute top-2 right-2 z-10 bg-[var(--site-primary)] text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ color: "var(--btn-text, #fff)" }}>
+                  En vedette
+                </span>
               )}
-            </div>
-            <div className="p-3">
-              <div className="text-[12px] font-medium" style={{ color: "var(--site-text, #1A1A1A)" }}>{item.title}</div>
-              <div className="text-[10px]" style={{ color: "var(--site-muted, #999)" }}>
-                {item.category}
-                {item.clientName && ` · ${item.clientName}`}
+              <div className="h-24 overflow-hidden" style={{ background: "linear-gradient(135deg, var(--site-primary-light), var(--site-border))" }}>
+                {item.imageUrl && (
+                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                )}
               </div>
-              {item.description && (
-                <div className="text-[10px] mt-1 line-clamp-2" style={{ color: "var(--site-muted, #999)" }}>{item.description}</div>
-              )}
-            </div>
-          </div>
-        ))}
+              <div className="p-3">
+                <div className="text-[12px] font-medium" style={{ color: "var(--site-text, #1A1A1A)" }}>{item.title}</div>
+                <div className="text-[10px]" style={{ color: "var(--site-muted, #999)" }}>
+                  {item.category}
+                  {item.clientName && ` · ${item.clientName}`}
+                </div>
+                {item.description && (
+                  <div className="text-[10px] mt-1 line-clamp-2" style={{ color: "var(--site-muted, #999)" }}>{item.description}</div>
+                )}
+              </div>
+            </Wrapper>
+          );
+        })}
       </div>
 
       {filtered.length === 0 && (

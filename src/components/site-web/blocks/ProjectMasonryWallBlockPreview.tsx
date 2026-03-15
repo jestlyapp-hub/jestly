@@ -2,20 +2,21 @@
 
 import { memo } from "react";
 import type { ProjectMasonryWallBlockContent, PortfolioCard } from "@/types";
+import { getProjectHref } from "@/lib/site-utils";
 
 function ProjectMasonryWallBlockPreviewInner({ content, siteSlug, basePath }: { content: ProjectMasonryWallBlockContent; siteSlug?: string; basePath?: string }) {
-  const base = basePath ?? (siteSlug ? `/s/${siteSlug}` : "");
   const cols = content.columns || 3;
   const source = content.source || "manual";
 
   // Determine items to render
-  const items: { imageUrl?: string; title: string; category: string; slug?: string }[] =
+  const items: { imageUrl?: string; title: string; category: string; slug?: string; ctaUrl?: string; externalUrl?: string }[] =
     source === "linked_projects" && content.resolvedProjects?.length
       ? content.resolvedProjects.map((p: PortfolioCard) => ({
           imageUrl: p.imageUrl,
           title: p.title,
           category: p.category,
           slug: p.slug,
+          ctaUrl: p.ctaUrl,
         }))
       : content.items;
 
@@ -54,14 +55,14 @@ function ProjectMasonryWallBlockPreviewInner({ content, siteSlug, basePath }: { 
             {items.map((item, i) => {
               const placeholderAspects = ["3/4", "4/3", "1/1", "3/5", "5/3", "4/5"];
               const aspect = placeholderAspects[i % placeholderAspects.length];
-              const href = (siteSlug || basePath !== undefined) && item.slug ? `${base}/portfolio/${item.slug}` : undefined;
-              const Wrapper = href ? "a" : "div";
+              const link = getProjectHref(item, siteSlug);
+              const Wrapper = link ? "a" : "div";
 
               return (
                 <Wrapper
                   key={i}
-                  {...(href ? { href } : {})}
-                  className={`relative rounded-lg overflow-hidden mb-4 group block`}
+                  {...(link ? { href: link.href, target: link.external ? "_blank" : undefined, rel: link.external ? "noopener noreferrer" : undefined } : {})}
+                  className={`relative rounded-lg overflow-hidden mb-4 group block${link ? " cursor-pointer" : ""}`}
                   style={{
                     breakInside: "avoid" as const,
                     border: "1px solid var(--site-border, #E6E6E4)",

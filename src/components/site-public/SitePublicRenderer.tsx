@@ -173,7 +173,7 @@ function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: stri
     case "hero-split-glow": return <HeroSplitGlowBlockPreview content={block.content} />;
     case "hero-centered-mesh": return <HeroCenteredMeshBlockPreview content={block.content} />;
     case "services-premium": return <ServicesPremiumBlockPreview content={block.content} />;
-    case "portfolio-masonry": return <PortfolioMasonryBlockPreview content={block.content} />;
+    case "portfolio-masonry": return <PortfolioMasonryBlockPreview content={block.content} siteSlug={ctx?.siteSlug} />;
     case "pricing-modern": return <PricingModernBlockPreview content={block.content} />;
     case "testimonials-dark": return <TestimonialsDarkBlockPreview content={block.content} />;
     case "cta-banner": return <CtaBannerBlockPreview content={block.content} />;
@@ -189,7 +189,7 @@ function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: stri
     case "hero-creator-brand": return <HeroCreatorBrandBlockPreview content={block.content} />;
     case "hero-video-showreel": return <HeroVideoShowreelBlockPreview content={block.content} />;
     case "projects-grid-cases": return <ProjectsGridCasesBlockPreview content={block.content} siteSlug={ctx?.siteSlug} basePath={ctx?.basePath} />;
-    case "projects-horizontal": return <ProjectsHorizontalBlockPreview content={block.content} />;
+    case "projects-horizontal": return <ProjectsHorizontalBlockPreview content={block.content} siteSlug={ctx?.siteSlug} />;
     case "project-before-after": return <ProjectBeforeAfterBlockPreview content={block.content} />;
     case "project-timeline": return <ProjectTimelineBlockPreview content={block.content} />;
     case "project-masonry-wall": return <ProjectMasonryWallBlockPreview content={block.content} siteSlug={ctx?.siteSlug} basePath={ctx?.basePath} />;
