@@ -27,8 +27,10 @@ import {
   createEmptyTask,
   getOverdueCount,
   duplicateTask,
-  TASK_TEMPLATES,
+  SYSTEM_TEMPLATES,
   createTaskFromTemplate,
+  taskToTemplate,
+  dbTemplateToTaskTemplate,
   type Task,
   type TaskStatus,
   type FilterType,
@@ -192,45 +194,163 @@ function TemplatePicker({
   open,
   onClose,
   onSelect,
+  userTemplates,
+  onDeleteTemplate,
+  onDuplicateTemplate,
 }: {
   open: boolean;
   onClose: () => void;
   onSelect: (template: TaskTemplate) => void;
+  userTemplates: TaskTemplate[];
+  onDeleteTemplate?: (id: string) => void;
+  onDuplicateTemplate?: (template: TaskTemplate) => void;
 }) {
+  const [search, setSearch] = useState("");
+  const [tab, setTab] = useState<"all" | "system" | "personal">("all");
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+
   if (!open) return null;
+
+  const allTemplates = [...userTemplates, ...SYSTEM_TEMPLATES];
+  const q = search.toLowerCase();
+  const filtered = allTemplates.filter(tpl => {
+    if (q && !tpl.name.toLowerCase().includes(q) && !tpl.tags.some(t => t.toLowerCase().includes(q))) return false;
+    if (tab === "system") return tpl.isSystem;
+    if (tab === "personal") return !tpl.isSystem;
+    return true;
+  });
+
+  const personal = filtered.filter(t => !t.isSystem);
+  const system = filtered.filter(t => t.isSystem);
+
   return (
     <>
-      <div className="fixed inset-0 bg-black/10 z-40" onClick={onClose} />
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl border border-[#E6E6E4] shadow-xl z-50">
-        <div className="px-5 py-4 border-b border-[#E6E6E4] flex items-center justify-between">
-          <h3 className="text-[15px] font-semibold text-[#1A1A1A]">Créer depuis un modèle</h3>
-          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] cursor-pointer">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
+      <div className="fixed inset-0 bg-black/15 z-40" onClick={onClose} />
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-2xl border border-[#E6E6E4] shadow-2xl z-50">
+        {/* Header */}
+        <div className="px-5 py-4 border-b border-[#E6E6E4]">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-[16px] font-bold text-[#1A1A1A]">Modèles de tâches</h3>
+            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] cursor-pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+            </button>
+          </div>
+          {/* Search */}
+          <div className="relative mb-3">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#B0B0AE" strokeWidth="2" className="absolute left-3 top-1/2 -translate-y-1/2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input
+              type="text"
+              placeholder="Rechercher un modèle..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full bg-[#F7F7F5] border border-transparent rounded-lg pl-9 pr-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#B0B0AE] focus:outline-none focus:bg-white focus:border-[#E6E6E4] transition-all"
+            />
+          </div>
+          {/* Tabs */}
+          <div className="flex items-center gap-1 bg-[#F7F7F5] rounded-lg p-0.5">
+            {([["all", "Tous"], ["personal", "Mes modèles"], ["system", "Système"]] as const).map(([key, label]) => (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                className={`flex-1 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all cursor-pointer ${
+                  tab === key ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#8A8A88] hover:text-[#5A5A58]"
+                }`}
+              >
+                {label}
+                {key === "personal" && userTemplates.length > 0 && (
+                  <span className="ml-1 text-[10px] px-1.5 py-0.5 rounded-full bg-[#4F46E5] text-white">{userTemplates.length}</span>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="p-3 space-y-1 max-h-[60vh] overflow-y-auto">
-          {TASK_TEMPLATES.map((tpl) => (
-            <button
-              key={tpl.id}
-              onClick={() => { onSelect(tpl); onClose(); }}
-              className="w-full text-left p-3 rounded-lg hover:bg-[#F7F7F5] transition-colors cursor-pointer group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-[14px] font-medium text-[#1A1A1A] group-hover:text-[#4F46E5] transition-colors">
-                  {tpl.name}
-                </span>
-                <span className="text-[11px] text-[#BBB]">{tpl.subtasks.length} sous-tâches</span>
-              </div>
-              <p className="text-[12px] text-[#999] mt-0.5">{tpl.description}</p>
-              <div className="flex gap-1 mt-1.5">
-                {tpl.tags.map((tag) => (
-                  <span key={tag} className="text-[10px] text-[#666] bg-[#F0F0F0] px-1.5 py-[1px] rounded">{tag}</span>
+
+        {/* Content */}
+        <div className="max-h-[50vh] overflow-y-auto">
+          {/* Personal templates */}
+          {(tab === "all" || tab === "personal") && personal.length > 0 && (
+            <div className="px-3 pt-3 pb-1">
+              <div className="text-[10px] font-semibold text-[#8A8A88] uppercase tracking-wider px-2 mb-2">Mes modèles</div>
+              <div className="space-y-1">
+                {personal.map(tpl => (
+                  <div key={tpl.id} className="group flex items-center gap-2 p-2.5 rounded-xl hover:bg-[#F7F7F5] transition-colors">
+                    <button onClick={() => { onSelect(tpl); onClose(); }} className="flex-1 text-left cursor-pointer min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[14px] font-medium text-[#1A1A1A] group-hover:text-[#4F46E5] transition-colors truncate">{tpl.name}</span>
+                        <span className="text-[10px] text-[#BBB] shrink-0">{tpl.subtasks.length} sous-tâches</span>
+                      </div>
+                      {tpl.description && <p className="text-[11px] text-[#8A8A88] mt-0.5 truncate">{tpl.description}</p>}
+                      {tpl.tags.length > 0 && (
+                        <div className="flex gap-1 mt-1">
+                          {tpl.tags.slice(0, 3).map(tag => <span key={tag} className="text-[9px] text-[#5A5A58] bg-[#F0F0EE] px-1.5 py-0.5 rounded">{tag}</span>)}
+                        </div>
+                      )}
+                    </button>
+                    <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                      {onDuplicateTemplate && (
+                        <button onClick={() => onDuplicateTemplate(tpl)} className="p-1.5 rounded-lg hover:bg-[#E6E6E4] text-[#BBB] hover:text-[#5A5A58] cursor-pointer" title="Dupliquer">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        </button>
+                      )}
+                      {onDeleteTemplate && (
+                        confirmDelete === tpl.id ? (
+                          <div className="flex items-center gap-1">
+                            <button onClick={() => { onDeleteTemplate(tpl.id); setConfirmDelete(null); }} className="text-[10px] text-white bg-red-500 px-2 py-1 rounded cursor-pointer">Oui</button>
+                            <button onClick={() => setConfirmDelete(null)} className="text-[10px] text-[#666] px-1.5 py-1 cursor-pointer">Non</button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setConfirmDelete(tpl.id)} className="p-1.5 rounded-lg hover:bg-red-50 text-[#BBB] hover:text-red-500 cursor-pointer" title="Supprimer">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                          </button>
+                        )
+                      )}
+                    </div>
+                  </div>
                 ))}
               </div>
-            </button>
-          ))}
+            </div>
+          )}
+
+          {/* System templates */}
+          {(tab === "all" || tab === "system") && system.length > 0 && (
+            <div className="px-3 pt-3 pb-1">
+              {tab === "all" && <div className="text-[10px] font-semibold text-[#8A8A88] uppercase tracking-wider px-2 mb-2">Modèles recommandés</div>}
+              <div className="space-y-1">
+                {system.map(tpl => (
+                  <button
+                    key={tpl.id}
+                    onClick={() => { onSelect(tpl); onClose(); }}
+                    className="w-full text-left p-2.5 rounded-xl hover:bg-[#F7F7F5] transition-colors cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-[14px] font-medium text-[#1A1A1A] group-hover:text-[#4F46E5] transition-colors">{tpl.name}</span>
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#F0F0EE] text-[#8A8A88] font-medium">Système</span>
+                      <span className="text-[10px] text-[#BBB] ml-auto">{tpl.subtasks.length} sous-tâches</span>
+                    </div>
+                    <p className="text-[11px] text-[#8A8A88] mt-0.5">{tpl.description}</p>
+                    <div className="flex gap-1 mt-1">
+                      {tpl.tags.map(tag => <span key={tag} className="text-[9px] text-[#5A5A58] bg-[#F0F0EE] px-1.5 py-0.5 rounded">{tag}</span>)}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Empty */}
+          {filtered.length === 0 && (
+            <div className="px-5 py-10 text-center">
+              <p className="text-[14px] font-medium text-[#5A5A58] mb-1">{search ? "Aucun modèle trouvé" : "Aucun modèle personnel"}</p>
+              <p className="text-[12px] text-[#8A8A88]">{search ? "Essayez un autre terme" : "Enregistrez une tâche comme modèle pour la réutiliser"}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="px-5 py-3 border-t border-[#E6E6E4] bg-[#FAFAF9] rounded-b-2xl">
+          <p className="text-[11px] text-[#8A8A88] text-center">
+            Sélectionnez un modèle pour créer une tâche · Enregistrez vos tâches comme modèles depuis le drawer
+          </p>
         </div>
       </div>
     </>
@@ -246,6 +366,14 @@ export default function TasksWorkspace() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+
+  // User templates from DB
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rawUserTemplates, mutate: mutateTemplates } = useApi<any[]>("/api/tasks/templates");
+  const userTemplates: TaskTemplate[] = useMemo(
+    () => (rawUserTemplates || []).map(dbTemplateToTaskTemplate),
+    [rawUserTemplates]
+  );
 
   const tasks = rawTasks || [];
 
@@ -347,6 +475,52 @@ export default function TasksWorkspace() {
     const saved = await persistNewTask(newTask);
     if (saved) setSelectedTask(saved);
     else setDrawerOpen(false);
+  }
+
+  async function handleSaveAsTemplate(task: Task) {
+    const tplData = taskToTemplate(task);
+    try {
+      await apiFetch("/api/tasks/templates", {
+        body: {
+          name: tplData.name,
+          description: tplData.description,
+          defaultPriority: tplData.priority,
+          tags: tplData.tags,
+          subtasks: tplData.subtasks,
+          notes: tplData.notes || "",
+        },
+      });
+      mutateTemplates();
+    } catch {
+      // silent fail
+    }
+  }
+
+  async function handleDeleteTemplate(id: string) {
+    try {
+      await apiFetch("/api/tasks/templates", { method: "DELETE", body: { id } });
+      mutateTemplates();
+    } catch {
+      // silent fail
+    }
+  }
+
+  async function handleDuplicateTemplate(template: TaskTemplate) {
+    try {
+      await apiFetch("/api/tasks/templates", {
+        body: {
+          name: `${template.name} (copie)`,
+          description: template.description,
+          defaultPriority: template.priority,
+          tags: template.tags,
+          subtasks: template.subtasks,
+          notes: template.notes || "",
+        },
+      });
+      mutateTemplates();
+    } catch {
+      // silent fail
+    }
   }
 
   async function handleDuplicate(task: Task) {
@@ -653,7 +827,7 @@ export default function TasksWorkspace() {
               <path d="M3 9h18" />
               <path d="M9 21V9" />
             </svg>
-            Modele
+            Modèle
           </button>
 
           {/* New task button */}
@@ -717,6 +891,7 @@ export default function TasksWorkspace() {
         onArchive={handleArchive}
         onDuplicate={handleDuplicate}
         onSchedule={handleScheduleTask}
+        onSaveAsTemplate={handleSaveAsTemplate}
       />
 
       {/* Template picker */}
@@ -725,6 +900,9 @@ export default function TasksWorkspace() {
           open={templatePickerOpen}
           onClose={() => setTemplatePickerOpen(false)}
           onSelect={handleCreateFromTemplate}
+          userTemplates={userTemplates}
+          onDeleteTemplate={handleDeleteTemplate}
+          onDuplicateTemplate={handleDuplicateTemplate}
         />
       </AnimatePresence>
     </div>

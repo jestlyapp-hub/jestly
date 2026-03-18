@@ -2,9 +2,12 @@
 
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useApi } from "@/lib/hooks/use-api";
-import type { BillingItemStatus } from "@/types";
+import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import type { BillingItemStatus, Order } from "@/types";
 import { isOrderDelivered, billingToOrderStatus } from "@/lib/billing-utils";
+import { orderRecordToOrder } from "@/lib/adapters";
+import OrderDrawer from "@/components/commandes/OrderDrawer";
+import type { BillingAction } from "@/components/commandes/OrderDrawer";
 import {
   Plus,
   FileText,
@@ -578,6 +581,9 @@ export default function FacturationPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [editItem, setEditItem] = useState<PipelineItem | null>(null);
   const [detailItem, setDetailItem] = useState<PipelineItem | null>(null);
+  const [orderDrawerItem, setOrderDrawerItem] = useState<PipelineItem | null>(null);
+  const [orderForDrawer, setOrderForDrawer] = useState<Order | null>(null);
+  const [orderDrawerLoading, setOrderDrawerLoading] = useState(false);
   const [showExports, setShowExports] = useState(false);
   const [showMonthlyClose, setShowMonthlyClose] = useState(false);
   const [showArchives, setShowArchives] = useState(false);
@@ -841,6 +847,68 @@ export default function FacturationPage() {
       setMutating(false);
     }
   }, [refreshAll, mutating]);
+
+  /* ── Open OrderDrawer from billing context ── */
+  const openOrderDrawer = useCallback(async (item: PipelineItem) => {
+    if (item.type !== "order") {
+      setDetailItem(item);
+      return;
+    }
+    setOrderDrawerItem(item);
+    setOrderDrawerLoading(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const raw = await apiFetch<any>(`/api/orders/${item.id}`, { method: "GET" });
+      setOrderForDrawer(orderRecordToOrder(raw));
+    } catch {
+      // Fallback: open basic detail drawer
+      setOrderDrawerItem(null);
+      setDetailItem(item);
+    } finally {
+      setOrderDrawerLoading(false);
+    }
+  }, []);
+
+  const closeOrderDrawer = useCallback(() => {
+    setOrderDrawerItem(null);
+    setOrderForDrawer(null);
+  }, []);
+
+  const patchOrderFromBilling = useCallback(
+    async (orderId: string, apiBody: Record<string, unknown>): Promise<boolean> => {
+      try {
+        await apiFetch(`/api/orders/${orderId}`, { method: "PATCH", body: apiBody });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const raw = await apiFetch<any>(`/api/orders/${orderId}`, { method: "GET" });
+        setOrderForDrawer(orderRecordToOrder(raw));
+        await refreshAll();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [refreshAll]
+  );
+
+  const orderBillingActions: BillingAction[] = useMemo(() => {
+    if (!orderDrawerItem) return [];
+    const transitions = billingTransitions[orderDrawerItem.billingStatus] || [];
+    return transitions.map(t => ({
+      label: t.label,
+      status: t.next,
+      accent: t.next === "paid",
+    }));
+  }, [orderDrawerItem]);
+
+  const handleOrderBillingStatusChange = useCallback(async (status: string) => {
+    if (!orderDrawerItem) return;
+    await handleBillingStatusChange(orderDrawerItem, status as BillingStatusKey);
+    setOrderDrawerItem(prev => prev ? { ...prev, billingStatus: status as BillingStatusKey } : null);
+  }, [orderDrawerItem, handleBillingStatusChange]);
+
+  const billingClients = useMemo(() => {
+    return clients.map((c: { id: string; name: string }) => ({ id: c.id, name: c.name, email: "" }));
+  }, [clients]);
 
   const handleExportCsv = useCallback(async () => {
     if (filteredItems.length === 0) return;
@@ -1117,7 +1185,7 @@ export default function FacturationPage() {
           <>
             <KpiCard
               icon={<TrendingUp size={14} />}
-              label="Pipeline total"
+              label="CA total"
               value={formatEur(pipelineStats.total)}
               sub={`${pipelineStats.count} commande${pipelineStats.count > 1 ? "s" : ""}`}
             />
@@ -1334,7 +1402,7 @@ export default function FacturationPage() {
             <div className="inline-flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-[13px]">
               <AlertCircle size={16} />
               <div className="text-left">
-                <div className="font-semibold">Erreur de chargement du pipeline</div>
+                <div className="font-semibold">Erreur de chargement des données</div>
                 <div className="text-red-600 text-[12px] mt-0.5">{pipelineError}</div>
                 <div className="text-red-500 text-[11px] mt-1">Vérifiez que les migrations billing (036+) sont appliquées.</div>
               </div>
@@ -1353,7 +1421,7 @@ export default function FacturationPage() {
             groups={byClient}
             icon={<User size={13} className="text-[#7C3AED]" />}
             items={filteredItems}
-            onRowClick={setDetailItem}
+            onRowClick={openOrderDrawer}
             onStatusChange={handleBillingStatusChange}
             onDelete={handleDelete}
             mutating={mutating}
@@ -1363,7 +1431,7 @@ export default function FacturationPage() {
             groups={byMonth}
             icon={<Calendar size={13} className="text-[#7C3AED]" />}
             items={filteredItems}
-            onRowClick={setDetailItem}
+            onRowClick={openOrderDrawer}
             onStatusChange={handleBillingStatusChange}
             onDelete={handleDelete}
             mutating={mutating}
@@ -1452,7 +1520,7 @@ export default function FacturationPage() {
                     item={item}
                     selected={selectedIds.has(item.id)}
                     onToggle={(shiftKey) => toggleSelection(item.id, shiftKey)}
-                    onClick={() => setDetailItem(item)}
+                    onClick={() => openOrderDrawer(item)}
                     onStatusChange={handleBillingStatusChange}
                     onDelete={handleDelete}
                     mutating={mutating}
@@ -1475,7 +1543,7 @@ export default function FacturationPage() {
             onSave={data => handleSaveManual(data)}
           />
         )}
-        {detailItem && (
+        {detailItem && detailItem.type !== "order" && (
           <DetailDrawer
             key={`detail-${detailItem.id}`}
             item={detailItem}
@@ -1511,6 +1579,36 @@ export default function FacturationPage() {
             onClose={() => setShowArchives(false)}
             onReopen={handleReopenPeriod}
           />
+        )}
+      </AnimatePresence>
+
+      {/* OrderDrawer for billing context (orders only) */}
+      <OrderDrawer
+        order={orderForDrawer}
+        onClose={closeOrderDrawer}
+        patchOrder={patchOrderFromBilling}
+        clients={billingClients}
+        billingStatus={orderDrawerItem?.billingStatus}
+        billingActions={orderBillingActions}
+        onBillingStatusChange={handleOrderBillingStatusChange}
+        billingMutating={mutating}
+        onClientDeleted={refreshAll}
+      />
+
+      {/* Loading overlay when fetching order for drawer */}
+      <AnimatePresence>
+        {orderDrawerLoading && (
+          <motion.div
+            className="fixed inset-0 z-40 bg-black/5 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="bg-white rounded-xl shadow-lg px-6 py-4 flex items-center gap-3">
+              <div className="w-5 h-5 border-2 border-[#4F46E5] border-t-transparent rounded-full animate-spin" />
+              <span className="text-[13px] text-[#5A5A58]">Chargement de la commande...</span>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
@@ -1776,19 +1874,8 @@ function ActionMenu({ item, onStatusChange, onDelete, mutating }: {
             transition={{ duration: 0.12 }}
             className="absolute right-0 top-full mt-1 w-56 bg-white rounded-xl border border-[#E6E6E4] shadow-lg shadow-black/8 z-30 py-1.5 overflow-hidden"
           >
-            {item.type === "order" && (
-              <a
-                href={`/commandes`}
-                onClick={(e) => e.stopPropagation()}
-                className="w-full text-left px-3.5 py-2 text-[12px] text-[#57534E] hover:bg-[#FAFAF9] flex items-center gap-2.5 transition-colors"
-              >
-                <ArrowRight size={13} className="text-[#A8A29E]" />
-                Voir dans Commandes
-              </a>
-            )}
             {transitions.length > 0 && (
               <>
-                <div className="border-t border-[#F0F0EE] my-1.5 mx-3" />
                 <div className="px-3.5 py-1">
                   <span className="text-[10px] font-semibold text-[#A8A29E] uppercase tracking-wider">Facturation</span>
                 </div>
@@ -1983,15 +2070,6 @@ function DetailDrawer({ item, onClose, onStatusChange, onDelete, mutating }: {
             </button>
           )}
           <div className="flex-1" />
-          {item.type === "order" && (
-            <a
-              href="/commandes"
-              className="px-4 py-2.5 text-[13px] font-semibold text-white bg-[#7C3AED] rounded-lg hover:bg-[#6D28D9] transition-colors shadow-sm shadow-[#7C3AED]/20"
-            >
-              <ArrowRight size={13} className="inline mr-1.5" />
-              Voir dans Commandes
-            </a>
-          )}
         </div>
       </motion.div>
     </>

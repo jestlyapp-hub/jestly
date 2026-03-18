@@ -47,14 +47,14 @@ const DATA: PersonaPageData = {
   afterItems: [
     "Tous les clients dans un CRM structuré",
     "Facturation auto liée aux commandes",
-    "Pipeline visuel avec statuts en temps réel",
+    "Suivi visuel avec statuts en temps réel",
     "Paiements intégrés + suivi des encaissements",
     "Historique complet par client et par projet",
   ],
 
   features: [
     { title: "CRM", gradient: "technique.", description: "Centralisez clients avec tags, notes, historique de projets et revenus générés par client.", bullets: ["Fiches clients enrichies", "Tags et segments", "Revenus par client"], icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2", color: "#3B82F6" },
-    { title: "Pipeline", gradient: "de projets.", description: "Kanban visuel pour suivre chaque mission du brief au déploiement.", bullets: ["Vue kanban par statut", "Filtres par client / deadline", "Historique par projet"], icon: "M9 5H2v7l6.29 6.29a1 1 0 001.42 0l5.58-5.58a1 1 0 000-1.42z", color: "#F59E0B" },
+    { title: "Suivi", gradient: "de projets.", description: "Kanban visuel pour suivre chaque mission du brief au déploiement.", bullets: ["Vue kanban par statut", "Filtres par client / deadline", "Historique par projet"], icon: "M9 5H2v7l6.29 6.29a1 1 0 001.42 0l5.58-5.58a1 1 0 000-1.42z", color: "#F59E0B" },
     { title: "Facturation", gradient: "dev-friendly.", description: "Générez des factures conformes en 2 clics. TJM, forfait, par projet.", bullets: ["TJM ou forfait", "Factures conformes auto", "Relances programmées"], icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 14l2 2 4-4", color: "#22C55E" },
     { title: "Dashboard", gradient: "revenus.", description: "Suivez votre CA, TJM effectif, projets en cours et projections financières.", bullets: ["CA mensuel et cumulé", "TJM effectif calculé", "Projections trésorerie"], icon: "M3 3v18h18M7 16l4-8 4 4 5-9", color: "#7C3AED" },
     { title: "Automations", gradient: "métier.", description: "Relance de paiement, onboarding client, notification livraison : tout automatisé.", bullets: ["Workflows personnalisables", "Déclencheurs smart", "Zéro intervention manuelle"], icon: "M13 2L3 14h9l-1 8 10-12h-9z", color: "#6366F1" },
@@ -65,7 +65,7 @@ const DATA: PersonaPageData = {
   metrics: [
     { value: "5h", label: "d'admin en moins", description: "Par semaine en moyenne pour un dev freelance" },
     { value: "x3", label: "meilleur suivi", description: "Clients et projets mieux trackés, zéro oubli" },
-    { value: "100%", label: "centralisé", description: "CRM, facturation, pipeline, analytics" },
+    { value: "100%", label: "centralisé", description: "CRM, facturation, suivi, analytics" },
   ],
   testimonials: [
     { name: "Antoine Mercier", role: "Dev fullstack freelance, Paris", initials: "AM", color: "#3B82F6", quote: "J'avais une stack de 6 outils pour gérer mon business. Jestly a tout remplacé. J'ai retrouvé le temps de coder sur mes side-projects." },

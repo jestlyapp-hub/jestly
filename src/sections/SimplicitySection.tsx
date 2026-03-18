@@ -11,10 +11,10 @@ import { motion, AnimatePresence } from "framer-motion";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const PERSONAS = [
-  { id: "designer", emoji: "🎨", role: "Designer", pain: "Devis, maquettes et retours clients dispersés", solved: "Pipeline projet + facturation + portfolio unifié", modules: ["CRM", "Devis", "Portfolio"], color: "#7C5CFF" },
+  { id: "designer", emoji: "🎨", role: "Designer", pain: "Devis, maquettes et retours clients dispersés", solved: "Suivi projet + facturation + portfolio unifié", modules: ["CRM", "Devis", "Portfolio"], color: "#7C5CFF" },
   { id: "dev", emoji: "💻", role: "Développeur", pain: "Trop d'outils pour gérer les missions", solved: "Sprints, facturation et CRM dans un seul espace", modules: ["Projets", "CRM", "Analytics"], color: "#3B82F6" },
   { id: "video", emoji: "🎬", role: "Vidéaste", pain: "Briefs perdus dans les mails, relances oubliées", solved: "Briefs centralisés, relances auto, deadlines claires", modules: ["Briefs", "Planning", "Factures"], color: "#FF6B35" },
-  { id: "consultant", emoji: "📊", role: "Consultant", pain: "Suivi missions / heures / facturation trop manuel", solved: "Pipeline missions + facturation auto + reporting", modules: ["Pipeline", "Factures", "Reporting"], color: "#10B981" },
+  { id: "consultant", emoji: "📊", role: "Consultant", pain: "Suivi missions / heures / facturation trop manuel", solved: "Suivi missions + facturation auto + reporting", modules: ["Suivi", "Factures", "Reporting"], color: "#10B981" },
 ];
 
 export default function SimplicitySection() {

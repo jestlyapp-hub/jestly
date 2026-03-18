@@ -90,7 +90,7 @@ const TESTIMONIALS: Testimonial[] = [
     colorBg: "rgba(16,185,129,0.07)",
     category: "Conseil",
     quote: "En tant que consultante, je dois suivre mes missions, mes heures et mes factures en même temps. Jestly m'a permis de tout regrouper sans complexité.",
-    tags: ["3 outils remplacés", "Vision pipeline nette"],
+    tags: ["3 outils remplacés", "Vision CA nette"],
   },
   {
     id: "noah",

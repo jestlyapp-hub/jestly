@@ -111,7 +111,7 @@ function DeveloppeursMockup({ accent, bg }: { accent: string; bg: string }) {
     <div className="relative w-full h-[380px] sm:h-[440px]">
       {/* Kanban board */}
       <MockupCard accent={accent} className="absolute top-0 right-0 w-[290px] p-4" delay={0}>
-        <div className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: "#8A8FA3" }}>Pipeline projets</div>
+        <div className="text-[10px] font-bold uppercase tracking-wider mb-3" style={{ color: "#8A8FA3" }}>CA projets</div>
         <div className="flex gap-2">
           {[{ title: "En cours", items: ["API REST v2", "Refacto auth"], c: accent }, { title: "Review", items: ["Landing page"], c: "#F59E0B" }].map((col) => (
             <div key={col.title} className="flex-1">
@@ -207,9 +207,9 @@ function AgencesMockup({ accent, bg }: { accent: string; bg: string }) {
           </div>
         ))}
       </MockupCard>
-      {/* Pipeline */}
+      {/* CA */}
       <MockupCard accent={accent} className="absolute top-[200px] left-0 w-[200px] p-3.5" delay={0.15}>
-        <div className="text-[9px] font-bold uppercase tracking-wider mb-2.5" style={{ color: "#8A8FA3" }}>Pipeline global</div>
+        <div className="text-[9px] font-bold uppercase tracking-wider mb-2.5" style={{ color: "#8A8FA3" }}>CA global</div>
         <div className="text-[20px] font-bold text-[#111118] mb-1">8 500 €</div>
         <div className="text-[9px] mb-3" style={{ color: accent }}>+24% vs mois dernier</div>
         <div className="flex gap-1 h-2 rounded-full overflow-hidden" style={{ background: "#F3F4F6" }}>

@@ -64,7 +64,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 const TYPE_ICONS: Record<string, string> = {
   image: "🖼️", video: "🎬", file: "📄", link: "🔗", note: "📝",
-  embed: "⬡", reference: "📌", moodboard: "🎨",
+  embed: "🌐", reference: "📌", moodboard: "🎨",
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ token: string }> }) {

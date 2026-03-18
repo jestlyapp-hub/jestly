@@ -33,7 +33,6 @@ import {
   Download,
   Sparkles,
   Award,
-  Zap,
   Clock,
   RefreshCw,
   ChevronDown,
@@ -92,7 +91,6 @@ interface AnalyticsData {
     segments: { segment: string; count: number; revenue: number }[];
   };
   paymentMethods: { method: string; count: number; revenue: number }[];
-  insights: string[];
   monthlyGrowth: MonthlyGrowth[];
   bestMonth: { month: string; revenue: number } | null;
   worstMonth: { month: string; revenue: number } | null;
@@ -572,35 +570,6 @@ export default function AnalyticsPage() {
             <KPICard label="Taux de remboursement" value={`${kpis.refundRate}%`} change={0} icon={RefreshCw} index={6} tooltip="% de commandes remboursées" />
             <KPICard label="Clients actifs" value={fmt(kpis.activeClients)} change={kpis.clientsChange} icon={Users} index={7} tooltip="Clients ayant commandé sur la période" />
           </div>
-
-          {/* ═══ INSIGHTS BAR ═══ */}
-          {data.insights.length > 0 && (
-            <motion.div
-              className="mb-6 bg-gradient-to-r from-[#4F46E5]/5 to-[#8B5CF6]/5 rounded-xl border border-[#4F46E5]/10 p-4"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <Sparkles size={15} className="text-[#4F46E5]" />
-                <span className="text-[12px] font-semibold text-[#4F46E5] uppercase tracking-wider">Insights</span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                {data.insights.map((insight, i) => (
-                  <motion.div
-                    key={i}
-                    className="flex items-start gap-2 text-[12px] text-[#444] bg-white/60 rounded-lg px-3 py-2"
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4 + i * 0.05 }}
-                  >
-                    <Zap size={12} className="text-[#F59E0B] mt-0.5 flex-shrink-0" />
-                    {insight}
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
 
           {/* ═══ MAIN REVENUE CHART ═══ */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">

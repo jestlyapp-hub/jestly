@@ -112,9 +112,13 @@ export interface TaskTemplate {
   subtasks: string[];
   tags: string[];
   priority: TaskPriority;
+  isSystem?: boolean;
+  notes?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export const TASK_TEMPLATES: TaskTemplate[] = [
+export const SYSTEM_TEMPLATES: TaskTemplate[] = [
   {
     id: "tpl-video",
     name: "Vidéo YouTube",
@@ -122,6 +126,7 @@ export const TASK_TEMPLATES: TaskTemplate[] = [
     subtasks: ["Écrire le script", "Montage vidéo", "Créer la thumbnail", "Upload + SEO", "Publier"],
     tags: ["video", "youtube"],
     priority: "high",
+    isSystem: true,
   },
   {
     id: "tpl-seo",
@@ -130,6 +135,7 @@ export const TASK_TEMPLATES: TaskTemplate[] = [
     subtasks: ["Analyse technique", "Audit de contenu", "Analyse backlinks", "Rapport + recommandations"],
     tags: ["seo", "audit"],
     priority: "medium",
+    isSystem: true,
   },
   {
     id: "tpl-design",
@@ -138,6 +144,7 @@ export const TASK_TEMPLATES: TaskTemplate[] = [
     subtasks: ["Concept initial", "Révisions client", "Version finale", "Export fichiers sources", "Livraison"],
     tags: ["design", "livraison"],
     priority: "high",
+    isSystem: true,
   },
   {
     id: "tpl-social",
@@ -146,6 +153,7 @@ export const TASK_TEMPLATES: TaskTemplate[] = [
     subtasks: ["Briefing client", "Création visuels", "Rédaction textes", "Révisions", "Livraison"],
     tags: ["social-media", "contenu"],
     priority: "medium",
+    isSystem: true,
   },
   {
     id: "tpl-motion",
@@ -154,8 +162,52 @@ export const TASK_TEMPLATES: TaskTemplate[] = [
     subtasks: ["Storyboard", "Design des assets", "Animation", "Sound design", "Export final"],
     tags: ["motion", "animation"],
     priority: "high",
+    isSystem: true,
   },
 ];
+
+/** @deprecated Use SYSTEM_TEMPLATES instead */
+export const TASK_TEMPLATES = SYSTEM_TEMPLATES;
+
+/** Convert a DB template row (camelCase) to TaskTemplate */
+export function dbTemplateToTaskTemplate(row: {
+  id: string;
+  name: string;
+  description?: string;
+  defaultPriority?: string;
+  subtasks?: string[];
+  tags?: string[];
+  notes?: string;
+  isSystem?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}): TaskTemplate {
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description || "",
+    priority: (row.defaultPriority as TaskPriority) || "medium",
+    subtasks: row.subtasks || [],
+    tags: row.tags || [],
+    isSystem: row.isSystem || false,
+    notes: row.notes,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
+/** Convert a Task to a TaskTemplate (for "Save as template") */
+export function taskToTemplate(task: Task): Omit<TaskTemplate, "id"> {
+  return {
+    name: task.title,
+    description: task.description || "",
+    priority: task.priority,
+    subtasks: task.subtasks.map(s => s.text),
+    tags: [...task.tags],
+    isSystem: false,
+    notes: "",
+  };
+}
 
 export function createTaskFromTemplate(template: TaskTemplate, clientName?: string): Task {
   const now = new Date().toISOString();

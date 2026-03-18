@@ -36,9 +36,9 @@ const BASE_FALLBACKS: BoardField[] = [
 ];
 
 const CELL_STYLES: Record<string, string> = {
-  title: "font-medium max-w-[220px]",
-  client: "max-w-[180px]",
-  price: "font-medium",
+  title: "font-medium max-w-[280px]",
+  client: "max-w-[200px]",
+  price: "font-semibold tabular-nums",
 };
 
 /* ─── Tab config ─── */
@@ -53,13 +53,27 @@ const TABS: { key: TabKey; label: string; slug?: string }[] = [
   { key: "all", label: "Tous" },
 ];
 
-/* ─── Base column header class ─── */
-const TH_CLASS = "text-left text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider px-5 py-3";
-
 interface ClientOption {
   id: string;
   name: string;
   email: string;
+}
+
+/* ─── Helpers ─── */
+
+function isDeadlineSoon(iso: string | undefined): boolean {
+  if (!iso) return false;
+  try {
+    const d = new Date(iso + (iso.includes("T") ? "" : "T00:00:00"));
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const diff = d.getTime() - now.getTime();
+    return diff >= 0 && diff <= 3 * 86400000;
+  } catch { return false; }
+}
+
+function fmtEur(n: number): string {
+  return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(n);
 }
 
 /* ─── Page ─── */
@@ -142,6 +156,14 @@ export default function CommandesPage() {
       else if (o.status === "paid") c.paid++;
     }
     return c;
+  }, [orders]);
+
+  /* ─── Aggregated stats ─── */
+  const stats = useMemo(() => {
+    const totalCA = orders.reduce((s, o) => s + o.price, 0);
+    const overdueCount = orders.filter(o => o.deadline && isOverdue(o.deadline) && o.status !== "paid").length;
+    const soonCount = orders.filter(o => o.deadline && isDeadlineSoon(o.deadline) && !isOverdue(o.deadline) && o.status !== "paid").length;
+    return { totalCA, overdueCount, soonCount };
   }, [orders]);
 
   const filtered = useMemo(() => {
@@ -394,12 +416,27 @@ export default function CommandesPage() {
 
   if (loading && !rawOrders) {
     return (
-      <div className="max-w-[1100px] mx-auto">
-        <div className="h-8 w-40 bg-[#F7F7F5] rounded animate-pulse mb-6" />
-        <div className="h-10 w-80 bg-[#F7F7F5] rounded animate-pulse mb-5" />
-        <div className="space-y-3">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="h-12 bg-[#F7F7F5] rounded-lg animate-pulse" />
+      <div className="max-w-[1320px] mx-auto px-4">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <div className="h-8 w-48 bg-[#F7F7F5] rounded-lg animate-pulse mb-2" />
+            <div className="h-4 w-72 bg-[#F7F7F5] rounded animate-pulse" />
+          </div>
+          <div className="h-10 w-44 bg-[#F7F7F5] rounded-lg animate-pulse" />
+        </div>
+        {/* Stats skeleton */}
+        <div className="flex gap-3 mb-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-10 w-32 bg-[#F7F7F5] rounded-lg animate-pulse" />
+          ))}
+        </div>
+        {/* Toolbar skeleton */}
+        <div className="h-12 bg-[#F7F7F5] rounded-lg animate-pulse mb-4" />
+        {/* Table skeleton */}
+        <div className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <div key={i} className="h-14 border-b border-[#F8F8FA] animate-pulse bg-[#FEFEFE]" />
           ))}
         </div>
       </div>
@@ -410,7 +447,7 @@ export default function CommandesPage() {
 
   if (error && !rawOrders) {
     return (
-      <div className="max-w-6xl mx-auto py-12 text-center">
+      <div className="max-w-[1320px] mx-auto px-4 py-12 text-center">
         <p className="text-[14px] text-red-500 mb-2">Erreur : {error}</p>
         <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline cursor-pointer">
           Réessayer
@@ -428,7 +465,14 @@ export default function CommandesPage() {
   const renderCell = (field: BoardField, order: Order) => {
     switch (field.key) {
       case "title":
-        return <EditableCell value={order.product} onCommit={(v) => handleInlineTitle(order.id, v)} />;
+        return (
+          <div>
+            <EditableCell value={order.product} onCommit={(v) => handleInlineTitle(order.id, v)} />
+            {order.category && (
+              <span className="text-[11px] text-[#8A8A88] mt-0.5 block">{order.category}</span>
+            )}
+          </div>
+        );
       case "client":
         return <ClientSelectCell currentName={order.client} currentId={order.clientId} clients={clients} onCommit={(id) => handleInlineClient(order.id, id)} />;
       case "price":
@@ -453,14 +497,23 @@ export default function CommandesPage() {
         );
       case "deadline":
         return order.deadline ? (
-          <span className={isOverdue(order.deadline) ? "text-red-500 font-medium" : "text-[#5A5A58]"}>
+          <span className={`inline-flex items-center gap-1.5 text-[12px] px-2 py-0.5 rounded-md ${
+            isOverdue(order.deadline)
+              ? "bg-red-50 text-red-600 font-medium"
+              : isDeadlineSoon(order.deadline)
+                ? "bg-amber-50 text-amber-600 font-medium"
+                : "text-[#5A5A58]"
+          }`}>
+            {isOverdue(order.deadline) && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            )}
             {formatDateFR(order.deadline)}
           </span>
         ) : (
-          <span className="text-[#D0D0CE]">—</span>
+          <span className="text-[#D0D0CE] text-[12px]">—</span>
         );
       case "date":
-        return <span className="text-[#8A8A88]">{order.date}</span>;
+        return <span className="text-[12px] text-[#8A8A88]">{order.date}</span>;
       default:
         return (
           <CustomCell
@@ -476,88 +529,129 @@ export default function CommandesPage() {
   /* ─── Render ─── */
 
   return (
-    <div className="max-w-[1100px] mx-auto">
-      {/* Header */}
+    <div className="max-w-[1320px] mx-auto px-4">
+      {/* ═══ PAGE HEADER ═══ */}
       <motion.div
-        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5"
+        className="mb-6"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <h1 className="text-2xl font-bold text-[#191919]">Commandes</h1>
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="flex items-center gap-1.5 bg-[#4F46E5] text-white text-[13px] font-semibold px-4 py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors cursor-pointer"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Nouvelle commande
-        </button>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[22px] font-bold text-[#191919] tracking-tight">Commandes</h1>
+            <p className="text-[13px] text-[#8A8A88] mt-0.5">
+              Suivez, organisez et transformez vos commandes en livrables.
+            </p>
+          </div>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="flex items-center gap-2 bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] transition-all shadow-sm hover:shadow cursor-pointer"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Nouvelle commande
+          </button>
+        </div>
+
+        {/* ─── Quick stats ─── */}
+        {orders.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 mt-4">
+            <div className="flex items-center gap-1.5 text-[12px] text-[#5A5A58] bg-[#F7F7F5] rounded-lg px-3 py-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A8A88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              <span className="font-medium text-[#191919]">{orders.length}</span> commande{orders.length > 1 ? "s" : ""}
+            </div>
+            <div className="flex items-center gap-1.5 text-[12px] text-[#5A5A58] bg-[#F7F7F5] rounded-lg px-3 py-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A8A88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span className="font-medium text-[#191919]">{fmtEur(stats.totalCA)}</span> CA total
+            </div>
+            {stats.overdueCount > 0 && (
+              <div className="flex items-center gap-1.5 text-[12px] text-red-600 bg-red-50 rounded-lg px-3 py-1.5">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span className="font-medium">{stats.overdueCount}</span> en retard
+              </div>
+            )}
+            {stats.soonCount > 0 && (
+              <div className="flex items-center gap-1.5 text-[12px] text-amber-600 bg-amber-50 rounded-lg px-3 py-1.5">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span className="font-medium">{stats.soonCount}</span> bientôt
+              </div>
+            )}
+          </div>
+        )}
       </motion.div>
 
-      {/* Tabs + Search */}
+      {/* ═══ CONTROL BAR ═══ */}
       <motion.div
-        className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5"
+        className="bg-white rounded-t-xl border border-[#E6E6E4] border-b-0 px-2 pt-1"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.05 }}
       >
-        <div className="flex items-center gap-0 border-b border-[#E6E6E4]">
-          {TABS.map((tab) => (
-            <button
-              key={tab.key}
-              onClick={() => { setActiveTab(tab.key); setSelectedIds(new Set()); }}
-              className={`relative px-4 py-2 text-[13px] font-medium transition-colors cursor-pointer ${
-                activeTab === tab.key
-                  ? "text-[#4F46E5]"
-                  : "text-[#8A8A88] hover:text-[#5A5A58]"
-              }`}
-            >
-              {tab.label}
-              <span className={`ml-1.5 text-[11px] ${activeTab === tab.key ? "text-[#4F46E5]" : "text-[#8A8A88]"}`}>
-                {counts[tab.key]}
-              </span>
-              {activeTab === tab.key && (
-                <motion.div
-                  layoutId="tab-underline"
-                  className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#4F46E5] rounded-full"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-            </button>
-          ))}
-        </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 px-2">
+          {/* Tabs */}
+          <div className="flex items-center gap-0">
+            {TABS.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => { setActiveTab(tab.key); setSelectedIds(new Set()); }}
+                className={`relative px-3.5 py-3 text-[13px] font-medium transition-colors cursor-pointer ${
+                  activeTab === tab.key
+                    ? "text-[#191919]"
+                    : "text-[#8A8A88] hover:text-[#5A5A58]"
+                }`}
+              >
+                {tab.label}
+                <span className={`ml-1 text-[11px] px-1.5 py-0.5 rounded-full ${
+                  activeTab === tab.key
+                    ? "bg-[#4F46E5] text-white"
+                    : "bg-[#F0F0EE] text-[#8A8A88]"
+                }`}>
+                  {counts[tab.key]}
+                </span>
+                {activeTab === tab.key && (
+                  <motion.div
+                    layoutId="tab-underline"
+                    className="absolute bottom-0 left-2 right-2 h-[2px] bg-[#191919] rounded-full"
+                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
 
-        <div className="relative flex-1 max-w-xs sm:ml-auto">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A8A88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2">
-            <circle cx="11" cy="11" r="8" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2 text-[13px] text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
-          />
+          {/* Search */}
+          <div className="relative sm:ml-auto mb-2 sm:mb-0 w-full sm:w-auto">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8A88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 -translate-y-1/2">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Rechercher par client, titre, ID..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full sm:w-[260px] bg-[#F7F7F5] border border-transparent rounded-lg pl-9 pr-4 py-2 text-[13px] text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:bg-white focus:border-[#E6E6E4] focus:ring-1 focus:ring-[#4F46E5]/15 transition-all"
+            />
+          </div>
         </div>
       </motion.div>
 
-      {/* Table */}
+      {/* ═══ TABLE CONTAINER ═══ */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >
-        <div className="bg-white rounded-xl border border-[#E6E6E4]">
+        <div className="bg-white rounded-b-xl border border-[#E6E6E4] border-t-[#EFEFEF] shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-[#EFEFEF]">
+                <tr className="border-b border-[#E6E6E4]">
                   {/* Select all checkbox */}
-                  <th className="w-[40px] px-3 py-3">
+                  <th className="w-[44px] px-3 py-3">
                     <div className="flex items-center justify-center">
                       <SelectableCheckbox
                         checked={!!allSelected}
@@ -609,12 +703,14 @@ export default function CommandesPage() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className={`group border-b border-[#F8F8FA] last:border-b-0 transition-colors ${
-                          isSelected ? "bg-[#EEF2FF]" : "hover:bg-[#FBFBFA]"
+                        className={`group border-b border-[#F5F5F3] last:border-b-0 transition-colors ${
+                          isSelected
+                            ? "bg-[#EEF2FF] hover:bg-[#E8EDFF]"
+                            : "hover:bg-[#FAFAF9]"
                         }`}
                       >
                         {/* Row checkbox */}
-                        <td className="w-[40px] px-3 py-3.5">
+                        <td className="w-[44px] px-3 py-3">
                           <div className="flex items-center justify-center">
                             <SelectableCheckbox
                               checked={isSelected}
@@ -623,14 +719,14 @@ export default function CommandesPage() {
                           </div>
                         </td>
                         {/* Check circle = advance status */}
-                        <td className="px-1 py-3.5 text-center">
+                        <td className="px-1 py-3 text-center">
                           <button
                             onClick={(e) => { e.stopPropagation(); handleAdvanceStatus(order.id, order.status); }}
                             disabled={!hasNext}
                             title={hasNext ? `Avancer vers ${STATUS_LABELS[NEXT_STATUS[order.status]]}` : "Terminé"}
                             className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center transition-all cursor-pointer ${
                               isDone
-                                ? "bg-green-500 border-green-500 text-white"
+                                ? "bg-emerald-500 border-emerald-500 text-white"
                                 : "border-[#D0D0CE] hover:border-[#4F46E5] hover:bg-[#EEF2FF] text-transparent hover:text-[#4F46E5]"
                             }`}
                           >
@@ -643,17 +739,17 @@ export default function CommandesPage() {
                         {visibleColumns.map((field) => (
                           <td
                             key={field.id}
-                            className={`px-5 py-3.5 text-[13px] text-[#191919] ${CELL_STYLES[field.key] ?? ""}`}
+                            className={`px-5 py-3 text-[13px] text-[#191919] ${CELL_STYLES[field.key] ?? ""}`}
                           >
                             {renderCell(field, order)}
                           </td>
                         ))}
                         {/* Chevron = open drawer */}
-                        <td className="px-3 py-3.5 text-center">
+                        <td className="px-3 py-3 text-center">
                           <button
                             onClick={(e) => { e.stopPropagation(); setSelectedId(order.id); }}
                             title="Voir le détail"
-                            className="p-1 rounded hover:bg-[#F7F7F5] text-[#C0C0BE] hover:text-[#5A5A58] transition-colors cursor-pointer"
+                            className="p-1.5 rounded-md hover:bg-[#F0F0EE] text-[#C0C0BE] hover:text-[#5A5A58] transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <polyline points="9 18 15 12 9 6" />
@@ -666,8 +762,14 @@ export default function CommandesPage() {
                 </AnimatePresence>
                 {filtered.length === 0 && (
                   <tr>
-                    <td colSpan={totalColSpan} className="px-5 py-12 text-center text-[14px] text-[#8A8A88]">
-                      Aucune commande trouvée.
+                    <td colSpan={totalColSpan} className="px-5 py-16 text-center">
+                      <div className="text-[#C0C0BE] mb-2">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                      </div>
+                      <p className="text-[14px] text-[#8A8A88] font-medium">Aucune commande trouvée</p>
+                      <p className="text-[12px] text-[#B0B0AE] mt-1">
+                        {search ? "Essayez un autre terme de recherche." : "Créez votre première commande pour commencer."}
+                      </p>
                     </td>
                   </tr>
                 )}
@@ -698,6 +800,7 @@ export default function CommandesPage() {
         clients={clients}
         customFields={drawerFields}
         onAddOption={handleAddOption}
+        onClientDeleted={mutate}
       />
       <CreateOrderDrawer
         open={createOpen}

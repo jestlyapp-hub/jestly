@@ -49,7 +49,7 @@ const DATA: PersonaPageData = {
     "Facturation automatique liée aux missions",
     "Agenda intégré au CRM et aux projets",
     "Devis professionnels en 2 clics",
-    "Pipeline de missions avec statuts temps réel",
+    "Suivi de missions avec statuts temps réel",
   ],
 
   features: [
@@ -64,11 +64,11 @@ const DATA: PersonaPageData = {
   proofGradient: "professionnalisé leur activité.",
   metrics: [
     { value: "4h", label: "gagnées / semaine", description: "Moins de temps admin, plus de temps client" },
-    { value: "x2", label: "missions mieux suivies", description: "Pipeline clair, zéro oubli, zéro retard" },
+    { value: "x2", label: "missions mieux suivies", description: "Suivi clair, zéro oubli, zéro retard" },
     { value: "0", label: "facture oubliée", description: "Relances auto et suivi intégré" },
   ],
   testimonials: [
-    { name: "Nicolas Bernard", role: "Consultant stratégie, Paris", initials: "NB", color: "#0EA5E9", quote: "Je gère 8 missions en parallèle sans stress. Le pipeline me donne une vision claire et la facturation tourne toute seule. Énorme gain de temps." },
+    { name: "Nicolas Bernard", role: "Consultant stratégie, Paris", initials: "NB", color: "#0EA5E9", quote: "Je gère 8 missions en parallèle sans stress. Le suivi me donne une vision claire et la facturation tourne toute seule. Énorme gain de temps." },
     { name: "Isabelle Morel", role: "Coach business, Lyon", initials: "IM", color: "#EC4899", quote: "L'agenda connecté au CRM m'a changé la vie. Avant chaque call, j'ai tout le contexte client en un coup d'œil. Mes clients sentent la différence." },
   ],
 

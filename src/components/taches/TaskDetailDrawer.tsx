@@ -26,6 +26,7 @@ interface TaskDetailDrawerProps {
   onArchive: (id: string) => void;
   onDuplicate?: (task: Task) => void;
   onSchedule?: (task: Task, date: string, startTime?: string) => void;
+  onSaveAsTemplate?: (task: Task) => void;
 }
 
 export default function TaskDetailDrawer({
@@ -37,9 +38,11 @@ export default function TaskDetailDrawer({
   onArchive,
   onDuplicate,
   onSchedule,
+  onSaveAsTemplate,
 }: TaskDetailDrawerProps) {
   const [local, setLocal] = useState<Task | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [savedAsTemplate, setSavedAsTemplate] = useState(false);
   const [newSubtaskText, setNewSubtaskText] = useState("");
   const [newTag, setNewTag] = useState("");
   const [showSchedule, setShowSchedule] = useState(false);
@@ -516,6 +519,34 @@ export default function TaskDetailDrawer({
                       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
                     </svg>
                     Dupliquer
+                  </button>
+                )}
+
+                {/* Save as template */}
+                {onSaveAsTemplate && (
+                  <button
+                    onClick={() => {
+                      onSaveAsTemplate(local);
+                      setSavedAsTemplate(true);
+                      setTimeout(() => setSavedAsTemplate(false), 2000);
+                    }}
+                    className="flex items-center gap-1.5 text-[12px] text-[#666] font-medium px-3 py-2 rounded-lg hover:bg-[#EEF2FF] hover:text-[#4F46E5] transition-colors cursor-pointer"
+                  >
+                    {savedAsTemplate ? (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span className="text-[#10B981]">Modèle enregistré</span>
+                      </>
+                    ) : (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" />
+                        </svg>
+                        Enregistrer comme modèle
+                      </>
+                    )}
                   </button>
                 )}
 

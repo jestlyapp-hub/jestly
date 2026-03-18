@@ -29,7 +29,7 @@ const DATA: FeaturePageData = {
     },
     {
       icon: "M3 4h18M3 8h18M3 12h12M3 16h8",
-      title: "Pipeline lisible",
+      title: "Suivi lisible",
       description:
         "Prospect, en discussion, signé, terminé : chaque contact a un statut clair.",
     },
@@ -84,11 +84,11 @@ const DATA: FeaturePageData = {
     { label: "Contacts dispersés dans les DMs et mails", icon: "M6 18L18 6M6 6l12 12" },
     { label: "Aucun suivi structuré des prospects", icon: "M6 18L18 6M6 6l12 12" },
     { label: "Relances oubliées, deals perdus", icon: "M6 18L18 6M6 6l12 12" },
-    { label: "Aucune vision claire du pipeline", icon: "M6 18L18 6M6 6l12 12" },
+    { label: "Aucune vision claire du CA", icon: "M6 18L18 6M6 6l12 12" },
   ],
   afterItems: [
     { label: "Chaque contact a sa fiche complète", icon: "M5 13l4 4L19 7" },
-    { label: "Pipeline visible et actionnable", icon: "M5 13l4 4L19 7" },
+    { label: "CA visible et actionnable", icon: "M5 13l4 4L19 7" },
     { label: "Relances programmées, rien ne tombe", icon: "M5 13l4 4L19 7" },
     { label: "Historique clair par client", icon: "M5 13l4 4L19 7" },
   ],

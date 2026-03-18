@@ -323,7 +323,7 @@ function FacturationCard() {
       <div>
         <div className="rounded-xl p-3 mb-3" style={{ background: "linear-gradient(135deg, #F0FDF4, #ECFDF5)" }}>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] text-[#8A8FA3] font-medium">Pipeline total</span>
+            <span className="text-[10px] text-[#8A8FA3] font-medium">CA total</span>
             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[8px] font-semibold" style={{ background: "#D1FAE5", color: "#16a34a" }}><svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><path d="M5 12l5 5L20 7" /></svg>100/100</span>
           </div>
           <div className="text-[22px] font-bold text-[#111118] mb-2">2 870 €</div>
@@ -403,7 +403,7 @@ const FEATURES = [
   { icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8", title: "CRM intégré", description: "Centralisez prospects, clients et historique d'échanges.", color: "#EC4899" },
   { icon: "M4 4h16v16H4zM4 12h16M12 4v16", title: "Portfolio pro", description: "Présentez vos projets et convertissez les visiteurs en clients.", color: "#A855F7" },
   { icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 14l2 2 4-4", title: "Facturation auto", description: "Devis, factures, relances. Conformes et générés en 2 clics.", color: "#F59E0B" },
-  { icon: "M9 5H2v7l6.29 6.29a1 1 0 001.42 0l5.58-5.58a1 1 0 000-1.42z", title: "Suivi projets", description: "Pipeline visuel de la demande initiale à la livraison.", color: "#3B82F6" },
+  { icon: "M9 5H2v7l6.29 6.29a1 1 0 001.42 0l5.58-5.58a1 1 0 000-1.42z", title: "Suivi projets", description: "Suivi visuel de la demande initiale à la livraison.", color: "#3B82F6" },
   { icon: "M3 3v18h18M7 16l4-8 4 4 5-9", title: "Analytics", description: "Revenus, croissance, performances : pilotez avec des chiffres.", color: "#7C3AED" },
 ];
 
@@ -457,7 +457,7 @@ const METRICS = [
 
 const TESTIMONIALS = [
   { name: "Clara Dubois", role: "Directrice artistique, Paris", initials: "CD", color: "#EC4899", quote: "Avant Jestly, je passais plus de temps à gérer l'admin qu'à créer. Maintenant tout est centralisé : clients, factures, portfolio. Je me concentre enfin sur mon métier." },
-  { name: "Lucas Martin", role: "Dev freelance, Lyon", initials: "LM", color: "#3B82F6", quote: "J'avais une stack de 6 outils pour gérer mon business. Jestly a tout remplacé. Pipeline, CRM, facturation : un seul endroit. J'ai retrouvé le temps de coder." },
+  { name: "Lucas Martin", role: "Dev freelance, Lyon", initials: "LM", color: "#3B82F6", quote: "J'avais une stack de 6 outils pour gérer mon business. Jestly a tout remplacé. Suivi, CRM, facturation : un seul endroit. J'ai retrouvé le temps de coder." },
 ];
 
 function SocialProofSection() {

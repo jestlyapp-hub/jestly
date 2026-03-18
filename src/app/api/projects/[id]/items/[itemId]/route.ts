@@ -29,6 +29,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
       return NextResponse.json({ error: "Aucun champ à modifier" }, { status: 400 });
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase.from("project_folders") as any)
       .update(updates)
       .eq("id", itemId)
@@ -41,7 +42,19 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ ok: true });
   }
 
-  // Item update
+  // Item update — validate folderId belongs to same project
+  if ("folderId" in body && body.folderId) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: folder } = await (supabase.from("project_folders") as any)
+      .select("id")
+      .eq("id", body.folderId)
+      .eq("project_id", projectId)
+      .maybeSingle();
+    if (!folder) {
+      return NextResponse.json({ error: "Dossier cible introuvable dans ce projet" }, { status: 400 });
+    }
+  }
+
   const allowed: Record<string, string> = {
     title: "title",
     description: "description",
@@ -65,6 +78,7 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "Aucun champ à modifier" }, { status: 400 });
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase.from("project_items") as any)
     .update(updates)
     .eq("id", itemId)
@@ -78,18 +92,52 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
   return NextResponse.json({ ok: true });
 }
 
-// ─── DELETE — delete item or folder ─────────────────────────
+// ─── DELETE — delete item or folder (with storage cleanup) ───
 export async function DELETE(req: NextRequest, ctx: Ctx) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
-  const { supabase } = auth;
+  const { user, supabase } = auth;
   const { id: projectId, itemId } = await ctx.params;
 
   const url = new URL(req.url);
   const isFolder = url.searchParams.get("type") === "folder";
 
-  const table = isFolder ? "project_folders" : "project_items";
-  const { error } = await (supabase.from(table) as any)
+  if (isFolder) {
+    // Before deleting folder, collect file_paths of child items for storage cleanup
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: childItems } = await (supabase.from("project_items") as any)
+      .select("file_path")
+      .eq("folder_id", itemId)
+      .eq("project_id", projectId);
+
+    // Delete folder (cascade: child items get folder_id = NULL via ON DELETE SET NULL)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from("project_folders") as any)
+      .delete()
+      .eq("id", itemId)
+      .eq("project_id", projectId);
+
+    if (error) {
+      console.error("[project-items] folder delete error:", error);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Note: child items are NOT deleted (ON DELETE SET NULL), just unlinked.
+    // Storage files remain attached to the items which are now at root.
+    return NextResponse.json({ ok: true });
+  }
+
+  // Item delete — fetch file_path first for storage cleanup
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: item } = await (supabase.from("project_items") as any)
+    .select("file_path")
+    .eq("id", itemId)
+    .eq("project_id", projectId)
+    .maybeSingle();
+
+  // Delete DB row
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { error } = await (supabase.from("project_items") as any)
     .delete()
     .eq("id", itemId)
     .eq("project_id", projectId);
@@ -97,6 +145,20 @@ export async function DELETE(req: NextRequest, ctx: Ctx) {
   if (error) {
     console.error("[project-items] delete error:", error);
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  // Cleanup storage file if exists
+  if (item?.file_path) {
+    const storagePath = item.file_path;
+    // Verify path belongs to this user/project
+    if (storagePath.startsWith(`${user.id}/projects/${projectId}/`)) {
+      const { error: storageErr } = await supabase.storage
+        .from("order-uploads")
+        .remove([storagePath]);
+      if (storageErr) {
+        console.warn("[project-items] storage cleanup failed (non-fatal):", storageErr.message);
+      }
+    }
   }
 
   return NextResponse.json({ ok: true });

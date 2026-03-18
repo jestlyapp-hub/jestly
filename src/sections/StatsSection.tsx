@@ -17,7 +17,7 @@ const HERO_STAT = {
 
 const SECONDARY_STATS = [
   { value: 3, suffix: "", prefix: "-", label: "outils en moins", description: "Tout est réuni au même endroit.", color: "#10B981", icon: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" },
-  { value: 2, suffix: "x", label: "plus d'organisation", description: "Pipeline clair, deadlines maîtrisées.", color: "#3B82F6", icon: "M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 14l2 2 4-4" },
+  { value: 2, suffix: "x", label: "plus d'organisation", description: "Suivi clair, deadlines maîtrisées.", color: "#3B82F6", icon: "M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 14l2 2 4-4" },
   { value: 100, suffix: "%", label: "paiements suivis", description: "Plus aucune facture oubliée.", color: "#F59E0B", icon: "M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" },
 ];
 

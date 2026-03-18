@@ -13,7 +13,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 const STATS = [
   { value: 40, suffix: "%", label: "de temps gagné", description: "Moins d'admin, plus de création.", color: "#7C5CFF" },
   { value: 3, suffix: "", prefix: "-", label: "outils en moins", description: "Tout est réuni au même endroit.", color: "#10B981" },
-  { value: 2, suffix: "x", label: "plus d'organisation", description: "Pipeline clair, deadlines maîtrisées.", color: "#3B82F6" },
+  { value: 2, suffix: "x", label: "plus d'organisation", description: "Suivi clair, deadlines maîtrisées.", color: "#3B82F6" },
   { value: 100, suffix: "%", label: "paiements suivis", description: "Plus aucune facture oubliée.", color: "#F59E0B" },
 ];
 
