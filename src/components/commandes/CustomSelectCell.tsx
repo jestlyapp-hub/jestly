@@ -190,7 +190,7 @@ function DropdownContent({
         <input
           ref={inputRef}
           type="text"
-          placeholder="Rechercher ou creer..."
+          placeholder="Rechercher ou créer..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && showCreate) handleCreate(); }}
@@ -232,7 +232,7 @@ function DropdownContent({
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            Creer &quot;{onCreateLabel}&quot;
+            Créer &quot;{onCreateLabel}&quot;
           </button>
         )}
       </div>

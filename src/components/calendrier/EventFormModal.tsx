@@ -203,7 +203,7 @@ export default function EventFormModal({
             <div
               role="dialog"
               aria-modal="true"
-              aria-label={isEditing ? "Modifier l'evenement" : "Nouvel evenement"}
+              aria-label={isEditing ? "Modifier l'événement" : "Nouvel événement"}
               className="bg-white rounded-2xl border border-[#E2E2E0] shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
@@ -216,7 +216,7 @@ export default function EventFormModal({
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-[#F0F0EE]">
                 <h2 className="text-[15px] font-bold text-[#1A1A1A] tracking-[-0.01em]">
-                  {isEditing ? "Modifier l'evenement" : "Nouvel evenement"}
+                  {isEditing ? "Modifier l'événement" : "Nouvel événement"}
                 </h2>
                 <button
                   onClick={onClose}
@@ -251,7 +251,7 @@ export default function EventFormModal({
                 <div className="grid grid-cols-[1fr_auto] gap-5">
                   <div>
                     <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
-                      Categorie
+                      Catégorie
                     </label>
                     <div className="flex flex-wrap gap-1.5">
                       {ALL_CATEGORIES.filter((c) => c !== "deadline").map((cat) => {
@@ -548,7 +548,7 @@ export default function EventFormModal({
                     }`}
                     style={{ backgroundColor: previewColor }}
                   >
-                    {saving ? "Enregistrement..." : isEditing ? "Enregistrer" : "Creer l'evenement"}
+                    {saving ? "Enregistrement..." : isEditing ? "Enregistrer" : "Créer l'événement"}
                   </button>
                 </div>
               </form>

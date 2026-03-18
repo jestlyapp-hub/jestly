@@ -18,6 +18,7 @@ import BulkToolbar from "@/components/commandes/BulkToolbar";
 import { toast } from "@/lib/hooks/use-toast";
 import { formatDateFR, isOverdue } from "@/lib/notion-colors";
 import { NEXT_STATUS, PREV_STATUS, STATUS_LABELS, LEGACY_SEEDED_KEYS } from "@/lib/kanban-config";
+import SelectableCheckbox from "@/components/ui/SelectableCheckbox";
 
 /* ─── Notion-style color palette for select options ─── */
 const OPTION_COLORS = ["violet", "blue", "cyan", "emerald", "amber", "orange", "rose", "pink", "indigo", "teal"];
@@ -165,32 +166,15 @@ export default function CommandesPage() {
   const lastClickedIdx = useRef<number | null>(null);
 
   const handleRowSelect = useCallback(
-    (orderId: string, index: number, e: React.MouseEvent) => {
-      e.stopPropagation();
+    (orderId: string, _index: number) => {
       setSelectedIds((prev) => {
         const next = new Set(prev);
-        if (e.shiftKey && lastClickedIdx.current !== null) {
-          const start = Math.min(lastClickedIdx.current, index);
-          const end = Math.max(lastClickedIdx.current, index);
-          for (let i = start; i <= end; i++) {
-            next.add(filtered[i].id);
-          }
-        } else if (e.metaKey || e.ctrlKey) {
-          if (next.has(orderId)) next.delete(orderId);
-          else next.add(orderId);
-        } else {
-          if (next.has(orderId) && next.size === 1) {
-            next.delete(orderId);
-          } else {
-            next.clear();
-            next.add(orderId);
-          }
-        }
-        lastClickedIdx.current = index;
+        if (next.has(orderId)) next.delete(orderId);
+        else next.add(orderId);
         return next;
       });
     },
-    [filtered]
+    []
   );
 
   const handleSelectAll = useCallback(() => {
@@ -573,24 +557,14 @@ export default function CommandesPage() {
               <thead>
                 <tr className="border-b border-[#EFEFEF]">
                   {/* Select all checkbox */}
-                  <th className="w-10 px-3 py-3">
-                    <button
-                      onClick={handleSelectAll}
-                      className="w-4 h-4 rounded border-[1.5px] flex items-center justify-center cursor-pointer transition-colors"
-                      style={{
-                        borderColor: allSelected || someSelected ? "#4F46E5" : "#D0D0CE",
-                        backgroundColor: allSelected ? "#4F46E5" : "transparent",
-                      }}
-                    >
-                      {allSelected && (
-                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                      {someSelected && !allSelected && (
-                        <div className="w-2 h-0.5 bg-[#4F46E5] rounded" />
-                      )}
-                    </button>
+                  <th className="w-[40px] px-3 py-3">
+                    <div className="flex items-center justify-center">
+                      <SelectableCheckbox
+                        checked={!!allSelected}
+                        indeterminate={someSelected && !allSelected}
+                        onChange={handleSelectAll}
+                      />
+                    </div>
                   </th>
                   {/* Advance column */}
                   <th className="w-10 px-1 py-3" />
@@ -640,21 +614,13 @@ export default function CommandesPage() {
                         }`}
                       >
                         {/* Row checkbox */}
-                        <td className="px-3 py-3.5">
-                          <button
-                            onClick={(e) => handleRowSelect(order.id, idx, e)}
-                            className="w-4 h-4 rounded border-[1.5px] flex items-center justify-center cursor-pointer transition-colors"
-                            style={{
-                              borderColor: isSelected ? "#4F46E5" : "#D0D0CE",
-                              backgroundColor: isSelected ? "#4F46E5" : "transparent",
-                            }}
-                          >
-                            {isSelected && (
-                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="20 6 9 17 4 12" />
-                              </svg>
-                            )}
-                          </button>
+                        <td className="w-[40px] px-3 py-3.5">
+                          <div className="flex items-center justify-center">
+                            <SelectableCheckbox
+                              checked={isSelected}
+                              onChange={() => handleRowSelect(order.id, idx)}
+                            />
+                          </div>
                         </td>
                         {/* Check circle = advance status */}
                         <td className="px-1 py-3.5 text-center">

@@ -30,7 +30,7 @@ const actions: QuickAction[] = [
     ),
   },
   {
-    label: "Nouvelle tache",
+    label: "Nouvelle tâche",
     href: "/taches",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -39,7 +39,7 @@ const actions: QuickAction[] = [
     ),
   },
   {
-    label: "Nouvel evenement",
+    label: "Nouvel événement",
     href: "/calendrier",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -48,7 +48,7 @@ const actions: QuickAction[] = [
     ),
   },
   {
-    label: "Nouveau produit",
+    label: "Nouvelle offre",
     href: "/produits",
     icon: (
       <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

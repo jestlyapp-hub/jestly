@@ -1404,7 +1404,7 @@ export const ORDER_DETAIL_FIELDS = [
   { key: 'notes',        label: 'Notes',          briefTypes: ['text', 'textarea'] },
   { key: 'briefing',     label: 'Briefing',       briefTypes: ['text', 'textarea'] },
   { key: 'resources',    label: 'Ressources',     briefTypes: ['file', 'url', 'text'] },
-  { key: 'category',     label: 'Categorie',      briefTypes: ['text', 'select'] },
+  { key: 'category',     label: 'Catégorie',      briefTypes: ['text', 'select'] },
   { key: 'external_ref', label: 'Ref. externe',   briefTypes: ['text'] },
   { key: 'tags',         label: 'Tags',           briefTypes: ['checkbox'] },
   { key: 'checklist',    label: 'Checklist',      briefTypes: ['checkbox'] },
@@ -1682,21 +1682,38 @@ export interface SitePage {
 }
 
 export interface SiteTheme {
+  /* Colors */
   primaryColor: string;
   secondaryColor?: string;
+  accentColor?: string;
   backgroundColor?: string;
   surfaceColor?: string;
   textColor?: string;
   mutedTextColor?: string;
   borderColor?: string;
+
+  /* Typography */
   fontFamily: string;
   headingFont?: string;
+  headingWeight?: "400" | "500" | "600" | "700" | "800" | "900";
+  bodyWeight?: "300" | "400" | "500";
+  lineHeight?: "tight" | "normal" | "relaxed";
+  letterSpacing?: "tight" | "normal" | "wide";
+  buttonCase?: "normal" | "uppercase";
+
+  /* Shape */
   borderRadius: "none" | "rounded" | "pill";
   shadow: "none" | "sm" | "md" | "lg";
+
+  /* Layout */
   mode?: "light" | "dark";
   containerWidth?: "narrow" | "default" | "wide";
+  density?: "compact" | "balanced" | "spacious";
+  sectionGap?: "none" | "compact" | "normal" | "large" | "hero";
+
+  /* Buttons */
   buttonRadius?: "none" | "sm" | "md" | "full";
-  // Theme-level button defaults (consumed as CSS vars fallbacks)
+  buttonStyle?: "filled" | "outline" | "ghost" | "soft";
   buttonBg?: string;
   buttonText?: string;
   buttonBorder?: string;
@@ -1705,7 +1722,15 @@ export interface SiteTheme {
   buttonHoverBorder?: string;
   buttonHoverShadow?: "none" | "sm" | "md" | "lg";
   buttonHoverScale?: number;
-  sectionGap?: "none" | "compact" | "normal" | "large" | "hero";
+
+  /* Cards & surfaces */
+  cardRadius?: "none" | "sm" | "md" | "lg" | "xl";
+  cardShadow?: "none" | "sm" | "md" | "lg";
+  cardBorder?: boolean;
+
+  /* Motion */
+  hoverLift?: "none" | "subtle" | "medium" | "strong";
+  transitionSpeed?: "fast" | "normal" | "slow";
 }
 
 export type BackgroundPreset = "none" | "solid" | "glow" | "mesh" | "grid-tech" | "noise" | "dots" | "gradient-radial" | "particles-float" | "particles-constellation" | "particles-aura" | "luxe-waves" | "halo-spotlight";

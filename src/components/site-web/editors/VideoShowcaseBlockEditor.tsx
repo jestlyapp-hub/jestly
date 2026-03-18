@@ -80,7 +80,7 @@ export default function VideoShowcaseBlockEditor({ block }: { block: VideoShowca
           className={inputClass}
           value={c.ctaLabel ?? ""}
           onChange={(e) => update({ ctaLabel: e.target.value })}
-          placeholder="Voir la demo"
+          placeholder="Voir la démo"
         />
       </div>
 

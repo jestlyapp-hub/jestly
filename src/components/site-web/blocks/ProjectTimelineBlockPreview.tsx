@@ -109,7 +109,7 @@ function ProjectTimelineBlockPreviewInner({ content }: { content: ProjectTimelin
                   className="text-xs font-semibold uppercase tracking-wider"
                   style={{ color: "var(--site-primary, #4F46E5)" }}
                 >
-                  Resultat
+                  Résultat
                 </span>
               </div>
               <p

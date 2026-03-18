@@ -129,7 +129,7 @@ export default function ProjectBeforeAfterBlockEditor({
               type="text"
               value={item.category ?? ""}
               onChange={(e) => updateItem(i, "category", e.target.value)}
-              placeholder="Categorie (ex: Branding, Web, Video)"
+              placeholder="Catégorie (ex: Branding, Web, Video)"
               className={inputClass}
             />
 
@@ -211,7 +211,7 @@ export default function ProjectBeforeAfterBlockEditor({
               </div>
               <div>
                 <label className="block text-[10px] font-medium text-[#999] mb-1">
-                  Resultat
+                  Résultat
                 </label>
                 <input
                   type="text"

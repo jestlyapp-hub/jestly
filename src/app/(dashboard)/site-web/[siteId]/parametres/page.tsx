@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useSite } from "@/lib/hooks/use-site";
+import { useParams } from "next/navigation";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-11 h-6 rounded-full transition-colors cursor-pointer";
 const toggleDotClass = "absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform";
 
 export default function SiteParametresPage() {
-  const { site } = useSite();
+  const { site, mutate } = useSite();
+  const { siteId } = useParams<{ siteId: string }>();
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
   const [name, setName] = useState(site.settings.name);
   const [description, setDescription] = useState(site.settings.description);
   const [maintenance, setMaintenance] = useState(site.settings.maintenanceMode);
@@ -77,6 +81,40 @@ export default function SiteParametresPage() {
     if (loc === defaultLocale) return;
     setLocales(locales.filter((l) => l !== loc));
   };
+
+  const handleSave = useCallback(async () => {
+    setSaveState("saving");
+    setErrorMsg("");
+    try {
+      const res = await fetch(`/api/sites/${siteId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          settings: {
+            ...site.settings,
+            name,
+            description,
+            maintenanceMode: maintenance,
+            socials,
+            i18n: { locales, defaultLocale },
+          },
+          nav: { ...site.nav, links: navLinks, showCta: navShowCta, ctaLabel: navCtaLabel },
+          footer: { ...site.footer, links: footerLinks, showSocials: footerShowSocials, copyright: footerCopyright },
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Erreur lors de la sauvegarde");
+      }
+      await mutate();
+      setSaveState("saved");
+      setTimeout(() => setSaveState("idle"), 2000);
+    } catch (e) {
+      setSaveState("error");
+      setErrorMsg(e instanceof Error ? e.message : "Erreur inconnue");
+    }
+  }, [siteId, name, description, maintenance, socials, locales, defaultLocale, navLinks, navShowCta, navCtaLabel, footerLinks, footerShowSocials, footerCopyright, site.settings, site.nav, site.footer, mutate]);
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -351,9 +389,16 @@ export default function SiteParametresPage() {
         </motion.section>
 
         {/* Save */}
-        <div className="flex justify-end">
-          <button className="bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors">
-            Sauvegarder les paramètres
+        <div className="flex items-center justify-end gap-3">
+          {saveState === "saved" && <span className="text-[12px] font-medium text-emerald-600">Paramètres sauvegardés</span>}
+          {saveState === "error" && <span className="text-[12px] font-medium text-red-500">{errorMsg || "Erreur"}</span>}
+          <button
+            onClick={handleSave}
+            disabled={saveState === "saving"}
+            className="bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors disabled:opacity-60 flex items-center gap-2"
+          >
+            {saveState === "saving" && <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
+            {saveState === "saving" ? "Sauvegarde..." : "Sauvegarder les paramètres"}
           </button>
         </div>
       </div>

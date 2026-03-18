@@ -35,22 +35,22 @@ const NOT_TRACKED = [
   {
     name: "DAU / WAU / MAU",
     description:
-      "Pas de tracking de sessions utilisateur. Necessite un systeme d'analytics de sessions (Mixpanel, PostHog, ou custom events avec timestamps de connexion).",
+      "Pas de tracking de sessions utilisateur. Nécessite un système d'analytics de sessions (Mixpanel, PostHog, ou custom events avec timestamps de connexion).",
   },
   {
     name: "Feature usage events",
     description:
-      "Pas de tracking d'actions dans le dashboard. Necessite l'instrumentation d'evenements (clics, navigation, temps passe) avec un outil d'analytics produit.",
+      "Pas de tracking d'actions dans le dashboard. Nécessite l'instrumentation d'événements (clics, navigation, temps passé) avec un outil d'analytics produit.",
   },
   {
     name: "Retention cohorts",
     description:
-      "Pas de donnees de retention par cohorte. Necessite un tracking de sessions par semaine/mois pour calculer les courbes de retention.",
+      "Pas de données de rétention par cohorte. Nécessite un tracking de sessions par semaine/mois pour calculer les courbes de rétention.",
   },
   {
     name: "Time to value",
     description:
-      "Pas de mesure du temps entre l'inscription et la premiere action significative. Necessite le tracking des evenements d'activation.",
+      "Pas de mesure du temps entre l'inscription et la première action significative. Nécessite le tracking des événements d'activation.",
   },
 ];
 
@@ -90,7 +90,7 @@ export default function AdminProductPage() {
       <div className="space-y-6">
         <AdminHeader title="Produit & Usage" section="Produit" />
         <p className="text-sm text-[#8A8A88] p-8">
-          Erreur de chargement des donnees produit.
+          Erreur de chargement des données produit.
         </p>
       </div>
     );
@@ -111,7 +111,7 @@ export default function AdminProductPage() {
       <AdminHeader
         title="Produit & Usage"
         section="Produit"
-        description="Adoption des fonctionnalites et activation utilisateurs"
+        description="Adoption des fonctionnalités et activation utilisateurs"
       />
 
       {/* ── Hero KPIs ─────────────────────────────────────────── */}
@@ -122,12 +122,12 @@ export default function AdminProductPage() {
           icon={<Users size={16} strokeWidth={1.7} />}
         />
         <AdminKpiCard
-          label="Utilisateurs actives"
+          label="Utilisateurs activés"
           value={`${data.activation.activated} (${data.activation.pct}%)`}
           icon={<Zap size={16} strokeWidth={1.7} />}
         />
         <AdminKpiCard
-          label="Features trackees"
+          label="Features trackées"
           value={data.feature_usage.length}
           icon={<Package size={16} strokeWidth={1.7} />}
         />
@@ -139,7 +139,7 @@ export default function AdminProductPage() {
           Funnel d&apos;activation
         </h3>
         <p className="text-[12px] text-[#8A8A88] mb-4">
-          Active = au moins (1 client + 1 produit + 1 commande) ou 1 site
+          Activé = au moins (1 client + 1 produit + 1 commande) ou 1 site
         </p>
         <div className="max-w-md">
           <div className="flex items-center justify-between mb-1.5">
@@ -158,7 +158,7 @@ export default function AdminProductPage() {
           </div>
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-[13px] text-[#5A5A58]">
-              Actives
+              Activés
             </span>
             <span className="text-[13px] font-semibold text-[#191919]">
               {data.activation.activated}{" "}
@@ -181,14 +181,14 @@ export default function AdminProductPage() {
       {/* ── Feature adoption grid ─────────────────────────────── */}
       <div className="bg-white rounded-lg border border-[#E6E6E4] p-5">
         <h3 className="text-[14px] font-semibold text-[#191919] mb-4">
-          Adoption par fonctionnalite
+          Adoption par fonctionnalité
         </h3>
         <div className="overflow-x-auto">
           <table className="w-full text-[13px]">
             <thead>
               <tr className="border-b border-[#E6E6E4]">
                 <th className="text-left py-2 pr-3 text-[#8A8A88] font-medium">
-                  Fonctionnalite
+                  Fonctionnalité
                 </th>
                 <th className="text-left py-2 pr-3 text-[#8A8A88] font-medium">
                   Utilisateurs
@@ -234,10 +234,10 @@ export default function AdminProductPage() {
       {/* ── Top features by usage ─────────────────────────────── */}
       <div className="bg-white rounded-lg border border-[#E6E6E4] p-5">
         <h3 className="text-[14px] font-semibold text-[#191919] mb-4">
-          Top fonctionnalites par usage (total d&apos;entites)
+          Top fonctionnalités par usage (total d&apos;entités)
         </h3>
         {sortedUsage.length === 0 ? (
-          <p className="text-[13px] text-[#8A8A88]">Aucune donnee</p>
+          <p className="text-[13px] text-[#8A8A88]">Aucune donnée</p>
         ) : (
           <div className="space-y-3">
             {sortedUsage.map((item, i) => {
@@ -274,10 +274,10 @@ export default function AdminProductPage() {
       {/* ── Not tracked section ───────────────────────────────── */}
       <div>
         <h3 className="text-[14px] font-semibold text-[#191919] mb-3">
-          Non instrumente
+          Non instrumenté
         </h3>
         <p className="text-[12px] text-[#8A8A88] mb-4">
-          Ces metriques produit ne sont pas encore collectees.
+          Ces métriques produit ne sont pas encore collectées.
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {NOT_TRACKED.map((m) => (

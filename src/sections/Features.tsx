@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-/* ─── Icones SVG minimalistes ─── */
+/* ─── Icônes SVG minimalistes ─── */
 
 const icons = {
   globe: (

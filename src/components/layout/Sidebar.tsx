@@ -14,7 +14,6 @@ import {
   ShoppingBag,
   Users,
   BarChart3,
-  Package,
   CalendarDays,
   CheckSquare,
   Settings,
@@ -26,6 +25,7 @@ import {
   CreditCard,
   HelpCircle,
   MessageCircle,
+  Headphones,
   ChevronsUpDown,
 } from "lucide-react";
 
@@ -55,7 +55,6 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Commandes", href: "/commandes", icon: <ShoppingBag size={18} strokeWidth={1.7} /> },
       { label: "Clients", href: "/clients", icon: <Users size={18} strokeWidth={1.7} /> },
-      { label: "Produits / Briefs", href: "/produits", icon: <Package size={18} strokeWidth={1.7} /> },
       { label: "Facturation", href: "/facturation", icon: <FileText size={18} strokeWidth={1.7} /> },
     ],
   },
@@ -172,7 +171,8 @@ function AccountMenu({ user, open, onClose, triggerRef }: {
             <div className="py-1.5 px-1.5">
               <MenuLink href="/parametres" icon={<Settings size={15} strokeWidth={1.7} />} label="Paramètres" onClick={onClose} />
               <MenuLink href="/parametres#abonnement" icon={<CreditCard size={15} strokeWidth={1.7} />} label="Abonnement" onClick={onClose} />
-              <MenuButton icon={<HelpCircle size={15} strokeWidth={1.7} />} label="Aide" onClick={() => { window.open("mailto:support@jestly.fr"); onClose(); }} />
+              <MenuLink href="/support" icon={<Headphones size={15} strokeWidth={1.7} />} label="Support" onClick={onClose} />
+              <MenuLink href="/guide" icon={<HelpCircle size={15} strokeWidth={1.7} />} label="Guide" onClick={onClose} />
               <MenuButton icon={<MessageCircle size={15} strokeWidth={1.7} />} label="Discord" onClick={() => { window.open("https://discord.gg/jestly", "_blank"); onClose(); }} external />
             </div>
 

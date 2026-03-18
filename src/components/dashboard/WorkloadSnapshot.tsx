@@ -63,7 +63,7 @@ function getSnapshotItems(props: WorkloadSnapshotProps): SnapshotItem[] {
       ),
     },
     {
-      label: "Evenements cette semaine",
+      label: "Événements cette semaine",
       value: props.weekEvents,
       href: "/calendrier",
       icon: (

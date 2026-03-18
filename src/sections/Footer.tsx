@@ -49,7 +49,7 @@ export default function Footer() {
           {/* Legal */}
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-[#8A8A88] mb-4">
-              Legal
+              Légal
             </h4>
             <ul className="flex flex-col gap-2.5">
               <li>

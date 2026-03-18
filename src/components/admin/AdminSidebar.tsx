@@ -17,6 +17,7 @@ import {
   Megaphone,
   TrendingUp,
   Contact,
+  Headphones,
 } from "lucide-react";
 
 // ── Navigation admin ──────────────────────────────────────────────
@@ -37,9 +38,10 @@ const adminNav: NavItem[] = [
   { label: "Billing", href: "/admin/billing", icon: <CreditCard size={18} strokeWidth={1.7} /> },
   { label: "Produit", href: "/admin/product", icon: <Package size={18} strokeWidth={1.7} /> },
   { label: "SEO", href: "/admin/seo", icon: <Search size={18} strokeWidth={1.7} /> },
+  { label: "Support", href: "/admin/support", icon: <Headphones size={18} strokeWidth={1.7} /> },
   { label: "Incidents", href: "/admin/incidents", icon: <AlertTriangle size={18} strokeWidth={1.7} /> },
   { label: "Audit Log", href: "/admin/audit", icon: <ScrollText size={18} strokeWidth={1.7} /> },
-  { label: "Securite", href: "/admin/security", icon: <Shield size={18} strokeWidth={1.7} /> },
+  { label: "Sécurité", href: "/admin/security", icon: <Shield size={18} strokeWidth={1.7} /> },
 ];
 
 // ── Composant ─────────────────────────────────────────────────────
@@ -53,7 +55,7 @@ export default function AdminSidebar() {
 
   return (
     <aside className="hidden lg:flex flex-col w-[240px] h-full flex-shrink-0 bg-white border-r border-[#E6E6E4] select-none">
-      {/* ── En-tete admin ── */}
+      {/* ── En-tête admin ── */}
       <div className="px-4 pt-5 pb-4">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-[#4F46E5] flex items-center justify-center flex-shrink-0">
@@ -64,13 +66,13 @@ export default function AdminSidebar() {
               Admin
             </span>
             <span className="block text-[10px] font-semibold text-[#4F46E5] uppercase tracking-[0.06em]">
-              Panneau de controle
+              Panneau de contrôle
             </span>
           </div>
         </div>
       </div>
 
-      {/* ── Separateur ── */}
+      {/* ── Séparateur ── */}
       <div className="h-px bg-[#E6E6E4] mx-3" />
 
       {/* ── Navigation ── */}

@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const now = new Date().toISOString();
   const records = taskTitles.map((title: string, i: number) => ({
     user_id: user.id,
-    title: title || `Tache ${i + 1}`,
+    title: title || `Tâche ${i + 1}`,
     description: null,
     status: "todo",
     priority: "medium",
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
   if (error) {
     console.error("[/api/tasks/from-order] Insert error:", error.message);
     return NextResponse.json(
-      { error: "Erreur lors de la creation des taches" },
+      { error: "Erreur lors de la création des tâches" },
       { status: 500 }
     );
   }

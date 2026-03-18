@@ -95,7 +95,7 @@ const STRIPE_LOCKED = [
   {
     name: "MRR / ARR",
     description:
-      "Revenu mensuel et annuel recurrent. Necessite des abonnements Stripe actifs pour calculer.",
+      "Revenu mensuel et annuel récurrent. Nécessite des abonnements Stripe actifs pour calculer.",
   },
   {
     name: "Taux de churn",
@@ -105,7 +105,7 @@ const STRIPE_LOCKED = [
   {
     name: "LTV (Lifetime Value)",
     description:
-      "Valeur totale moyenne d'un client sur sa duree de vie. Necessite l'historique de paiements Stripe.",
+      "Valeur totale moyenne d'un client sur sa durée de vie. Nécessite l'historique de paiements Stripe.",
   },
   {
     name: "ARPU",
@@ -113,14 +113,14 @@ const STRIPE_LOCKED = [
       "Revenu moyen par utilisateur. Requiert le lien entre profils Jestly et customers Stripe.",
   },
   {
-    name: "Paiements echoues",
+    name: "Paiements échoués",
     description:
-      "Taux d'echec de paiement et relances automatiques. Necessite les webhooks invoice.payment_failed.",
+      "Taux d'échec de paiement et relances automatiques. Nécessite les webhooks invoice.payment_failed.",
   },
   {
     name: "Cycle de vie abonnements",
     description:
-      "Trials, conversions, upgrades, downgrades. Necessite Stripe Billing avec plans Pro/Free configures.",
+      "Trials, conversions, upgrades, downgrades. Nécessite Stripe Billing avec plans Pro/Free configurés.",
   },
 ];
 
@@ -160,7 +160,7 @@ export default function AdminBillingPage() {
       <div className="space-y-6">
         <AdminHeader title="Billing & Revenu" section="Billing" />
         <p className="text-sm text-[#8A8A88] p-8">
-          Erreur de chargement des donnees billing.
+          Erreur de chargement des données billing.
         </p>
       </div>
     );
@@ -174,7 +174,7 @@ export default function AdminBillingPage() {
       <AdminHeader
         title="Billing & Revenu"
         section="Billing"
-        description="Metriques financieres et suivi des revenus"
+        description="Métriques financières et suivi des revenus"
       />
 
       {/* ── Stripe status banner ──────────────────────────────── */}
@@ -187,11 +187,11 @@ export default function AdminBillingPage() {
           />
           <div>
             <p className="text-[13px] font-semibold text-green-800">
-              Stripe connecte
+              Stripe connecté
             </p>
             <p className="text-[12px] text-green-700 mt-0.5 leading-relaxed">
               Billing intelligence actif — MRR, ARR, ARPU et suivi des
-              abonnements en temps reel.
+              abonnements en temps réel.
             </p>
           </div>
         </div>
@@ -204,7 +204,7 @@ export default function AdminBillingPage() {
           />
           <div>
             <p className="text-[13px] font-semibold text-amber-800">
-              Stripe n&apos;est pas encore connecte
+              Stripe n&apos;est pas encore connecté
             </p>
             <p className="text-[12px] text-amber-700 mt-0.5 leading-relaxed">
               Ajoutez <code className="font-mono bg-amber-100 px-1 rounded">STRIPE_SECRET_KEY</code> et{" "}
@@ -265,7 +265,7 @@ export default function AdminBillingPage() {
             </div>
             <div className="flex items-center gap-2 px-3 py-2 rounded-md border border-[#EFEFEF] bg-[#FBFBFA]">
               <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0" />
-              <span className="text-[13px] font-medium text-[#191919]">Annules</span>
+              <span className="text-[13px] font-medium text-[#191919]">Annulés</span>
               <span className="text-[13px] font-bold text-[#191919]">{sm.canceled_subscriptions}</span>
             </div>
           </div>
@@ -281,7 +281,7 @@ export default function AdminBillingPage() {
           <div className="flex items-center gap-2 mb-4">
             <AlertCircle size={16} strokeWidth={1.7} className="text-red-500" />
             <h3 className="text-[14px] font-semibold text-[#191919]">
-              Paiements echoues (30 derniers jours)
+              Paiements échoués (30 derniers jours)
             </h3>
           </div>
           <div className="overflow-x-auto">
@@ -333,7 +333,7 @@ export default function AdminBillingPage() {
           icon={<CalendarDays size={16} strokeWidth={1.7} />}
         />
         <AdminKpiCard
-          label="Repartition plans"
+          label="Répartition plans"
           value={`${data.plan_distribution.free || 0} Free / ${data.plan_distribution.pro || 0} Pro`}
           icon={<Users size={16} strokeWidth={1.7} />}
         />
@@ -390,11 +390,11 @@ export default function AdminBillingPage() {
       {/* ── Recent paid orders ────────────────────────────────── */}
       <div className="bg-white rounded-lg border border-[#E6E6E4] p-5">
         <h3 className="text-[14px] font-semibold text-[#191919] mb-4">
-          Dernieres commandes payees
+          Dernières commandes payées
         </h3>
         {data.recent_paid_orders.length === 0 ? (
           <p className="text-[13px] text-[#8A8A88]">
-            Aucune commande payee pour le moment.
+            Aucune commande payée pour le moment.
           </p>
         ) : (
           <div className="overflow-x-auto">
@@ -457,7 +457,7 @@ export default function AdminBillingPage() {
             Non disponible
           </h3>
           <p className="text-[12px] text-[#8A8A88] mb-4">
-            Ces metriques necessitent une integration Stripe active.
+            Ces métriques nécessitent une intégration Stripe active.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {STRIPE_LOCKED.map((m) => (
@@ -472,7 +472,7 @@ export default function AdminBillingPage() {
                   </span>
                 </div>
                 <p className="text-[11px] text-[#4F46E5] font-medium mb-1.5">
-                  Requiert integration Stripe
+                  Requiert intégration Stripe
                 </p>
                 <p className="text-[12px] text-[#8A8A88] leading-relaxed">
                   {m.description}

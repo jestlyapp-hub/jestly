@@ -100,7 +100,7 @@ export default function OrderDrawerChecklist({
           value={newItem}
           onChange={(e) => setNewItem(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}
-          placeholder="Ajouter une tache..."
+          placeholder="Ajouter une tâche..."
           className="flex-1 text-[12px] bg-[#F7F7F5] border border-[#E6E6E4] rounded px-2 py-1.5 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30"
         />
         <button

@@ -7,7 +7,9 @@
       "Bash(ls:*)",
       "Bash(find C:\\\\Users\\\\Briau\\\\jestly\\\\src\\\\app\\\\\\(dashboard\\)\\\\site-web:*)",
       "WebFetch(domain:www.jestly.fr)",
-      "WebFetch(domain:jestly.fr)"
+      "WebFetch(domain:jestly.fr)",
+      "WebFetch(domain:xmind.com)",
+      "WebFetch(domain:www.trendtrack.io)"
     ]
   }
 }

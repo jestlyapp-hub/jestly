@@ -116,7 +116,7 @@ export default function FooterBlockEditor({ block }: { block: Extract<Block, { t
           value={c.description ?? ""}
           onChange={(e) => update({ description: e.target.value })}
           rows={2}
-          placeholder="Une courte description de votre activite..."
+          placeholder="Une courte description de votre activité..."
           className={inputClass}
         />
       </div>

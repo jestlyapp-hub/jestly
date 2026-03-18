@@ -12,7 +12,7 @@ function ServicesListBlockPreviewInner({ content }: { content: ServicesListBlock
   if (products.length === 0) {
     return (
       <div className="py-8 text-center">
-        <div className="text-[13px]" style={{ color: "var(--site-muted, #999)" }}>Aucun produit selectionne</div>
+        <div className="text-[13px]" style={{ color: "var(--site-muted, #999)" }}>Aucun produit sélectionné</div>
         <div className="text-[11px] mt-1" style={{ color: "var(--site-muted, #ccc)" }}>Ajoutez des produits depuis l&apos;onglet Contenu</div>
       </div>
     );

@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
   if (siteErr || !newSite) {
     console.error("[from-template] site insert error:", siteErr);
-    return NextResponse.json({ error: siteErr?.message || "Erreur creation site." }, { status: 500 });
+    return NextResponse.json({ error: siteErr?.message || "Erreur création site." }, { status: 500 });
   }
 
   const siteId = newSite.id;
@@ -82,8 +82,8 @@ export async function POST(req: NextRequest) {
         sort_order: 0,
         content: {
           title: "Bienvenue sur votre site",
-          subtitle: "Commencez a ajouter des blocs pour construire votre page.",
-          ctaLabel: "Decouvrir",
+          subtitle: "Commencez à ajouter des blocs pour construire votre page.",
+          ctaLabel: "Découvrir",
           ctaLink: "",
         },
         style: { paddingTop: 80, paddingBottom: 80, containerWidth: "boxed" },
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
           footer: {
             links: [{ label: "Accueil", pageId: homePage.id }],
             showSocials: false,
-            copyright: "Tous droits reserves.",
+            copyright: "Tous droits réservés.",
           },
         })
         .eq("id", siteId);

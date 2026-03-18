@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Button from "@/components/ui/Button";
 
-/* ─── Petite icone fleche ─── */
+/* ─── Petite icône flèche ─── */
 function ArrowIcon() {
   return (
     <svg
@@ -60,7 +60,7 @@ export default function Hero() {
           <Button href="/login">
             Commencer gratuitement <ArrowIcon />
           </Button>
-          <Button variant="secondary" href="#features">Voir la demo</Button>
+          <Button variant="secondary" href="#features">Voir la démo</Button>
         </motion.div>
 
         <motion.p

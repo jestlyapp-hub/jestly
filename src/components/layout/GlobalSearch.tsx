@@ -581,7 +581,7 @@ export default function GlobalSearch() {
               <div
                 ref={listRef}
                 role="listbox"
-                aria-label="Resultats de recherche"
+                aria-label="Résultats de recherche"
                 className="max-h-[420px] overflow-y-auto overscroll-contain"
               >
                 {/* Loading skeleton */}

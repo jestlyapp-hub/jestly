@@ -127,6 +127,27 @@ export function computeThemeVars(theme: SiteTheme): Record<string, string> {
   if (theme.buttonHoverShadow) vars["--btn-hover-shadow"] = shadowMap[theme.buttonHoverShadow] ?? "none";
   if (theme.buttonHoverScale != null) vars["--btn-hover-scale"] = String(theme.buttonHoverScale);
   if (theme.sectionGap) vars["--site-section-gap"] = `${sectionGapValues[theme.sectionGap] ?? 0}px`;
+  /* V2 extended tokens */
+  if (theme.accentColor) vars["--site-accent"] = theme.accentColor;
+  if (theme.headingWeight) vars["--site-heading-weight"] = theme.headingWeight;
+  if (theme.bodyWeight) vars["--site-body-weight"] = theme.bodyWeight;
+  const lhMap = { tight: "1.2", normal: "1.5", relaxed: "1.75" };
+  if (theme.lineHeight) vars["--site-line-height"] = lhMap[theme.lineHeight] || "1.5";
+  const lsMap = { tight: "-0.02em", normal: "0", wide: "0.04em" };
+  if (theme.letterSpacing) vars["--site-letter-spacing"] = lsMap[theme.letterSpacing] || "0";
+  if (theme.density) {
+    const dMap = { compact: "0.75", balanced: "1", spacious: "1.3" };
+    vars["--site-density"] = dMap[theme.density] || "1";
+  }
+  if (theme.cardRadius) {
+    const crMap = { none: "0", sm: "4px", md: "8px", lg: "12px", xl: "20px" };
+    vars["--site-card-radius"] = crMap[theme.cardRadius] || "8px";
+  }
+  if (theme.cardShadow) vars["--site-card-shadow"] = shadowMap[theme.cardShadow] ?? "none";
+  if (theme.transitionSpeed) {
+    const tsMap = { fast: "150ms", normal: "250ms", slow: "400ms" };
+    vars["--site-transition"] = tsMap[theme.transitionSpeed] || "250ms";
+  }
   return vars;
 }
 

@@ -1,31 +1,53 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 
-// GET /api/clients — list user's clients (supports ?q= search)
+// GET /api/clients — list user's clients
+// ?status=active|archived|all (default: active)
+// ?q=search term
+// ?sort=name|created_at|last_order_at|total_revenue (default: created_at)
+// ?order=asc|desc (default: desc)
 export async function GET(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
 
-  const q = req.nextUrl.searchParams.get("q")?.trim();
+  const params = req.nextUrl.searchParams;
+  const status = params.get("status") || "active";
+  const q = params.get("q")?.trim();
+  const sort = params.get("sort") || "created_at";
+  const order = params.get("order") || "desc";
+
+  const allowedSorts = ["name", "created_at", "last_order_at", "total_revenue"];
+  const sortCol = allowedSorts.includes(sort) ? sort : "created_at";
+  const ascending = order === "asc";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from("clients") as any)
     .select("*, orders(count)")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .is("deleted_at", null);
 
+  // Status filter
+  if (status === "active") {
+    query = query.eq("status", "active");
+  } else if (status === "archived") {
+    query = query.eq("status", "archived");
+  }
+  // status === "all" → no extra filter (active + archived, deleted already excluded)
+
+  // Search filter
   if (q && q.length >= 1) {
     const pattern = `%${q}%`;
-    query = query.or(`name.ilike.${pattern},email.ilike.${pattern}`);
-    query = query.limit(10);
+    query = query.or(`name.ilike.${pattern},email.ilike.${pattern},company.ilike.${pattern}`);
+    query = query.limit(50);
   }
+
+  query = query.order(sortCol, { ascending, nullsFirst: false });
 
   const { data, error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Map orders count from the join
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapped = (data || []).map((c: any) => ({
     ...c,
@@ -58,36 +80,35 @@ export async function POST(req: NextRequest) {
     initialNote,
   } = body;
 
-  if (!email) {
-    return NextResponse.json({ error: "email is required" }, { status: 400 });
-  }
-
-  const normalizedEmail = email.trim().toLowerCase();
+  const normalizedEmail = email ? email.trim().toLowerCase() : null;
 
   // Anti-doublon : check existing client with same email for this user
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: existing } = await (supabase.from("clients") as any)
-    .select("id")
-    .eq("user_id", user.id)
-    .ilike("email", normalizedEmail)
-    .maybeSingle();
+  if (normalizedEmail) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: existing } = await (supabase.from("clients") as any)
+      .select("id")
+      .eq("user_id", user.id)
+      .ilike("email", normalizedEmail)
+      .is("deleted_at", null)
+      .maybeSingle();
 
-  if (existing) {
-    return NextResponse.json(
-      { error: "duplicate", existingClientId: existing.id },
-      { status: 409 }
-    );
+    if (existing) {
+      return NextResponse.json(
+        { error: "duplicate", existingClientId: existing.id },
+        { status: 409 }
+      );
+    }
   }
 
   // Build name: accept name directly, or compose from firstName + lastName
-  const clientName = name || [firstName, lastName].filter(Boolean).join(" ") || normalizedEmail;
+  const clientName = name || [firstName, lastName].filter(Boolean).join(" ") || normalizedEmail || "Client sans nom";
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: client, error } = await (supabase.from("clients") as any)
     .insert({
       user_id: user.id,
       name: clientName,
-      email: normalizedEmail,
+      email: normalizedEmail || null,
       phone: phone || null,
       company: company || null,
       website: website || null,

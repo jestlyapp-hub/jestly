@@ -7,7 +7,7 @@ export default function ActivityFeed() {
     <div className="bg-white rounded-xl border border-[#E6E6E4]">
       {/* Header */}
       <div className="px-5 py-4 border-b border-[#E6E6E4] flex items-center justify-between">
-        <h2 className="text-[14px] font-semibold text-[#1A1A1A]">Activite recente</h2>
+        <h2 className="text-[14px] font-semibold text-[#1A1A1A]">Activité récente</h2>
       </div>
 
       {/* Empty state */}
@@ -26,7 +26,7 @@ export default function ActivityFeed() {
               d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <p className="text-[13px] text-[#999]">Aucune activite recente</p>
+          <p className="text-[13px] text-[#999]">Aucune activité récente</p>
         </div>
       </div>
     </div>

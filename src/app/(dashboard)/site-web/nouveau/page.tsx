@@ -56,10 +56,10 @@ export default function NouveauSitePage() {
           className="text-center mb-12"
         >
           <h1 className="text-3xl font-bold text-[#191919] mb-3">
-            Choisissez votre point de depart
+            Choisissez votre point de départ
           </h1>
           <p className="text-[#5A5A58] text-lg max-w-xl mx-auto">
-            Selectionnez un template premium ou partez d'une page vierge. Vous pourrez tout personnaliser ensuite.
+            Sélectionnez un template premium ou partez d'une page vierge. Vous pourrez tout personnaliser ensuite.
           </p>
         </motion.div>
 

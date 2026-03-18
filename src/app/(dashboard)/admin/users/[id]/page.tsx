@@ -512,7 +512,7 @@ export default function AdminUserDetailPage() {
                   </a>
                 </span>
                 <span>Inscrit le : {formatDate(profile.created_at)}</span>
-                <span>Derniere activite : {formatDate(profile.updated_at)}</span>
+                <span>Dernière activité : {formatDate(profile.updated_at)}</span>
                 {profile.phone && <span>Tel : {profile.phone}</span>}
               </div>
             </div>
@@ -585,7 +585,7 @@ export default function AdminUserDetailPage() {
             {/* Signal breakdown grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {[
-                { label: "Derniere commande", value: formatRelativeDate(data.health.signals.last_order_at) },
+                { label: "Dernière commande", value: formatRelativeDate(data.health.signals.last_order_at) },
                 { label: "Commandes 30j", value: String(data.health.signals.orders_30d) },
                 { label: "Produits", value: String(data.health.signals.products) },
                 { label: "Clients", value: String(data.health.signals.clients) },
@@ -614,13 +614,13 @@ export default function AdminUserDetailPage() {
         <div className="bg-white rounded-lg border border-[#E6E6E4] p-4">
           <p className="text-[12px] font-medium text-[#5A5A58] mb-3">Diagnostic rapide</p>
           <div className="flex flex-wrap gap-4">
-            {/* Activite */}
+            {/* Activité */}
             {(() => {
               const active = (data.health!.signals.orders_30d > 0) || ((data.health!.signals.events_7d ?? 0) > 0);
               return (
                 <div className="flex items-center gap-2">
                   <span className={`w-2.5 h-2.5 rounded-full ${active ? "bg-emerald-500" : "bg-red-500"}`} />
-                  <span className="text-[12px] text-[#5A5A58]">Activite</span>
+                  <span className="text-[12px] text-[#5A5A58]">Activité</span>
                   <span className={`text-[11px] font-medium ${active ? "text-emerald-700" : "text-red-700"}`}>
                     {active ? "Active" : "Inactive"}
                   </span>
@@ -855,7 +855,7 @@ export default function AdminUserDetailPage() {
                   <th className="text-left py-2 pr-4 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Prix</th>
                   <th className="text-left py-2 pr-4 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Statut</th>
                   <th className="text-left py-2 pr-4 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Ventes</th>
-                  <th className="text-left py-2 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Cree le</th>
+                  <th className="text-left py-2 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Créé le</th>
                 </tr>
               </thead>
               <tbody>
@@ -967,7 +967,7 @@ export default function AdminUserDetailPage() {
                 <tr className="border-b border-[#E6E6E4]">
                   <th className="text-left py-2 pr-4 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Nom</th>
                   <th className="text-left py-2 pr-4 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Statut</th>
-                  <th className="text-left py-2 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Cree le</th>
+                  <th className="text-left py-2 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Créé le</th>
                 </tr>
               </thead>
               <tbody>

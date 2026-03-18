@@ -47,8 +47,9 @@ export default function CreateClientDrawer({ open, onClose, onCreated }: CreateC
     setDuplicateId(null);
   };
 
-  const isEmailValid = EMAIL_REGEX.test(form.email);
-  const canSubmit = form.email.trim() !== "" && isEmailValid && !saving;
+  const isEmailValid = form.email.trim() === "" || EMAIL_REGEX.test(form.email);
+  const hasName = form.firstName.trim() !== "" || form.lastName.trim() !== "";
+  const canSubmit = (hasName || (form.email.trim() !== "" && isEmailValid)) && isEmailValid && !saving;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -68,7 +69,7 @@ export default function CreateClientDrawer({ open, onClose, onCreated }: CreateC
         body: JSON.stringify({
           firstName: form.firstName.trim() || undefined,
           lastName: form.lastName.trim() || undefined,
-          email: form.email.trim(),
+          email: form.email.trim() || undefined,
           phone: form.phone.trim() || undefined,
           company: form.company.trim() || undefined,
           website: form.website.trim() || undefined,
@@ -145,7 +146,7 @@ export default function CreateClientDrawer({ open, onClose, onCreated }: CreateC
 
         {/* Email */}
         <div>
-          <label className={labelClass}>Email *</label>
+          <label className={labelClass}>Email</label>
           <input
             type="email"
             value={form.email}

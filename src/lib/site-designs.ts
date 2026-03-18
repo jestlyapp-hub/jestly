@@ -155,7 +155,7 @@ const creatorDesign: FullDesignPreset = {
     links: [
       { id: "c1", label: "Portfolio" },
       { id: "c2", label: "Services" },
-      { id: "c3", label: "A propos" },
+      { id: "c3", label: "À propos" },
       { id: "c4", label: "Contact" },
     ],
     showCta: true,
@@ -166,10 +166,10 @@ const creatorDesign: FullDesignPreset = {
       { label: "Portfolio" },
       { label: "Services" },
       { label: "Contact" },
-      { label: "Mentions legales" },
+      { label: "Mentions légales" },
     ],
     showSocials: true,
-    copyright: "Tous droits reserves.",
+    copyright: "Tous droits réservés.",
   },
 };
 
@@ -178,7 +178,7 @@ const productDesign: FullDesignPreset = {
   key: "product",
   name: "Product",
   description: "Design professionnel pour SaaS, devs et business",
-  audience: "Developpeurs, consultants, agences, startups",
+  audience: "Développeurs, consultants, agences, startups",
   theme: {
     primaryColor: "#6366F1",
     secondaryColor: "#8B5CF6",
@@ -279,7 +279,7 @@ const cinemaDesign: FullDesignPreset = {
       { label: "Contact" },
     ],
     showSocials: true,
-    copyright: "Tous droits reserves.",
+    copyright: "Tous droits réservés.",
   },
 };
 
@@ -320,7 +320,7 @@ const studioDesign: FullDesignPreset = {
     links: [
       { id: "s1", label: "Projets" },
       { id: "s2", label: "Services" },
-      { id: "s3", label: "A propos" },
+      { id: "s3", label: "À propos" },
       { id: "s4", label: "Contact" },
     ],
     showCta: true,
@@ -331,10 +331,10 @@ const studioDesign: FullDesignPreset = {
       { label: "Projets" },
       { label: "Services" },
       { label: "Contact" },
-      { label: "Mentions legales" },
+      { label: "Mentions légales" },
     ],
     showSocials: true,
-    copyright: "Tous droits reserves.",
+    copyright: "Tous droits réservés.",
   },
 };
 
@@ -402,7 +402,7 @@ const editorialDesign: FullDesignPreset = {
   key: "editorial",
   name: "Editorial",
   description: "Design editorial haut de gamme pour photographes et artistes visuels",
-  audience: "Photographes, ecrivains, artistes visuels, studios creatifs",
+  audience: "Photographes, écrivains, artistes visuels, studios créatifs",
   theme: {
     primaryColor: "#D48B5C",
     secondaryColor: "#A5A58D",
@@ -434,7 +434,7 @@ const editorialDesign: FullDesignPreset = {
     links: [
       { id: "e1", label: "Portfolio" },
       { id: "e2", label: "Journal" },
-      { id: "e3", label: "A propos" },
+      { id: "e3", label: "À propos" },
       { id: "e4", label: "Contact" },
     ],
     showCta: true,
@@ -445,10 +445,10 @@ const editorialDesign: FullDesignPreset = {
       { label: "Portfolio" },
       { label: "Journal" },
       { label: "Contact" },
-      { label: "Mentions legales" },
+      { label: "Mentions légales" },
     ],
     showSocials: true,
-    copyright: "Tous droits reserves.",
+    copyright: "Tous droits réservés.",
   },
 };
 

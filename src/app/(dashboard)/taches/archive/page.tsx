@@ -101,7 +101,7 @@ export default function ArchivePage() {
                 <line x1="10" y1="12" x2="14" y2="12" />
               </svg>
             </div>
-            <p className="text-[14px] text-[#999]">Aucune tache archivee</p>
+            <p className="text-[14px] text-[#999]">Aucune tâche archivée</p>
             <Link
               href="/taches"
               className="inline-block mt-3 text-[13px] text-[#4F46E5] hover:underline"

@@ -26,8 +26,8 @@ const compactStyle: Partial<BlockStyle> = { paddingTop: 40, paddingBottom: 40, c
 export const pageTemplates: PageTemplate[] = [
   {
     id: "portfolio-creatif",
-    name: "Portfolio creatif",
-    description: "Ideal pour photographes, designers et artistes",
+    name: "Portfolio créatif",
+    description: "Idéal pour photographes, designers et artistes",
     category: "creative",
     blocks: [
       { type: "hero-split-portfolio", style: heroStyle, settings: { animation: "fade-up" } },
@@ -43,7 +43,7 @@ export const pageTemplates: PageTemplate[] = [
   {
     id: "agence-studio",
     name: "Agence / Studio",
-    description: "Pour agences creatives, studios et collectifs",
+    description: "Pour agences créatives, studios et collectifs",
     category: "business",
     blocks: [
       { type: "hero-centered-mesh", style: heroStyle, settings: { animation: "blur-reveal" } },

@@ -1,6 +1,7 @@
 import type { Site, SitePage, Block, BlockType } from "@/types";
 import { createClient } from "@/lib/supabase/server";
 import { migrateBlockLinks } from "@/lib/links";
+import { normalizeTheme } from "@/lib/theme-utils";
 
 // Re-export pure utilities so server-side callers can still import from this module
 export { getPageByPath, resolvePageSlug, resolveLink } from "@/lib/site-utils";
@@ -22,12 +23,7 @@ function transformDbSiteToFrontend(dbSite: any, dbPages: any[]): Site {
       socials: dbSite.settings?.socials || {},
       i18n: dbSite.settings?.i18n,
     },
-    theme: {
-      primaryColor: dbSite.theme?.primaryColor || "#4F46E5",
-      fontFamily: dbSite.theme?.fontFamily || "Inter, sans-serif",
-      borderRadius: dbSite.theme?.borderRadius || "rounded",
-      shadow: dbSite.theme?.shadow || "sm",
-    },
+    theme: normalizeTheme(dbSite.theme),
     pages: (dbPages || [])
       .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       .map((p: any) => transformDbPageToFrontend(p)),

@@ -87,7 +87,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .single();
 
   if (field?.is_system) {
-    return NextResponse.json({ error: "Les colonnes systeme ne peuvent pas etre supprimees" }, { status: 403 });
+    return NextResponse.json({ error: "Les colonnes système ne peuvent pas être supprimées" }, { status: 403 });
   }
 
   // Cascade: strip custom field key from all orders (RPC may not exist pre-migration 012)

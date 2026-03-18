@@ -3,8 +3,8 @@ import { memo } from "react";
 import type { ContentComparisonWhyBlockContent } from "@/types";
 
 function ContentComparisonWhyBlockPreviewInner({ content }: { content: ContentComparisonWhyBlockContent }) {
-  const leftItems = content.leftColumn?.items?.length ? content.leftColumn.items : ["Option limitee", "Resultat incertain", "Support lent"];
-  const rightItems = content.rightColumn?.items?.length ? content.rightColumn.items : ["Solution complete", "Resultat garanti", "Support reactif"];
+  const leftItems = content.leftColumn?.items?.length ? content.leftColumn.items : ["Option limitée", "Résultat incertain", "Support lent"];
+  const rightItems = content.rightColumn?.items?.length ? content.rightColumn.items : ["Solution complète", "Résultat garanti", "Support réactif"];
 
   return (
     <section className="py-16 px-6">

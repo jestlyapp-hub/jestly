@@ -7,6 +7,7 @@ const tabDefs = [
   { label: "Aperçu", suffix: "" },
   { label: "Créateur", suffix: "/createur" },
   { label: "Pages", suffix: "/pages" },
+  { label: "Produits / Briefs", suffix: "/offres" },
   { label: "Commandes", suffix: "/commandes" },
   { label: "Leads", suffix: "/leads" },
   { label: "Analytics", suffix: "/analytics" },

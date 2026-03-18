@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     if (fallback.error) {
       console.error("[/api/tasks] Fallback query also failed:", fallback.error.code, fallback.error.message);
       return NextResponse.json(
-        { error: `Erreur de chargement des taches: ${fallback.error.message}` },
+        { error: `Erreur de chargement des tâches : ${fallback.error.message}` },
         { status: 500 }
       );
     }
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
       title: body.title || "Sans titre",
       description: body.description || null,
       status: body.status || "todo",
-      priority: body.priority === "medium" ? "normal" : (body.priority || "normal"),
+      priority: body.priority || "medium",
       due_date: body.dueDate || null,
       order_id: body.orderId || null,
       created_at: now,
@@ -117,7 +117,7 @@ export async function POST(req: NextRequest) {
     if (fallback.error) {
       console.error("[/api/tasks POST] Minimal insert also failed:", fallback.error.code, fallback.error.message);
       return NextResponse.json(
-        { error: `Erreur lors de la creation de la tache: ${fallback.error.message}` },
+        { error: `Erreur lors de la création de la tâche : ${fallback.error.message}` },
         { status: 500 }
       );
     }
@@ -180,7 +180,7 @@ export async function PATCH(req: NextRequest) {
     if (fields.archived !== undefined) {
       console.error("[/api/tasks PATCH] Archive operation failed — archived_at column likely missing (migration 024)");
       return NextResponse.json(
-        { error: "L'archivage necessite la migration 024. Executez-la dans Supabase." },
+        { error: "L'archivage nécessite la migration 024. Exécutez-la dans Supabase." },
         { status: 500 }
       );
     }
@@ -193,8 +193,7 @@ export async function PATCH(req: NextRequest) {
     delete safeUpdate.tags;
     delete safeUpdate.subtasks;
     delete safeUpdate.archived_at;
-    // Map priority back to 'normal' if needed
-    if (safeUpdate.priority === "medium") safeUpdate.priority = "normal";
+    // Priority stays as-is (migration 024 uses 'medium' not 'normal')
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fallback = await (supabase.from("tasks") as any)
@@ -207,7 +206,7 @@ export async function PATCH(req: NextRequest) {
     if (fallback.error) {
       console.error("[/api/tasks PATCH] Safe update also failed:", fallback.error.code, fallback.error.message);
       return NextResponse.json(
-        { error: `Erreur lors de la mise a jour: ${fallback.error.message}` },
+        { error: `Erreur lors de la mise à jour : ${fallback.error.message}` },
         { status: 500 }
       );
     }

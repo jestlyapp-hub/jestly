@@ -29,28 +29,28 @@ const LOCKED_INTEGRATIONS = [
     icon: <Search size={16} strokeWidth={1.7} />,
     metrics: "Impressions, clics, CTR, positions moyennes",
     description:
-      "Connecter l'API Google Search Console pour voir les performances de recherche organique. Necessite une verification de propriete du domaine jestly.fr dans GSC.",
+      "Connecter l'API Google Search Console pour voir les performances de recherche organique. Nécessite une vérification de propriété du domaine jestly.fr dans GSC.",
   },
   {
-    name: "Donnees de crawl",
+    name: "Données de crawl",
     icon: <Bug size={16} strokeWidth={1.7} />,
-    metrics: "Pages indexees, erreurs 404, coverage",
+    metrics: "Pages indexées, erreurs 404, coverage",
     description:
-      "Pas de systeme de crawl interne. Necessite soit Google Search Console (rapport Coverage), soit un outil tiers (Screaming Frog, Sitebulb) pour auditer l'indexation.",
+      "Pas de système de crawl interne. Nécessite soit Google Search Console (rapport Coverage), soit un outil tiers (Screaming Frog, Sitebulb) pour auditer l'indexation.",
   },
   {
     name: "Lighthouse / Core Web Vitals",
     icon: <Gauge size={16} strokeWidth={1.7} />,
     metrics: "LCP, FID, CLS, Performance score",
     description:
-      "Pas de collecte automatique des Core Web Vitals. Necessite l'API PageSpeed Insights ou le CrUX API pour monitorer les performances en continu.",
+      "Pas de collecte automatique des Core Web Vitals. Nécessite l'API PageSpeed Insights ou le CrUX API pour monitorer les performances en continu.",
   },
   {
     name: "Suivi de positionnement",
     icon: <Target size={16} strokeWidth={1.7} />,
-    metrics: "Positions par mot-cle dans le temps",
+    metrics: "Positions par mot-clé dans le temps",
     description:
-      "Pas de rank tracker integre. Necessite un outil tiers (SEMrush, Ahrefs, SERPapi) pour suivre les positions de mots-cles sur la duree.",
+      "Pas de rank tracker intégré. Nécessite un outil tiers (SEMrush, Ahrefs, SERPapi) pour suivre les positions de mots-clés sur la durée.",
   },
 ];
 
@@ -90,7 +90,7 @@ export default function AdminSeoPage() {
       <div className="space-y-6">
         <AdminHeader title="SEO & Acquisition" section="SEO" />
         <p className="text-sm text-[#8A8A88] p-8">
-          Erreur de chargement des donnees SEO.
+          Erreur de chargement des données SEO.
         </p>
       </div>
     );
@@ -101,27 +101,27 @@ export default function AdminSeoPage() {
       <AdminHeader
         title="SEO & Acquisition"
         section="SEO"
-        description="Donnees disponibles et integrations manquantes"
+        description="Données disponibles et intégrations manquantes"
       />
 
       {/* ── Available data ────────────────────────────────────── */}
       <div>
         <h3 className="text-[14px] font-semibold text-[#191919] mb-3">
-          Donnees disponibles
+          Données disponibles
         </h3>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <AdminKpiCard
-            label="Sites publies"
+            label="Sites publiés"
             value={data.published_sites}
             icon={<Globe size={16} strokeWidth={1.7} />}
           />
           <AdminKpiCard
-            label="Pages publiees"
+            label="Pages publiées"
             value={data.published_pages}
             icon={<FileText size={16} strokeWidth={1.7} />}
           />
           <AdminKpiCard
-            label="Evenements analytics"
+            label="Événements analytics"
             value={data.total_analytics_events}
             icon={<BarChart3 size={16} strokeWidth={1.7} />}
           />
@@ -136,11 +136,11 @@ export default function AdminSeoPage() {
       {/* ── Locked integrations ───────────────────────────────── */}
       <div>
         <h3 className="text-[14px] font-semibold text-[#191919] mb-3">
-          Integrations non connectees
+          Intégrations non connectées
         </h3>
         <p className="text-[12px] text-[#8A8A88] mb-4">
-          Ces metriques SEO necessitent des integrations externes qui ne sont pas
-          encore configurees.
+          Ces métriques SEO nécessitent des intégrations externes qui ne sont pas
+          encore configurées.
         </p>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {LOCKED_INTEGRATIONS.map((item) => (

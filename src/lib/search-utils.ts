@@ -228,8 +228,8 @@ export function parseSearchQuery(raw: string): ParsedQuery {
     const typeMap: Record<string, EntityType> = {
       client: "client", clients: "client",
       order: "order", commande: "order", commandes: "order",
-      task: "task", tache: "task", taches: "task",
-      event: "event", calendrier: "event", evenement: "event",
+      task: "task", tache: "task", tâche: "task", taches: "task", tâches: "task",
+      event: "event", calendrier: "event", evenement: "event", événement: "event",
       project: "project", projet: "project", projets: "project",
       product: "product", produit: "product", produits: "product", service: "product", services: "product",
       brief: "brief", briefs: "brief",

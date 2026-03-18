@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { Site, SitePage, Block, BlockType } from "@/types";
+import { normalizeTheme } from "@/lib/theme-utils";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -39,12 +40,7 @@ function transformDbSite(raw: any): Site {
       socials: raw.settings?.socials || {},
       i18n: raw.settings?.i18n,
     },
-    theme: {
-      primaryColor: raw.theme?.primaryColor || "#4F46E5",
-      fontFamily: raw.theme?.fontFamily || "Inter, sans-serif",
-      borderRadius: raw.theme?.borderRadius || "rounded",
-      shadow: raw.theme?.shadow || "sm",
-    },
+    theme: normalizeTheme(raw.theme),
     pages,
     domain: {
       subdomain: raw.slug || "",

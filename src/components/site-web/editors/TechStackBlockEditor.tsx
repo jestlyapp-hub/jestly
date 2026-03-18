@@ -68,7 +68,7 @@ export default function TechStackBlockEditor({ block }: { block: TechStackBlock 
               update({ categories: [...categories, { name: "", items: [] }] })
             }
           >
-            + Ajouter une categorie
+            + Ajouter une catégorie
           </button>
         </div>
 
@@ -88,7 +88,7 @@ export default function TechStackBlockEditor({ block }: { block: TechStackBlock 
                     next[ci] = { ...next[ci], name: e.target.value };
                     update({ categories: next });
                   }}
-                  placeholder="Nom de la categorie"
+                  placeholder="Nom de la catégorie"
                 />
                 <button
                   type="button"

@@ -48,7 +48,7 @@ export async function POST(
   if (error) {
     // Unique constraint violation = flag already exists
     if (error.code === "23505") {
-      return NextResponse.json({ error: "Ce flag existe deja pour cet utilisateur" }, { status: 409 });
+      return NextResponse.json({ error: "Ce flag existe déjà pour cet utilisateur" }, { status: 409 });
     }
     console.error("[admin/users/flags] POST error:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

@@ -129,6 +129,7 @@ export async function GET(
     const { data: currentOrders } = await (supabase.from("orders") as any)
       .select("id, amount, status, created_at, client_id, product_id, title, clients(name, email)")
       .eq("user_id", user.id)
+      .eq("site_id", siteId)
       .gte("created_at", currentStartISO)
       .lte("created_at", nowISO)
       .order("created_at", { ascending: false });
@@ -138,6 +139,7 @@ export async function GET(
     const { data: prevOrders } = await (supabase.from("orders") as any)
       .select("id, amount, status")
       .eq("user_id", user.id)
+      .eq("site_id", siteId)
       .gte("created_at", prevStartISO)
       .lt("created_at", currentStartISO);
 

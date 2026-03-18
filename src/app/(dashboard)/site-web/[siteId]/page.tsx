@@ -11,16 +11,7 @@ import { useApi } from "@/lib/hooks/use-api";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // ─── Types ───
-interface DashboardMetric {
-  value: number;
-  previousValue: number;
-}
-
 interface DashboardData {
-  visits: DashboardMetric;
-  conversion: DashboardMetric;
-  avgBasket: DashboardMetric;
-  ctaClickRate: DashboardMetric;
   recentOrders: any[];
   totalRevenue: number;
   totalOrders: number;
@@ -28,46 +19,15 @@ interface DashboardData {
   lastPublishedAt: string | null;
 }
 
-// ─── Helpers ───
-function formatDelta(current: number, previous: number): { text: string; positive: boolean } {
-  if (previous === 0) return { text: current > 0 ? "+100%" : "", positive: true };
-  const pct = ((current - previous) / previous) * 100;
-  if (Math.abs(pct) < 0.5) return { text: "", positive: true };
-  return { text: `${pct > 0 ? "+" : ""}${pct.toFixed(0)}%`, positive: pct >= 0 };
-}
-
 function formatPrice(cents: number): string {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(cents / 100);
-}
-
-// ─── Stat Card ───
-function DashStat({ label, value, unit, delta }: {
-  label: string;
-  value: string;
-  unit?: string;
-  delta?: { text: string; positive: boolean };
-}) {
-  return (
-    <div className="bg-white rounded-xl border border-[#E6E6E4] p-5 hover:shadow-sm hover:-translate-y-0.5 transition-all">
-      <div className="text-[12px] font-medium text-[#8A8A88] uppercase tracking-wider mb-2">{label}</div>
-      <div className="flex items-baseline gap-1">
-        <span className="text-2xl font-bold text-[#1A1A1A]">{value}</span>
-        {unit && <span className="text-[13px] text-[#8A8A88]">{unit}</span>}
-      </div>
-      {delta?.text && (
-        <div className={`text-[12px] font-medium mt-1.5 ${delta.positive ? "text-emerald-500" : "text-red-500"}`}>
-          {delta.text} vs période précédente
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ─── Component ───
 export default function SiteWebDashboard() {
   const { siteId } = useParams<{ siteId: string }>();
   const { site, loading: siteLoading } = useSite();
-  const { data: dashboard, loading: statsLoading } = useApi<DashboardData>(`/api/sites/${siteId}/dashboard?range=30d`);
+  const { data: dashboard } = useApi<DashboardData>(`/api/sites/${siteId}/dashboard?range=30d`);
 
   const [maintenance, setMaintenance] = useState(site.settings.maintenanceMode);
   const [savingMaintenance, setSavingMaintenance] = useState(false);
@@ -108,11 +68,6 @@ export default function SiteWebDashboard() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const visits = dashboard?.visits || { value: 0, previousValue: 0 };
-  const conversion = dashboard?.conversion || { value: 0, previousValue: 0 };
-  const avgBasket = dashboard?.avgBasket || { value: 0, previousValue: 0 };
-  const ctaRate = dashboard?.ctaClickRate || { value: 0, previousValue: 0 };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -171,35 +126,6 @@ export default function SiteWebDashboard() {
           </div>
         </div>
       </motion.div>
-
-      {/* ─── STATS GRID ─── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {statsLoading ? (
-          [0, 1, 2, 3].map((i) => (
-            <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-              <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-                <div className="h-3 w-16 bg-[#F7F7F5] rounded animate-pulse mb-3" />
-                <div className="h-7 w-20 bg-[#F7F7F5] rounded animate-pulse" />
-              </div>
-            </motion.div>
-          ))
-        ) : (
-          <>
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
-              <DashStat label="Visites" value={visits.value.toLocaleString("fr-FR")} delta={formatDelta(visits.value, visits.previousValue)} />
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-              <DashStat label="Conversion" value={`${conversion.value.toFixed(1)}%`} delta={formatDelta(conversion.value, conversion.previousValue)} />
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              <DashStat label="Panier moyen" value={avgBasket.value > 0 ? formatPrice(avgBasket.value) : "—"} delta={avgBasket.value > 0 ? formatDelta(avgBasket.value, avgBasket.previousValue) : undefined} />
-            </motion.div>
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-              <DashStat label="Taux clic CTA" value={`${ctaRate.value.toFixed(1)}%`} delta={formatDelta(ctaRate.value, ctaRate.previousValue)} />
-            </motion.div>
-          </>
-        )}
-      </div>
 
       {/* ─── MAIN GRID ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -277,6 +203,7 @@ export default function SiteWebDashboard() {
               {[
                 { href: `/site-web/${siteId}/editor`, label: "Modifier le site", sub: "Ouvrir l'éditeur", icon: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" },
                 { href: `/site-web/${siteId}/pages`, label: "Pages", sub: "Gérer les pages", icon: "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8" },
+                { href: `/site-web/${siteId}/offres`, label: "Offres", sub: "Services et produits", icon: "M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" },
                 { href: `/site-web/${siteId}/leads`, label: "Leads", sub: `${dashboard?.totalLeads ?? 0} contacts`, icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" },
                 { href: `/site-web/${siteId}/analytics`, label: "Analytics", sub: "Voir le détail", icon: "M18 20V10M12 20V4M6 20v-6" },
                 { href: `/site-web/${siteId}/parametres`, label: "Paramètres", sub: "SEO, domaine, design", icon: "M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" },

@@ -15,7 +15,7 @@ const steps = [
   },
   {
     num: "03",
-    title: "Recevez et gerez",
+    title: "Recevez et gérez",
     desc: "Commandes, clients, factures — tout est automatique.",
   },
 ];
@@ -88,7 +88,7 @@ export default function Workflow() {
               whileInView="visible"
               viewport={{ once: true }}
             >
-              {/* Numero */}
+              {/* Numéro */}
               <div className="mb-4 inline-block">
                 <span className="text-5xl font-bold text-[#4F46E5]">
                   {step.num}

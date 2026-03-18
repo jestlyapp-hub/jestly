@@ -33,10 +33,10 @@ export const STATUS_CONFIG: Record<
   TaskStatus,
   { label: string; color: string; bg: string }
 > = {
-  todo: { label: "A faire", color: "#666", bg: "#F0F0F0" },
+  todo: { label: "À faire", color: "#666", bg: "#F0F0F0" },
   in_progress: { label: "En cours", color: "#4F46E5", bg: "#EEF2FF" },
   done: { label: "Fait", color: "#F59E0B", bg: "#FEF3C7" },
-  completed: { label: "Termine", color: "#10B981", bg: "#D1FAE5" },
+  completed: { label: "Terminé", color: "#10B981", bg: "#D1FAE5" },
 };
 
 export const COLUMNS_ORDER: TaskStatus[] = [
@@ -117,9 +117,9 @@ export interface TaskTemplate {
 export const TASK_TEMPLATES: TaskTemplate[] = [
   {
     id: "tpl-video",
-    name: "Video YouTube",
-    description: "Workflow complet pour une video YouTube",
-    subtasks: ["Ecrire le script", "Montage video", "Creer la thumbnail", "Upload + SEO", "Publier"],
+    name: "Vidéo YouTube",
+    description: "Workflow complet pour une vidéo YouTube",
+    subtasks: ["Écrire le script", "Montage vidéo", "Créer la thumbnail", "Upload + SEO", "Publier"],
     tags: ["video", "youtube"],
     priority: "high",
   },
@@ -135,15 +135,15 @@ export const TASK_TEMPLATES: TaskTemplate[] = [
     id: "tpl-design",
     name: "Livraison design",
     description: "Livraison d'un projet design client",
-    subtasks: ["Concept initial", "Revisions client", "Version finale", "Export fichiers sources", "Livraison"],
+    subtasks: ["Concept initial", "Révisions client", "Version finale", "Export fichiers sources", "Livraison"],
     tags: ["design", "livraison"],
     priority: "high",
   },
   {
     id: "tpl-social",
-    name: "Pack reseaux sociaux",
-    description: "Creation d'un pack de contenu social",
-    subtasks: ["Briefing client", "Creation visuels", "Redaction textes", "Revisions", "Livraison"],
+    name: "Pack réseaux sociaux",
+    description: "Création d'un pack de contenu social",
+    subtasks: ["Briefing client", "Création visuels", "Rédaction textes", "Révisions", "Livraison"],
     tags: ["social-media", "contenu"],
     priority: "medium",
   },

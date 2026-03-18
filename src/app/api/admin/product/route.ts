@@ -18,8 +18,8 @@ export async function GET() {
     { key: "products", table: "products", label: "Produits" },
     { key: "sites", table: "sites", label: "Sites" },
     { key: "projects", table: "projects", label: "Projets" },
-    { key: "tasks", table: "tasks", label: "Taches" },
-    { key: "calendar_events", table: "calendar_events", label: "Evenements calendrier" },
+    { key: "tasks", table: "tasks", label: "Tâches" },
+    { key: "calendar_events", table: "calendar_events", label: "Événements calendrier" },
     { key: "briefs", table: "product_briefs", label: "Briefs" },
   ];
 

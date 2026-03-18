@@ -9,7 +9,7 @@ const pageLabels: Record<string, string> = {
   "/commandes": "Commandes",
   "/clients": "Clients",
   "/projets": "Projets",
-  "/produits": "Produits / Briefs",
+  "/produits": "Offres",
   "/facturation": "Facturation",
   "/facturation/templates": "Modèles & Récurrences",
   "/abonnements": "Abonnements",
@@ -35,12 +35,7 @@ export default function Topbar() {
         <GlobalSearch />
       </div>
 
-      {/* Droite — Avatar uniquement (QuickActions + NotificationPanel sont dans le dashboard) */}
-      <div className="flex items-center gap-2">
-        <button className="w-8 h-8 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[11px] font-semibold text-[#4F46E5] hover:ring-2 hover:ring-[#4F46E5]/20 transition-all">
-          GB
-        </button>
-      </div>
+      <div className="flex items-center gap-2" />
     </header>
   );
 }

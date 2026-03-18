@@ -558,7 +558,7 @@ export default function OrderDrawer({
                 {/* Category */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1">
-                    <span className="text-[13px] text-[#5A5A58]">Categorie</span>
+                    <span className="text-[13px] text-[#5A5A58]">Catégorie</span>
                     {isFromBrief("category") && <BriefBadge />}
                     <FieldSaveIndicator state={getState("category")} />
                   </div>

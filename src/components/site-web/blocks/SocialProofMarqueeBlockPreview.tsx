@@ -5,11 +5,11 @@ import type { SocialProofMarqueeBlockContent } from "@/types";
 function SocialProofMarqueeBlockPreviewInner({ content }: { content: SocialProofMarqueeBlockContent }) {
   const items = content.items?.length ? content.items : [
     { text: "Un service exceptionnel, je recommande vivement !", name: "Marie D.", result: "+200% CA" },
-    { text: "Professionnel et a l\u2019ecoute. Resultat au-dela de mes attentes.", name: "Thomas L.", result: "5/5" },
+    { text: "Professionnel et à l\u2019écoute. Résultat au-delà de mes attentes.", name: "Thomas L.", result: "5/5" },
     { text: "Collaboration fluide et livraison rapide.", name: "Sophie M." },
-    { text: "La qualite du travail est remarquable.", name: "Pierre R.", result: "Top 1%" },
-    { text: "Je referai appel sans hesiter.", name: "Julie B." },
-    { text: "Excellent rapport qualite-prix.", name: "Marc V.", result: "+150 leads" },
+    { text: "La qualité du travail est remarquable.", name: "Pierre R.", result: "Top 1%" },
+    { text: "Je referai appel sans hésiter.", name: "Julie B." },
+    { text: "Excellent rapport qualité-prix.", name: "Marc V.", result: "+150 leads" },
   ];
 
   return (

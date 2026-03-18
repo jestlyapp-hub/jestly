@@ -27,7 +27,7 @@ export default function EventDetailDrawer({ event, open, onClose, onEdit, onDele
   const eventDate = new Date(event.date + "T00:00:00");
 
   return (
-    <SlidePanel open={open} onClose={onClose} title="Detail de l'evenement">
+    <SlidePanel open={open} onClose={onClose} title="Détail de l'événement">
       <div className="space-y-6">
         {/* Color bar */}
         <div className="h-2 -mx-6 -mt-6 rounded-t-lg" style={{ backgroundColor: getEventDisplayColor(event) }} />
@@ -166,7 +166,7 @@ export default function EventDetailDrawer({ event, open, onClose, onEdit, onDele
               </button>
               <button
                 onClick={() => {
-                  if (confirm("Supprimer cet evenement ?")) {
+                  if (confirm("Supprimer cet événement ?")) {
                     onDelete(event.id);
                   }
                 }}

@@ -49,7 +49,7 @@ export async function POST(
     const siteUpdate: Record<string, unknown> = {
       name: body.name || "Mon site",
       settings: body.settings || {},
-      theme: body.theme || {},
+      theme: { ...(site.theme || {}), ...(body.theme || {}) },
       seo: body.seo || {},
       nav: body.nav ?? null,
       footer: body.footer ?? null,

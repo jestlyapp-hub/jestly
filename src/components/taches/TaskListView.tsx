@@ -61,13 +61,13 @@ export default function TaskListView({
                   <tr className="border-b border-[#EFEFEF]">
                     <th className="w-10" />
                     <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-4 py-2.5">
-                      Tache
+                      Tâche
                     </th>
                     <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-4 py-2.5 hidden sm:table-cell">
                       Priorite
                     </th>
                     <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-4 py-2.5 hidden md:table-cell">
-                      Echeance
+                      Échéance
                     </th>
                     <th className="text-left text-[11px] font-semibold text-[#999] uppercase tracking-wider px-4 py-2.5 hidden lg:table-cell">
                       Client

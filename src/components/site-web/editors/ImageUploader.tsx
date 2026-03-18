@@ -30,7 +30,7 @@ export default function ImageUploader({
   const upload = useCallback(
     async (file: File) => {
       if (!file.type.startsWith("image/")) {
-        setError("Le fichier doit etre une image");
+        setError("Le fichier doit être une image");
         return;
       }
       if (file.size > 10 * 1024 * 1024) {

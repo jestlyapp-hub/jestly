@@ -129,7 +129,7 @@ export default function TaskDetailDrawer({
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="Detail de la tache"
+            aria-label="Detail de la tâche"
             className="fixed top-0 right-0 bottom-0 w-full max-w-xl bg-white border-l border-[#E6E6E4] z-50 flex flex-col shadow-xl"
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -140,10 +140,10 @@ export default function TaskDetailDrawer({
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#E6E6E4]">
               <div className="flex items-center gap-3">
                 <span className="text-[11px] text-[#999] uppercase tracking-wider font-semibold">
-                  Detail de la tache
+                  Detail de la tâche
                 </span>
                 <a
-                  href={`/taches/${local.id}`}
+                  href={`/tâches/${local.id}`}
                   className="text-[11px] text-[#4F46E5] hover:text-[#4338CA] font-medium flex items-center gap-1 transition-colors"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -174,7 +174,7 @@ export default function TaskDetailDrawer({
                   ref={titleRef}
                   value={local.title}
                   onChange={(e) => update({ title: e.target.value })}
-                  placeholder="Titre de la tache..."
+                  placeholder="Titre de la tâche..."
                   className="w-full text-[18px] font-bold text-[#1A1A1A] placeholder-[#CCC] border-none outline-none bg-transparent"
                 />
 
@@ -373,7 +373,7 @@ export default function TaskDetailDrawer({
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <label className="text-[11px] text-[#999] font-medium">
-                      Sous-taches
+                      Sous-tâches
                     </label>
                     {subProgress && (
                       <span className="text-[11px] text-[#999]">
@@ -421,7 +421,7 @@ export default function TaskDetailDrawer({
                         </span>
                         <button
                           onClick={() => deleteSubtask(sub.id)}
-                          aria-label="Supprimer la sous-tache"
+                          aria-label="Supprimer la sous-tâche"
                           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-[#FEF2F2] transition-all cursor-pointer"
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -438,7 +438,7 @@ export default function TaskDetailDrawer({
                       value={newSubtaskText}
                       onChange={(e) => setNewSubtaskText(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && addSubtask()}
-                      placeholder="Ajouter une sous-tache..."
+                      placeholder="Ajouter une sous-tâche..."
                       className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
                     />
                     <button

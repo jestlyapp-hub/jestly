@@ -5,8 +5,10 @@ import type { VideoShowcaseBlockContent } from "@/types";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
 function VideoShowcaseBlockPreviewInner({ content }: { content: VideoShowcaseBlockContent }) {
-  const glow = content.glowColor || "var(--site-primary)";
-  const glowLight = content.glowColor ? `color-mix(in srgb, ${content.glowColor} 25%, transparent)` : "var(--site-primary-light)";
+  const glow = content.glowColor || "var(--site-primary, #4F46E5)";
+  const glowLight = content.glowColor
+    ? `color-mix(in srgb, ${content.glowColor} 25%, transparent)`
+    : "color-mix(in srgb, var(--site-primary, #4F46E5) 25%, transparent)";
 
   return (
     <section className="py-20 px-8">

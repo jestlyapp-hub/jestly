@@ -128,7 +128,7 @@ function CreateMenu() {
   const items = [
     { label: "Nouvelle commande", href: "/commandes", icon: ClipboardList },
     { label: "Nouveau client", href: "/clients", icon: UserPlus },
-    { label: "Nouveau produit", href: "/produits", icon: Package },
+    { label: "Nouvelle offre", href: "/produits", icon: Package },
     { label: "Nouvelle tâche", href: "/taches", icon: ListTodo },
     { label: "Nouvelle facture", href: "/facturation", icon: FileText },
   ];
@@ -574,7 +574,7 @@ export default function DashboardPage() {
         <KpiCard label="Revenu ce mois" value={fmtEur(data.monthRevenue)} change={data.revenueChange} sub={data.todayRevenue > 0 ? `${fmtEur(data.todayRevenue)} aujourd'hui` : "vs mois dernier"} icon={DollarSign} sparkData={sparkRev} color="bg-emerald-50 text-emerald-600" delay={0.05} />
         <KpiCard label="Commandes" value={String(data.activeOrdersCount)} sub={`${data.pendingOrders} en attente`} icon={ShoppingCart} sparkData={sparkOrd} color="bg-violet-50 text-violet-600" delay={0.1} />
         <KpiCard label="Clients" value={String(data.clientsCount)} sub={data.newClientsThisMonth > 0 ? `+${data.newClientsThisMonth} ce mois` : "total"} icon={Users} color="bg-blue-50 text-blue-600" delay={0.15} />
-        <KpiCard label="Pipeline" value={`${data.inProgressOrders}`} sub={`${data.deliveredOrders} livrées · ${data.paidOrders} payées`} icon={TrendingUp} color="bg-amber-50 text-amber-600" delay={0.2} />
+        <KpiCard label="En cours" value={`${data.inProgressOrders}`} sub={`${data.deliveredOrders} livrées · ${data.paidOrders} payées`} icon={TrendingUp} color="bg-amber-50 text-amber-600" delay={0.2} />
       </div>
 
       {/* ════════════════════════ WORKLOAD SNAPSHOT ════════════════════════ */}
@@ -611,7 +611,7 @@ export default function DashboardPage() {
               {[
                 { label: "Commande", href: "/commandes", icon: ClipboardList, color: "bg-violet-50 text-violet-600" },
                 { label: "Client", href: "/clients", icon: UserPlus, color: "bg-blue-50 text-blue-600" },
-                { label: "Produit", href: "/produits", icon: Package, color: "bg-emerald-50 text-emerald-600" },
+                { label: "Offre", href: "/produits", icon: Package, color: "bg-emerald-50 text-emerald-600" },
                 { label: "Facture", href: "/facturation", icon: FileText, color: "bg-amber-50 text-amber-600" },
               ].map((item) => (
                 <a key={item.label} href={item.href} className="flex flex-col items-center gap-1.5 py-3 rounded-xl border border-[#F0F0EE] hover:border-[#E0E0DE] hover:bg-[#FBFBFA] transition-all group">

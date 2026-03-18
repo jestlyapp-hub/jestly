@@ -10,14 +10,14 @@ import { isCompatible } from "@/lib/brief-column-compat";
 const FIELD_TYPE_CONFIG: Record<BriefFieldType, { label: string; color: string; bg: string; icon: string }> = {
   text:     { label: "Texte court",      color: "text-blue-600",    bg: "bg-blue-50",    icon: "T" },
   textarea: { label: "Texte long",       color: "text-indigo-600",  bg: "bg-indigo-50",  icon: "\u00B6" },
-  select:   { label: "Liste deroulante", color: "text-violet-600",  bg: "bg-violet-50",  icon: "\u25BE" },
+  select:   { label: "Liste déroulante", color: "text-violet-600",  bg: "bg-violet-50",  icon: "\u25BE" },
   radio:    { label: "Choix unique",     color: "text-purple-600",  bg: "bg-purple-50",  icon: "\u25C9" },
   checkbox: { label: "Choix multiples",  color: "text-fuchsia-600", bg: "bg-fuchsia-50", icon: "\u2611" },
   date:     { label: "Date",             color: "text-amber-600",   bg: "bg-amber-50",   icon: "\uD83D\uDCC5" },
   number:   { label: "Nombre",           color: "text-emerald-600", bg: "bg-emerald-50", icon: "#" },
   url:      { label: "URL",              color: "text-cyan-600",    bg: "bg-cyan-50",    icon: "\uD83D\uDD17" },
   email:    { label: "Email",            color: "text-sky-600",     bg: "bg-sky-50",     icon: "@" },
-  phone:    { label: "Telephone",        color: "text-teal-600",    bg: "bg-teal-50",    icon: "\uD83D\uDCDE" },
+  phone:    { label: "Téléphone",        color: "text-teal-600",    bg: "bg-teal-50",    icon: "\uD83D\uDCDE" },
   file:     { label: "Fichier",          color: "text-orange-600",  bg: "bg-orange-50",  icon: "\uD83D\uDCCE" },
 };
 
@@ -327,9 +327,9 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
         <div className="px-5 pb-5 space-y-5">
           <div className="h-px bg-[#F0F0EE]" />
 
-          {/* ── Section A: Identite ── */}
+          {/* ── Section A: Identité ── */}
           <div className="space-y-3">
-            <h4 className="text-[11px] font-semibold text-[#4F46E5] uppercase tracking-wider">Identite du champ</h4>
+            <h4 className="text-[11px] font-semibold text-[#4F46E5] uppercase tracking-wider">Identité du champ</h4>
 
             <div className="grid grid-cols-[1fr_180px] gap-3">
               <div>
@@ -339,7 +339,7 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                   value={field.label}
                   onChange={(e) => handleLabelChange(e.target.value)}
                   className={inputClass}
-                  placeholder="Intitule du champ"
+                  placeholder="Intitulé du champ"
                 />
               </div>
               <div>
@@ -363,7 +363,7 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
                   </svg>
-                  Cle (slug)
+                  Clé (slug)
                 </span>
               </label>
               <div className="flex items-center gap-2">
@@ -389,13 +389,13 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                   )}
                 </button>
               </div>
-              <p className="text-[10px] text-[#B0B0AE] mt-1">Identifiant technique genere automatiquement. Non modifiable.</p>
+              <p className="text-[10px] text-[#B0B0AE] mt-1">Identifiant technique généré automatiquement. Non modifiable.</p>
             </div>
           </div>
 
-          {/* ── Section B: Aide a la saisie ── */}
+          {/* ── Section B: Aide à la saisie ── */}
           <div className="space-y-3">
-            <h4 className="text-[11px] font-semibold text-[#4F46E5] uppercase tracking-wider">Aide a la saisie</h4>
+            <h4 className="text-[11px] font-semibold text-[#4F46E5] uppercase tracking-wider">Aide à la saisie</h4>
             <div>
               <label className={labelClass}>Placeholder</label>
               <input
@@ -403,7 +403,7 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                 value={field.placeholder || ""}
                 onChange={(e) => onChange({ ...field, placeholder: e.target.value })}
                 className={inputClass}
-                placeholder="Texte affiche dans le champ vide"
+                placeholder="Texte affiché dans le champ vide"
               />
             </div>
             <div>
@@ -413,7 +413,7 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                 value={field.help || ""}
                 onChange={(e) => onChange({ ...field, help: e.target.value })}
                 className={inputClass}
-                placeholder="Explication affichee sous le champ"
+                placeholder="Explication affichée sous le champ"
               />
             </div>
           </div>
@@ -448,7 +448,7 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                   <div className="w-8 h-[18px] bg-[#E6E6E4] rounded-full peer-checked:bg-[#4F46E5] transition-colors" />
                   <div className="absolute left-0.5 top-0.5 w-3.5 h-3.5 bg-white rounded-full shadow-sm peer-checked:translate-x-[14px] transition-transform" />
                 </div>
-                <span className="text-[12px] text-[#5A5A58] group-hover:text-[#191919] transition-colors">Epingler</span>
+                <span className="text-[12px] text-[#5A5A58] group-hover:text-[#191919] transition-colors">Épingler</span>
               </label>
             </div>
 
@@ -460,10 +460,10 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                 onChange={(e) => applyDestination(e.target.value)}
                 className={selectClass + (isOrphan ? " !border-red-300 !ring-red-100" : "")}
               >
-                <option value="">Reponse brief uniquement</option>
+                <option value="">Réponse brief uniquement</option>
 
                 {systemColumns.length > 0 && (
-                  <optgroup label="Colonnes par defaut">
+                  <optgroup label="Colonnes par défaut">
                     {systemColumns.map((c) => (
                       <option key={c.id} value={encodeDestination("column_default", c.key)}>{c.label}</option>
                     ))}
@@ -477,7 +477,7 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                 </optgroup>
 
                 {customColumns.length > 0 && (
-                  <optgroup label="Colonnes personnalisees">
+                  <optgroup label="Colonnes personnalisées">
                     {customColumns.map((c) => {
                       const compat = isCompatible(field.type, c.fieldType);
                       return (
@@ -498,7 +498,7 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
                   </svg>
-                  Destination supprimee — cette colonne n&apos;existe plus.
+                  Destination supprimée — cette colonne n&apos;existe plus.
                 </p>
               )}
               {incompatibleWarning && (
@@ -509,7 +509,7 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                   {incompatibleWarning}. Changez la destination ou le type du champ.
                 </p>
               )}
-              <p className="text-[10px] text-[#B0B0AE] mt-1">La reponse sera envoyee dans cette colonne de la commande.</p>
+              <p className="text-[10px] text-[#B0B0AE] mt-1">La réponse sera envoyée dans cette colonne de la commande.</p>
             </div>
           </div>
 

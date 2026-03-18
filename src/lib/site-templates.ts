@@ -65,7 +65,7 @@ export interface TemplateBlock {
 
 /* ═══════════════════════════════════════════════════════
    TEMPLATE 1 — CREATOR (Orange / Gold)
-   Cible: Miniamaker, designer, creatif, branding visuel
+   Cible: Miniamaker, designer, créatif, branding visuel
    ═══════════════════════════════════════════════════════ */
 
 const ORANGE = "#FF6B35";
@@ -84,9 +84,9 @@ function creatorPages(): TemplatePage[] {
           type: "hero-split-glow",
           content: {
             badge: "Disponible",
-            title: "Je cree des visuels qui captent l'attention",
-            subtitle: "Thumbnails, covers, identites visuelles. Des designs premium qui boostent votre visibilite.",
-            primaryCtaLabel: "Voir mes creations",
+            title: "Je crée des visuels qui captent l'attention",
+            subtitle: "Thumbnails, covers, identités visuelles. Des designs premium qui boostent votre visibilité.",
+            primaryCtaLabel: "Voir mes créations",
             primaryBlockLink: { type: "none" },
             secondaryCtaLabel: "Me contacter",
             secondaryBlockLink: { type: "none" },
@@ -100,11 +100,11 @@ function creatorPages(): TemplatePage[] {
           type: "services-premium",
           content: {
             title: "Mes services",
-            subtitle: "Des solutions creatives pour chaque besoin.",
+            subtitle: "Des solutions créatives pour chaque besoin.",
             services: [
               { icon: "palette", title: "Thumbnails", description: "Des miniatures YouTube qui captent les clics.", features: ["Design accrocheur", "Optimise CTR", "Livraison 24h"] },
-              { icon: "layers", title: "Identite visuelle", description: "Logo, charte graphique et branding complet.", features: ["Logo vectoriel", "Guide de style", "Fichiers source"] },
-              { icon: "star", title: "Design premium", description: "Covers, bannieres et visuels sur mesure.", features: ["Multi-formats", "Revisions incluses", "HD / 4K"] },
+              { icon: "layers", title: "Identité visuelle", description: "Logo, charte graphique et branding complet.", features: ["Logo vectoriel", "Guide de style", "Fichiers source"] },
+              { icon: "star", title: "Design premium", description: "Covers, bannieres et visuels sur mesure.", features: ["Multi-formats", "Révisions incluses", "HD / 4K"] },
             ],
             columns: 3,
           },
@@ -115,13 +115,13 @@ function creatorPages(): TemplatePage[] {
         {
           type: "portfolio-masonry",
           content: {
-            title: "Realisations",
+            title: "Réalisations",
             subtitle: "Une selection de mes meilleurs travaux.",
             items: [
               { imageUrl: "", title: "Gaming Thumbnails", category: "YouTube", description: "Serie de thumbnails pour chaine gaming" },
-              { imageUrl: "", title: "Brand Identity", category: "Branding", description: "Identite complete pour startup tech" },
+              { imageUrl: "", title: "Brand Identity", category: "Branding", description: "Identité complète pour startup tech" },
               { imageUrl: "", title: "Cover Art", category: "Design", description: "Pochettes et visuels pour artistes" },
-              { imageUrl: "", title: "Social Media Kit", category: "Marketing", description: "Templates pour reseaux sociaux" },
+              { imageUrl: "", title: "Social Media Kit", category: "Marketing", description: "Templates pour réseaux sociaux" },
             ],
             columns: 2,
           },
@@ -132,11 +132,11 @@ function creatorPages(): TemplatePage[] {
         {
           type: "before-after-pro",
           content: {
-            title: "Avant / Apres",
-            subtitle: "La transformation parle d'elle-meme.",
+            title: "Avant / Après",
+            subtitle: "La transformation parle d'elle-même.",
             items: [
               { beforeImageUrl: "", afterImageUrl: "", label: "Refonte thumbnail YouTube" },
-              { beforeImageUrl: "", afterImageUrl: "", label: "Identite visuelle startup" },
+              { beforeImageUrl: "", afterImageUrl: "", label: "Identité visuelle startup" },
             ],
             layout: "side-by-side",
           },
@@ -149,9 +149,9 @@ function creatorPages(): TemplatePage[] {
           content: {
             title: "Avis clients",
             testimonials: [
-              { name: "Alex Morand", role: "YouTuber", company: "450K abonnes", text: "Mes thumbnails ont triple mon CTR en 2 semaines. Travail incroyable !", rating: 5 },
-              { name: "Julie Pham", role: "CEO", company: "Studio Nova", text: "L'identite visuelle est parfaite. Exactement ce qu'on cherchait.", rating: 5 },
-              { name: "Marc Tissot", role: "Streamer", company: "Twitch Partner", text: "Rapide, creatif et professionnel. Je recommande a 100%.", rating: 5 },
+              { name: "Alex Morand", role: "YouTuber", company: "450K abonnes", text: "Mes thumbnails ont triplé mon CTR en 2 semaines. Travail incroyable !", rating: 5 },
+              { name: "Julie Pham", role: "CEO", company: "Studio Nova", text: "L'identité visuelle est parfaite. Exactement ce qu'on cherchait.", rating: 5 },
+              { name: "Marc Tissot", role: "Streamer", company: "Twitch Partner", text: "Rapide, créatif et professionnel. Je recommande à 100%.", rating: 5 },
             ],
           },
           style: s(),
@@ -161,8 +161,8 @@ function creatorPages(): TemplatePage[] {
         {
           type: "cta-banner",
           content: {
-            title: "Pret a booster vos visuels ?",
-            description: "Obtenez des designs premium qui font la difference. Premiere commande livree en 24h.",
+            title: "Prêt à booster vos visuels ?",
+            description: "Obtenez des designs premium qui font la différence. Première commande livrée en 24h.",
             ctaLabel: "Commander maintenant",
             blockLink: { type: "none" },
             secondaryLabel: "Voir les tarifs",
@@ -176,12 +176,12 @@ function creatorPages(): TemplatePage[] {
           type: "contact-premium",
           content: {
             title: "Parlons de votre projet",
-            subtitle: "Decrivez votre besoin et je reviens vers vous sous 24h.",
+            subtitle: "Décrivez votre besoin et je reviens vers vous sous 24h.",
             fields: [
               { label: "Nom", type: "text", required: true, placeholder: "Votre nom" },
               { label: "Email", type: "email", required: true, placeholder: "votre@email.com" },
               { label: "Type de projet", type: "select", required: true, options: ["Thumbnails", "Logo / Branding", "Cover art", "Pack complet", "Autre"] },
-              { label: "Message", type: "textarea", required: true, placeholder: "Decrivez votre projet, vos references, votre budget..." },
+              { label: "Message", type: "textarea", required: true, placeholder: "Décrivez votre projet, vos références, votre budget..." },
             ],
             submitLabel: "Envoyer",
             successMessage: "Merci ! Je reviens vers vous rapidement.",
@@ -195,13 +195,13 @@ function creatorPages(): TemplatePage[] {
           type: "footer-block",
           content: {
             siteName: "Mon Studio",
-            description: "Design premium pour createurs de contenu.",
+            description: "Design premium pour créateurs de contenu.",
             columns: [
               { title: "Services", links: [{ label: "Thumbnails" }, { label: "Branding" }, { label: "Design" }] },
               { title: "Liens", links: [{ label: "Portfolio" }, { label: "Tarifs" }, { label: "Contact" }] },
-              { title: "Legal", links: [{ label: "Mentions legales" }, { label: "CGV" }] },
+              { title: "Legal", links: [{ label: "Mentions légales" }, { label: "CGV" }] },
             ],
-            copyright: "Tous droits reserves.",
+            copyright: "Tous droits réservés.",
             showSocials: true,
             socials: { instagram: "#", twitter: "#" },
           },
@@ -216,7 +216,7 @@ function creatorPages(): TemplatePage[] {
 
 /* ═══════════════════════════════════════════════════════
    TEMPLATE 2 — PRODUCT (Violet / Tech)
-   Cible: Developpeur, consultant, SaaS builder
+   Cible: Développeur, consultant, SaaS builder
    ═══════════════════════════════════════════════════════ */
 
 const VIOLET = "#7C3AED";
@@ -236,7 +236,7 @@ function productPages(): TemplatePage[] {
           content: {
             badge: "Freelance Dev",
             title: "Je construis des produits qui marchent",
-            subtitle: "Developpeur fullstack specialise Next.js, React et Supabase. Du MVP a la scale.",
+            subtitle: "Développeur fullstack spécialisé Next.js, React et Supabase. Du MVP à la scale.",
             ctaLabel: "Discuter de votre projet",
             blockLink: { type: "none" },
             trustLogos: [{ name: "Next.js" }, { name: "React" }, { name: "Supabase" }, { name: "Stripe" }, { name: "Vercel" }],
@@ -251,8 +251,8 @@ function productPages(): TemplatePage[] {
             title: "Services",
             subtitle: "Solutions techniques sur mesure pour votre business.",
             services: [
-              { icon: "code", title: "Developpement Web", description: "Applications modernes, performantes et scalables.", features: ["Next.js / React", "API REST & GraphQL", "Base de donnees"] },
-              { icon: "zap", title: "MVP & Prototypage", description: "De l'idee au produit en un temps record.", features: ["Livraison rapide", "Iterations agiles", "Deploy continu"] },
+              { icon: "code", title: "Développement Web", description: "Applications modernes, performantes et scalables.", features: ["Next.js / React", "API REST & GraphQL", "Base de données"] },
+              { icon: "zap", title: "MVP & Prototypage", description: "De l'idée au produit en un temps record.", features: ["Livraison rapide", "Iterations agiles", "Deploy continu"] },
               { icon: "shield", title: "Consulting", description: "Audit technique et conseil en architecture.", features: ["Code review", "Architecture", "Performance"] },
               { icon: "globe", title: "SaaS & Produit", description: "Construction de produits SaaS complets.", features: ["Stripe Billing", "Auth & RBAC", "Multi-tenant"] },
             ],
@@ -266,7 +266,7 @@ function productPages(): TemplatePage[] {
           type: "tech-stack",
           content: {
             title: "Stack technique",
-            subtitle: "Les technologies que je maitrise au quotidien.",
+            subtitle: "Les technologies que je maîtrise au quotidien.",
             categories: [
               { name: "Frontend", items: [{ name: "React" }, { name: "Next.js" }, { name: "TypeScript" }, { name: "Tailwind CSS" }] },
               { name: "Backend", items: [{ name: "Node.js" }, { name: "PostgreSQL" }, { name: "Supabase" }, { name: "Prisma" }] },
@@ -284,7 +284,7 @@ function productPages(): TemplatePage[] {
             subtitle: "Des formules claires, sans surprise.",
             plans: [
               { name: "Starter", price: "1 500", period: "par projet", description: "Site vitrine ou landing page", features: ["1-3 pages", "Design responsive", "SEO de base", "Livraison 10 jours"], isPopular: false, ctaLabel: "Choisir" },
-              { name: "Pro", price: "4 000", period: "par projet", description: "Application web complete", features: ["Jusqu'a 10 pages", "Backend + API", "Auth utilisateurs", "Dashboard admin", "Livraison 30 jours"], isPopular: true, ctaLabel: "Choisir" },
+              { name: "Pro", price: "4 000", period: "par projet", description: "Application web complète", features: ["Jusqu'à 10 pages", "Backend + API", "Auth utilisateurs", "Dashboard admin", "Livraison 30 jours"], isPopular: true, ctaLabel: "Choisir" },
               { name: "Scale", price: "Sur devis", period: "", description: "Produit SaaS complet", features: ["Architecture sur mesure", "Stripe Billing", "Multi-tenant", "CI/CD", "Support continu"], isPopular: false, ctaLabel: "Me contacter" },
             ],
           },
@@ -297,8 +297,8 @@ function productPages(): TemplatePage[] {
           content: {
             title: "Retours clients",
             testimonials: [
-              { name: "Pierre Duval", role: "CTO", company: "Fintech Pro", text: "Code propre, architecture solide, et livre dans les temps. Exactement ce qu'on cherchait.", rating: 5 },
-              { name: "Sarah Cohen", role: "Fondatrice", company: "SaaSify", text: "Notre MVP a ete pret en 3 semaines. Les premiers clients sont arrives le mois suivant.", rating: 5 },
+              { name: "Pierre Duval", role: "CTO", company: "Fintech Pro", text: "Code propre, architecture solide, et livré dans les temps. Exactement ce qu'on cherchait.", rating: 5 },
+              { name: "Sarah Cohen", role: "Fondatrice", company: "SaaSify", text: "Notre MVP a été prêt en 3 semaines. Les premiers clients sont arrivés le mois suivant.", rating: 5 },
               { name: "Karim Benzema", role: "Product Manager", company: "DataFlow", text: "Excellent consultant. A resolu nos problemes de performance en quelques jours.", rating: 5 },
             ],
           },
@@ -313,7 +313,7 @@ function productPages(): TemplatePage[] {
             description: "Discutons de votre idee. Premier appel gratuit, devis sous 48h.",
             ctaLabel: "Prendre rendez-vous",
             blockLink: { type: "none" },
-            secondaryLabel: "Voir mes realisations",
+            secondaryLabel: "Voir mes réalisations",
             secondaryBlockLink: { type: "none" },
           },
           style: s(),
@@ -324,13 +324,13 @@ function productPages(): TemplatePage[] {
           type: "contact-premium",
           content: {
             title: "Contact",
-            subtitle: "Decrivez votre projet et je vous recontacte sous 24h.",
+            subtitle: "Décrivez votre projet et je vous recontacte sous 24h.",
             fields: [
               { label: "Nom", type: "text", required: true, placeholder: "Votre nom" },
               { label: "Email", type: "email", required: true, placeholder: "votre@email.com" },
               { label: "Type de projet", type: "select", required: true, options: ["Site vitrine", "Application web", "MVP / SaaS", "Consulting", "Autre"] },
               { label: "Budget", type: "select", required: false, options: ["< 2 000 EUR", "2 000 - 5 000 EUR", "5 000 - 15 000 EUR", "> 15 000 EUR"] },
-              { label: "Message", type: "textarea", required: true, placeholder: "Objectifs, contraintes, delais..." },
+              { label: "Message", type: "textarea", required: true, placeholder: "Objectifs, contraintes, délais..." },
             ],
             submitLabel: "Envoyer",
             successMessage: "Merci ! Je reviens vers vous dans les 24h.",
@@ -344,13 +344,13 @@ function productPages(): TemplatePage[] {
           type: "footer-block",
           content: {
             siteName: "Dev Studio",
-            description: "Developpement web et consulting technique.",
+            description: "Développement web et consulting technique.",
             columns: [
-              { title: "Services", links: [{ label: "Developpement" }, { label: "MVP" }, { label: "Consulting" }] },
+              { title: "Services", links: [{ label: "Développement" }, { label: "MVP" }, { label: "Consulting" }] },
               { title: "Stack", links: [{ label: "Next.js" }, { label: "React" }, { label: "Supabase" }] },
-              { title: "Legal", links: [{ label: "Mentions legales" }, { label: "CGV" }] },
+              { title: "Legal", links: [{ label: "Mentions légales" }, { label: "CGV" }] },
             ],
-            copyright: "Tous droits reserves.",
+            copyright: "Tous droits réservés.",
             showSocials: true,
             socials: { github: "#", linkedin: "#", twitter: "#" },
           },
@@ -365,7 +365,7 @@ function productPages(): TemplatePage[] {
 
 /* ═══════════════════════════════════════════════════════
    TEMPLATE 3 — CINEMA (Cyan / Cinematic)
-   Cible: Monteur video, real, post-prod, reels
+   Cible: Monteur vidéo, réal, post-prod, reels
    ═══════════════════════════════════════════════════════ */
 
 const CYAN = "#00D4FF";
@@ -384,8 +384,8 @@ function cinemaPages(): TemplatePage[] {
           type: "hero-split-glow",
           content: {
             badge: "Monteur Video",
-            title: "Des videos qui marquent les esprits",
-            subtitle: "Montage, motion design et post-production. Des videos premium pour YouTube, TikTok et Instagram.",
+            title: "Des vidéos qui marquent les esprits",
+            subtitle: "Montage, motion design et post-production. Des vidéos premium pour YouTube, TikTok et Instagram.",
             primaryCtaLabel: "Voir le showreel",
             primaryBlockLink: { type: "none" },
             secondaryCtaLabel: "Demander un devis",
@@ -400,14 +400,14 @@ function cinemaPages(): TemplatePage[] {
           type: "video-showcase",
           content: {
             title: "Showreel 2025",
-            subtitle: "60 secondes pour decouvrir mon univers creatif.",
+            subtitle: "60 secondes pour découvrir mon univers créatif.",
             videoUrl: "",
             stats: [
               { value: "200+", label: "Videos montees" },
-              { value: "50M+", label: "Vues generees" },
+              { value: "50M+", label: "Vues générées" },
               { value: "98%", label: "Satisfaction" },
             ],
-            ctaLabel: "Voir mes realisations",
+            ctaLabel: "Voir mes réalisations",
             blockLink: { type: "none" },
           },
           style: s({ backgroundGradient: `linear-gradient(180deg, ${DARK3} 0%, #0A0A18 100%)` }),
@@ -433,7 +433,7 @@ function cinemaPages(): TemplatePage[] {
         {
           type: "before-after-pro",
           content: {
-            title: "Avant / Apres",
+            title: "Avant / Après",
             subtitle: "La magie du montage en images.",
             items: [
               { beforeImageUrl: "", afterImageUrl: "", label: "Color grading cinematique" },
@@ -448,11 +448,11 @@ function cinemaPages(): TemplatePage[] {
         {
           type: "testimonials-dark",
           content: {
-            title: "Temoignages",
+            title: "Témoignages",
             testimonials: [
-              { name: "Lucas Moreau", role: "YouTuber", company: "1.2M abonnes", text: "Mon monteur attitré depuis 2 ans. Chaque video est un chef-d'oeuvre.", rating: 5 },
-              { name: "Emma Zhang", role: "Brand Manager", company: "Nike France", text: "Des reels qui ont explose nos stats. Creatif et rigoureux.", rating: 5 },
-              { name: "Romain Perret", role: "Realisateur", company: "Independant", text: "Post-prod impeccable. Un vrai professionnel.", rating: 5 },
+              { name: "Lucas Moreau", role: "YouTuber", company: "1.2M abonnés", text: "Mon monteur attitré depuis 2 ans. Chaque vidéo est un chef-d'oeuvre.", rating: 5 },
+              { name: "Emma Zhang", role: "Brand Manager", company: "Nike France", text: "Des reels qui ont explosé nos stats. Créatif et rigoureux.", rating: 5 },
+              { name: "Romain Perret", role: "Réalisateur", company: "Indépendant", text: "Post-prod impeccable. Un vrai professionnel.", rating: 5 },
             ],
           },
           style: s(),
@@ -465,9 +465,9 @@ function cinemaPages(): TemplatePage[] {
             title: "Formules",
             subtitle: "Tarifs clairs pour chaque type de projet.",
             plans: [
-              { name: "Short / Reel", price: "150", period: "par video", description: "Format court (< 60s)", features: ["Montage dynamique", "Sous-titres", "Musique libre", "1 revision"], isPopular: false, ctaLabel: "Commander" },
-              { name: "YouTube", price: "350", period: "par video", description: "Format long (5-20 min)", features: ["Montage complet", "Habillage", "Color grading", "Musique + SFX", "3 revisions"], isPopular: true, ctaLabel: "Commander" },
-              { name: "Premium", price: "Sur devis", period: "", description: "Corporate / Pub / Clip", features: ["Montage + motion", "VFX", "Sound design", "Multi-format", "Revisions illimitees"], isPopular: false, ctaLabel: "Devis gratuit" },
+              { name: "Short / Reel", price: "150", period: "par vidéo", description: "Format court (< 60s)", features: ["Montage dynamique", "Sous-titres", "Musique libre", "1 révision"], isPopular: false, ctaLabel: "Commander" },
+              { name: "YouTube", price: "350", period: "par vidéo", description: "Format long (5-20 min)", features: ["Montage complet", "Habillage", "Color grading", "Musique + SFX", "3 révisions"], isPopular: true, ctaLabel: "Commander" },
+              { name: "Premium", price: "Sur devis", period: "", description: "Corporate / Pub / Clip", features: ["Montage + motion", "VFX", "Sound design", "Multi-format", "Révisions illimitées"], isPopular: false, ctaLabel: "Devis gratuit" },
             ],
           },
           style: s({ backgroundGradient: `linear-gradient(180deg, ${DARK3} 0%, #080818 100%)` }),
@@ -477,7 +477,7 @@ function cinemaPages(): TemplatePage[] {
         {
           type: "cta-banner",
           content: {
-            title: "Votre prochaine video commence ici",
+            title: "Votre prochaine vidéo commence ici",
             description: "Envoyez vos rushes, je m'occupe du reste. Premier montage en 48h.",
             ctaLabel: "Envoyer mes rushes",
             blockLink: { type: "none" },
@@ -492,12 +492,12 @@ function cinemaPages(): TemplatePage[] {
           type: "contact-premium",
           content: {
             title: "Contact",
-            subtitle: "Decrivez votre projet video et je vous reponds sous 24h.",
+            subtitle: "Décrivez votre projet vidéo et je vous réponds sous 24h.",
             fields: [
               { label: "Nom", type: "text", required: true, placeholder: "Votre nom" },
               { label: "Email", type: "email", required: true, placeholder: "votre@email.com" },
               { label: "Type de montage", type: "select", required: true, options: ["YouTube long", "Short / Reel", "Corporate", "Clip / Pub", "Motion design", "Autre"] },
-              { label: "Message", type: "textarea", required: true, placeholder: "Decrivez votre projet, vos references..." },
+              { label: "Message", type: "textarea", required: true, placeholder: "Décrivez votre projet, vos références..." },
             ],
             submitLabel: "Envoyer",
             successMessage: "Merci ! Je reviens vers vous dans les 24h.",
@@ -511,13 +511,13 @@ function cinemaPages(): TemplatePage[] {
           type: "footer-block",
           content: {
             siteName: "Video Studio",
-            description: "Montage video premium pour createurs de contenu.",
+            description: "Montage vidéo premium pour créateurs de contenu.",
             columns: [
               { title: "Services", links: [{ label: "Montage YouTube" }, { label: "Shorts / Reels" }, { label: "Motion Design" }] },
               { title: "Liens", links: [{ label: "Showreel" }, { label: "Tarifs" }, { label: "Contact" }] },
-              { title: "Legal", links: [{ label: "Mentions legales" }, { label: "CGV" }] },
+              { title: "Legal", links: [{ label: "Mentions légales" }, { label: "CGV" }] },
             ],
-            copyright: "Tous droits reserves.",
+            copyright: "Tous droits réservés.",
             showSocials: true,
             socials: { youtube: "#", instagram: "#", twitter: "#" },
           },
@@ -535,39 +535,39 @@ function cinemaPages(): TemplatePage[] {
    ═══════════════════════════════════════════════════════ */
 
 const CREATOR_BRIEF: TemplateBriefDefinition = {
-  name: "Brief Design / Creatif",
+  name: "Brief Design / Créatif",
   description: "Formulaire de brief pour commande de design visuel.",
   fields: [
-    { key: "project_title", label: "Titre du projet", type: "text", required: true, placeholder: "ex: Thumbnail pour ma video YouTube", target_kind: "order_field", target_ref: "notes" },
-    { key: "briefing", label: "Briefing creatif", type: "textarea", required: true, placeholder: "Style, couleurs, elements a inclure...", target_kind: "order_field", target_ref: "briefing" },
-    { key: "deadline", label: "Deadline souhaitee", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
-    { key: "resources", label: "Fichiers / references", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
-    { key: "style_type", label: "Type de creation", type: "select", required: true, options: ["Thumbnail", "Logo", "Cover art", "Pack branding", "Autre"], target_kind: "order_field", target_ref: "category" },
+    { key: "project_title", label: "Titre du projet", type: "text", required: true, placeholder: "ex: Thumbnail pour ma vidéo YouTube", target_kind: "order_field", target_ref: "notes" },
+    { key: "briefing", label: "Briefing créatif", type: "textarea", required: true, placeholder: "Style, couleurs, éléments à inclure...", target_kind: "order_field", target_ref: "briefing" },
+    { key: "deadline", label: "Deadline souhaitée", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
+    { key: "resources", label: "Fichiers / références", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
+    { key: "style_type", label: "Type de création", type: "select", required: true, options: ["Thumbnail", "Logo", "Cover art", "Pack branding", "Autre"], target_kind: "order_field", target_ref: "category" },
   ],
 };
 
 const PRODUCT_BRIEF: TemplateBriefDefinition = {
   name: "Brief Projet Dev",
-  description: "Formulaire de cadrage pour un projet de developpement.",
+  description: "Formulaire de cadrage pour un projet de développement.",
   fields: [
     { key: "project_type", label: "Type de projet", type: "select", required: true, options: ["Site vitrine", "Application web", "MVP / SaaS", "API / Backend", "Consulting", "Autre"], target_kind: "order_field", target_ref: "category" },
-    { key: "briefing", label: "Description du besoin", type: "textarea", required: true, placeholder: "Objectifs, fonctionnalites, contraintes...", target_kind: "order_field", target_ref: "briefing" },
-    { key: "stack", label: "Stack souhaitee", type: "text", required: false, placeholder: "ex: Next.js, Supabase..." },
-    { key: "deadline", label: "Delai souhaite", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
+    { key: "briefing", label: "Description du besoin", type: "textarea", required: true, placeholder: "Objectifs, fonctionnalités, contraintes...", target_kind: "order_field", target_ref: "briefing" },
+    { key: "stack", label: "Stack souhaitée", type: "text", required: false, placeholder: "ex: Next.js, Supabase..." },
+    { key: "deadline", label: "Délai souhaité", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
     { key: "resources", label: "Docs / Figma / Repo", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
     { key: "budget", label: "Budget estimatif", type: "select", required: false, options: ["< 2 000 EUR", "2 000 - 5 000 EUR", "5 000 - 15 000 EUR", "> 15 000 EUR"] },
   ],
 };
 
 const CINEMA_BRIEF: TemplateBriefDefinition = {
-  name: "Brief Montage Video",
-  description: "Formulaire de brief pour montage video.",
+  name: "Brief Montage Vidéo",
+  description: "Formulaire de brief pour montage vidéo.",
   fields: [
     { key: "montage_type", label: "Type de montage", type: "select", required: true, options: ["YouTube long", "YouTube short", "Reel / TikTok", "Corporate", "Clip / Pub", "Motion design", "Autre"], target_kind: "order_field", target_ref: "category" },
     { key: "format", label: "Format final", type: "select", required: true, options: ["16:9 (YouTube)", "9:16 (Short/Reel)", "1:1 (Instagram)", "Custom"] },
     { key: "deadline", label: "Deadline", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
     { key: "resources", label: "Rushes / fichiers", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
-    { key: "briefing", label: "Briefing detaille", type: "textarea", required: true, placeholder: "Style, rythme, musique, references...", target_kind: "order_field", target_ref: "briefing" },
+    { key: "briefing", label: "Briefing détaillé", type: "textarea", required: true, placeholder: "Style, rythme, musique, références...", target_kind: "order_field", target_ref: "briefing" },
   ],
 };
 
@@ -593,7 +593,7 @@ function studioPages(): TemplatePage[] {
           content: {
             badge: "Studio Design",
             title: "Design that sells.",
-            subtitle: "Identite visuelle, branding et direction artistique. Des designs minimalistes qui font la difference.",
+            subtitle: "Identité visuelle, branding et direction artistique. Des designs minimalistes qui font la difference.",
             primaryCtaLabel: "Voir les projets",
             primaryBlockLink: { type: "none" },
             secondaryCtaLabel: "Collaborer",
@@ -608,12 +608,12 @@ function studioPages(): TemplatePage[] {
           type: "services-premium",
           content: {
             title: "Expertise",
-            subtitle: "Des solutions design pensees pour convertir.",
+            subtitle: "Des solutions design pensées pour convertir.",
             services: [
-              { icon: "palette", title: "Identite visuelle", description: "Logo, typographie et charte graphique complete.", features: ["Logo vectoriel", "Charte graphique", "Guide de marque"] },
-              { icon: "layout", title: "UI / UX Design", description: "Interfaces modernes et parcours utilisateur optimises.", features: ["Wireframes", "Maquettes HD", "Design system"] },
-              { icon: "pen-tool", title: "Direction artistique", description: "Vision creative globale pour votre marque.", features: ["Concept creatif", "Storytelling visuel", "Coherence de marque"] },
-              { icon: "monitor", title: "Web Design", description: "Sites premium qui reflètent votre identite.", features: ["Landing pages", "Sites vitrines", "E-commerce"] },
+              { icon: "palette", title: "Identité visuelle", description: "Logo, typographie et charte graphique complète.", features: ["Logo vectoriel", "Charte graphique", "Guide de marque"] },
+              { icon: "layout", title: "UI / UX Design", description: "Interfaces modernes et parcours utilisateur optimisés.", features: ["Wireframes", "Maquettes HD", "Design system"] },
+              { icon: "pen-tool", title: "Direction artistique", description: "Vision créative globale pour votre marque.", features: ["Concept créatif", "Storytelling visuel", "Cohérence de marque"] },
+              { icon: "monitor", title: "Web Design", description: "Sites premium qui reflètent votre identité.", features: ["Landing pages", "Sites vitrines", "E-commerce"] },
             ],
             columns: 4,
           },
@@ -624,10 +624,10 @@ function studioPages(): TemplatePage[] {
         {
           type: "portfolio-masonry",
           content: {
-            title: "Projets selectionnes",
-            subtitle: "Une selection de travaux recents.",
+            title: "Projets sélectionnés",
+            subtitle: "Une sélection de travaux récents.",
             items: [
-              { imageUrl: "", title: "Rebranding Startup", category: "Branding", description: "Refonte complete de l'identite visuelle" },
+              { imageUrl: "", title: "Rebranding Startup", category: "Branding", description: "Refonte complète de l'identité visuelle" },
               { imageUrl: "", title: "App Mobile Finance", category: "UI/UX", description: "Design d'interface pour app fintech" },
               { imageUrl: "", title: "E-commerce Luxe", category: "Web Design", description: "Boutique en ligne haut de gamme" },
               { imageUrl: "", title: "Packaging Bio", category: "Direction artistique", description: "Gamme packaging pour marque bio" },
@@ -644,7 +644,7 @@ function studioPages(): TemplatePage[] {
             title: "Ce qu'ils en disent",
             testimonials: [
               { name: "Thomas Renard", role: "CEO", company: "Finova", text: "Un oeil impeccable et une execution parfaite. Notre branding a transforme notre image.", rating: 5 },
-              { name: "Lea Martin", role: "Fondatrice", company: "Maison Verte", text: "Le packaging est sublime. Les ventes ont augmente de 40% depuis le rebranding.", rating: 5 },
+              { name: "Lea Martin", role: "Fondatrice", company: "Maison Verte", text: "Le packaging est sublime. Les ventes ont augmenté de 40% depuis le rebranding.", rating: 5 },
               { name: "Antoine Giraud", role: "CTO", company: "TechWave", text: "L'interface est intuitive et elegante. Nos utilisateurs adorent.", rating: 5 },
             ],
           },
@@ -656,11 +656,11 @@ function studioPages(): TemplatePage[] {
           type: "pricing-modern",
           content: {
             title: "Formules",
-            subtitle: "Des offres adaptees a chaque besoin.",
+            subtitle: "Des offres adaptées à chaque besoin.",
             plans: [
-              { name: "Essential", price: "800", period: "par projet", description: "Logo + charte de base", features: ["Logo vectoriel", "Palette couleurs", "2 typographies", "2 revisions"], isPopular: false, ctaLabel: "Choisir" },
-              { name: "Premium", price: "2 500", period: "par projet", description: "Identite complete", features: ["Logo + variations", "Charte graphique", "Templates social media", "Guide de marque", "5 revisions"], isPopular: true, ctaLabel: "Choisir" },
-              { name: "Studio", price: "Sur devis", period: "", description: "Direction artistique", features: ["Strategie de marque", "Identite complete", "UI/UX design", "Motion design", "Support continu"], isPopular: false, ctaLabel: "Discuter" },
+              { name: "Essential", price: "800", period: "par projet", description: "Logo + charte de base", features: ["Logo vectoriel", "Palette couleurs", "2 typographies", "2 révisions"], isPopular: false, ctaLabel: "Choisir" },
+              { name: "Premium", price: "2 500", period: "par projet", description: "Identité complète", features: ["Logo + variations", "Charte graphique", "Templates social media", "Guide de marque", "5 révisions"], isPopular: true, ctaLabel: "Choisir" },
+              { name: "Studio", price: "Sur devis", period: "", description: "Direction artistique", features: ["Stratégie de marque", "Identité complète", "UI/UX design", "Motion design", "Support continu"], isPopular: false, ctaLabel: "Discuter" },
             ],
           },
           style: s(),
@@ -671,7 +671,7 @@ function studioPages(): TemplatePage[] {
           type: "cta-banner",
           content: {
             title: "Un projet en tete ?",
-            description: "Parlons de votre vision. Premier echange gratuit, proposition sous 48h.",
+            description: "Parlons de votre vision. Premier échange gratuit, proposition sous 48h.",
             ctaLabel: "Prendre rendez-vous",
             blockLink: { type: "none" },
             secondaryLabel: "Voir les projets",
@@ -685,12 +685,12 @@ function studioPages(): TemplatePage[] {
           type: "contact-premium",
           content: {
             title: "Parlons design",
-            subtitle: "Decrivez votre projet et je reviens vers vous sous 24h.",
+            subtitle: "Décrivez votre projet et je reviens vers vous sous 24h.",
             fields: [
               { label: "Nom", type: "text", required: true, placeholder: "Votre nom" },
               { label: "Email", type: "email", required: true, placeholder: "votre@email.com" },
-              { label: "Type de projet", type: "select", required: true, options: ["Identite visuelle", "UI/UX Design", "Web Design", "Direction artistique", "Autre"] },
-              { label: "Message", type: "textarea", required: true, placeholder: "Votre vision, vos references, votre budget..." },
+              { label: "Type de projet", type: "select", required: true, options: ["Identité visuelle", "UI/UX Design", "Web Design", "Direction artistique", "Autre"] },
+              { label: "Message", type: "textarea", required: true, placeholder: "Votre vision, vos références, votre budget..." },
             ],
             submitLabel: "Envoyer",
             successMessage: "Merci ! Je reviens vers vous rapidement.",
@@ -708,9 +708,9 @@ function studioPages(): TemplatePage[] {
             columns: [
               { title: "Services", links: [{ label: "Branding" }, { label: "UI/UX" }, { label: "Web Design" }] },
               { title: "Liens", links: [{ label: "Projets" }, { label: "Tarifs" }, { label: "Contact" }] },
-              { title: "Legal", links: [{ label: "Mentions legales" }, { label: "CGV" }] },
+              { title: "Legal", links: [{ label: "Mentions légales" }, { label: "CGV" }] },
             ],
-            copyright: "Tous droits reserves.",
+            copyright: "Tous droits réservés.",
             showSocials: true,
             socials: { instagram: "#", dribbble: "#", linkedin: "#" },
           },
@@ -745,8 +745,8 @@ function neonPages(): TemplatePage[] {
           content: {
             badge: "Digital Creator",
             title: "Create the future.",
-            subtitle: "Contenu premium pour l'ere digitale. Videos, streams, designs et experiences immersives.",
-            ctaLabel: "Decouvrir",
+            subtitle: "Contenu premium pour l'ère digitale. Vidéos, streams, designs et expériences immersives.",
+            ctaLabel: "Découvrir",
             blockLink: { type: "none" },
             trustLogos: [{ name: "YouTube" }, { name: "Twitch" }, { name: "TikTok" }, { name: "Discord" }, { name: "Midjourney" }],
           },
@@ -762,7 +762,7 @@ function neonPages(): TemplatePage[] {
             services: [
               { icon: "video", title: "Montage Premium", description: "Montage dynamique et effets visuels.", features: ["YouTube / Shorts", "Motion design", "VFX & transitions"] },
               { icon: "image", title: "Thumbnails & Design", description: "Visuels accrocheurs qui maximisent les clics.", features: ["Thumbnails YouTube", "Bannieres", "Overlays stream"] },
-              { icon: "zap", title: "Branding Creator", description: "Identite visuelle pour createurs.", features: ["Logo anime", "Emotes / badges", "Pack complet"] },
+              { icon: "zap", title: "Branding Creator", description: "Identité visuelle pour créateurs.", features: ["Logo animé", "Emotes / badges", "Pack complet"] },
             ],
             columns: 3,
           },
@@ -774,7 +774,7 @@ function neonPages(): TemplatePage[] {
           type: "video-showcase",
           content: {
             title: "Showreel 2026",
-            subtitle: "Un apercu de mes dernieres creations.",
+            subtitle: "Un aperçu de mes dernières créations.",
             videoUrl: "",
             stats: [
               { value: "500+", label: "Videos editees" },
@@ -792,7 +792,7 @@ function neonPages(): TemplatePage[] {
           type: "portfolio-masonry",
           content: {
             title: "Portfolio",
-            subtitle: "Mes realisations recentes.",
+            subtitle: "Mes réalisations récentes.",
             items: [
               { imageUrl: "", title: "Gaming Montage", category: "YouTube", description: "Serie de montages gaming viraux" },
               { imageUrl: "", title: "Stream Pack", category: "Twitch", description: "Pack complet overlays et alertes" },
@@ -812,7 +812,7 @@ function neonPages(): TemplatePage[] {
             testimonials: [
               { name: "MaxGaming", role: "YouTuber", company: "2.5M abonnes", text: "Les montages sont insane. Mon audience a triple en 6 mois.", rating: 5 },
               { name: "Luna_Art", role: "Streameuse", company: "Twitch Partner", text: "Le branding est parfait. Mon stream a un look pro maintenant.", rating: 5 },
-              { name: "CyberKev", role: "Createur AI", company: "500K followers", text: "Des thumbnails qui cartonnent. CTR multiplie par 3.", rating: 5 },
+              { name: "CyberKev", role: "Créateur AI", company: "500K followers", text: "Des thumbnails qui cartonnent. CTR multiplié par 3.", rating: 5 },
             ],
           },
           style: s(),
@@ -825,9 +825,9 @@ function neonPages(): TemplatePage[] {
             title: "Tarifs",
             subtitle: "Des offres claires pour chaque besoin.",
             plans: [
-              { name: "Starter", price: "99", period: "par video", description: "Montage Short / Reel", features: ["Montage dynamique", "Sous-titres", "Musique libre", "1 revision"], isPopular: false, ctaLabel: "Go" },
-              { name: "Creator", price: "299", period: "par video", description: "Montage YouTube complet", features: ["Montage + habillage", "Motion design", "Color grading", "Sound design", "3 revisions"], isPopular: true, ctaLabel: "Go" },
-              { name: "Legend", price: "Sur devis", period: "", description: "Pack creator complet", features: ["Montage illimite", "Branding complet", "Thumbnails", "Overlays stream", "Support prioritaire"], isPopular: false, ctaLabel: "Contact" },
+              { name: "Starter", price: "99", period: "par vidéo", description: "Montage Short / Reel", features: ["Montage dynamique", "Sous-titres", "Musique libre", "1 révision"], isPopular: false, ctaLabel: "Go" },
+              { name: "Creator", price: "299", period: "par vidéo", description: "Montage YouTube complet", features: ["Montage + habillage", "Motion design", "Color grading", "Sound design", "3 révisions"], isPopular: true, ctaLabel: "Go" },
+              { name: "Legend", price: "Sur devis", period: "", description: "Pack creator complet", features: ["Montage illimité", "Branding complet", "Thumbnails", "Overlays stream", "Support prioritaire"], isPopular: false, ctaLabel: "Contact" },
             ],
           },
           style: s({ backgroundGradient: `linear-gradient(180deg, ${DARK5} 0%, #080812 100%)` }),
@@ -838,7 +838,7 @@ function neonPages(): TemplatePage[] {
           type: "cta-banner",
           content: {
             title: "Ready to level up ?",
-            description: "Transformez votre contenu. Premier projet livre en 48h.",
+            description: "Transformez votre contenu. Premier projet livré en 48h.",
             ctaLabel: "Let's go",
             blockLink: { type: "none" },
             secondaryLabel: "Voir les tarifs",
@@ -852,12 +852,12 @@ function neonPages(): TemplatePage[] {
           type: "contact-premium",
           content: {
             title: "Contact",
-            subtitle: "Decrivez votre projet et je vous reponds en 24h.",
+            subtitle: "Décrivez votre projet et je vous réponds en 24h.",
             fields: [
               { label: "Pseudo / Nom", type: "text", required: true, placeholder: "Votre pseudo ou nom" },
               { label: "Email", type: "email", required: true, placeholder: "votre@email.com" },
               { label: "Plateforme", type: "select", required: true, options: ["YouTube", "Twitch", "TikTok", "Instagram", "Discord", "Autre"] },
-              { label: "Type de projet", type: "select", required: true, options: ["Montage video", "Thumbnails", "Branding / Emotes", "Pack stream", "Autre"] },
+              { label: "Type de projet", type: "select", required: true, options: ["Montage vidéo", "Thumbnails", "Branding / Emotes", "Pack stream", "Autre"] },
               { label: "Message", type: "textarea", required: true, placeholder: "Votre projet, vos refs, votre budget..." },
             ],
             submitLabel: "Envoyer",
@@ -872,7 +872,7 @@ function neonPages(): TemplatePage[] {
           type: "footer-block",
           content: {
             siteName: "Neon Studio",
-            description: "Contenu premium pour createurs digitaux.",
+            description: "Contenu premium pour créateurs digitaux.",
             columns: [
               { title: "Services", links: [{ label: "Montage" }, { label: "Thumbnails" }, { label: "Branding" }] },
               { title: "Liens", links: [{ label: "Portfolio" }, { label: "Tarifs" }, { label: "Contact" }] },
@@ -893,7 +893,7 @@ function neonPages(): TemplatePage[] {
 
 /* ═══════════════════════════════════════════════════════
    TEMPLATE 6 — EDITORIAL (Warm / Magazine)
-   Cible: Photographe, ecrivain, artiste visuel, studio creatif
+   Cible: Photographe, écrivain, artiste visuel, studio créatif
    ═══════════════════════════════════════════════════════ */
 
 const WARM = "#D48B5C";
@@ -945,8 +945,8 @@ function editorialPages(): TemplatePage[] {
             title: "Prestations",
             subtitle: "Des images qui subliment votre histoire.",
             services: [
-              { icon: "camera", title: "Reportage", description: "Couverture d'evenements et reportages immersifs.", features: ["Evenementiel", "Corporate", "Lifestyle"] },
-              { icon: "user", title: "Portraits", description: "Portraits d'auteur et seances photo personnalisees.", features: ["Studio", "Exterieur", "Retouche fine"] },
+              { icon: "camera", title: "Reportage", description: "Couverture d'événements et reportages immersifs.", features: ["Événementiel", "Corporate", "Lifestyle"] },
+              { icon: "user", title: "Portraits", description: "Portraits d'auteur et séances photo personnalisées.", features: ["Studio", "Extérieur", "Retouche fine"] },
               { icon: "image", title: "Produit", description: "Photos produit et packshot pour e-commerce.", features: ["Fond blanc", "Mise en scene", "Multi-angles"] },
             ],
             columns: 3,
@@ -959,12 +959,12 @@ function editorialPages(): TemplatePage[] {
           type: "portfolio-masonry",
           content: {
             title: "Portfolio",
-            subtitle: "Une selection de travaux recents.",
+            subtitle: "Une sélection de travaux récents.",
             items: [
-              { imageUrl: "", title: "Mariage en Provence", category: "Reportage", description: "Couverture photo d'un mariage en exterieur" },
-              { imageUrl: "", title: "Portrait Corporate", category: "Portrait", description: "Serie portrait pour equipe dirigeante" },
-              { imageUrl: "", title: "Collection Automne", category: "Mode", description: "Shooting mode pour marque ethique" },
-              { imageUrl: "", title: "Gastronomie", category: "Produit", description: "Photos culinaires pour restaurant etoile" },
+              { imageUrl: "", title: "Mariage en Provence", category: "Reportage", description: "Couverture photo d'un mariage en extérieur" },
+              { imageUrl: "", title: "Portrait Corporate", category: "Portrait", description: "Série portrait pour équipe dirigeante" },
+              { imageUrl: "", title: "Collection Automne", category: "Mode", description: "Shooting mode pour marque éthique" },
+              { imageUrl: "", title: "Gastronomie", category: "Produit", description: "Photos culinaires pour restaurant étoilé" },
               { imageUrl: "", title: "Voyage au Japon", category: "Reportage", description: "Carnet de voyage photographique" },
               { imageUrl: "", title: "Architecture", category: "Art", description: "Serie sur l'architecture contemporaine" },
             ],
@@ -977,11 +977,11 @@ function editorialPages(): TemplatePage[] {
         {
           type: "testimonials-dark",
           content: {
-            title: "Temoignages",
+            title: "Témoignages",
             testimonials: [
-              { name: "Claire Beaumont", role: "Mariee", company: "", text: "Des photos magnifiques qui capturent parfaitement l'emotion de notre mariage.", rating: 5 },
-              { name: "Jean-Pierre Morel", role: "Chef etoile", company: "Le Jardin", text: "Mes plats n'ont jamais ete aussi beaux en photo. Un vrai artiste.", rating: 5 },
-              { name: "Sophie Laurent", role: "Directrice", company: "Maison Riviere", text: "Le shooting mode etait parfait. Les images sont sublimes.", rating: 5 },
+              { name: "Claire Beaumont", role: "Mariée", company: "", text: "Des photos magnifiques qui capturent parfaitement l'émotion de notre mariage.", rating: 5 },
+              { name: "Jean-Pierre Morel", role: "Chef étoilé", company: "Le Jardin", text: "Mes plats n'ont jamais été aussi beaux en photo. Un vrai artiste.", rating: 5 },
+              { name: "Sophie Laurent", role: "Directrice", company: "Maison Rivière", text: "Le shooting mode était parfait. Les images sont sublimes.", rating: 5 },
             ],
           },
           style: s({ backgroundColor: LIGHT6 }),
@@ -992,11 +992,11 @@ function editorialPages(): TemplatePage[] {
           type: "pricing-modern",
           content: {
             title: "Tarifs",
-            subtitle: "Des formules adaptees a chaque projet.",
+            subtitle: "Des formules adaptées à chaque projet.",
             plans: [
-              { name: "Essentiel", price: "350", period: "par seance", description: "Seance photo 1h", features: ["1h de shooting", "20 photos retouchees", "Galerie en ligne", "1 revision"], isPopular: false, ctaLabel: "Reserver" },
-              { name: "Premium", price: "900", period: "par seance", description: "Seance photo demi-journee", features: ["4h de shooting", "60 photos retouchees", "Galerie en ligne", "Tirages inclus", "3 revisions"], isPopular: true, ctaLabel: "Reserver" },
-              { name: "Sur mesure", price: "Sur devis", period: "", description: "Evenement / Reportage", features: ["Journee complete", "Photos illimitees", "Reportage complet", "Livre photo", "Livraison sous 7j"], isPopular: false, ctaLabel: "Me contacter" },
+              { name: "Essentiel", price: "350", period: "par séance", description: "Séance photo 1h", features: ["1h de shooting", "20 photos retouchées", "Galerie en ligne", "1 révision"], isPopular: false, ctaLabel: "Réserver" },
+              { name: "Premium", price: "900", period: "par séance", description: "Séance photo demi-journée", features: ["4h de shooting", "60 photos retouchées", "Galerie en ligne", "Tirages inclus", "3 révisions"], isPopular: true, ctaLabel: "Réserver" },
+              { name: "Sur mesure", price: "Sur devis", period: "", description: "Événement / Reportage", features: ["Journée complète", "Photos illimitées", "Reportage complet", "Livre photo", "Livraison sous 7j"], isPopular: false, ctaLabel: "Me contacter" },
             ],
           },
           style: s({ backgroundColor: "#F5F1EA" }),
@@ -1007,7 +1007,7 @@ function editorialPages(): TemplatePage[] {
           type: "cta-banner",
           content: {
             title: "Racontons votre histoire",
-            description: "Chaque image merite d'etre exceptionnelle. Parlons de votre prochain projet.",
+            description: "Chaque image mérite d'être exceptionnelle. Parlons de votre prochain projet.",
             ctaLabel: "Prendre rendez-vous",
             blockLink: { type: "none" },
             secondaryLabel: "Voir le portfolio",
@@ -1021,12 +1021,12 @@ function editorialPages(): TemplatePage[] {
           type: "contact-premium",
           content: {
             title: "Contact",
-            subtitle: "Decrivez votre projet et je vous reponds sous 48h.",
+            subtitle: "Décrivez votre projet et je vous réponds sous 48h.",
             fields: [
               { label: "Nom", type: "text", required: true, placeholder: "Votre nom" },
               { label: "Email", type: "email", required: true, placeholder: "votre@email.com" },
               { label: "Type de projet", type: "select", required: true, options: ["Reportage", "Portrait", "Mariage", "Produit", "Mode", "Autre"] },
-              { label: "Date souhaitee", type: "date", required: false },
+              { label: "Date souhaitée", type: "date", required: false },
               { label: "Message", type: "textarea", required: true, placeholder: "Lieu, ambiance, nombre de personnes..." },
             ],
             submitLabel: "Envoyer",
@@ -1045,9 +1045,9 @@ function editorialPages(): TemplatePage[] {
             columns: [
               { title: "Services", links: [{ label: "Reportage" }, { label: "Portraits" }, { label: "Produit" }] },
               { title: "Liens", links: [{ label: "Portfolio" }, { label: "Journal" }, { label: "Contact" }] },
-              { title: "Legal", links: [{ label: "Mentions legales" }, { label: "CGV" }] },
+              { title: "Legal", links: [{ label: "Mentions légales" }, { label: "CGV" }] },
             ],
-            copyright: "Tous droits reserves.",
+            copyright: "Tous droits réservés.",
             showSocials: true,
             socials: { instagram: "#", pinterest: "#" },
           },
@@ -1068,10 +1068,10 @@ const STUDIO_BRIEF: TemplateBriefDefinition = {
   name: "Brief Design / Branding",
   description: "Formulaire de brief pour projet de design ou branding.",
   fields: [
-    { key: "project_type", label: "Type de projet", type: "select", required: true, options: ["Identite visuelle", "UI/UX Design", "Web Design", "Direction artistique", "Packaging", "Autre"], target_kind: "order_field", target_ref: "category" },
+    { key: "project_type", label: "Type de projet", type: "select", required: true, options: ["Identité visuelle", "UI/UX Design", "Web Design", "Direction artistique", "Packaging", "Autre"], target_kind: "order_field", target_ref: "category" },
     { key: "briefing", label: "Votre vision", type: "textarea", required: true, placeholder: "Objectifs, valeurs de marque, public cible, references visuelles...", target_kind: "order_field", target_ref: "briefing" },
-    { key: "deadline", label: "Deadline souhaitee", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
-    { key: "resources", label: "Fichiers / references", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
+    { key: "deadline", label: "Deadline souhaitée", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
+    { key: "resources", label: "Fichiers / références", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
     { key: "budget", label: "Budget estimatif", type: "select", required: false, options: ["< 1 000 EUR", "1 000 - 3 000 EUR", "3 000 - 10 000 EUR", "> 10 000 EUR"] },
   ],
 };
@@ -1081,7 +1081,7 @@ const NEON_BRIEF: TemplateBriefDefinition = {
   description: "Formulaire de brief pour contenu digital / gaming.",
   fields: [
     { key: "platform", label: "Plateforme", type: "select", required: true, options: ["YouTube", "Twitch", "TikTok", "Instagram", "Discord", "Autre"] },
-    { key: "project_type", label: "Type de projet", type: "select", required: true, options: ["Montage video", "Thumbnails", "Branding / Emotes", "Pack stream", "Motion design", "Autre"], target_kind: "order_field", target_ref: "category" },
+    { key: "project_type", label: "Type de projet", type: "select", required: true, options: ["Montage vidéo", "Thumbnails", "Branding / Emotes", "Pack stream", "Motion design", "Autre"], target_kind: "order_field", target_ref: "category" },
     { key: "briefing", label: "Briefing", type: "textarea", required: true, placeholder: "Style, references, chaine YouTube...", target_kind: "order_field", target_ref: "briefing" },
     { key: "deadline", label: "Deadline", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
     { key: "resources", label: "Fichiers / rushes", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
@@ -1090,12 +1090,12 @@ const NEON_BRIEF: TemplateBriefDefinition = {
 
 const EDITORIAL_BRIEF: TemplateBriefDefinition = {
   name: "Brief Photo / Reportage",
-  description: "Formulaire de brief pour seance photo ou reportage.",
+  description: "Formulaire de brief pour séance photo ou reportage.",
   fields: [
-    { key: "project_type", label: "Type de prestation", type: "select", required: true, options: ["Reportage", "Portrait", "Mariage", "Produit / Packshot", "Mode", "Evenementiel", "Autre"], target_kind: "order_field", target_ref: "category" },
-    { key: "date", label: "Date souhaitee", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
-    { key: "briefing", label: "Description du projet", type: "textarea", required: true, placeholder: "Lieu, ambiance, nombre de personnes, style souhaite...", target_kind: "order_field", target_ref: "briefing" },
-    { key: "resources", label: "References / moodboard", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
+    { key: "project_type", label: "Type de prestation", type: "select", required: true, options: ["Reportage", "Portrait", "Mariage", "Produit / Packshot", "Mode", "Événementiel", "Autre"], target_kind: "order_field", target_ref: "category" },
+    { key: "date", label: "Date souhaitée", type: "date", required: false, target_kind: "order_field", target_ref: "deadline" },
+    { key: "briefing", label: "Description du projet", type: "textarea", required: true, placeholder: "Lieu, ambiance, nombre de personnes, style souhaité...", target_kind: "order_field", target_ref: "briefing" },
+    { key: "resources", label: "Références / moodboard", type: "file", required: false, multiple: true, target_kind: "order_field", target_ref: "resources" },
   ],
 };
 
@@ -1107,9 +1107,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     id: "creator",
     name: "Creator",
-    description: "Template percutant pour designers visuels et createurs.",
+    description: "Template percutant pour designers visuels et créateurs.",
     audience: "Designers, thumbnails, branding",
-    bullets: ["Hero avec glow", "Portfolio masonry", "Services premium", "Avant/Apres", "Contact premium"],
+    bullets: ["Hero avec glow", "Portfolio masonry", "Services premium", "Avant/Après", "Contact premium"],
     gradient: "from-orange-600 to-orange-400",
     theme: {
       primaryColor: ORANGE, secondaryColor: "#FF8F5E",
@@ -1135,7 +1135,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     footer: {
       links: [{ label: "Accueil" }, { label: "Services" }, { label: "Portfolio" }, { label: "Contact" }],
       showSocials: true,
-      copyright: "Tous droits reserves.",
+      copyright: "Tous droits réservés.",
     },
     pages: creatorPages(),
     brief: CREATOR_BRIEF,
@@ -1143,9 +1143,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     id: "product",
     name: "Product",
-    description: "Template technique pour developpeurs et consultants.",
+    description: "Template technique pour développeurs et consultants.",
     audience: "Devs freelance, SaaS builders",
-    bullets: ["Hero avec mesh", "Tech stack", "Pricing modern", "Temoignages dark", "Contact premium"],
+    bullets: ["Hero avec mesh", "Tech stack", "Pricing modern", "Témoignages dark", "Contact premium"],
     gradient: "from-violet-600 to-violet-400",
     theme: {
       primaryColor: VIOLET, secondaryColor: "#9F67FF",
@@ -1171,7 +1171,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     footer: {
       links: [{ label: "Accueil" }, { label: "Services" }, { label: "Tarifs" }, { label: "Contact" }],
       showSocials: true,
-      copyright: "Tous droits reserves.",
+      copyright: "Tous droits réservés.",
     },
     pages: productPages(),
     brief: PRODUCT_BRIEF,
@@ -1179,9 +1179,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     id: "cinema",
     name: "Cinema",
-    description: "Template cinematique pour monteurs video et motion designers.",
+    description: "Template cinématique pour monteurs vidéo et motion designers.",
     audience: "Monteurs, motion designers, post-prod",
-    bullets: ["Hero glow cinematic", "Showreel video", "Avant/Apres", "Pricing formules", "Contact premium"],
+    bullets: ["Hero glow cinematic", "Showreel vidéo", "Avant/Après", "Pricing formules", "Contact premium"],
     gradient: "from-cyan-500 to-cyan-300",
     theme: {
       primaryColor: CYAN, secondaryColor: "#33DFFF",
@@ -1207,7 +1207,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     footer: {
       links: [{ label: "Accueil" }, { label: "Showreel" }, { label: "Services" }, { label: "Contact" }],
       showSocials: true,
-      copyright: "Tous droits reserves.",
+      copyright: "Tous droits réservés.",
     },
     pages: cinemaPages(),
     brief: CINEMA_BRIEF,
@@ -1217,7 +1217,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     name: "Studio",
     description: "Template minimaliste premium pour studios design et DA.",
     audience: "Designers, studios branding, DA",
-    bullets: ["Hero minimal", "Portfolio masonry", "Pricing modern", "Temoignages", "Contact premium"],
+    bullets: ["Hero minimal", "Portfolio masonry", "Pricing modern", "Témoignages", "Contact premium"],
     gradient: "from-lime-400 to-lime-300",
     theme: {
       primaryColor: LIME, secondaryColor: "#A8E600",
@@ -1243,7 +1243,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     footer: {
       links: [{ label: "Accueil" }, { label: "Projets" }, { label: "Tarifs" }, { label: "Contact" }],
       showSocials: true,
-      copyright: "Tous droits reserves.",
+      copyright: "Tous droits réservés.",
     },
     pages: studioPages(),
     brief: STUDIO_BRIEF,
@@ -1251,9 +1251,9 @@ export const TEMPLATES: TemplateDefinition[] = [
   {
     id: "neon",
     name: "Neon",
-    description: "Template cyberpunk futuriste pour createurs digitaux.",
+    description: "Template cyberpunk futuriste pour créateurs digitaux.",
     audience: "YouTubers, streamers, gaming, AI",
-    bullets: ["Hero neon mesh", "Showreel video", "Portfolio masonry", "Pricing gaming", "Contact premium"],
+    bullets: ["Hero neon mesh", "Showreel vidéo", "Portfolio masonry", "Pricing gaming", "Contact premium"],
     gradient: "from-purple-500 to-cyan-400",
     theme: {
       primaryColor: NEON_PURPLE, secondaryColor: "#00F0FF",
@@ -1289,8 +1289,8 @@ export const TEMPLATES: TemplateDefinition[] = [
     id: "editorial",
     name: "Editorial",
     description: "Template editorial haut de gamme pour photographes et artistes.",
-    audience: "Photographes, ecrivains, artistes visuels",
-    bullets: ["Hero editorial", "Portfolio masonry 3 col", "Pricing seances", "Temoignages", "Contact premium"],
+    audience: "Photographes, écrivains, artistes visuels",
+    bullets: ["Hero editorial", "Portfolio masonry 3 col", "Pricing séances", "Témoignages", "Contact premium"],
     gradient: "from-amber-600 to-amber-400",
     theme: {
       primaryColor: WARM, secondaryColor: "#A5A58D",
@@ -1316,7 +1316,7 @@ export const TEMPLATES: TemplateDefinition[] = [
     footer: {
       links: [{ label: "Accueil" }, { label: "Portfolio" }, { label: "Tarifs" }, { label: "Contact" }],
       showSocials: true,
-      copyright: "Tous droits reserves.",
+      copyright: "Tous droits réservés.",
     },
     pages: editorialPages(),
     brief: EDITORIAL_BRIEF,

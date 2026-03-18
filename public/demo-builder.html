@@ -1,0 +1,1556 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jestly — Builder Demo</title>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════ */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --purple: #7C5CFF;
+  --purple-light: #EDE9FE;
+  --purple-dark: #5B3FD9;
+  --orange: #F97316;
+  --orange-light: #FFF7ED;
+  --bg: #F8F7FC;
+  --surface: #FFFFFF;
+  --border: #E8E5F0;
+  --border-light: #F0EDF7;
+  --text: #1A1A2E;
+  --text-secondary: #6B7280;
+  --text-muted: #9CA3AF;
+  --success: #10B981;
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.1);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, sans-serif;
+  background: #0F0E17;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BROWSER SHELL
+   ═══════════════════════════════════════════════════════════ */
+.browser-shell {
+  width: 1120px;
+  height: 630px;
+  background: var(--bg);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.05);
+  position: relative;
+  transform: scale(0.94);
+  opacity: 0;
+  animation: shellIn 0.8s 0.3s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes shellIn {
+  to { transform: scale(1); opacity: 1; }
+}
+
+.browser-bar {
+  height: 36px;
+  background: #FAFAFE;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  gap: 8px;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.r { background: #FF6159; }
+.dot.y { background: #FFBF2F; }
+.dot.g { background: #2ACB42; }
+.browser-url {
+  flex: 1;
+  margin-left: 12px;
+  height: 22px;
+  background: #F3F2F8;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BUILDER LAYOUT
+   ═══════════════════════════════════════════════════════════ */
+.builder {
+  display: flex;
+  height: calc(100% - 36px);
+  position: relative;
+}
+
+/* Top toolbar */
+.toolbar {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 44px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 20;
+}
+.toolbar-left { display: flex; align-items: center; gap: 12px; }
+.toolbar-center { display: flex; align-items: center; gap: 2px; }
+.toolbar-right { display: flex; align-items: center; gap: 10px; }
+
+.tool-logo {
+  font-size: 14px;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--purple), #A78BFA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+.tool-divider { width: 1px; height: 20px; background: var(--border); }
+
+.device-btn {
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+  background: none;
+}
+.device-btn.active {
+  background: var(--purple-light);
+  color: var(--purple);
+  font-weight: 600;
+}
+
+.page-name {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  background: #F5F3FA;
+  border-radius: var(--radius-sm);
+}
+
+.btn-publish {
+  padding: 6px 16px;
+  background: var(--purple);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-publish.loading {
+  background: var(--purple-dark);
+  pointer-events: none;
+}
+.btn-publish.success {
+  background: var(--success);
+}
+
+.publish-spinner {
+  width: 12px; height: 12px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: none;
+}
+.btn-publish.loading .publish-spinner { display: block; }
+.btn-publish.loading .publish-label { opacity: 0.7; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.publish-check { display: none; }
+.btn-publish.success .publish-check { display: inline; }
+.btn-publish.success .publish-label { display: none; }
+.btn-publish.success .publish-spinner { display: none; }
+
+/* ── Left sidebar ── */
+.sidebar {
+  width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  margin-top: 44px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sidebar-section {
+  padding: 12px;
+  border-bottom: 1px solid var(--border-light);
+}
+.sidebar-title {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.page-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.page-item.active {
+  background: var(--purple-light);
+  color: var(--purple);
+  font-weight: 600;
+}
+.page-icon {
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  background: var(--border-light);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 8px; color: var(--text-muted);
+}
+.page-item.active .page-icon {
+  background: rgba(124,92,255,0.15);
+  color: var(--purple);
+}
+
+/* Block list */
+.block-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid transparent;
+}
+.block-item:hover, .block-item.selected {
+  background: #F8F6FF;
+  border-color: rgba(124,92,255,0.15);
+  color: var(--text);
+}
+.block-item.selected {
+  border-color: var(--purple);
+  color: var(--purple);
+  font-weight: 500;
+}
+.block-dot {
+  width: 6px; height: 6px;
+  border-radius: 2px;
+}
+
+.btn-add-block {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  background: none;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--purple);
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.btn-add-block:hover {
+  background: var(--purple-light);
+  border-color: var(--purple);
+}
+
+/* Block library overlay */
+.block-library {
+  position: absolute;
+  left: 220px;
+  top: 44px;
+  width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  z-index: 30;
+  padding: 12px;
+  opacity: 0;
+  transform: translateX(-10px);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
+  height: calc(100% - 44px);
+  overflow-y: auto;
+}
+.block-library.open {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: all;
+}
+
+.lib-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.lib-subtitle {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.lib-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.lib-block {
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.lib-block:hover {
+  border-color: var(--purple);
+  background: #FAFAFF;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+.lib-block.adding {
+  border-color: var(--purple);
+  background: var(--purple-light);
+  transform: scale(0.95);
+}
+.lib-block-icon {
+  font-size: 18px;
+  margin-bottom: 4px;
+}
+.lib-block-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* ── Central canvas ── */
+.canvas {
+  flex: 1;
+  margin-top: 44px;
+  background: #F1EFF7;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.canvas-page {
+  width: 520px;
+  background: var(--surface);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+/* Preview navbar */
+.preview-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border-light);
+  transition: all 0.4s;
+}
+.preview-nav-logo {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.preview-nav-logo-dot {
+  width: 8px; height: 8px;
+  border-radius: 3px;
+  background: var(--purple);
+  transition: background 0.4s;
+}
+.preview-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.preview-nav-link {
+  font-size: 10px;
+  color: var(--text-secondary);
+  transition: color 0.3s;
+}
+.preview-nav-cta {
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  background: var(--purple);
+  padding: 4px 12px;
+  border-radius: 5px;
+  transition: background 0.4s;
+}
+
+/* Preview hero */
+.preview-hero {
+  padding: 32px 24px;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: border-color 0.3s, background 0.3s;
+  position: relative;
+  min-height: 140px;
+}
+.preview-hero.selected {
+  border-color: var(--purple);
+  border-radius: 4px;
+  margin: 4px;
+}
+.hero-badge {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--purple);
+  background: var(--purple-light);
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+  transition: all 0.4s;
+}
+.hero-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.15;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+  transition: font-family 0.4s;
+}
+.hero-subtitle {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  max-width: 360px;
+  margin: 0 auto 14px;
+}
+.hero-cta {
+  display: inline-block;
+  padding: 8px 20px;
+  background: var(--purple);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  transition: all 0.4s;
+}
+.hero-cta-secondary {
+  display: inline-block;
+  padding: 8px 16px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 500;
+  margin-left: 6px;
+}
+
+/* Preview blocks (services, testimonials, CTA) */
+.preview-block {
+  padding: 24px;
+  border-top: 1px solid var(--border-light);
+  opacity: 0;
+  transform: translateY(12px);
+  transition: all 0.5s cubic-bezier(0.22,1,0.36,1);
+}
+.preview-block.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.services-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+  text-align: center;
+}
+.services-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.service-card {
+  padding: 12px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-align: center;
+  transition: all 0.3s;
+}
+.service-icon {
+  font-size: 18px;
+  margin-bottom: 6px;
+}
+.service-name {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text);
+}
+.service-desc {
+  font-size: 8px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.testimonials-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 12px;
+  text-align: center;
+}
+.testimonial-cards {
+  display: flex;
+  gap: 8px;
+}
+.testimonial-card {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.testimonial-stars {
+  font-size: 8px;
+  color: #FBBF24;
+  margin-bottom: 4px;
+}
+.testimonial-text {
+  font-size: 9px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  margin-bottom: 6px;
+  font-style: italic;
+}
+.testimonial-author {
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--text);
+}
+.testimonial-role {
+  font-size: 7px;
+  color: var(--text-muted);
+}
+
+.cta-block {
+  text-align: center;
+  padding: 20px;
+  background: linear-gradient(135deg, rgba(124,92,255,0.04), rgba(124,92,255,0.08));
+  border-radius: var(--radius);
+}
+.cta-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.cta-desc {
+  font-size: 10px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+.cta-button {
+  display: inline-block;
+  padding: 7px 18px;
+  background: var(--purple);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 10px;
+  font-weight: 600;
+  transition: all 0.4s;
+}
+
+/* ── Right inspector panel ── */
+.inspector {
+  width: 240px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  margin-top: 44px;
+  overflow-y: auto;
+  opacity: 0;
+  transform: translateX(10px);
+  transition: all 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+.inspector.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.inspector-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+.inspector-tab {
+  flex: 1;
+  padding: 10px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+}
+.inspector-tab.active {
+  color: var(--purple);
+  border-bottom-color: var(--purple);
+}
+
+.inspector-content { padding: 12px; }
+
+.field-group { margin-bottom: 10px; }
+.field-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+.field-input {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text);
+  background: #FAFAFE;
+  transition: border-color 0.2s;
+  outline: none;
+}
+.field-input:focus, .field-input.editing {
+  border-color: var(--purple);
+  box-shadow: 0 0 0 3px rgba(124,92,255,0.1);
+}
+.field-input.textarea {
+  min-height: 44px;
+  resize: none;
+  line-height: 1.4;
+}
+
+/* Design panel */
+.design-panel { display: none; }
+.design-panel.visible { display: block; }
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.preset-card {
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.preset-card:hover, .preset-card.active {
+  border-color: var(--purple);
+}
+.preset-card.active {
+  background: var(--purple-light);
+}
+.preset-colors {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 4px;
+}
+.preset-swatch {
+  width: 12px; height: 12px;
+  border-radius: 3px;
+}
+.preset-name {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.color-swatch-lg {
+  width: 24px; height: 24px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition: background 0.4s;
+}
+.color-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  flex: 1;
+}
+.color-value {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-family: monospace;
+}
+
+/* Nav editor panel */
+.nav-panel { display: none; }
+.nav-panel.visible { display: block; }
+
+.nav-edit-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 4px;
+  transition: all 0.2s;
+}
+.nav-edit-item.editing {
+  border-color: var(--purple);
+  background: #FAFAFF;
+}
+.nav-drag {
+  color: var(--text-muted);
+  font-size: 10px;
+  cursor: grab;
+}
+.nav-edit-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 11px;
+  color: var(--text);
+  outline: none;
+}
+.nav-edit-type {
+  font-size: 8px;
+  color: var(--text-muted);
+  padding: 2px 6px;
+  background: var(--border-light);
+  border-radius: 3px;
+}
+
+.btn-add-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: 10px;
+  color: var(--purple);
+  cursor: pointer;
+  width: 100%;
+  margin-top: 6px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CURSOR
+   ═══════════════════════════════════════════════════════════ */
+.cursor {
+  position: absolute;
+  width: 18px;
+  height: 22px;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+.cursor.visible { opacity: 1; }
+.cursor svg { width: 100%; height: 100%; }
+
+.cursor-click {
+  position: absolute;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: rgba(124,92,255,0.3);
+  transform: translate(-3px, -1px) scale(0);
+  pointer-events: none;
+  z-index: 99;
+}
+.cursor-click.active {
+  animation: clickRipple 0.4s ease-out forwards;
+}
+@keyframes clickRipple {
+  0% { transform: translate(-3px, -1px) scale(0); opacity: 1; }
+  100% { transform: translate(-3px, -1px) scale(2); opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   PUBLISH OVERLAY
+   ═══════════════════════════════════════════════════════════ */
+.publish-overlay {
+  position: absolute;
+  inset: 36px 0 0 0;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 50;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s;
+}
+.publish-overlay.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.publish-success-icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  transform: scale(0);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.publish-overlay.visible .publish-success-icon {
+  transform: scale(1);
+}
+.publish-success-icon svg {
+  width: 28px; height: 28px;
+  color: white;
+}
+.publish-success-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+.publish-success-url {
+  font-size: 12px;
+  color: var(--purple);
+  background: var(--purple-light);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   UTILITY ANIMATIONS
+   ═══════════════════════════════════════════════════════════ */
+.typing-cursor {
+  display: inline-block;
+  width: 1.5px;
+  height: 13px;
+  background: var(--purple);
+  margin-left: 1px;
+  animation: blink 0.6s step-end infinite;
+  vertical-align: text-bottom;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+.block-insert-anim {
+  animation: blockInsert 0.4s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes blockInsert {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HTML STRUCTURE
+     ═══════════════════════════════════════════════════════════ -->
+<div class="browser-shell" id="shell">
+  <div class="browser-bar">
+    <div class="dot r"></div>
+    <div class="dot y"></div>
+    <div class="dot g"></div>
+    <div class="browser-url">
+      <span style="margin-right:4px">🔒</span>
+      app.jestly.fr/site-web/builder
+    </div>
+  </div>
+
+  <div class="builder">
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <span class="tool-logo">Jestly</span>
+        <div class="tool-divider"></div>
+        <span class="page-name">Accueil</span>
+      </div>
+      <div class="toolbar-center">
+        <button class="device-btn active">Desktop</button>
+        <button class="device-btn">Tablette</button>
+        <button class="device-btn">Mobile</button>
+      </div>
+      <div class="toolbar-right">
+        <button class="btn-publish" id="publishBtn">
+          <span class="publish-spinner"></span>
+          <span class="publish-label">Publier</span>
+          <span class="publish-check">✓ En ligne</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-title">Pages</div>
+        <div class="page-item active">
+          <div class="page-icon">⌂</div> Accueil
+        </div>
+        <div class="page-item">
+          <div class="page-icon">★</div> Portfolio
+        </div>
+        <div class="page-item">
+          <div class="page-icon">✉</div> Contact
+        </div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-title">Blocs</div>
+        <div id="blockList">
+          <div class="block-item selected" data-block="hero">
+            <div class="block-dot" style="background:var(--purple)"></div>
+            Hero
+          </div>
+        </div>
+        <div style="margin-top:8px">
+          <button class="btn-add-block" id="addBlockBtn">
+            <span>+</span> Ajouter un bloc
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Block Library -->
+    <div class="block-library" id="blockLibrary">
+      <div class="lib-title">Bibliothèque de blocs</div>
+      <div class="lib-subtitle">Glissez ou cliquez pour ajouter</div>
+      <div class="lib-grid">
+        <div class="lib-block" data-type="hero">
+          <div class="lib-block-icon">🏠</div>
+          <div class="lib-block-name">Hero</div>
+        </div>
+        <div class="lib-block" data-type="services" id="libServices">
+          <div class="lib-block-icon">⚡</div>
+          <div class="lib-block-name">Services</div>
+        </div>
+        <div class="lib-block" data-type="testimonials" id="libTestimonials">
+          <div class="lib-block-icon">💬</div>
+          <div class="lib-block-name">Témoignages</div>
+        </div>
+        <div class="lib-block" data-type="cta" id="libCta">
+          <div class="lib-block-icon">🎯</div>
+          <div class="lib-block-name">CTA</div>
+        </div>
+        <div class="lib-block" data-type="portfolio">
+          <div class="lib-block-icon">🖼</div>
+          <div class="lib-block-name">Portfolio</div>
+        </div>
+        <div class="lib-block" data-type="pricing">
+          <div class="lib-block-icon">💎</div>
+          <div class="lib-block-name">Tarifs</div>
+        </div>
+        <div class="lib-block" data-type="faq">
+          <div class="lib-block-icon">❓</div>
+          <div class="lib-block-name">FAQ</div>
+        </div>
+        <div class="lib-block" data-type="contact">
+          <div class="lib-block-icon">📧</div>
+          <div class="lib-block-name">Contact</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Central Canvas -->
+    <div class="canvas">
+      <div class="canvas-page" id="canvasPage">
+        <!-- Preview nav -->
+        <div class="preview-nav" id="previewNav">
+          <div class="preview-nav-logo">
+            <div class="preview-nav-logo-dot" id="navDot"></div>
+            <span>Mon site</span>
+          </div>
+          <div class="preview-nav-links" id="navLinks">
+            <span class="preview-nav-link">Services</span>
+            <span class="preview-nav-link">Portfolio</span>
+            <span class="preview-nav-cta" id="navCta">Contact</span>
+          </div>
+        </div>
+
+        <!-- Hero -->
+        <div class="preview-hero" id="previewHero">
+          <div class="hero-badge" id="heroBadge">Freelance</div>
+          <div class="hero-title" id="heroTitle">Votre titre ici</div>
+          <div class="hero-subtitle" id="heroSubtitle">Décrivez votre activité en quelques mots pour attirer vos clients.</div>
+          <div>
+            <span class="hero-cta" id="heroCta">En savoir plus</span>
+            <span class="hero-cta-secondary">Voir les projets →</span>
+          </div>
+        </div>
+
+        <!-- Dynamic blocks container -->
+        <div id="dynamicBlocks"></div>
+      </div>
+    </div>
+
+    <!-- Right Inspector -->
+    <div class="inspector" id="inspector">
+      <!-- Content panel -->
+      <div id="contentPanel">
+        <div class="inspector-tabs">
+          <div class="inspector-tab active" id="tabContent">Contenu</div>
+          <div class="inspector-tab" id="tabDesign">Design</div>
+          <div class="inspector-tab" id="tabNav">Navigation</div>
+        </div>
+        <div class="inspector-content" id="contentFields">
+          <div class="field-group">
+            <div class="field-label">Badge</div>
+            <div class="field-input" id="fieldBadge">Freelance</div>
+          </div>
+          <div class="field-group">
+            <div class="field-label">Titre</div>
+            <div class="field-input" id="fieldTitle">Votre titre ici</div>
+          </div>
+          <div class="field-group">
+            <div class="field-label">Sous-titre</div>
+            <div class="field-input textarea" id="fieldSubtitle">Décrivez votre activité en quelques mots pour attirer vos clients.</div>
+          </div>
+          <div class="field-group">
+            <div class="field-label">Bouton CTA</div>
+            <div class="field-input" id="fieldCta">En savoir plus</div>
+          </div>
+        </div>
+
+        <!-- Design panel -->
+        <div class="design-panel" id="designPanel">
+          <div class="inspector-content">
+            <div class="field-label" style="margin-bottom:8px">Thèmes rapides</div>
+            <div class="preset-grid">
+              <div class="preset-card active" id="presetPurple" data-primary="#7C5CFF">
+                <div class="preset-colors">
+                  <div class="preset-swatch" style="background:#7C5CFF"></div>
+                  <div class="preset-swatch" style="background:#EDE9FE"></div>
+                  <div class="preset-swatch" style="background:#1A1A2E"></div>
+                </div>
+                <div class="preset-name">Créatif</div>
+              </div>
+              <div class="preset-card" id="presetOrange" data-primary="#F97316">
+                <div class="preset-colors">
+                  <div class="preset-swatch" style="background:#F97316"></div>
+                  <div class="preset-swatch" style="background:#FFF7ED"></div>
+                  <div class="preset-swatch" style="background:#1A1A2E"></div>
+                </div>
+                <div class="preset-name">Audacieux</div>
+              </div>
+              <div class="preset-card" id="presetTeal" data-primary="#0EA5E9">
+                <div class="preset-colors">
+                  <div class="preset-swatch" style="background:#0EA5E9"></div>
+                  <div class="preset-swatch" style="background:#F0F9FF"></div>
+                  <div class="preset-swatch" style="background:#0C4A6E"></div>
+                </div>
+                <div class="preset-name">Studio</div>
+              </div>
+              <div class="preset-card" id="presetRose" data-primary="#E11D48">
+                <div class="preset-colors">
+                  <div class="preset-swatch" style="background:#E11D48"></div>
+                  <div class="preset-swatch" style="background:#FFF1F2"></div>
+                  <div class="preset-swatch" style="background:#1A1A2E"></div>
+                </div>
+                <div class="preset-name">Bold</div>
+              </div>
+            </div>
+
+            <div class="field-label" style="margin-bottom:8px">Couleur primaire</div>
+            <div class="color-row">
+              <div class="color-swatch-lg" id="primarySwatch" style="background:var(--purple)"></div>
+              <span class="color-label">Primaire</span>
+              <span class="color-value" id="primaryValue">#7C5CFF</span>
+            </div>
+
+            <div class="field-label" style="margin-bottom:8px; margin-top:12px">Typographie titres</div>
+            <div class="field-input" id="fontField" style="font-size:10px">Inter — Bold</div>
+          </div>
+        </div>
+
+        <!-- Nav panel -->
+        <div class="nav-panel" id="navPanel">
+          <div class="inspector-content">
+            <div class="field-label" style="margin-bottom:8px">Liens de navigation</div>
+            <div id="navEditList">
+              <div class="nav-edit-item">
+                <span class="nav-drag">⠿</span>
+                <input class="nav-edit-input" value="Services" readonly>
+                <span class="nav-edit-type">Lien</span>
+              </div>
+              <div class="nav-edit-item">
+                <span class="nav-drag">⠿</span>
+                <input class="nav-edit-input" value="Portfolio" readonly>
+                <span class="nav-edit-type">Lien</span>
+              </div>
+              <div class="nav-edit-item" id="navItemContact">
+                <span class="nav-drag">⠿</span>
+                <input class="nav-edit-input" value="Contact" readonly>
+                <span class="nav-edit-type">Bouton</span>
+              </div>
+            </div>
+            <button class="btn-add-nav" id="btnAddNav">
+              <span>+</span> Ajouter un lien
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cursor -->
+  <div class="cursor" id="cursor">
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M5 3L19 12L12 13L9 20L5 3Z" fill="white" stroke="#1A1A2E" stroke-width="1.5" stroke-linejoin="round"/>
+    </svg>
+    <div class="cursor-click" id="cursorClick"></div>
+  </div>
+
+  <!-- Publish overlay -->
+  <div class="publish-overlay" id="publishOverlay">
+    <div class="publish-success-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 13l4 4L19 7"/>
+      </svg>
+    </div>
+    <div class="publish-success-title">Site publié !</div>
+    <div style="height:8px"></div>
+    <div class="publish-success-url">alex-montage.jestly.fr</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT — ANIMATION TIMELINE
+     ═══════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  "use strict";
+
+  /* ── Helpers ── */
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => document.querySelectorAll(s);
+  const wait = (ms) => new Promise(r => setTimeout(r, ms));
+
+  const cursor = $("#cursor");
+  const cursorClick = $("#cursorClick");
+  let curX = 560, curY = 315;
+
+  function moveCursor(x, y, duration = 600) {
+    return new Promise(resolve => {
+      curX = x; curY = y;
+      cursor.style.transition = `left ${duration}ms cubic-bezier(0.22,1,0.36,1), top ${duration}ms cubic-bezier(0.22,1,0.36,1)`;
+      cursor.style.left = x + "px";
+      cursor.style.top = y + "px";
+      cursorClick.style.left = x + "px";
+      cursorClick.style.top = y + "px";
+      setTimeout(resolve, duration);
+    });
+  }
+
+  function click() {
+    return new Promise(resolve => {
+      cursorClick.style.left = curX + "px";
+      cursorClick.style.top = curY + "px";
+      cursorClick.classList.remove("active");
+      void cursorClick.offsetWidth;
+      cursorClick.classList.add("active");
+      setTimeout(resolve, 150);
+    });
+  }
+
+  function typeText(el, text, speed = 40) {
+    return new Promise(resolve => {
+      el.textContent = "";
+      let i = 0;
+      const iv = setInterval(() => {
+        el.textContent = text.slice(0, ++i);
+        if (i >= text.length) { clearInterval(iv); resolve(); }
+      }, speed);
+    });
+  }
+
+  function typeField(fieldEl, previewEl, text, speed = 35) {
+    return new Promise(resolve => {
+      fieldEl.classList.add("editing");
+      fieldEl.textContent = "";
+      let i = 0;
+      const iv = setInterval(() => {
+        const t = text.slice(0, ++i);
+        fieldEl.textContent = t;
+        if (previewEl) previewEl.textContent = t;
+        if (i >= text.length) {
+          clearInterval(iv);
+          setTimeout(() => { fieldEl.classList.remove("editing"); resolve(); }, 200);
+        }
+      }, speed);
+    });
+  }
+
+  function addBlockToSidebar(name, color) {
+    const list = $("#blockList");
+    const item = document.createElement("div");
+    item.className = "block-item block-insert-anim";
+    item.innerHTML = `<div class="block-dot" style="background:${color}"></div> ${name}`;
+    list.appendChild(item);
+  }
+
+  function setActiveTab(tabId) {
+    $$(".inspector-tab").forEach(t => t.classList.remove("active"));
+    $(tabId).classList.add("active");
+  }
+
+  function applyThemeColor(color) {
+    const light = color + "18";
+    document.documentElement.style.setProperty("--purple", color);
+    $(".hero-cta").style.background = color;
+    $(".hero-badge").style.color = color;
+    $(".hero-badge").style.background = light;
+    $(".preview-nav-logo-dot").style.background = color;
+    $(".preview-nav-cta").style.background = color;
+    $(".cta-button") && ($(".cta-button").style.background = color);
+    $("#primarySwatch").style.background = color;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     MAIN TIMELINE
+     ═══════════════════════════════════════════════════════════ */
+  async function run() {
+    try {
+
+    /* ── SCENE 1: INTRO (0s → 4s) ── */
+    await wait(1200);
+
+    // Show cursor
+    cursor.style.left = "560px";
+    cursor.style.top = "350px";
+    cursor.classList.add("visible");
+    await wait(400);
+
+    // Show inspector
+    $("#inspector").classList.add("visible");
+    await wait(300);
+
+    // Select hero block
+    $(".preview-hero").classList.add("selected");
+    await wait(800);
+
+    /* ── SCENE 2: ADD BLOCKS (4s → 9s) ── */
+    // Move to "Ajouter un bloc"
+    await moveCursor(120, 330, 500);
+    await click();
+    await wait(200);
+    $("#blockLibrary").classList.add("open");
+    await wait(500);
+
+    // Click Services
+    await moveCursor(310, 180, 400);
+    await click();
+    $("#libServices").classList.add("adding");
+    await wait(200);
+    $("#libServices").classList.remove("adding");
+    addBlockToSidebar("Services", "#F97316");
+
+    // Add services block to preview
+    const servicesHTML = `
+      <div class="preview-block" id="blockServices">
+        <div class="services-title">Services premium</div>
+        <div class="services-grid">
+          <div class="service-card">
+            <div class="service-icon">🎬</div>
+            <div class="service-name">Montage vidéo</div>
+            <div class="service-desc">Post-production complète</div>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">✨</div>
+            <div class="service-name">Motion design</div>
+            <div class="service-desc">Animations sur mesure</div>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">🎨</div>
+            <div class="service-name">Étalonnage</div>
+            <div class="service-desc">Color grading pro</div>
+          </div>
+        </div>
+      </div>`;
+    $("#dynamicBlocks").insertAdjacentHTML("beforeend", servicesHTML);
+    await wait(100);
+    $("#blockServices").classList.add("visible");
+    await wait(400);
+
+    // Click Testimonials
+    await moveCursor(395, 180, 350);
+    await click();
+    $("#libTestimonials").classList.add("adding");
+    await wait(200);
+    $("#libTestimonials").classList.remove("adding");
+    addBlockToSidebar("Témoignages", "#A855F7");
+
+    const testimonialsHTML = `
+      <div class="preview-block" id="blockTestimonials">
+        <div class="testimonials-title">Témoignages</div>
+        <div class="testimonial-cards">
+          <div class="testimonial-card">
+            <div class="testimonial-stars">★★★★★</div>
+            <div class="testimonial-text">"Montage impeccable, livré en avance. Je recommande !"</div>
+            <div class="testimonial-author">Marie L.</div>
+            <div class="testimonial-role">CEO, Studio Bloom</div>
+          </div>
+          <div class="testimonial-card">
+            <div class="testimonial-stars">★★★★★</div>
+            <div class="testimonial-text">"Créatif, réactif et professionnel. Un vrai partenaire."</div>
+            <div class="testimonial-author">Thomas D.</div>
+            <div class="testimonial-role">Fondateur, TechFlow</div>
+          </div>
+        </div>
+      </div>`;
+    $("#dynamicBlocks").insertAdjacentHTML("beforeend", testimonialsHTML);
+    await wait(100);
+    $("#blockTestimonials").classList.add("visible");
+    await wait(400);
+
+    // Click CTA
+    await moveCursor(310, 250, 350);
+    await click();
+    $("#libCta").classList.add("adding");
+    await wait(200);
+    $("#libCta").classList.remove("adding");
+    addBlockToSidebar("CTA", "#10B981");
+
+    const ctaHTML = `
+      <div class="preview-block" id="blockCta">
+        <div class="cta-block">
+          <div class="cta-title">Prêt à démarrer votre projet ?</div>
+          <div class="cta-desc">Discutons de vos idées. Devis gratuit sous 24h.</div>
+          <span class="cta-button">Demander un devis</span>
+        </div>
+      </div>`;
+    $("#dynamicBlocks").insertAdjacentHTML("beforeend", ctaHTML);
+    await wait(100);
+    $("#blockCta").classList.add("visible");
+    await wait(300);
+
+    // Close library
+    $("#blockLibrary").classList.remove("open");
+    await wait(400);
+
+    /* ── SCENE 3: EDIT TEXT (9s → 14s) ── */
+    // Click hero in sidebar
+    await moveCursor(100, 175, 400);
+    await click();
+    $$(".block-item").forEach(b => b.classList.remove("selected"));
+    $(".block-item").classList.add("selected");
+    await wait(300);
+
+    // Move to badge field
+    await moveCursor(960, 130, 400);
+    await click();
+    await typeField($("#fieldBadge"), $("#heroBadge"), "Monteur vidéo", 45);
+    await wait(200);
+
+    // Move to title field
+    await moveCursor(960, 185, 300);
+    await click();
+    await typeField($("#fieldTitle"), $("#heroTitle"), "Des vidéos qui marquent les esprits", 30);
+    await wait(200);
+
+    // Move to subtitle
+    await moveCursor(960, 245, 300);
+    await click();
+    await typeField($("#fieldSubtitle"), $("#heroSubtitle"), "Montage, motion design et post-production premium pour créateurs et marques exigeantes.", 18);
+    await wait(200);
+
+    // Move to CTA field
+    await moveCursor(960, 305, 300);
+    await click();
+    await typeField($("#fieldCta"), $("#heroCta"), "Voir le showreel", 40);
+    await wait(300);
+
+    /* ── SCENE 4: CHANGE DESIGN (14s → 20s) ── */
+    // Click Design tab
+    await moveCursor(940, 76, 400);
+    await click();
+    setActiveTab("#tabDesign");
+    $("#contentFields").style.display = "none";
+    $("#designPanel").classList.add("visible");
+    await wait(600);
+
+    // Click orange preset
+    await moveCursor(985, 155, 400);
+    await click();
+    $$(".preset-card").forEach(p => p.classList.remove("active"));
+    $("#presetOrange").classList.add("active");
+    applyThemeColor("#F97316");
+    $("#primaryValue").textContent = "#F97316";
+    await wait(800);
+
+    // Click teal preset
+    await moveCursor(900, 205, 400);
+    await click();
+    $$(".preset-card").forEach(p => p.classList.remove("active"));
+    $("#presetTeal").classList.add("active");
+    applyThemeColor("#0EA5E9");
+    $("#primaryValue").textContent = "#0EA5E9";
+    await wait(600);
+
+    // Click purple back
+    await moveCursor(900, 155, 350);
+    await click();
+    $$(".preset-card").forEach(p => p.classList.remove("active"));
+    $("#presetPurple").classList.add("active");
+    applyThemeColor("#7C5CFF");
+    $("#primaryValue").textContent = "#7C5CFF";
+    await wait(300);
+
+    // Change font
+    await moveCursor(960, 330, 350);
+    await click();
+    $("#fontField").classList.add("editing");
+    await wait(200);
+    await typeText($("#fontField"), "Space Grotesk — Bold", 30);
+    $("#heroTitle").style.fontFamily = "'Segoe UI', sans-serif";
+    $("#heroTitle").style.letterSpacing = "-0.8px";
+    await wait(200);
+    $("#fontField").classList.remove("editing");
+    await wait(400);
+
+    /* ── SCENE 5: EDIT NAVBAR (20s → 25s) ── */
+    await moveCursor(1010, 76, 400);
+    await click();
+    setActiveTab("#tabNav");
+    $("#designPanel").classList.remove("visible");
+    $("#navPanel").classList.add("visible");
+    await wait(600);
+
+    // Edit Contact → Devis
+    await moveCursor(940, 220, 400);
+    await click();
+    $("#navItemContact").classList.add("editing");
+    const contactInput = $("#navItemContact .nav-edit-input");
+    contactInput.value = "";
+    await wait(100);
+    const devisText = "Devis gratuit";
+    for (let i = 0; i < devisText.length; i++) {
+      contactInput.value += devisText[i];
+      await wait(40);
+    }
+    $("#navCta").textContent = "Devis gratuit";
+    await wait(300);
+    $("#navItemContact").classList.remove("editing");
+    await wait(200);
+
+    // Add new nav item "Showreel"
+    await moveCursor(940, 265, 350);
+    await click();
+    const newNavItem = document.createElement("div");
+    newNavItem.className = "nav-edit-item block-insert-anim editing";
+    newNavItem.innerHTML = `<span class="nav-drag">⠿</span><input class="nav-edit-input" value="" readonly><span class="nav-edit-type">Lien</span>`;
+    $("#navEditList").insertBefore(newNavItem, $("#navItemContact"));
+    await wait(200);
+
+    const newInput = newNavItem.querySelector(".nav-edit-input");
+    const showreelText = "Showreel";
+    for (let i = 0; i < showreelText.length; i++) {
+      newInput.value += showreelText[i];
+      await wait(45);
+    }
+    // Add to preview nav
+    const showreelLink = document.createElement("span");
+    showreelLink.className = "preview-nav-link";
+    showreelLink.textContent = "Showreel";
+    showreelLink.style.opacity = "0";
+    showreelLink.style.transition = "opacity 0.3s";
+    $("#navLinks").insertBefore(showreelLink, $("#navCta"));
+    await wait(100);
+    showreelLink.style.opacity = "1";
+    await wait(300);
+    newNavItem.classList.remove("editing");
+    await wait(500);
+
+    /* ── SCENE 6: PUBLISH (25s → 30s) ── */
+    $(".preview-hero").classList.remove("selected");
+    await moveCursor(1050, 56, 500);
+    await wait(200);
+    await click();
+
+    // Loading state
+    const btn = $("#publishBtn");
+    btn.classList.add("loading");
+    $(".publish-label").textContent = "Publication...";
+    await wait(1500);
+
+    // Success
+    btn.classList.remove("loading");
+    btn.classList.add("success");
+    await wait(400);
+
+    // Show overlay
+    $("#publishOverlay").classList.add("visible");
+    await wait(2000);
+
+    // Hide cursor
+    cursor.classList.remove("visible");
+
+    } catch(e) { console.error("[DemoBuilder]", e); }
+  }
+
+  /* ── Start ── */
+  function init() {
+    if (window.location.search.includes("play")) {
+      run();
+    } else {
+      // Wait for postMessage to start
+      window.addEventListener("message", function(e) {
+        if (e.data === "play") run();
+      });
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+</body>
+</html>

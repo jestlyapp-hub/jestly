@@ -4,9 +4,9 @@ import type { FooterMultiColumnBlockContent } from "@/types";
 
 function FooterMultiColumnBlockPreviewInner({ content }: { content: FooterMultiColumnBlockContent }) {
   const columns = content.columns?.length ? content.columns : [
-    { title: "Produit", links: [{ label: "Fonctionnalites" }, { label: "Tarifs" }, { label: "FAQ" }] },
-    { title: "Entreprise", links: [{ label: "A propos" }, { label: "Blog" }, { label: "Carrieres" }] },
-    { title: "Legal", links: [{ label: "Mentions legales" }, { label: "CGV" }, { label: "Confidentialite" }] },
+    { title: "Produit", links: [{ label: "Fonctionnalités" }, { label: "Tarifs" }, { label: "FAQ" }] },
+    { title: "Entreprise", links: [{ label: "À propos" }, { label: "Blog" }, { label: "Carrières" }] },
+    { title: "Légal", links: [{ label: "Mentions légales" }, { label: "CGV" }, { label: "Confidentialité" }] },
   ];
 
   const socials = content.socials || {};

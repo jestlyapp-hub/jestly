@@ -105,7 +105,7 @@ export default function PortfolioMasonryBlockEditor({ block }: { block: Extract<
               className={inputClass}
               value={item.category}
               onChange={(e) => updateItem(index, "category", e.target.value)}
-              placeholder="Categorie"
+              placeholder="Catégorie"
             />
             <textarea
               className={inputClass}

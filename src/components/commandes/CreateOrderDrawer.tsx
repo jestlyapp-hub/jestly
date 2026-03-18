@@ -113,20 +113,20 @@ export default function CreateOrderDrawer({
       let finalClientId = clientId;
 
       if (mode === "new") {
-        if (!newClientName || !newClientEmail) {
-          setError("Nom et email du client requis");
+        if (!newClientName) {
+          setError("Nom du client requis");
           setSaving(false);
           return;
         }
         const newClient = await apiFetch<{ id: string }>("/api/clients", {
           method: "POST",
-          body: { name: newClientName, email: newClientEmail },
+          body: { name: newClientName, email: newClientEmail || undefined },
         });
         finalClientId = newClient.id;
       }
 
       if (!finalClientId) {
-        setError("Selectionnez ou creez un client");
+        setError("Sélectionnez ou créez un client");
         setSaving(false);
         return;
       }
@@ -152,7 +152,7 @@ export default function CreateOrderDrawer({
       });
 
       const created = Array.isArray(result) ? result.length : 1;
-      toast.success(created > 1 ? `${created} commandes creees` : "Commande creee");
+      toast.success(created > 1 ? `${created} commandes créées` : "Commande créée");
 
       reset();
       onCreated();
@@ -219,7 +219,7 @@ export default function CreateOrderDrawer({
                     onChange={(e) => setClientId(e.target.value)}
                     className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 cursor-pointer"
                   >
-                    <option value="">Selectionner un client...</option>
+                    <option value="">Sélectionner un client...</option>
                     {clients.map((c) => (
                       <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
                     ))}
@@ -252,7 +252,7 @@ export default function CreateOrderDrawer({
                     className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30" />
                 </div>
                 <div className="w-[140px]">
-                  <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Quantite</label>
+                  <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Quantité</label>
                   <div className="flex items-center bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg overflow-hidden">
                     <button
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -277,7 +277,7 @@ export default function CreateOrderDrawer({
 
               {quantity > 1 && (
                 <p className="text-[11px] text-[#8A8A88] -mt-2">
-                  {quantity} commandes seront creees : &ldquo;{title || "..."} (1/{quantity})&rdquo; a &ldquo;({quantity}/{quantity})&rdquo;
+                  {quantity} commandes seront créées : &ldquo;{title || "..."} (1/{quantity})&rdquo; à &ldquo;({quantity}/{quantity})&rdquo;
                 </p>
               )}
 
@@ -289,7 +289,7 @@ export default function CreateOrderDrawer({
                     className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 cursor-pointer" />
                 </div>
                 <div className="flex-1">
-                  <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Categorie</label>
+                  <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Catégorie</label>
                   <select value={category} onChange={(e) => setCategory(e.target.value)}
                     className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 cursor-pointer">
                     {CATEGORIES.map((c) => (
@@ -362,7 +362,7 @@ export default function CreateOrderDrawer({
 
                   {/* External ref */}
                   <div>
-                    <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Reference externe</label>
+                    <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Référence externe</label>
                     <input type="text" value={externalRef} onChange={(e) => setExternalRef(e.target.value)}
                       placeholder="ID Notion, Trello, ref client..."
                       className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30" />
@@ -382,10 +382,10 @@ export default function CreateOrderDrawer({
                 className="w-full bg-[#4F46E5] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {saving
-                  ? "Creation..."
+                  ? "Création..."
                   : quantity > 1
-                    ? `Creer ${quantity} commandes`
-                    : "Creer la commande"
+                    ? `Créer ${quantity} commandes`
+                    : "Créer la commande"
                 }
               </button>
             </div>

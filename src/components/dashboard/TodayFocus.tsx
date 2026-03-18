@@ -27,9 +27,9 @@ const statusConfig: Record<TodayItem["status"], { label: string; bg: string; tex
 };
 
 const typeLabels: Record<TodayItem["type"], string> = {
-  task: "Tache",
-  event: "Evenement",
-  deadline: "Echeance",
+  task: "Tâche",
+  event: "Événement",
+  deadline: "Échéance",
 };
 
 function formatTodayDate(): string {

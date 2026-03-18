@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Building2, SlidersHorizontal, Receipt, CreditCard, Puzzle,
   Bell, ShieldCheck, Database, AlertTriangle, Save, Check, Loader2,
-  ChevronRight,
+  ChevronRight, CircleCheck,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -170,13 +170,25 @@ export const SEARCH_INDEX: { keywords: string[]; section: SectionId; label: stri
 ];
 
 /* ══════════════════════════════════════════════════════════════════════
-   SHARED UI COMPONENTS
+   SHARED UI — Styles
    ══════════════════════════════════════════════════════════════════════ */
 
-export const inputCls = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-[#7C3AED]/30 focus:ring-1 focus:ring-[#7C3AED]/20 transition-all";
-export const inputErrorCls = "w-full bg-[#F7F7F5] border border-red-300 rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-red-400 focus:ring-1 focus:ring-red-200 transition-all";
+export const inputCls = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-xl px-4 h-[44px] text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all";
+export const inputErrorCls = "w-full bg-[#FEF2F2] border border-red-300 rounded-xl px-4 h-[44px] text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all";
+export const inputSuccessCls = "w-full bg-[#F0FDF4] border border-emerald-300 rounded-xl px-4 h-[44px] text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all";
 export const labelCls = "block text-[12px] font-medium text-[#78716C] mb-1.5";
-export const selectCls = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#7C3AED]/30 focus:ring-1 focus:ring-[#7C3AED]/20 transition-all appearance-none cursor-pointer";
+export const selectCls = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-xl px-4 h-[44px] text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all appearance-none cursor-pointer";
+
+/** Returns the appropriate input class based on validation state */
+export function getInputCls(value: string, error?: string, touched?: boolean): string {
+  if (!value || !touched) return inputCls;
+  if (error) return inputErrorCls;
+  return inputSuccessCls;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   SHARED UI — Components
+   ══════════════════════════════════════════════════════════════════════ */
 
 export function SectionCard({ id, title, description, children, danger, dirty }: {
   id: string;
@@ -188,20 +200,44 @@ export function SectionCard({ id, title, description, children, danger, dirty }:
 }) {
   return (
     <section id={id} className="scroll-mt-24">
-      <div className={`bg-white rounded-xl border ${danger ? "border-red-200" : dirty ? "border-[#7C3AED]/30" : "border-[#E6E6E4]"} overflow-hidden transition-colors`}>
-        <div className={`px-6 py-5 border-b ${danger ? "border-red-100 bg-red-50/30" : "border-[#F5F5F4]"}`}>
+      <div className={`bg-white rounded-xl border ${danger ? "border-red-200" : dirty ? "border-[#4F46E5]/30" : "border-[#E6E6E4]"} overflow-hidden transition-colors`}>
+        <div className={`px-8 py-6 border-b ${danger ? "border-red-100 bg-red-50/30" : "border-[#F5F5F4]"}`}>
           <div className="flex items-center gap-2">
-            <h2 className={`text-[15px] font-semibold ${danger ? "text-red-600" : "text-[#1A1A1A]"}`}>{title}</h2>
+            <h2 className={`text-[16px] font-semibold ${danger ? "text-red-600" : "text-[#1A1A1A]"}`}>{title}</h2>
             {dirty && (
-              <span className="text-[10px] font-semibold text-[#7C3AED] bg-[#F0EEFF] px-2 py-0.5 rounded-full">Modifié</span>
+              <span className="text-[10px] font-semibold text-[#4F46E5] bg-[#EEF2FF] px-2 py-0.5 rounded-full">Modifié</span>
             )}
           </div>
-          {description && <p className="text-[13px] text-[#A8A29E] mt-0.5">{description}</p>}
+          {description && <p className="text-[13px] text-[#A8A29E] mt-1">{description}</p>}
         </div>
-        <div className="px-6 py-5">{children}</div>
+        <div className="px-8 py-6">{children}</div>
       </div>
     </section>
   );
+}
+
+/** Sub-section divider with label and optional description */
+export function SubSection({ label, description }: { label: string; description?: string }) {
+  return (
+    <div className="pt-2 pb-1">
+      <div className="flex items-center gap-3 mb-1">
+        <div className="h-px flex-1 bg-[#F0F0EE]" />
+        <p className="text-[11px] font-semibold text-[#A8A29E] uppercase tracking-wider flex-shrink-0">{label}</p>
+        <div className="h-px flex-1 bg-[#F0F0EE]" />
+      </div>
+      {description && <p className="text-[11px] text-[#C4C4C2] text-center">{description}</p>}
+    </div>
+  );
+}
+
+/** Required badge */
+export function RequiredBadge() {
+  return <span className="text-[10px] font-medium text-[#4F46E5] bg-[#EEF2FF] px-1.5 py-0.5 rounded ml-1.5">Requis</span>;
+}
+
+/** Optional badge */
+export function OptionalBadge() {
+  return <span className="text-[10px] font-medium text-[#A8A29E] ml-1.5">(optionnel)</span>;
 }
 
 export function Toggle({ checked, onChange, label, description }: {
@@ -216,7 +252,7 @@ export function Toggle({ checked, onChange, label, description }: {
         <div className="text-[13px] font-medium text-[#1A1A1A]">{label}</div>
         {description && <div className="text-[12px] text-[#A8A29E] mt-0.5">{description}</div>}
       </div>
-      <div className={`relative w-10 h-[22px] rounded-full transition-colors flex-shrink-0 ${checked ? "bg-[#7C3AED]" : "bg-[#E6E6E4]"}`}>
+      <div className={`relative w-10 h-[22px] rounded-full transition-colors flex-shrink-0 ${checked ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"}`}>
         <div className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${checked ? "left-[22px]" : "left-[3px]"}`} />
       </div>
     </button>
@@ -224,8 +260,41 @@ export function Toggle({ checked, onChange, label, description }: {
 }
 
 export function FieldError({ message }: { message?: string }) {
-  if (!message) return null;
-  return <p className="text-[11px] text-red-500 mt-1">{message}</p>;
+  return (
+    <AnimatePresence>
+      {message && (
+        <motion.p
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.15 }}
+          className="text-[11px] text-red-500 mt-1.5 flex items-center gap-1"
+        >
+          <span className="inline-block w-1 h-1 rounded-full bg-red-400 flex-shrink-0" />
+          {message}
+        </motion.p>
+      )}
+    </AnimatePresence>
+  );
+}
+
+export function FieldSuccess({ message, show }: { message: string; show: boolean }) {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.p
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }}
+          transition={{ duration: 0.15 }}
+          className="text-[11px] text-emerald-600 mt-1.5 flex items-center gap-1"
+        >
+          <CircleCheck size={11} className="flex-shrink-0" />
+          {message}
+        </motion.p>
+      )}
+    </AnimatePresence>
+  );
 }
 
 /* ── Sticky Save Bar ── */
@@ -241,13 +310,13 @@ export function SaveBar({ dirty, saving, saved, error, onSave, onCancel }: {
     <AnimatePresence>
       {(dirty || saved || error) && (
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          transition={{ duration: 0.2 }}
+          initial={{ opacity: 0, y: 24, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 24, scale: 0.98 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
         >
-          <div className={`flex items-center gap-3 px-5 py-3 backdrop-blur-lg border rounded-2xl shadow-lg shadow-black/8 ${error ? "bg-red-50/90 border-red-200" : "bg-white/90 border-[#E6E6E4]"}`}>
+          <div className={`flex items-center gap-3 px-6 py-3.5 backdrop-blur-xl border rounded-2xl shadow-xl ${error ? "bg-red-50/95 border-red-200 shadow-red-500/10" : saved ? "bg-emerald-50/95 border-emerald-200 shadow-emerald-500/10" : "bg-white/95 border-[#E6E6E4] shadow-black/10"}`}>
             {error ? (
               <>
                 <div className="text-[13px] font-medium text-red-600">
@@ -263,7 +332,7 @@ export function SaveBar({ dirty, saving, saved, error, onSave, onCancel }: {
                 <button
                   onClick={onSave}
                   disabled={saving}
-                  className="flex items-center gap-1.5 text-[13px] font-semibold text-white bg-[#7C3AED] px-4 py-2 rounded-lg hover:bg-[#6D28D9] transition-colors shadow-sm disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-[13px] font-semibold text-white bg-[#4F46E5] px-5 py-2.5 rounded-xl hover:bg-[#4338CA] transition-colors shadow-sm disabled:opacity-50"
                 >
                   Réessayer
                 </button>
@@ -275,7 +344,8 @@ export function SaveBar({ dirty, saving, saved, error, onSave, onCancel }: {
               </div>
             ) : (
               <>
-                <div className="text-[13px] font-medium text-[#57534E]">
+                <div className="flex items-center gap-2 text-[13px] font-medium text-[#57534E]">
+                  <span className="w-2 h-2 rounded-full bg-[#4F46E5] animate-pulse" />
                   Modifications non enregistrées
                 </div>
                 <div className="h-4 w-px bg-[#E6E6E4]" />
@@ -288,7 +358,7 @@ export function SaveBar({ dirty, saving, saved, error, onSave, onCancel }: {
                 <button
                   onClick={onSave}
                   disabled={saving}
-                  className="flex items-center gap-1.5 text-[13px] font-semibold text-white bg-[#7C3AED] px-4 py-2 rounded-lg hover:bg-[#6D28D9] transition-colors shadow-sm shadow-[#7C3AED]/20 disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-[13px] font-semibold text-white bg-[#4F46E5] px-5 py-2.5 rounded-xl hover:bg-[#4338CA] transition-colors shadow-md shadow-[#4F46E5]/25 disabled:opacity-50"
                 >
                   {saving ? <><Loader2 size={14} className="animate-spin" /> Enregistrement...</> : <><Save size={14} /> Sauvegarder</>}
                 </button>
@@ -313,7 +383,6 @@ export function CompletionWidget({ profile, form, onNavigate }: {
     { done: !!form.businessName, label: "Nom commercial", section: "workspace" as SectionId },
     { done: !!(form.workspace.address && form.workspace.city), label: "Adresse professionnelle", section: "workspace" as SectionId },
     { done: !!form.workspace.siret, label: "Ajouter votre SIRET", section: "workspace" as SectionId },
-    { done: !!form.workspace.vatNumber, label: "Numéro de TVA", section: "workspace" as SectionId },
     { done: !!profile.stripe_customer_id, label: "Connecter Stripe", section: "integrations" as SectionId },
     { done: false, label: "Connecter Google Calendar", section: "integrations" as SectionId },
     { done: form.notifications.email?.newOrders !== undefined, label: "Configurer les notifications", section: "notifications" as SectionId },
@@ -335,10 +404,10 @@ export function CompletionWidget({ profile, form, onNavigate }: {
             <h3 className="text-[14px] font-semibold text-[#1A1A1A]">Configuration du compte</h3>
             <p className="text-[12px] text-[#A8A29E] mt-0.5">Votre compte est configuré à {pct}%</p>
           </div>
-          <span className="text-[20px] font-bold text-[#7C3AED] tabular-nums">{pct}%</span>
+          <span className="text-[20px] font-bold text-[#4F46E5] tabular-nums">{pct}%</span>
         </div>
         <div className="w-full h-2 bg-[#F0F0EE] rounded-full overflow-hidden">
-          <div className="h-full bg-[#7C3AED] rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+          <div className="h-full bg-[#4F46E5] rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
         </div>
         {remaining.length > 0 && (
           <div className="mt-4 space-y-1.5">
@@ -366,10 +435,24 @@ export function validateEmail(v: string): string | undefined {
   if (!v) return undefined;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? undefined : "Email invalide";
 }
+
+/** URL validation — accepts bare domains (monsite.fr) and full URLs */
 export function validateUrl(v: string): string | undefined {
   if (!v) return undefined;
-  try { new URL(v); return undefined; } catch { return "URL invalide (ex: https://...)"; }
+  // Accept bare domains like monsite.fr
+  const withProtocol = /^https?:\/\//i.test(v) ? v : `https://${v}`;
+  try { new URL(withProtocol); return undefined; } catch { return "URL invalide (ex: monsite.fr)"; }
 }
+
+/** Auto-prefix URL with https:// if needed */
+export function normalizeUrl(v: string): string {
+  if (!v) return v;
+  const trimmed = v.trim();
+  if (!trimmed) return trimmed;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 export function validateSiret(v: string): string | undefined {
   if (!v) return undefined;
   const digits = v.replace(/\s/g, "");
@@ -377,7 +460,7 @@ export function validateSiret(v: string): string | undefined {
 }
 export function validateVat(v: string): string | undefined {
   if (!v) return undefined;
-  return /^[A-Z]{2}\d{9,12}$/.test(v.replace(/\s/g, "")) ? undefined : "N° TVA invalide (ex: FR12345678901)";
+  return /^[A-Z]{2}\d{9,12}$/.test(v.replace(/\s/g, "")) ? undefined : "Format attendu : FR12345678901";
 }
 export function validatePhone(v: string): string | undefined {
   if (!v) return undefined;

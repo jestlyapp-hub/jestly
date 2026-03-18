@@ -14,7 +14,7 @@ const ADD_MENU_ITEMS: { type: BriefFieldType; label: string; icon: string; color
   { type: "number",   label: "Nombre",           icon: "#",  color: "text-emerald-600", bg: "bg-emerald-50" },
   { type: "url",      label: "URL",              icon: "\uD83D\uDD17", color: "text-cyan-600",    bg: "bg-cyan-50" },
   { type: "email",    label: "Email",            icon: "@",  color: "text-sky-600",     bg: "bg-sky-50" },
-  { type: "phone",    label: "Telephone",        icon: "\uD83D\uDCDE", color: "text-teal-600",    bg: "bg-teal-50" },
+  { type: "phone",    label: "Téléphone",        icon: "\uD83D\uDCDE", color: "text-teal-600",    bg: "bg-teal-50" },
   { type: "file",     label: "Fichier",          icon: "\uD83D\uDCCE", color: "text-orange-600",  bg: "bg-orange-50" },
 ];
 

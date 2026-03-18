@@ -193,7 +193,7 @@ export default function CalendarWorkspace() {
           setEvents((prev) => [...(prev || []), newEvent]);
         } catch (e) {
           console.error("Calendar create error:", e);
-          setSaveError(e instanceof Error ? e.message : "Erreur lors de la creation de l'evenement");
+          setSaveError(e instanceof Error ? e.message : "Erreur lors de la création de l'événement");
           return;
         }
       }

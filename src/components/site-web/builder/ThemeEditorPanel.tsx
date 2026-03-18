@@ -206,8 +206,8 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
 
         {/* ── Design Presets ── */}
         <div>
-          <span className={sectionLabel}>Theme complet</span>
-          <p className="text-[10px] text-[#888] mb-2">Applique le style + cree la landing avec les blocs premium.</p>
+          <span className={sectionLabel}>Thème complet</span>
+          <p className="text-[10px] text-[#888] mb-2">Applique le style + crée la landing avec les blocs premium.</p>
           <div className="space-y-2">
             {TEMPLATES.map((template) => (
               <button
@@ -298,7 +298,7 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
             if (!showOpacity && !showSize && !showBlur && !showColors) return null;
             return (
               <div className="mt-3 space-y-2 pt-2 border-t border-[#E6E6E4]">
-                <span className="text-[9px] font-medium text-[#BBB] uppercase tracking-wider block">Parametres du fond</span>
+                <span className="text-[9px] font-medium text-[#BBB] uppercase tracking-wider block">Paramètres du fond</span>
                 {showColors && (
                   <div className="grid grid-cols-2 gap-2">
                     <ColorField label="Couleur 1" value={bgConfig.primaryColor || theme.primaryColor} onChange={(v) => updateBg({ primaryColor: v })} />
@@ -482,7 +482,7 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
 
         {/* ── Live Preview ── */}
         <div>
-          <span className={sectionLabel}>Apercu</span>
+          <span className={sectionLabel}>Aperçu</span>
           <div
             className="rounded-lg border overflow-hidden p-4"
             style={{
@@ -496,7 +496,7 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
               Titre d&apos;exemple
             </h3>
             <p className="text-[11px] mb-3" style={{ color: theme.mutedTextColor || "#5A5A58" }}>
-              Apercu du rendu avec votre design system.
+              Aperçu du rendu avec votre design system.
             </p>
             <div className="flex gap-2">
               <button

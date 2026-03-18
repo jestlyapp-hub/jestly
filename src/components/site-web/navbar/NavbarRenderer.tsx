@@ -841,6 +841,6 @@ export const NAVBAR_VARIANTS = [
   { key: "brand-heavy", name: "Brand Studio", description: "Logo fort, badge createur — studio / creatif" },
   { key: "dual-cta", name: "Double CTA", description: "Deux boutons d'action — pages de vente" },
   { key: "dropdown-rich", name: "Menus Riches", description: "Support dropdown natif — sites de contenu" },
-  { key: "creative-split", name: "Split Creatif", description: "Logo centre, liens separes — editorial premium" },
+  { key: "creative-split", name: "Split Créatif", description: "Logo centré, liens séparés — editorial premium" },
   { key: "signature", name: "Signature", description: "Micro-bar + nav principale — le plus premium et original" },
 ] as const;

@@ -71,7 +71,7 @@ export function useColumns() {
         });
         return created.id;
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Erreur lors de la creation");
+        toast.error(err instanceof Error ? err.message : "Erreur lors de la création");
         return null;
       }
     },
@@ -120,7 +120,7 @@ export function useColumns() {
 
       try {
         await apiFetch(`/api/orders/board/fields/${id}`, { method: "DELETE" });
-        toast.success("Colonne supprimee");
+        toast.success("Colonne supprimée");
       } catch (err) {
         mutate(); // rollback
         toast.error(err instanceof Error ? err.message : "Erreur");

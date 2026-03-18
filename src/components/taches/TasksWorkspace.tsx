@@ -112,7 +112,7 @@ function KanbanColumn({
           ))}
           {tasks.length === 0 && (
             <div className="flex items-center justify-center h-[60px] text-[12px] text-[#CCC] border border-dashed border-[#E6E6E4] rounded-lg">
-              Aucune tache
+              Aucune tâche
             </div>
           )}
         </div>
@@ -166,7 +166,7 @@ function QuickCaptureBar({ onAdd }: { onAdd: (title: string) => void }) {
           }}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder="Nouvelle tache... (appuyer N)"
+          placeholder="Nouvelle tâche... (appuyer N)"
           className="flex-1 py-3 px-2 text-[14px] text-[#1A1A1A] placeholder-[#CCC] border-none outline-none bg-transparent"
         />
         {value.trim() && (
@@ -174,7 +174,7 @@ function QuickCaptureBar({ onAdd }: { onAdd: (title: string) => void }) {
             onClick={handleSubmit}
             className="px-4 py-2 mr-1 text-[12px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-lg transition-colors cursor-pointer"
           >
-            Creer
+            Créer
           </button>
         )}
         <div className="pr-3">
@@ -203,7 +203,7 @@ function TemplatePicker({
       <div className="fixed inset-0 bg-black/10 z-40" onClick={onClose} />
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md bg-white rounded-xl border border-[#E6E6E4] shadow-xl z-50">
         <div className="px-5 py-4 border-b border-[#E6E6E4] flex items-center justify-between">
-          <h3 className="text-[15px] font-semibold text-[#1A1A1A]">Creer depuis un modele</h3>
+          <h3 className="text-[15px] font-semibold text-[#1A1A1A]">Créer depuis un modèle</h3>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] cursor-pointer">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -221,7 +221,7 @@ function TemplatePicker({
                 <span className="text-[14px] font-medium text-[#1A1A1A] group-hover:text-[#4F46E5] transition-colors">
                   {tpl.name}
                 </span>
-                <span className="text-[11px] text-[#BBB]">{tpl.subtasks.length} sous-taches</span>
+                <span className="text-[11px] text-[#BBB]">{tpl.subtasks.length} sous-tâches</span>
               </div>
               <p className="text-[12px] text-[#999] mt-0.5">{tpl.description}</p>
               <div className="flex gap-1 mt-1.5">
@@ -311,7 +311,7 @@ export default function TasksWorkspace() {
 
   function handleSelectTask(task: Task, fullPage = false) {
     if (fullPage) {
-      window.location.href = `/taches/${task.id}`;
+      window.location.href = `/tâches/${task.id}`;
       return;
     }
     setSelectedTask(task);
@@ -332,7 +332,7 @@ export default function TasksWorkspace() {
 
   async function handleAddNew() {
     const newTask = createEmptyTask("todo");
-    newTask.title = "Nouvelle tache";
+    newTask.title = "Nouvelle tâche";
     setSelectedTask(newTask);
     setDrawerOpen(true);
     const saved = await persistNewTask(newTask);
@@ -538,7 +538,7 @@ export default function TasksWorkspace() {
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
           </div>
-          <p className="text-[14px] font-medium text-[#1A1A1A]">Impossible de charger les taches</p>
+          <p className="text-[14px] font-medium text-[#1A1A1A]">Impossible de charger les tâches</p>
           <p className="text-[12px] text-[#999]">{error}</p>
           <button onClick={mutate} className="mt-2 text-[13px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-lg px-4 py-2 transition-colors cursor-pointer">
             Reessayer
@@ -570,7 +570,7 @@ export default function TasksWorkspace() {
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-[#1A1A1A]">Taches</h1>
           <Link
-            href="/taches/archive"
+            href="/tâches/archive"
             className="text-[12px] text-[#999] hover:text-[#666] transition-colors ml-2"
             title="Voir les archives"
             aria-label="Voir les archives"
@@ -646,7 +646,7 @@ export default function TasksWorkspace() {
           <button
             onClick={() => setTemplatePickerOpen(true)}
             className="flex items-center gap-1.5 text-[12px] font-medium text-[#666] bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 hover:bg-[#F7F7F5] transition-colors cursor-pointer"
-            title="Creer depuis un modele"
+            title="Créer depuis un modèle"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" />
@@ -661,7 +661,7 @@ export default function TasksWorkspace() {
             onClick={handleAddNew}
             className="bg-[#4F46E5] text-white rounded-lg px-3 py-2 text-[13px] font-medium hover:bg-[#4338CA] transition-colors cursor-pointer whitespace-nowrap"
           >
-            + Nouvelle tache
+            + Nouvelle tâche
           </button>
         </div>
       </motion.div>

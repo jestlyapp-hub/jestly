@@ -196,7 +196,7 @@ export default function TaskDetailPage() {
             return `${String(h + 1).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
           })() : null,
           allDay: !startTime,
-          notes: `Tache liee: ${task.title}`,
+          notes: `Tâche liée: ${task.title}`,
           priority: task.priority,
           clientName: task.clientName || null,
           clientId: task.clientId || null,
@@ -256,7 +256,7 @@ export default function TaskDetailPage() {
             <line x1="9" y1="9" x2="15" y2="15" />
           </svg>
         </div>
-        <p className="text-[15px] text-[#999] mb-3">Tache introuvable</p>
+        <p className="text-[15px] text-[#999] mb-3">Tâche introuvable</p>
         <button
           onClick={() => router.push("/taches")}
           className="text-[13px] text-[#4F46E5] hover:underline cursor-pointer"
@@ -319,7 +319,7 @@ export default function TaskDetailPage() {
               ref={titleRef}
               value={task.title}
               onChange={(e) => update({ title: e.target.value })}
-              placeholder="Titre de la tache..."
+              placeholder="Titre de la tâche..."
               className="w-full text-[22px] font-bold text-[#1A1A1A] placeholder-[#CCC] border-none outline-none bg-transparent"
             />
 
@@ -458,7 +458,7 @@ export default function TaskDetailPage() {
                 value={newSubtaskText}
                 onChange={(e) => setNewSubtaskText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addSubtask()}
-                placeholder="Ajouter une sous-tache..."
+                placeholder="Ajouter une sous-tâche..."
                 className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               />
               <button
@@ -477,7 +477,7 @@ export default function TaskDetailPage() {
           {/* Due date */}
           <div className="bg-white rounded-xl border border-[#E6E6E4] p-4">
             <label className="text-[11px] text-[#999] font-semibold uppercase tracking-wider block mb-2">
-              Echeance
+              Échéance
             </label>
             <input
               type="date"
@@ -525,7 +525,7 @@ export default function TaskDetailPage() {
           {/* Order link */}
           <div className="bg-white rounded-xl border border-[#E6E6E4] p-4">
             <label className="text-[11px] text-[#999] font-semibold uppercase tracking-wider block mb-2">
-              Commande liee
+              Commande liée
             </label>
             <input
               value={task.orderTitle || ""}
@@ -652,8 +652,8 @@ export default function TaskDetailPage() {
 
           {/* Metadata */}
           <div className="text-[11px] text-[#CCC] px-4 space-y-1">
-            <p>Cree le {formatDate(task.createdAt)}</p>
-            <p>Modifie le {formatDate(task.updatedAt)}</p>
+            <p>Créé le {formatDate(task.createdAt)}</p>
+            <p>Modifié le {formatDate(task.updatedAt)}</p>
           </div>
         </div>
       </div>
