@@ -152,15 +152,18 @@ export async function POST(
       }
 
       if (blockRows.length > 0) {
+        // Use upsert to handle blocks that still exist in old pages (same IDs).
+        // Old pages are deleted AFTER this step, so blocks with preserved IDs may
+        // still exist — upsert avoids "duplicate key violates site_blocks_pkey".
         const { error: blockErr } = await (admin.from("site_blocks") as any)
-          .insert(blockRows);
+          .upsert(blockRows, { onConflict: "id" });
 
         if (blockErr) {
           // Rollback: delete the newly inserted pages (cascade deletes their blocks)
-          console.error("[draft] blocks insert error:", blockErr.message, blockErr.details, "count:", blockRows.length);
+          console.error("[draft] blocks upsert error:", blockErr.message, blockErr.details, "count:", blockRows.length);
           const newPageIds = insertedPages!.map((p: any) => p.id);
           await (admin.from("site_pages") as any).delete().in("id", newPageIds);
-          return NextResponse.json({ error: blockErr.message, step: "blocks_insert" }, { status: 500 });
+          return NextResponse.json({ error: blockErr.message, step: "blocks_upsert" }, { status: 500 });
         }
       }
 

@@ -80,7 +80,7 @@ export async function POST(
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("site_blocks") as any)
-    .insert(blocksToInsert)
+    .upsert(blocksToInsert, { onConflict: "id" })
     .select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
