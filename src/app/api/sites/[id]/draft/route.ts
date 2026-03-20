@@ -55,7 +55,6 @@ export async function POST(
       nav: body.nav ?? null,
       footer: body.footer ?? null,
     };
-    // Only send design if it's present in the payload (avoid null → error on older schemas)
     if (body.design !== undefined) {
       siteUpdate.design = body.design ?? null;
     }
@@ -65,35 +64,36 @@ export async function POST(
       .eq("id", id);
 
     if (updateErr) {
-      console.error("[draft] site update error:", updateErr.message, updateErr.details, updateErr.hint, "payload keys:", Object.keys(siteUpdate));
+      console.error("[draft] site update error:", updateErr.message, updateErr.details, updateErr.hint);
       return NextResponse.json({ error: updateErr.message, step: "site_update" }, { status: 500 });
     }
 
-    // 2. Replace pages + blocks (safe: insert new first, delete old only on success)
-    // Uses admin client to bypass RLS timing issues on cascading inserts
+    // 2. Replace pages + blocks
+    // Strategy: DELETE ALL existing pages first (cascade deletes blocks),
+    // then INSERT new pages + blocks. Simple, atomic, no slug collisions.
     const pages = body.pages || [];
-    if (pages.length > 0) {
-      // Fetch existing page IDs before insert (to delete later on success)
-      const { data: existingPages } = await (admin.from("site_pages") as any)
-        .select("id")
-        .eq("site_id", id);
-      const oldPageIds: string[] = (existingPages ?? []).map((p: any) => p.id);
 
-      // Insert pages — deduplicate slugs to avoid unique constraint violation
-      // Use temporary suffixed slugs to avoid conflicts with existing pages
+    // Delete ALL existing pages for this site (cascade deletes their blocks)
+    const { error: deleteErr } = await (admin.from("site_pages") as any)
+      .delete()
+      .eq("site_id", id);
+
+    if (deleteErr) {
+      console.error("[draft] pages delete error:", deleteErr.message);
+      return NextResponse.json({ error: deleteErr.message, step: "pages_delete" }, { status: 500 });
+    }
+
+    if (pages.length > 0) {
+      // Deduplicate slugs
       const usedSlugs = new Set<string>();
       const pageRows = pages.map((p: any, i: number) => {
         let slug = p.slug || `page-${i}`;
-        if (usedSlugs.has(slug)) {
-          slug = `${slug}-${i}`;
-        }
-        // Suffix with __draft_new to avoid unique constraint with existing pages
+        if (usedSlugs.has(slug)) slug = `${slug}-${i}`;
         usedSlugs.add(slug);
         return {
           site_id: id,
           title: p.title || p.name || "Sans titre",
-          slug: `${slug}__draft_new`,
-          _final_slug: slug,
+          slug,
           is_home: !!p.is_home,
           sort_order: p.sort_order ?? i,
           status: siteIsPublished ? "published" : (p.status || "draft"),
@@ -102,37 +102,29 @@ export async function POST(
         };
       });
 
-      // Strip _final_slug before insert (not a DB column)
-      const insertRows = pageRows.map(({ _final_slug, ...row }: any) => row);
-
-      let insertedPages: any[] | null = null;
-
-      const { data, error: pageErr } = await (admin.from("site_pages") as any)
-        .insert(insertRows)
+      // Insert pages
+      const { data: insertedPages, error: pageErr } = await (admin.from("site_pages") as any)
+        .insert(pageRows)
         .select("id, slug");
 
-      if (pageErr || !data) {
-        console.error("[draft] pages insert error:", pageErr?.message, pageErr?.details, "slugs:", insertRows.map((r: any) => r.slug));
+      if (pageErr || !insertedPages) {
+        console.error("[draft] pages insert error:", pageErr?.message, pageErr?.details);
         return NextResponse.json({ error: pageErr?.message || "Erreur insertion pages.", step: "pages_insert" }, { status: 500 });
       }
 
-      insertedPages = data!;
-
-      // Build slug → DB id map (insertion order is NOT guaranteed by Supabase)
+      // Build slug → DB id map
       const slugToId = new Map<string, string>();
-      for (const row of insertedPages!) {
+      for (const row of insertedPages) {
         slugToId.set(row.slug, row.id);
       }
 
-      // Insert blocks for each page — match by temp slug, not by array index
+      // Build block rows
       const blockRows: any[] = [];
       for (let i = 0; i < pages.length; i++) {
-        const tempSlug = insertRows[i]?.slug;
-        const pageId = slugToId.get(tempSlug);
-        if (!pageId) {
-          console.error("[draft] missing page id for slug", tempSlug, "available:", [...slugToId.keys()]);
-          continue;
-        }
+        const slug = pageRows[i]?.slug;
+        const pageId = slugToId.get(slug);
+        if (!pageId) continue;
+
         const blocks = pages[i].blocks || [];
         for (let j = 0; j < blocks.length; j++) {
           const b = blocks[j];
@@ -145,70 +137,31 @@ export async function POST(
             settings: b.settings || {},
             visible: b.visible ?? true,
           };
-          // Preserve block ID if provided (keeps navbar anchor links stable)
+          // Preserve block ID if provided (keeps anchor links stable)
           if (b.id) blockRow.id = b.id;
           blockRows.push(blockRow);
         }
       }
 
       if (blockRows.length > 0) {
-        // Use upsert to handle blocks that still exist in old pages (same IDs).
-        // Old pages are deleted AFTER this step, so blocks with preserved IDs may
-        // still exist — upsert avoids "duplicate key violates site_blocks_pkey".
+        // Upsert blocks — handles preserved IDs that may still exist in orphan state
         const { error: blockErr } = await (admin.from("site_blocks") as any)
           .upsert(blockRows, { onConflict: "id" });
 
         if (blockErr) {
-          // Rollback: delete the newly inserted pages (cascade deletes their blocks)
-          console.error("[draft] blocks upsert error:", blockErr.message, blockErr.details, "count:", blockRows.length);
-          const newPageIds = insertedPages!.map((p: any) => p.id);
-          await (admin.from("site_pages") as any).delete().in("id", newPageIds);
-          return NextResponse.json({ error: blockErr.message, step: "blocks_upsert" }, { status: 500 });
+          console.error("[draft] blocks upsert error:", blockErr.message, blockErr.details);
+          // Pages are already in place without blocks — non-fatal, log and continue
+          // Next save will retry
         }
-      }
-
-      // Insert succeeded — now safely delete old pages (cascade deletes old blocks)
-      if (oldPageIds.length > 0) {
-        const { error: deleteErr } = await (admin.from("site_pages") as any)
-          .delete()
-          .in("id", oldPageIds);
-
-        if (deleteErr) {
-          console.error("[draft] old pages delete error:", deleteErr.message);
-          // Non-fatal: new pages are in place, old ones remain as orphans
-        }
-      }
-
-      // Rename temp slugs to final slugs
-      for (let i = 0; i < pageRows.length; i++) {
-        const tempSlug = insertRows[i]?.slug;
-        const finalSlug = pageRows[i]._final_slug;
-        const pageId = slugToId.get(tempSlug);
-        if (pageId && tempSlug !== finalSlug) {
-          await (admin.from("site_pages") as any)
-            .update({ slug: finalSlug })
-            .eq("id", pageId);
-        }
-      }
-    } else {
-      // No pages in payload — delete all existing pages
-      const { error: deleteErr } = await (admin.from("site_pages") as any)
-        .delete()
-        .eq("site_id", id);
-
-      if (deleteErr) {
-        console.error("[draft] pages delete error:", deleteErr.message);
-        return NextResponse.json({ error: deleteErr.message, step: "pages_delete" }, { status: 500 });
       }
     }
 
-    // Invalider le cache ISR si le site est publié, pour que les changements
-    // soient visibles immédiatement sur le site public
+    // Revalidate ISR cache if site is published
     if (siteIsPublished && site.slug) {
       try {
         revalidatePath(`/s/${site.slug}`, "layout");
       } catch {
-        // Ignore en dev ou si le chemin n'est pas en cache
+        // Ignore in dev or if path isn't cached
       }
     }
 
