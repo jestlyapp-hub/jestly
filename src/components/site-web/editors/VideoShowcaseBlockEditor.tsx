@@ -3,6 +3,7 @@
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block, BlockLink } from "@/types";
 import LinkEditor from "./LinkEditor";
+import ImageUploader from "./ImageUploader";
 
 const inputClass =
   "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
@@ -53,7 +54,7 @@ export default function VideoShowcaseBlockEditor({ block }: { block: VideoShowca
 
       {/* Video URL */}
       <div>
-        <label className="block text-[12px] font-medium text-[#5A5A58] mb-1">URL de la video</label>
+        <label className="block text-[12px] font-medium text-[#5A5A58] mb-1">URL de la vidéo</label>
         <input
           className={inputClass}
           value={c.videoUrl ?? ""}
@@ -62,16 +63,12 @@ export default function VideoShowcaseBlockEditor({ block }: { block: VideoShowca
         />
       </div>
 
-      {/* Thumbnail URL */}
-      <div>
-        <label className="block text-[12px] font-medium text-[#5A5A58] mb-1">URL de la miniature</label>
-        <input
-          className={inputClass}
-          value={c.thumbnailUrl ?? ""}
-          onChange={(e) => update({ thumbnailUrl: e.target.value })}
-          placeholder="https://..."
-        />
-      </div>
+      {/* Thumbnail */}
+      <ImageUploader
+        value={c.thumbnailUrl ?? ""}
+        onChange={(url) => update({ thumbnailUrl: url })}
+        label="Miniature"
+      />
 
       {/* CTA Label */}
       <div>

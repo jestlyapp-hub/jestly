@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useSite } from "@/lib/hooks/use-site";
 import { useParams } from "next/navigation";
+import ImageUploader from "@/components/site-web/editors/ImageUploader";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
@@ -100,8 +101,12 @@ export default function SiteSeoPage() {
               <div className="text-[11px] text-[#BBB] mt-1">{globalDesc.length}/160 caractères recommandés</div>
             </div>
             <div>
-              <label className="block text-[12px] font-medium text-[#999] mb-1.5">Image Open Graph (URL)</label>
-              <input type="text" value={ogImage} onChange={(e) => setOgImage(e.target.value)} placeholder="https://..." className={inputClass} />
+              <ImageUploader
+                value={ogImage || undefined}
+                onChange={(url) => setOgImage(url)}
+                label="Image Open Graph"
+                hint="1200×630 px recommandé · PNG, JPG ou WebP"
+              />
             </div>
           </div>
 
@@ -174,22 +179,12 @@ export default function SiteSeoPage() {
                         />
                       </div>
                       <div>
-                        <label className="block text-[11px] font-medium text-[#999] mb-1">Image OG (URL)</label>
-                        <input
-                          type="text"
-                          value={seo.ogImageUrl}
-                          onChange={(e) => updatePageSeo(page.id, "ogImageUrl", e.target.value)}
-                          placeholder="https://..."
-                          className={inputClass}
+                        <ImageUploader
+                          value={seo.ogImageUrl || undefined}
+                          onChange={(url) => updatePageSeo(page.id, "ogImageUrl", url)}
+                          label="Image OG"
+                          hint="1200×630 px recommandé"
                         />
-                        {seo.ogImageUrl && (
-                          <div className="mt-2 rounded-lg border border-[#E6E6E4] overflow-hidden bg-white">
-                            <div className="h-24 bg-gradient-to-br from-[#EEF2FF] to-[#E6E6E4] flex items-center justify-center text-[11px] text-[#4F46E5]">
-                              Aperçu OG Image
-                            </div>
-                            <div className="px-3 py-1.5 text-[10px] text-[#999] truncate">{seo.ogImageUrl}</div>
-                          </div>
-                        )}
                       </div>
                     </div>
                   )}

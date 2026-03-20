@@ -13,9 +13,6 @@ interface ImageUploaderProps {
   previewAspect?: string;
 }
 
-const inputClass =
-  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
-
 export default function ImageUploader({
   value,
   onChange,
@@ -167,15 +164,6 @@ export default function ImageUploader({
           )}
         </div>
       )}
-
-      {/* URL fallback input */}
-      <input
-        type="text"
-        value={value ?? ""}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="ou coller une URL d'image..."
-        className={`${inputClass} text-[11px]`}
-      />
 
       <input
         ref={fileRef}

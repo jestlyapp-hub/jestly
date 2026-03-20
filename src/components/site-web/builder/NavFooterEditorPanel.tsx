@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useBuilder } from "@/lib/site-builder-context";
+import ImageUploader from "@/components/site-web/editors/ImageUploader";
 import type { NavConfig, NavLink, NavSocialLink, FooterConfig, FooterLink, NavbarVariant, Block, SitePage } from "@/types";
 import { getBlockLabel, inferDestinationType, validateNavLink } from "@/lib/site-utils";
 import type { LinkValidation } from "@/lib/site-utils";
@@ -358,12 +359,12 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                     placeholder="Nom du site"
                   />
                   <div className="mt-2">
-                    <input
-                      type="text"
-                      value={state.site.settings.logoUrl || ""}
-                      onChange={(e) => dispatch({ type: "UPDATE_SITE_SETTINGS", settings: { logoUrl: e.target.value || undefined } })}
-                      className={inputClass}
-                      placeholder="URL du logo (optionnel)"
+                    <ImageUploader
+                      value={state.site.settings.logoUrl || undefined}
+                      onChange={(url) => dispatch({ type: "UPDATE_SITE_SETTINGS", settings: { logoUrl: url || undefined } })}
+                      label="Logo"
+                      hint="PNG, JPG ou SVG"
+                      previewAspect="1 / 1"
                     />
                   </div>
                 </div>

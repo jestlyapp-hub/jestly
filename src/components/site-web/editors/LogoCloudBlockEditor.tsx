@@ -2,6 +2,7 @@
 
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
+import ImageUploader from "./ImageUploader";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-9 h-5 rounded-full transition-colors cursor-pointer";
@@ -49,7 +50,7 @@ export default function LogoCloudBlockEditor({ block }: { block: Extract<Block, 
           <div key={i} className="rounded-lg border border-[#E6E6E4] p-3 space-y-2 relative">
             <button onClick={() => removeLogo(i)} className="absolute top-2 right-2 text-[#999] hover:text-red-500 text-[16px] leading-none">&times;</button>
             <input type="text" value={logo.name} onChange={(e) => updateLogo(i, "name", e.target.value)} placeholder="Nom" className={inputClass} />
-            <input type="text" value={logo.imageUrl} onChange={(e) => updateLogo(i, "imageUrl", e.target.value)} placeholder="URL de l'image" className={inputClass} />
+            <ImageUploader value={logo.imageUrl} onChange={(url) => updateLogo(i, "imageUrl", url)} label="Image du logo" previewAspect="1 / 1" />
           </div>
         ))}
         <button onClick={addLogo} className="w-full py-2 rounded-lg border border-dashed border-[#E6E6E4] text-[12px] text-[#999] hover:border-[#4F46E5] hover:text-[#4F46E5] transition-colors">+ Ajouter un logo</button>

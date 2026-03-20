@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useSite } from "@/lib/hooks/use-site";
 import { useParams } from "next/navigation";
+import ImageUploader from "@/components/site-web/editors/ImageUploader";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-11 h-6 rounded-full transition-colors cursor-pointer";
@@ -16,6 +17,7 @@ export default function SiteParametresPage() {
   const [errorMsg, setErrorMsg] = useState("");
   const [name, setName] = useState(site.settings.name);
   const [description, setDescription] = useState(site.settings.description);
+  const [logoUrl, setLogoUrl] = useState(site.settings.logoUrl || "");
   const [maintenance, setMaintenance] = useState(site.settings.maintenanceMode);
   const [socials, setSocials] = useState(site.settings.socials);
 
@@ -41,6 +43,7 @@ export default function SiteParametresPage() {
   useEffect(() => {
     setName(site.settings.name);
     setDescription(site.settings.description);
+    setLogoUrl(site.settings.logoUrl || "");
     setMaintenance(site.settings.maintenanceMode);
     setSocials(site.settings.socials);
     setNavLinks(site.nav?.links ?? []);
@@ -95,6 +98,7 @@ export default function SiteParametresPage() {
             ...site.settings,
             name,
             description,
+            logoUrl: logoUrl || undefined,
             maintenanceMode: maintenance,
             socials,
             i18n: { locales, defaultLocale },
@@ -114,7 +118,7 @@ export default function SiteParametresPage() {
       setSaveState("error");
       setErrorMsg(e instanceof Error ? e.message : "Erreur inconnue");
     }
-  }, [siteId, name, description, maintenance, socials, locales, defaultLocale, navLinks, navShowCta, navCtaLabel, footerLinks, footerShowSocials, footerCopyright, site.settings, site.nav, site.footer, mutate]);
+  }, [siteId, name, description, logoUrl, maintenance, socials, locales, defaultLocale, navLinks, navShowCta, navCtaLabel, footerLinks, footerShowSocials, footerCopyright, site.settings, site.nav, site.footer, mutate]);
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -137,22 +141,13 @@ export default function SiteParametresPage() {
               <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={3} className={inputClass} />
             </div>
             <div>
-              <label className="block text-[12px] font-medium text-[#999] mb-1.5">Logo</label>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-xl bg-[#F7F7F5] border-2 border-dashed border-[#E6E6E4] flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <polyline points="21 15 16 10 5 21" />
-                  </svg>
-                </div>
-                <div>
-                  <button className="text-[12px] font-medium text-[#4F46E5] border border-[#4F46E5]/20 px-3 py-1.5 rounded-lg hover:bg-[#EEF2FF] transition-colors">
-                    Uploader un logo
-                  </button>
-                  <p className="text-[11px] text-[#BBB] mt-1">PNG, JPG ou SVG. Max 2 Mo.</p>
-                </div>
-              </div>
+              <ImageUploader
+                value={logoUrl || undefined}
+                onChange={(url) => setLogoUrl(url)}
+                label="Logo"
+                hint="PNG, JPG ou SVG · Max 2 Mo"
+                previewAspect="1 / 1"
+              />
             </div>
           </div>
         </motion.section>

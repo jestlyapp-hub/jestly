@@ -3,6 +3,7 @@
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block, BlockLink } from "@/types";
 import LinkEditor from "./LinkEditor";
+import ImageUploader from "./ImageUploader";
 
 const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
@@ -20,10 +21,11 @@ export default function CtaPremiumBlockEditor({ block }: { block: Extract<Block,
         <label className="block text-[11px] font-medium text-[#999] mb-1">Description</label>
         <textarea value={block.content.description} onChange={(e) => update({ description: e.target.value })} rows={2} className={inputClass} />
       </div>
-      <div>
-        <label className="block text-[11px] font-medium text-[#999] mb-1">Image de fond (URL)</label>
-        <input type="text" value={block.content.backgroundImageUrl ?? ""} onChange={(e) => update({ backgroundImageUrl: e.target.value })} placeholder="https://..." className={inputClass} />
-      </div>
+      <ImageUploader
+        value={block.content.backgroundImageUrl ?? ""}
+        onChange={(url) => update({ backgroundImageUrl: url })}
+        label="Image de fond"
+      />
 
       <div className="border-t border-[#E6E6E4] pt-3">
         <label className="block text-[11px] font-medium text-[#999] mb-1">Bouton principal</label>
