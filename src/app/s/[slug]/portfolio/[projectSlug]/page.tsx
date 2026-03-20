@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { getSiteBySlug } from "@/lib/site-resolver";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Metadata } from "next";
 import PortfolioCaseStudyPage from "@/components/site-public/PortfolioCaseStudyPage";
 
@@ -27,24 +28,110 @@ export interface PortfolioData {
   seo: { title: string; description: string | null; ogImage: string | null };
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/**
+ * Resolve portfolio data directly via Supabase (no HTTP fetch).
+ * This avoids VERCEL_URL routing issues and is faster on the server.
+ */
 async function resolvePortfolio(siteSlug: string, projectSlug: string) {
   const site = await getSiteBySlug(siteSlug);
   if (!site) return { site: null, portfolio: null };
 
   try {
-    const base = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : "http://localhost:3000";
-    const url = `${base}/api/public/portfolio/${encodeURIComponent(projectSlug)}?site=${encodeURIComponent(siteSlug)}`;
-    const res = await fetch(url, { next: { revalidate: 60 } });
+    const supabase = createAdminClient();
 
-    if (!res.ok) return { site, portfolio: null };
-    const portfolio: PortfolioData = await res.json();
+    // Get site owner from slug
+    const { data: siteRow } = await (supabase.from("sites") as any)
+      .select("owner_id")
+      .eq("slug", siteSlug)
+      .eq("status", "published")
+      .single();
+
+    if (!siteRow) return { site, portfolio: null };
+
+    // Find the project
+    const { data: project, error } = await (supabase.from("projects") as any)
+      .select(`
+        id, name, description, project_type, color, status, cover_url, tags,
+        is_portfolio, portfolio_description, portfolio_display_title, portfolio_subtitle,
+        portfolio_result, portfolio_summary, portfolio_cover_url, portfolio_cover_item_id,
+        portfolio_category, portfolio_images, portfolio_external_url, portfolio_slug,
+        portfolio_cta_label, portfolio_cta_url, portfolio_featured,
+        portfolio_intro_text, portfolio_challenge_text, portfolio_solution_text,
+        portfolio_result_text, portfolio_gallery_item_ids,
+        portfolio_seo_title, portfolio_seo_description,
+        portfolio_visibility,
+        clients(name, company),
+        project_items!project_items_project_id_fkey(id, item_type, file_path, thumbnail_url, mime_type, title, url)
+      `)
+      .eq("user_id", siteRow.owner_id)
+      .eq("portfolio_slug", projectSlug)
+      .eq("is_portfolio", true)
+      .eq("portfolio_visibility", "public")
+      .single();
+
+    if (error || !project) return { site, portfolio: null };
+
+    // Resolve gallery
+    const allItems = project.project_items || [];
+    const imageItems = allItems.filter((it: any) => it.item_type === "image" || it.item_type === "video");
+    const galleryIds: string[] = project.portfolio_gallery_item_ids || [];
+
+    let gallery: any[];
+    if (galleryIds.length > 0) {
+      gallery = galleryIds.map((gid: string) => imageItems.find((it: any) => it.id === gid)).filter(Boolean);
+    } else {
+      gallery = imageItems.slice(0, 12);
+    }
+
+    // Cover fallback
+    const coverUrl =
+      project.portfolio_cover_url ||
+      project.cover_url ||
+      (project.portfolio_cover_item_id ? imageItems.find((it: any) => it.id === project.portfolio_cover_item_id)?.url : null) ||
+      imageItems[0]?.url ||
+      null;
+
+    const portfolio: PortfolioData = {
+      id: project.id,
+      title: project.portfolio_display_title || project.name,
+      subtitle: project.portfolio_subtitle || null,
+      category: project.portfolio_category || project.project_type || null,
+      result: project.portfolio_result || null,
+      summary: project.portfolio_summary || project.portfolio_description || project.description || null,
+      coverUrl,
+      introText: project.portfolio_intro_text || null,
+      challengeText: project.portfolio_challenge_text || null,
+      solutionText: project.portfolio_solution_text || null,
+      resultText: project.portfolio_result_text || null,
+      ctaLabel: project.portfolio_cta_label || null,
+      ctaUrl: project.portfolio_cta_url || null,
+      clientName: project.clients?.name || null,
+      clientCompany: project.clients?.company || null,
+      color: project.color,
+      tags: project.tags || [],
+      gallery: gallery.map((it: any) => ({
+        id: it.id,
+        type: it.item_type,
+        url: it.url || it.file_path || it.thumbnail_url,
+        title: it.title || null,
+      })),
+      seo: {
+        title: project.portfolio_seo_title || project.portfolio_display_title || project.name,
+        description: project.portfolio_seo_description || project.portfolio_summary || project.description || null,
+        ogImage: coverUrl,
+      },
+    };
+
     return { site, portfolio };
-  } catch {
+  } catch (err) {
+    console.error("[portfolio-page] resolve error:", err);
     return { site, portfolio: null };
   }
 }
+
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export async function generateMetadata({
   params,
