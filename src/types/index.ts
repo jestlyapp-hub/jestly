@@ -1521,6 +1521,27 @@ export interface NavConfig {
   showSocials?: boolean;
   socials?: NavSocialLink[];
   sticky?: boolean;
+  // Scroll behavior
+  scrollBehavior?: "static" | "sticky" | "fixed" | "auto-hide" | "transparent-to-solid";
+  scrollThreshold?: number;       // px before behavior activates (default: 50)
+  scrollShrink?: boolean;         // reduce height on scroll
+  scrollAddShadow?: boolean;      // add shadow after threshold
+  scrollAddBlur?: boolean;        // add blur after threshold
+  scrollChangeBg?: boolean;       // change bg to solid after threshold
+  scrollAnimation?: "none" | "fade" | "slide" | "smooth";
+  scrollAnimDuration?: number;    // ms (default: 300)
+  // Active link section spy
+  activeLinkSpy?: boolean;        // auto-highlight nav link for visible section
+  activeLinkStyle?: "underline" | "pill" | "dot" | "glow" | "none";
+  // Style extras
+  linkColor?: string;
+  linkHoverColor?: string;
+  activeLinkColor?: string;
+  navBgColor?: string;
+  navBorderColor?: string;
+  navBorderWidth?: number;
+  navBorderRadius?: number;       // px
+  navShadowIntensity?: "none" | "sm" | "md" | "lg";
   containerWidth?: "full" | "boxed" | "narrow";
   bgMode?: "solid" | "blur" | "transparent";
   showBorder?: boolean;

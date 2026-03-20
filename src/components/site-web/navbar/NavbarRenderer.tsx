@@ -409,45 +409,182 @@ function CtaButton({ label, isPrimary, nav, href }: { label: string; isPrimary?:
 }
 
 // ═══════════════════════════════════════════════
-// SHARED NAV WRAPPER (outer shell — sticky, bg, border, shadow)
+// SCROLL BEHAVIOR HOOK
+// ═══════════════════════════════════════════════
+
+function useNavScroll(behavior: string, threshold: number) {
+  const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
+  const rafId = useRef(0);
+
+  useEffect(() => {
+    // Reset states when behavior changes (e.g., switching from auto-hide to sticky in editor)
+    setScrolled(false);
+    setHidden(false);
+    if (behavior === "static") return;
+
+    const handleScroll = () => {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = requestAnimationFrame(() => {
+        const y = window.scrollY;
+        setScrolled(y > threshold);
+
+        if (behavior === "auto-hide") {
+          setHidden(y > lastScrollY.current && y > threshold);
+        }
+
+        lastScrollY.current = y;
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(rafId.current);
+    };
+  }, [behavior, threshold]);
+
+  return { scrolled, hidden };
+}
+
+// ═══════════════════════════════════════════════
+// SHARED NAV WRAPPER (outer shell — scroll behavior, bg, border, shadow)
 // All 8 variants MUST use this for consistency
 // ═══════════════════════════════════════════════
 
+const shadowMap: Record<string, string> = {
+  none: "none",
+  sm: "0 1px 2px rgba(0,0,0,0.04)",
+  md: "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)",
+  lg: "0 4px 16px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.04)",
+};
+
 function NavWrapper({ nav, children, className }: { nav: NavConfig; children: React.ReactNode; className?: string }) {
   const hPx = nav.density === "compact" ? 56 : nav.density === "spacious" ? 80 : 64;
+  const shrunkHPx = nav.density === "compact" ? 44 : nav.density === "spacious" ? 64 : 52;
 
-  let bgStyle: React.CSSProperties = {};
-  if (nav.bgMode === "transparent") {
-    bgStyle.backgroundColor = "transparent";
-  } else if (nav.bgMode === "blur") {
-    bgStyle.backgroundColor = "color-mix(in srgb, var(--site-bg, #fff) 85%, transparent)";
-    bgStyle.backdropFilter = "blur(12px)";
-    bgStyle.WebkitBackdropFilter = "blur(12px)";
-  } else {
-    bgStyle.backgroundColor = "var(--site-bg, #fff)";
+  // Backwards compatible: use scrollBehavior if set, else fallback to legacy sticky
+  const behavior = nav.scrollBehavior || (nav.sticky === true || (nav.sticky as unknown) === "true" ? "sticky" : "static");
+  const threshold = nav.scrollThreshold ?? 50;
+  const animDuration = nav.scrollAnimDuration ?? 300;
+
+  const { scrolled, hidden } = useNavScroll(behavior, threshold);
+
+  // Compute base bg style
+  const computeBgStyle = (forceOpaque?: boolean): React.CSSProperties => {
+    const style: React.CSSProperties = {};
+
+    // transparent-to-solid: start transparent, become solid on scroll
+    if (behavior === "transparent-to-solid" && !forceOpaque && !scrolled) {
+      style.backgroundColor = "transparent";
+      return style;
+    }
+
+    // Custom bg color override
+    if (nav.navBgColor) {
+      style.backgroundColor = nav.navBgColor;
+      return style;
+    }
+
+    if (nav.bgMode === "transparent" && !(behavior === "transparent-to-solid" && scrolled)) {
+      style.backgroundColor = "transparent";
+    } else if (nav.bgMode === "blur" || (behavior === "transparent-to-solid" && scrolled && !nav.navBgColor)) {
+      style.backgroundColor = "color-mix(in srgb, var(--site-bg, #fff) 85%, transparent)";
+      style.backdropFilter = "blur(12px)";
+      style.WebkitBackdropFilter = "blur(12px)";
+    } else {
+      style.backgroundColor = "var(--site-bg, #fff)";
+    }
+
+    return style;
+  };
+
+  // Position classes
+  let positionClass = "relative";
+  if (behavior === "sticky") {
+    positionClass = "sticky top-0";
+  } else if (behavior === "fixed" || behavior === "auto-hide" || behavior === "transparent-to-solid") {
+    positionClass = "fixed top-0 left-0 right-0";
   }
 
+  // Scroll-dependent effects
+  const bgStyle = computeBgStyle();
+
+  // Add blur on scroll
+  if (nav.scrollAddBlur && scrolled && !bgStyle.backdropFilter) {
+    bgStyle.backdropFilter = "blur(12px)";
+    bgStyle.WebkitBackdropFilter = "blur(12px)";
+  }
+
+  // Shadow: base shadow from config + scroll shadow
+  const baseShadow = nav.showShadow
+    ? shadowMap[nav.navShadowIntensity || "md"] || shadowMap.md
+    : "none";
+  const scrollShadow = nav.scrollAddShadow && scrolled
+    ? shadowMap.md
+    : "none";
+  const finalShadow = scrollShadow !== "none" ? scrollShadow : baseShadow;
+
+  // Border
+  const borderBottom = nav.showBorder
+    ? `${nav.navBorderWidth || 1}px solid ${nav.navBorderColor || "var(--site-border, #E6E6E4)"}`
+    : "none";
+
+  // Current height (shrink on scroll)
+  const currentH = nav.scrollShrink && scrolled ? shrunkHPx : hPx;
+
+  // Auto-hide transform
+  const transform = behavior === "auto-hide" && hidden ? `translateY(-100%)` : "translateY(0)";
+
+  // Animation style
+  const getTransitionCSS = (): string => {
+    const dur = `${animDuration}ms`;
+    const parts: string[] = [];
+    if (behavior === "auto-hide") parts.push(`transform ${dur} ease-in-out`);
+    if (behavior === "transparent-to-solid" || nav.scrollChangeBg) parts.push(`background-color ${dur} ease`);
+    if (nav.scrollShrink) parts.push(`height ${dur} ease`);
+    if (nav.scrollAddShadow) parts.push(`box-shadow ${dur} ease`);
+    if (nav.scrollAddBlur) parts.push(`backdrop-filter ${dur} ease`);
+    // Always have a base transition for smooth feel
+    if (parts.length === 0) return `all ${dur} ease`;
+    return parts.join(", ");
+  };
+
+  const needsSpacer = behavior === "fixed" || behavior === "auto-hide" || behavior === "transparent-to-solid";
+
   return (
-    <nav
-      className={`${nav.sticky === true || (nav.sticky as unknown) === "true" ? "sticky top-0" : "relative"} z-50 ${className || ""}`}
-      style={{
-        ...bgStyle,
-        borderBottom: nav.showBorder ? "1px solid var(--site-border, #E6E6E4)" : "none",
-        boxShadow: nav.showShadow ? "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)" : "none",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ["--nav-h" as any]: `${hPx}px`,
-      }}
-    >
-      {children}
-    </nav>
+    <>
+      {needsSpacer && (
+        <div style={{ height: `${hPx}px` }} aria-hidden="true" />
+      )}
+      <nav
+        className={`${positionClass} z-50 ${className || ""}`}
+        style={{
+          ...bgStyle,
+          borderBottom,
+          boxShadow: finalShadow,
+          borderRadius: nav.navBorderRadius ? `${nav.navBorderRadius}px` : undefined,
+          height: `${currentH}px`,
+          transform,
+          transition: getTransitionCSS(),
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ["--nav-h" as any]: `${currentH}px`,
+        }}
+      >
+        {children}
+      </nav>
+    </>
   );
 }
 
 // Container row inside NavWrapper
 function NavContainer({ nav, children, className }: { nav: NavConfig; children: React.ReactNode; className?: string }) {
-  const h = heightMap[nav.density || "default"];
   return (
-    <div className={`${containerMap[nav.containerWidth || "boxed"]} ${h} flex items-center ${className || ""}`}>
+    <div
+      className={`${containerMap[nav.containerWidth || "boxed"]} flex items-center ${className || ""}`}
+      style={{ height: "var(--nav-h, 64px)" }}
+    >
       {children}
     </div>
   );

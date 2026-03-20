@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, lazy, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, lazy, Suspense } from "react";
 import type { Site, SitePage, Block, Product } from "@/types";
 
 const ParticleBackground = lazy(() => import("@/components/site-web/blocks/ParticleBackground"));
@@ -308,6 +308,41 @@ function PublicBlockSection({ block, site, pagePath }: { block: Block; site: Sit
 // Site Navigation (with mobile hamburger)
 // ═══════════════════════════════════════════════
 
+function usePublicNavScroll(behavior: string, threshold: number) {
+  const [scrolled, setScrolled] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
+  const rafId = useRef(0);
+
+  useEffect(() => {
+    setScrolled(false);
+    setHidden(false);
+    if (behavior === "static") return;
+
+    const handleScroll = () => {
+      cancelAnimationFrame(rafId.current);
+      rafId.current = requestAnimationFrame(() => {
+        const y = window.scrollY;
+        setScrolled(y > threshold);
+
+        if (behavior === "auto-hide") {
+          setHidden(y > lastScrollY.current && y > threshold);
+        }
+
+        lastScrollY.current = y;
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      cancelAnimationFrame(rafId.current);
+    };
+  }, [behavior, threshold]);
+
+  return { scrolled, hidden };
+}
+
 function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const nav = site.nav;
@@ -315,114 +350,113 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
   const navStyle = site.design?.navStyle;
   const navClass = navStyle ? getNavClass(navStyle) : "";
 
+  // Scroll behavior — backwards compatible
+  const behavior = nav.scrollBehavior || (nav.sticky === true || (nav.sticky as unknown) === "true" ? "sticky" : "static");
+  const threshold = nav.scrollThreshold ?? 50;
+  const animDuration = nav.scrollAnimDuration ?? 300;
+  const { scrolled, hidden } = usePublicNavScroll(behavior, threshold);
+
+  // Position classes
+  let positionClass = "relative";
+  if (behavior === "sticky") positionClass = "sticky top-0";
+  else if (behavior === "fixed" || behavior === "auto-hide" || behavior === "transparent-to-solid") positionClass = "fixed top-0 left-0 right-0";
+
+  // Background — respect bgMode like NavWrapper
+  const bgStyle: React.CSSProperties = {};
+  if (behavior === "transparent-to-solid" && !scrolled) {
+    bgStyle.backgroundColor = "transparent";
+  } else if (nav.navBgColor) {
+    bgStyle.backgroundColor = nav.navBgColor;
+  } else if (navClass) {
+    // navClass handles bg
+  } else if (nav.bgMode === "transparent") {
+    bgStyle.backgroundColor = "transparent";
+  } else if (nav.bgMode === "blur") {
+    bgStyle.backgroundColor = "color-mix(in srgb, var(--site-bg, #fff) 85%, transparent)";
+    bgStyle.backdropFilter = "blur(12px)";
+    bgStyle.WebkitBackdropFilter = "blur(12px)";
+  } else {
+    bgStyle.backgroundColor = "var(--site-bg, #fff)";
+  }
+
+  // Blur on scroll (additive, only if not already set by bgMode)
+  if (nav.scrollAddBlur && scrolled && !bgStyle.backdropFilter) {
+    bgStyle.backdropFilter = "blur(12px)";
+    bgStyle.WebkitBackdropFilter = "blur(12px)";
+  }
+
+  // Shadow on scroll
+  const shadowOnScroll = nav.scrollAddShadow && scrolled
+    ? "0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03)"
+    : undefined;
+
+  // Transform (auto-hide)
+  const transform = behavior === "auto-hide" && hidden ? "translateY(-100%)" : "translateY(0)";
+
+  // Height — respect density like NavWrapper
+  const baseH = nav.density === "compact" ? 56 : nav.density === "spacious" ? 80 : 64;
+  const shrunkH = Math.round(baseH * 0.82);
+  const currentH = nav.scrollShrink && scrolled ? shrunkH : baseH;
+
+  // Transition
+  const transitionParts: string[] = [];
+  if (behavior === "auto-hide") transitionParts.push(`transform ${animDuration}ms ease-in-out`);
+  if (behavior === "transparent-to-solid" || nav.scrollChangeBg) transitionParts.push(`background-color ${animDuration}ms ease`);
+  if (nav.scrollShrink) transitionParts.push(`height ${animDuration}ms ease`);
+  if (nav.scrollAddShadow) transitionParts.push(`box-shadow ${animDuration}ms ease`);
+  if (nav.scrollAddBlur) transitionParts.push(`backdrop-filter ${animDuration}ms ease`);
+  const transition = transitionParts.length > 0 ? transitionParts.join(", ") : undefined;
+
+  const needsSpacer = behavior === "fixed" || behavior === "auto-hide" || behavior === "transparent-to-solid";
+
   return (
-    <nav className={`${nav.sticky === true || (nav.sticky as unknown) === "true" ? "sticky top-0" : "relative"} z-50 border-b ${
-      navClass || "backdrop-blur-sm"
-    }`} style={{ backgroundColor: navClass ? undefined : "color-mix(in srgb, var(--site-bg, #fff) 95%, transparent)", borderColor: "var(--site-border)" }}>
-      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        {/* Logo / Site name */}
-        <a href="/" className="text-base font-bold tracking-tight" style={{ color: "var(--site-text)" }}>
-          {site.settings.name}
-        </a>
+    <>
+      {needsSpacer && <div style={{ height: `${baseH}px` }} aria-hidden="true" />}
+      <nav
+        className={`${positionClass} z-50 ${nav.showBorder !== false ? "border-b" : ""} ${navClass || ""}`}
+        style={{
+          ...bgStyle,
+          borderColor: nav.showBorder !== false ? (nav.navBorderColor || "var(--site-border)") : undefined,
+          height: `${currentH}px`,
+          transform,
+          transition,
+          boxShadow: shadowOnScroll,
+        }}
+      >
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between" style={{ height: "100%" }}>
+          {/* Logo / Site name */}
+          <a href="/" className="text-base font-bold tracking-tight" style={{ color: "var(--site-text)" }}>
+            {site.settings.name}
+          </a>
 
-        {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-6">
-          {nav.links.map((link, i) => {
-            const href = resolveNavLinkHref(link, site);
-            const isActive = href === currentSlug;
-            return (
-              <a
-                key={i}
-                href={href}
-                className="text-[13px] font-medium transition-colors"
-                style={{ color: isActive ? "var(--site-text)" : "var(--site-muted)" }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "var(--site-text)"; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "var(--site-muted)"; }}
-              >
-                {link.label}
-              </a>
-            );
-          })}
-        </div>
-
-        {/* Desktop CTA + Mobile hamburger */}
-        <div className="flex items-center gap-3">
-          {nav.showSecondaryCta && nav.secondaryCtaLabel && (
-            <a
-              href={nav.secondaryCtaUrl || "#"}
-              target={nav.secondaryCtaOpenNewTab ? "_blank" : undefined}
-              rel={nav.secondaryCtaOpenNewTab ? "noopener noreferrer" : undefined}
-              className="hidden md:inline-flex text-[13px] font-semibold px-4 py-2 border transition-colors hover:opacity-80"
-              style={{
-                backgroundColor: nav.secondaryCtaBgColor || "transparent",
-                color: nav.secondaryCtaTextColor || "var(--site-text, #191919)",
-                borderColor: nav.secondaryCtaBorderColor || "var(--site-border, #E6E6E4)",
-                borderRadius: "var(--site-btn-radius, 6px)",
-              }}
-            >
-              {nav.secondaryCtaLabel}
-            </a>
-          )}
-          {nav.showCta && nav.ctaLabel && (
-            <a
-              href={nav.ctaLink?.value ? resolvePageSlug(site, nav.ctaLink.value) : "#"}
-              className="hidden md:inline-flex text-[13px] font-semibold px-4 py-2 transition-colors hover:opacity-90"
-              style={{
-                backgroundColor: nav.ctaBgColor || "var(--btn-bg, var(--site-primary))",
-                color: nav.ctaTextColor || "var(--btn-text, #fff)",
-                borderRadius: nav.ctaBorderRadius || "var(--site-btn-radius, 6px)",
-              }}
-            >
-              {nav.ctaLabel}
-            </a>
-          )}
-
-          {/* Hamburger button (mobile) */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden p-2 transition-colors"
-            style={{ color: "var(--site-muted)" }}
-            aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
-          >
-            {mobileOpen ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="3" y1="6" x2="21" y2="6" />
-                <line x1="3" y1="12" x2="21" y2="12" />
-                <line x1="3" y1="18" x2="21" y2="18" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Mobile menu */}
-      {mobileOpen && (
-        <div className="md:hidden border-t" style={{ borderColor: "var(--site-border)", backgroundColor: "var(--site-bg, #fff)" }}>
-          <div className="px-6 py-4 space-y-3">
+          {/* Desktop links */}
+          <div className="hidden md:flex items-center gap-6">
             {nav.links.map((link, i) => {
               const href = resolveNavLinkHref(link, site);
+              const isActive = href === currentSlug;
               return (
                 <a
                   key={i}
                   href={href}
-                  onClick={() => setMobileOpen(false)}
-                  className="block text-sm font-medium transition-colors py-1"
-                  style={{ color: "var(--site-muted)" }}
+                  className="text-[13px] font-medium transition-colors"
+                  style={{ color: isActive ? "var(--site-text)" : "var(--site-muted)" }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "var(--site-text)"; }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "var(--site-muted)"; }}
                 >
                   {link.label}
                 </a>
               );
             })}
+          </div>
+
+          {/* Desktop CTA + Mobile hamburger */}
+          <div className="flex items-center gap-3">
             {nav.showSecondaryCta && nav.secondaryCtaLabel && (
               <a
                 href={nav.secondaryCtaUrl || "#"}
-                onClick={() => setMobileOpen(false)}
-                className="block text-center text-sm font-semibold px-4 py-2.5 border transition-colors mt-2"
+                target={nav.secondaryCtaOpenNewTab ? "_blank" : undefined}
+                rel={nav.secondaryCtaOpenNewTab ? "noopener noreferrer" : undefined}
+                className="hidden md:inline-flex text-[13px] font-semibold px-4 py-2 border transition-colors hover:opacity-80"
                 style={{
                   backgroundColor: nav.secondaryCtaBgColor || "transparent",
                   color: nav.secondaryCtaTextColor || "var(--site-text, #191919)",
@@ -436,7 +470,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
             {nav.showCta && nav.ctaLabel && (
               <a
                 href={nav.ctaLink?.value ? resolvePageSlug(site, nav.ctaLink.value) : "#"}
-                className="block text-center text-sm font-semibold px-4 py-2.5 transition-colors mt-2"
+                className="hidden md:inline-flex text-[13px] font-semibold px-4 py-2 transition-colors hover:opacity-90"
                 style={{
                   backgroundColor: nav.ctaBgColor || "var(--btn-bg, var(--site-primary))",
                   color: nav.ctaTextColor || "var(--btn-text, #fff)",
@@ -446,10 +480,81 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
                 {nav.ctaLabel}
               </a>
             )}
+
+            {/* Hamburger button (mobile) */}
+            <button
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className="md:hidden p-2 transition-colors"
+              style={{ color: "var(--site-muted)" }}
+              aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            >
+              {mobileOpen ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <line x1="3" y1="12" x2="21" y2="12" />
+                  <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
-      )}
-    </nav>
+
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div className="md:hidden border-t" style={{ borderColor: "var(--site-border)", backgroundColor: "var(--site-bg, #fff)" }}>
+            <div className="px-6 py-4 space-y-3">
+              {nav.links.map((link, i) => {
+                const href = resolveNavLinkHref(link, site);
+                return (
+                  <a
+                    key={i}
+                    href={href}
+                    onClick={() => setMobileOpen(false)}
+                    className="block text-sm font-medium transition-colors py-1"
+                    style={{ color: "var(--site-muted)" }}
+                  >
+                    {link.label}
+                  </a>
+                );
+              })}
+              {nav.showSecondaryCta && nav.secondaryCtaLabel && (
+                <a
+                  href={nav.secondaryCtaUrl || "#"}
+                  onClick={() => setMobileOpen(false)}
+                  className="block text-center text-sm font-semibold px-4 py-2.5 border transition-colors mt-2"
+                  style={{
+                    backgroundColor: nav.secondaryCtaBgColor || "transparent",
+                    color: nav.secondaryCtaTextColor || "var(--site-text, #191919)",
+                    borderColor: nav.secondaryCtaBorderColor || "var(--site-border, #E6E6E4)",
+                    borderRadius: "var(--site-btn-radius, 6px)",
+                  }}
+                >
+                  {nav.secondaryCtaLabel}
+                </a>
+              )}
+              {nav.showCta && nav.ctaLabel && (
+                <a
+                  href={nav.ctaLink?.value ? resolvePageSlug(site, nav.ctaLink.value) : "#"}
+                  className="block text-center text-sm font-semibold px-4 py-2.5 transition-colors mt-2"
+                  style={{
+                    backgroundColor: nav.ctaBgColor || "var(--btn-bg, var(--site-primary))",
+                    color: nav.ctaTextColor || "var(--btn-text, #fff)",
+                    borderRadius: nav.ctaBorderRadius || "var(--site-btn-radius, 6px)",
+                  }}
+                >
+                  {nav.ctaLabel}
+                </a>
+              )}
+            </div>
+          </div>
+        )}
+      </nav>
+    </>
   );
 }
 

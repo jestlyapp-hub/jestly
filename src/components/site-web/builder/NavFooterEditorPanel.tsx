@@ -16,7 +16,7 @@ const selectClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2
 function genId() { return Math.random().toString(36).slice(2, 9); }
 
 type Tab = "nav" | "footer";
-type NavSection = "variant" | "links" | "cta" | "socials" | "style";
+type NavSection = "variant" | "links" | "cta" | "scroll" | "socials" | "style";
 
 // ═══════════════════════════════════════════════
 // Validation message renderer
@@ -261,6 +261,7 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
     { id: "variant", label: "Style", icon: "◆" },
     { id: "links", label: "Liens", icon: "≡", badge: linkIssueCount || undefined },
     { id: "cta", label: "CTA", icon: "→" },
+    { id: "scroll", label: "Scroll", icon: "↕" },
     { id: "socials", label: "Social", icon: "@" },
     { id: "style", label: "Options", icon: "⚙" },
   ];
@@ -743,6 +744,106 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
               </div>
             )}
 
+            {/* ═══ SCROLL SECTION ═══ */}
+            {navSection === "scroll" && (
+              <>
+                {/* Scroll behavior */}
+                <div>
+                  <label className={sectionLabel}>Comportement au scroll</label>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {([
+                      { value: "static", label: "Statique", hint: "Défile avec la page" },
+                      { value: "sticky", label: "Sticky", hint: "Fixé en haut" },
+                      { value: "fixed", label: "Fixe", hint: "Toujours visible" },
+                      { value: "auto-hide", label: "Auto-hide", hint: "Masque au scroll bas" },
+                      { value: "transparent-to-solid", label: "Transparent → Solide", hint: "Transparent puis solide" },
+                    ] as const).map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => updateNav({ scrollBehavior: opt.value })}
+                        className={`text-left p-2 rounded-lg border transition-all ${
+                          (nav.scrollBehavior ?? (nav.sticky !== false ? "sticky" : "static")) === opt.value
+                            ? "border-[#4F46E5] bg-[#EEF2FF] shadow-sm"
+                            : "border-[#E6E6E4] hover:border-[#C5C5C3] bg-white"
+                        }`}
+                      >
+                        <div className="text-[10px] font-semibold text-[#191919]">{opt.label}</div>
+                        <div className="text-[9px] text-[#999] leading-tight">{opt.hint}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Scroll threshold — visible if not static and not sticky */}
+                {(nav.scrollBehavior ?? (nav.sticky !== false ? "sticky" : "static")) !== "static" &&
+                 (nav.scrollBehavior ?? (nav.sticky !== false ? "sticky" : "static")) !== "sticky" && (
+                  <div>
+                    <label className={sectionLabel}>Seuil d&apos;activation ({nav.scrollThreshold ?? 50}px)</label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={200}
+                      value={nav.scrollThreshold ?? 50}
+                      onChange={(e) => updateNav({ scrollThreshold: Number(e.target.value) })}
+                      className="w-full h-1.5 bg-[#E6E6E4] rounded-full appearance-none cursor-pointer accent-[#4F46E5]"
+                    />
+                    <div className="flex justify-between text-[9px] text-[#999] mt-0.5">
+                      <span>0px</span>
+                      <span>200px</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Options visible if not static */}
+                {(nav.scrollBehavior ?? (nav.sticky !== false ? "sticky" : "static")) !== "static" && (
+                  <>
+                    {/* Shrink on scroll */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-[#666]">Réduire au scroll</span>
+                      <ToggleSwitch value={nav.scrollShrink ?? false} onChange={(v) => updateNav({ scrollShrink: v })} />
+                    </div>
+
+                    {/* Add shadow on scroll */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-[#666]">Ajouter ombre au scroll</span>
+                      <ToggleSwitch value={nav.scrollAddShadow ?? false} onChange={(v) => updateNav({ scrollAddShadow: v })} />
+                    </div>
+
+                    {/* Add blur on scroll */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-[11px] font-medium text-[#666]">Ajouter flou au scroll</span>
+                      <ToggleSwitch value={nav.scrollAddBlur ?? false} onChange={(v) => updateNav({ scrollAddBlur: v })} />
+                    </div>
+                  </>
+                )}
+
+                {/* Scroll animation */}
+                <div>
+                  <label className={sectionLabel}>Animation</label>
+                  <div className="grid grid-cols-4 gap-1">
+                    {([
+                      { value: "none", label: "Aucune" },
+                      { value: "fade", label: "Fondu" },
+                      { value: "slide", label: "Glissement" },
+                      { value: "smooth", label: "Fluide" },
+                    ] as const).map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => updateNav({ scrollAnimation: opt.value })}
+                        className={`py-1.5 text-[9px] font-semibold rounded-md border transition-all ${
+                          (nav.scrollAnimation || "none") === opt.value
+                            ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                            : "border-[#E6E6E4] text-[#999] hover:border-[#C5C5C3]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+
             {/* ═══ STYLE / OPTIONS SECTION ═══ */}
             {navSection === "style" && (
               <>
@@ -770,11 +871,14 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                   </div>
                 </div>
 
-                {/* Sticky */}
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-medium text-[#666]">Sticky (fixée en haut)</span>
-                  <ToggleSwitch value={nav.sticky ?? true} onChange={(v) => updateNav({ sticky: v })} />
-                </div>
+                {/* Scroll behavior link */}
+                <button
+                  onClick={() => setNavSection("scroll")}
+                  className="w-full flex items-center justify-between py-2 px-3 rounded-lg border border-[#E6E6E4] bg-[#FAFAFA] hover:border-[#C5C5C3] transition-all"
+                >
+                  <span className="text-[11px] font-medium text-[#666]">Comportement au scroll</span>
+                  <span className="text-[11px] text-[#999]">→</span>
+                </button>
 
                 {/* Border */}
                 <div className="flex items-center justify-between">
@@ -826,6 +930,102 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                         onClick={() => updateNav({ containerWidth: opt.value })}
                         className={`py-1.5 text-[10px] font-semibold rounded-md border transition-all ${
                           (nav.containerWidth || "boxed") === opt.value
+                            ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                            : "border-[#E6E6E4] text-[#999] hover:border-[#C5C5C3]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* ── Link colors ── */}
+                <div>
+                  <label className={sectionLabel}>Couleur des liens</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={nav.linkColor || "#191919"} onChange={(e) => updateNav({ linkColor: e.target.value })} className="w-8 h-8 rounded-md border border-[#E6E6E4] cursor-pointer p-0.5" />
+                    <input type="text" value={nav.linkColor || ""} onChange={(e) => updateNav({ linkColor: e.target.value || undefined })} className={smallInputClass} placeholder="#191919" />
+                    <button onClick={() => updateNav({ linkColor: undefined })} className="text-[9px] text-[#999] hover:text-[#666] whitespace-nowrap" title="Réinitialiser">Reset</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={sectionLabel}>Couleur des liens au hover</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={nav.linkHoverColor || "#4F46E5"} onChange={(e) => updateNav({ linkHoverColor: e.target.value })} className="w-8 h-8 rounded-md border border-[#E6E6E4] cursor-pointer p-0.5" />
+                    <input type="text" value={nav.linkHoverColor || ""} onChange={(e) => updateNav({ linkHoverColor: e.target.value || undefined })} className={smallInputClass} placeholder="#4F46E5" />
+                    <button onClick={() => updateNav({ linkHoverColor: undefined })} className="text-[9px] text-[#999] hover:text-[#666] whitespace-nowrap" title="Réinitialiser">Reset</button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className={sectionLabel}>Couleur du lien actif</label>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={nav.activeLinkColor || "#4F46E5"} onChange={(e) => updateNav({ activeLinkColor: e.target.value })} className="w-8 h-8 rounded-md border border-[#E6E6E4] cursor-pointer p-0.5" />
+                    <input type="text" value={nav.activeLinkColor || ""} onChange={(e) => updateNav({ activeLinkColor: e.target.value || undefined })} className={smallInputClass} placeholder="#4F46E5" />
+                    <button onClick={() => updateNav({ activeLinkColor: undefined })} className="text-[9px] text-[#999] hover:text-[#666] whitespace-nowrap" title="Réinitialiser">Reset</button>
+                  </div>
+                </div>
+
+                {/* Active link style */}
+                <div>
+                  <label className={sectionLabel}>Style du lien actif</label>
+                  <div className="grid grid-cols-5 gap-1">
+                    {([
+                      { value: "underline", label: "Souligné" },
+                      { value: "pill", label: "Pilule" },
+                      { value: "dot", label: "Point" },
+                      { value: "glow", label: "Glow" },
+                      { value: "none", label: "Aucun" },
+                    ] as const).map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => updateNav({ activeLinkStyle: opt.value })}
+                        className={`py-1.5 text-[9px] font-semibold rounded-md border transition-all ${
+                          (nav.activeLinkStyle || "underline") === opt.value
+                            ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
+                            : "border-[#E6E6E4] text-[#999] hover:border-[#C5C5C3]"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Nav border radius */}
+                <div>
+                  <label className={sectionLabel}>Rayon d&apos;arrondi ({nav.navBorderRadius ?? 0}px)</label>
+                  <input
+                    type="range"
+                    min={0}
+                    max={24}
+                    value={nav.navBorderRadius ?? 0}
+                    onChange={(e) => updateNav({ navBorderRadius: Number(e.target.value) })}
+                    className="w-full h-1.5 bg-[#E6E6E4] rounded-full appearance-none cursor-pointer accent-[#4F46E5]"
+                  />
+                  <div className="flex justify-between text-[9px] text-[#999] mt-0.5">
+                    <span>0px</span>
+                    <span>24px</span>
+                  </div>
+                </div>
+
+                {/* Shadow intensity */}
+                <div>
+                  <label className={sectionLabel}>Intensité de l&apos;ombre</label>
+                  <div className="grid grid-cols-4 gap-1">
+                    {([
+                      { value: "none", label: "Aucune" },
+                      { value: "sm", label: "Légère" },
+                      { value: "md", label: "Moyenne" },
+                      { value: "lg", label: "Forte" },
+                    ] as const).map(opt => (
+                      <button
+                        key={opt.value}
+                        onClick={() => updateNav({ navShadowIntensity: opt.value })}
+                        className={`py-1.5 text-[9px] font-semibold rounded-md border transition-all ${
+                          (nav.navShadowIntensity || "none") === opt.value
                             ? "border-[#4F46E5] bg-[#EEF2FF] text-[#4F46E5]"
                             : "border-[#E6E6E4] text-[#999] hover:border-[#C5C5C3]"
                         }`}
