@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .filter((it: any) => it.item_type === "image")
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .map((it: any) => it.file_path || it.thumbnail_url)
+      .map((it: any) => it.url || it.thumbnail_url || it.file_path)
       .filter(Boolean);
 
     return {

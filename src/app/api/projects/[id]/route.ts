@@ -211,6 +211,20 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: "Aucun champ à modifier" }, { status: 400 });
   }
 
+  // Auto-generate portfolio_slug if setting to public and slug is missing
+  if (updates.portfolio_visibility === "public" && !updates.portfolio_slug) {
+    // Check if slug already exists in DB
+    const { data: existing } = await (supabase.from("projects") as any)
+      .select("portfolio_slug")
+      .eq("id", id)
+      .single();
+    if (!existing?.portfolio_slug) {
+      const name = (updates.name as string) || (body.name as string) || "";
+      const baseSlug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || id.slice(0, 8);
+      updates.portfolio_slug = `${baseSlug}-${id.slice(0, 4)}`;
+    }
+  }
+
   const { error } = await (supabase.from("projects") as any)
     .update(updates)
     .eq("id", id)

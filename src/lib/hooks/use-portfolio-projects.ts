@@ -89,7 +89,7 @@ export function usePortfolioProjects() {
             summary: p.portfolio.summary || p.portfolio.description || p.description || undefined,
             ctaLabel: p.portfolio.ctaLabel || undefined,
             ctaUrl: p.portfolio.ctaUrl || p.portfolio.externalUrl || undefined,
-            slug: p.portfolio.slug || undefined,
+            slug: p.portfolio.slug || p.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || p.id,
           } satisfies PortfolioCard;
         })
         .filter(Boolean) as PortfolioCard[];
