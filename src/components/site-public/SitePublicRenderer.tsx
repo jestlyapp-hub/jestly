@@ -316,7 +316,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
   const navClass = navStyle ? getNavClass(navStyle) : "";
 
   return (
-    <nav className={`sticky top-0 z-50 border-b ${
+    <nav className={`${nav.sticky === true || (nav.sticky as unknown) === "true" ? "sticky top-0" : "relative"} z-50 border-b ${
       navClass || "backdrop-blur-sm"
     }`} style={{ backgroundColor: navClass ? undefined : "color-mix(in srgb, var(--site-bg, #fff) 95%, transparent)", borderColor: "var(--site-border)" }}>
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
