@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ensureProfile } from "@/lib/ensure-profile";
 import Sidebar from "@/components/layout/Sidebar";
 import Topbar from "@/components/layout/Topbar";
 import Toaster from "@/components/ui/Toaster";
@@ -12,11 +11,12 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Safety net: guarantee profile exists for all dashboard pages
+  // Auth check only — ensureProfile runs once at signup, not on every navigation
   let user;
   try {
     const supabase = await createClient();
-    user = await ensureProfile(supabase);
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    user = authUser;
   } catch {
     // Supabase unreachable or session corrupted → redirect to login
   }

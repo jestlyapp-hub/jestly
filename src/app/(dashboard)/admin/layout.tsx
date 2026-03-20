@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ensureProfile } from "@/lib/ensure-profile";
 import { isAdmin } from "@/lib/admin";
 import AdminSidebar from "@/components/admin/AdminSidebar";
 import type { Metadata } from "next";
@@ -15,7 +14,7 @@ export default async function AdminLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const user = await ensureProfile(supabase);
+  const { data: { user } } = await supabase.auth.getUser();
 
   if (!user || !isAdmin(user)) {
     redirect("/dashboard");

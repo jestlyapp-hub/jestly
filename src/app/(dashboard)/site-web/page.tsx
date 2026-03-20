@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ensureProfile } from "@/lib/ensure-profile";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -10,7 +9,7 @@ import { ensureProfile } from "@/lib/ensure-profile";
  */
 export default async function SiteWebRedirectPage() {
   const supabase = await createClient();
-  const user = await ensureProfile(supabase);
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
   // Find most recent site
