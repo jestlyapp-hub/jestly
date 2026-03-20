@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import type { Site } from "@/types";
 import type { PortfolioData } from "@/app/s/[slug]/portfolio/[projectSlug]/page";
@@ -20,7 +20,7 @@ interface Props {
 type GalleryItem = PortfolioData["gallery"][number];
 
 /* ═══════════════════════════════════════════════════
-   Fade-in animation hook
+   Fade-in observer
    ═══════════════════════════════════════════════════ */
 
 function useFadeIn() {
@@ -36,7 +36,7 @@ function useFadeIn() {
           observer.disconnect();
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.08 }
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -52,8 +52,8 @@ function FadeIn({ children, className, delay = 0 }: { children: React.ReactNode;
       className={className}
       style={{
         opacity: 0,
-        transform: "translateY(24px)",
-        transition: `opacity 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 0.7s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
+        transform: "translateY(20px)",
+        transition: `opacity 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}s, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${delay}s`,
       }}
     >
       {children}
@@ -62,570 +62,324 @@ function FadeIn({ children, className, delay = 0 }: { children: React.ReactNode;
 }
 
 /* ═══════════════════════════════════════════════════
-   Main Page Component
+   Main Component
    ═══════════════════════════════════════════════════ */
 
 export default function PortfolioCaseStudyPage({ portfolio, site, siteSlug, basePath }: Props) {
   const siteUrl = basePath ?? `/s/${siteSlug}`;
   const resolvedTheme = resolveTheme(site.theme, site.design);
   const themeVars = computeThemeVars(resolvedTheme);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const p = portfolio;
-  const hasContent = p.introText || p.challengeText || p.solutionText;
-  const contentSections = [
-    { label: "Contexte", icon: "context", text: p.introText },
-    { label: "Le défi", icon: "challenge", text: p.challengeText },
-    { label: "La solution", icon: "solution", text: p.solutionText },
-  ].filter((s) => s.text);
-  const hasResults = p.resultText || p.result;
   const hasGallery = p.gallery.length > 0;
+  const hasContent = p.introText || p.challengeText || p.solutionText || p.summary;
+  const hasResults = p.resultText || p.result;
   const hasCta = p.ctaLabel && p.ctaUrl;
+
+  // Guess tags from gallery titles or use real tags
+  const tags: string[] = p.tags.length > 0 ? p.tags : p.gallery.map(g => g.title).filter((t): t is string => !!t);
 
   return (
     <div
       className="min-h-screen"
       style={{
         fontFamily: resolvedTheme.fontFamily || "Inter, system-ui, sans-serif",
-        backgroundColor: "var(--site-bg, #ffffff)",
-        color: "var(--site-text, #191919)",
+        backgroundColor: "#0A0A0B",
+        color: "#F5F5F5",
         ...themeVars,
       }}
     >
-      {/* ─── Minimal nav ─── */}
-      <PortfolioNav siteName={site.settings.name} siteUrl={siteUrl || "/"} />
+      {/* ─── Nav ─── */}
+      <nav className="sticky top-0 z-50 backdrop-blur-md" style={{ backgroundColor: "rgba(10,10,11,0.85)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 h-12 flex items-center justify-between">
+          <a href={siteUrl} className="text-[12px] font-medium text-white/50 flex items-center gap-1.5 hover:text-white/80 transition-colors">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
+            {site.settings.name}
+          </a>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/30">Portfolio</span>
+        </div>
+      </nav>
 
-      {/* ─── HERO ─── */}
-      <PortfolioHero portfolio={p} />
+      {/* ─── HERO COMPACT ─── */}
+      <header className="max-w-7xl mx-auto px-5 sm:px-8 pt-10 sm:pt-14 pb-8 sm:pb-10">
+        <FadeIn>
+          <div className="flex flex-col gap-3">
+            {p.category && (
+              <span className="inline-flex self-start text-[10px] font-semibold uppercase tracking-[0.18em] px-3 py-1 rounded-full bg-white/[0.06] text-white/50 border border-white/[0.06]">
+                {p.category}
+              </span>
+            )}
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.1] tracking-tight text-white" style={{ fontFamily: "var(--site-heading-font, inherit)" }}>
+              {p.title}
+            </h1>
+            {p.subtitle && (
+              <p className="text-[15px] sm:text-base leading-relaxed text-white/45 max-w-2xl">{p.subtitle}</p>
+            )}
+            <div className="flex items-center gap-3 mt-1 flex-wrap">
+              {p.clientName && <MetaChip>{p.clientName}</MetaChip>}
+              {p.category && <MetaChip>{p.category}</MetaChip>}
+              {hasGallery && <MetaChip>{p.gallery.length} création{p.gallery.length > 1 ? "s" : ""}</MetaChip>}
+            </div>
+          </div>
+        </FadeIn>
+      </header>
 
-      {/* ─── META STRIP ─── */}
-      <PortfolioMetaStrip portfolio={p} />
+      {/* ─── GALLERY IMMÉDIATE ─── */}
+      {hasGallery && (
+        <section className="max-w-7xl mx-auto px-5 sm:px-8 pb-16 sm:pb-24">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+            {p.gallery.map((item, i) => (
+              <FadeIn key={item.id} delay={Math.min(i * 0.04, 0.4)}>
+                <GalleryCard
+                  item={item}
+                  index={i}
+                  tag={tags[i]}
+                  featured={i === 0}
+                  onClick={() => setLightboxIndex(i)}
+                />
+              </FadeIn>
+            ))}
+          </div>
+        </section>
+      )}
 
-      {/* ─── SUMMARY / OVERVIEW ─── */}
-      {p.summary && <PortfolioOverview summary={p.summary} />}
+      {/* ─── TEXTE LÉGER (sous la galerie) ─── */}
+      {hasContent && <ContentSection portfolio={p} />}
 
-      {/* ─── CONTENT SECTIONS (Context / Challenge / Solution) ─── */}
-      {hasContent && <PortfolioContentGrid sections={contentSections} />}
-
-      {/* ─── GALLERY ─── */}
-      {hasGallery && <PortfolioGallery gallery={p.gallery} />}
-
-      {/* ─── RESULTS ─── */}
-      {hasResults && <PortfolioResults result={p.result} resultText={p.resultText} />}
+      {/* ─── RÉSULTATS ─── */}
+      {hasResults && (
+        <FadeIn>
+          <section className="max-w-4xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
+            <div className="rounded-2xl p-8 sm:p-10 border border-white/[0.06]" style={{ background: "rgba(255,255,255,0.02)" }}>
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/30 mb-4 block">Résultats</span>
+              {p.result && <div className="text-2xl sm:text-3xl font-bold text-white mb-3">{p.result}</div>}
+              {p.resultText && <p className="text-[15px] leading-[1.7] text-white/55 whitespace-pre-line">{p.resultText}</p>}
+            </div>
+          </section>
+        </FadeIn>
+      )}
 
       {/* ─── CTA ─── */}
-      {hasCta && <PortfolioCTA ctaLabel={p.ctaLabel!} ctaUrl={p.ctaUrl!} />}
+      {hasCta && (
+        <FadeIn>
+          <section className="max-w-4xl mx-auto px-5 sm:px-8 pb-20 sm:pb-28 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-3" style={{ fontFamily: "var(--site-heading-font, inherit)" }}>
+              Intéressé par un projet similaire ?
+            </h2>
+            <p className="text-[14px] text-white/40 mb-7 max-w-md mx-auto">
+              Discutons de votre prochain projet.
+            </p>
+            <a
+              href={p.ctaUrl!}
+              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-[14px] font-semibold transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                backgroundColor: "var(--btn-bg, var(--site-primary, #4F46E5))",
+                color: "var(--btn-text, #fff)",
+                borderRadius: "var(--site-btn-radius, 12px)",
+                boxShadow: "0 4px 24px rgba(79,70,229,0.3)",
+              }}
+            >
+              {p.ctaLabel}
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" /></svg>
+            </a>
+          </section>
+        </FadeIn>
+      )}
 
       {/* ─── Footer ─── */}
-      <PortfolioFooter siteName={site.settings.name} siteUrl={siteUrl || "/"} />
+      <footer className="py-8 border-t border-white/[0.04]">
+        <div className="max-w-7xl mx-auto px-5 sm:px-8 flex items-center justify-between">
+          <a href={siteUrl} className="text-[12px] font-medium text-white/30 flex items-center gap-1.5 hover:text-white/60 transition-colors">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
+            Retour au site
+          </a>
+          <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/15">{site.settings.name}</span>
+        </div>
+      </footer>
+
+      {/* ─── Lightbox ─── */}
+      {lightboxIndex !== null && (
+        <Lightbox
+          gallery={p.gallery}
+          index={lightboxIndex}
+          tags={tags}
+          onClose={() => setLightboxIndex(null)}
+          onNavigate={setLightboxIndex}
+        />
+      )}
     </div>
   );
 }
 
 /* ═══════════════════════════════════════════════════
-   1. NAV
+   Gallery Card — Premium hover
    ═══════════════════════════════════════════════════ */
 
-function PortfolioNav({ siteName, siteUrl }: { siteName: string; siteUrl: string }) {
+function GalleryCard({ item, index, tag, featured, onClick }: {
+  item: GalleryItem; index: number; tag?: string; featured?: boolean; onClick: () => void;
+}) {
+  const isFeatured = featured && index === 0;
+
   return (
-    <nav
-      className="sticky top-0 z-50 backdrop-blur-md"
-      style={{
-        backgroundColor: "color-mix(in srgb, var(--site-bg, #fff) 85%, transparent)",
-        borderBottom: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 50%, transparent)",
-      }}
+    <button
+      onClick={onClick}
+      className={`group relative overflow-hidden rounded-xl sm:rounded-2xl cursor-pointer border border-white/[0.04] transition-all duration-300 hover:border-white/[0.1] ${
+        isFeatured ? "sm:col-span-2 lg:col-span-2" : ""
+      }`}
+      style={{ background: "#111113" }}
     >
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 h-14 flex items-center justify-between">
-        <a
-          href={siteUrl || "/"}
-          className="text-[13px] font-medium flex items-center gap-2 transition-opacity hover:opacity-70"
-          style={{ color: "var(--site-muted, #8A8A88)" }}
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          {siteName}
-        </a>
-        <a
-          href={siteUrl || "/"}
-          className="text-[11px] font-medium uppercase tracking-widest transition-opacity hover:opacity-70"
-          style={{ color: "var(--site-muted, #8A8A88)" }}
-        >
-          Portfolio
-        </a>
-      </div>
-    </nav>
-  );
-}
+      {/* Image */}
+      <div className="relative aspect-[16/9] overflow-hidden">
+        {item.type === "video" ? (
+          <video src={item.url} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]" muted />
+        ) : (
+          <Image
+            src={item.url}
+            alt={item.title || `Création ${index + 1}`}
+            fill
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            unoptimized
+          />
+        )}
 
-/* ═══════════════════════════════════════════════════
-   2. HERO — Stacked editorial with full-bleed cover
-   ═══════════════════════════════════════════════════ */
+        {/* Hover overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-function PortfolioHero({ portfolio: p }: { portfolio: PortfolioData }) {
-  return (
-    <header>
-      {/* Text zone */}
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 pt-16 sm:pt-20 pb-10 sm:pb-14">
-        <FadeIn>
-          {/* Category badge */}
-          {p.category && (
-            <span
-              className="inline-block text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.15em] px-3 py-1.5 rounded-full mb-6"
-              style={{
-                backgroundColor: "color-mix(in srgb, var(--site-primary, #4F46E5) 12%, transparent)",
-                color: "var(--site-primary, #4F46E5)",
-              }}
-            >
-              {p.category}
+        {/* Bottom info on hover */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+          {tag && (
+            <span className="inline-block text-[10px] font-semibold uppercase tracking-[0.15em] text-white/70 bg-white/[0.1] backdrop-blur-sm px-2.5 py-1 rounded-full mb-1.5">
+              {tag}
             </span>
           )}
-
-          {/* Title */}
-          <h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.08] tracking-tight mb-5"
-            style={{
-              color: "var(--site-text, #191919)",
-              fontFamily: "var(--site-heading-font, inherit)",
-            }}
-          >
-            {p.title}
-          </h1>
-
-          {/* Subtitle */}
-          {p.subtitle && (
-            <p
-              className="text-lg sm:text-xl leading-relaxed max-w-2xl"
-              style={{ color: "var(--site-muted, #666)" }}
-            >
-              {p.subtitle}
-            </p>
+          {item.title && (
+            <div className="text-[13px] font-medium text-white/90">{item.title}</div>
           )}
-        </FadeIn>
+        </div>
       </div>
+    </button>
+  );
+}
 
-      {/* Cover image — full-bleed premium */}
-      <FadeIn delay={0.15}>
-        <div className="max-w-6xl mx-auto px-6 sm:px-8">
-          {p.coverUrl ? (
-            <div
-              className="w-full overflow-hidden rounded-xl sm:rounded-2xl"
-              style={{ border: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 60%, transparent)" }}
-            >
-              <Image
-                src={p.coverUrl}
-                alt={p.title}
-                width={1200}
-                height={675}
-                className="w-full aspect-[16/9] object-cover"
-                unoptimized
-              />
-            </div>
+/* ═══════════════════════════════════════════════════
+   Lightbox — Premium viewer
+   ═══════════════════════════════════════════════════ */
+
+function Lightbox({ gallery, index, tags, onClose, onNavigate }: {
+  gallery: GalleryItem[]; index: number; tags: string[]; onClose: () => void; onNavigate: (i: number) => void;
+}) {
+  const item = gallery[index];
+  const total = gallery.length;
+
+  const goPrev = useCallback(() => onNavigate((index - 1 + total) % total), [index, total, onNavigate]);
+  const goNext = useCallback(() => onNavigate((index + 1) % total), [index, total, onNavigate]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
+    document.addEventListener("keydown", handler);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handler);
+      document.body.style.overflow = "";
+    };
+  }, [onClose, goPrev, goNext]);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.92)", backdropFilter: "blur(20px)" }}>
+      {/* Close */}
+      <button onClick={onClose} className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center transition-colors z-10 cursor-pointer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+      </button>
+
+      {/* Prev */}
+      {total > 1 && (
+        <button onClick={goPrev} className="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center transition-colors cursor-pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><polyline points="15 18 9 12 15 6" /></svg>
+        </button>
+      )}
+
+      {/* Next */}
+      {total > 1 && (
+        <button onClick={goNext} className="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/[0.06] hover:bg-white/[0.12] flex items-center justify-center transition-colors cursor-pointer">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round"><polyline points="9 6 15 12 9 18" /></svg>
+        </button>
+      )}
+
+      {/* Image */}
+      <div className="max-w-6xl w-full mx-4 sm:mx-8">
+        <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden">
+          {item.type === "video" ? (
+            <video src={item.url} controls className="w-full h-full object-contain" />
           ) : (
-            <div
-              className="w-full aspect-[16/9] rounded-xl sm:rounded-2xl flex items-center justify-center"
-              style={{
-                backgroundColor: "color-mix(in srgb, var(--site-surface, #F7F7F5) 60%, var(--site-bg, #fff))",
-                border: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 40%, transparent)",
-              }}
-            >
-              <div
-                className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl sm:rounded-3xl flex items-center justify-center text-3xl sm:text-4xl font-bold shadow-lg"
-                style={{
-                  backgroundColor: p.color || "var(--site-primary, #4F46E5)",
-                  color: "#fff",
-                  boxShadow: `0 8px 32px color-mix(in srgb, ${p.color || "var(--site-primary, #4F46E5)"} 30%, transparent)`,
-                }}
-              >
-                {p.title.slice(0, 2).toUpperCase()}
-              </div>
+            <Image src={item.url} alt={item.title || ""} fill className="object-contain" unoptimized />
+          )}
+        </div>
+
+        {/* Info bar */}
+        <div className="flex items-center justify-between mt-4 px-1">
+          <div className="flex items-center gap-3">
+            {tags[index] && (
+              <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/40 bg-white/[0.06] px-2.5 py-1 rounded-full">{tags[index]}</span>
+            )}
+            {item.title && <span className="text-[13px] font-medium text-white/60">{item.title}</span>}
+          </div>
+          <span className="text-[11px] font-medium text-white/25">{index + 1} / {total}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════
+   Content Section — Compact, below gallery
+   ═══════════════════════════════════════════════════ */
+
+function ContentSection({ portfolio: p }: { portfolio: PortfolioData }) {
+  const sections = [
+    { label: "Contexte", text: p.introText },
+    { label: "Le défi", text: p.challengeText },
+    { label: "Approche", text: p.solutionText },
+  ].filter((s) => s.text);
+
+  if (sections.length === 0 && !p.summary) return null;
+
+  return (
+    <FadeIn>
+      <section className="max-w-4xl mx-auto px-5 sm:px-8 py-12 sm:py-16">
+        <div className="border-t border-white/[0.06] pt-12 sm:pt-16">
+          {p.summary && (
+            <p className="text-[16px] sm:text-lg leading-[1.75] text-white/50 mb-12 max-w-3xl whitespace-pre-line">{p.summary}</p>
+          )}
+
+          {sections.length > 0 && (
+            <div className={`grid grid-cols-1 ${sections.length >= 3 ? "md:grid-cols-3" : sections.length === 2 ? "md:grid-cols-2" : ""} gap-6`}>
+              {sections.map((s) => (
+                <div key={s.label} className="rounded-xl p-6 border border-white/[0.04]" style={{ background: "rgba(255,255,255,0.015)" }}>
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-white/25 mb-3 block">{s.label}</span>
+                  <p className="text-[14px] leading-[1.75] text-white/50 whitespace-pre-line">{s.text}</p>
+                </div>
+              ))}
             </div>
           )}
         </div>
-      </FadeIn>
-    </header>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   3. META STRIP — Horizontal info band
-   ═══════════════════════════════════════════════════ */
-
-function PortfolioMetaStrip({ portfolio: p }: { portfolio: PortfolioData }) {
-  const items: { label: string; value: string }[] = [];
-  if (p.category) items.push({ label: "Type", value: p.category });
-  if (p.clientName) items.push({ label: "Client", value: p.clientName + (p.clientCompany ? ` — ${p.clientCompany}` : "") });
-  if (p.result) items.push({ label: "Résultat clé", value: p.result });
-  if (p.tags.length > 0) items.push({ label: "Tags", value: p.tags.slice(0, 4).join(" · ") });
-
-  if (items.length === 0) return null;
-
-  return (
-    <FadeIn delay={0.2}>
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 py-10 sm:py-14">
-        <div
-          className="grid gap-px rounded-xl overflow-hidden"
-          style={{
-            gridTemplateColumns: `repeat(${Math.min(items.length, 4)}, 1fr)`,
-            backgroundColor: "color-mix(in srgb, var(--site-border, #E6E6E4) 50%, transparent)",
-            border: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 50%, transparent)",
-          }}
-        >
-          {items.map((item) => (
-            <div
-              key={item.label}
-              className="px-5 py-5 sm:px-6 sm:py-6"
-              style={{ backgroundColor: "var(--site-bg, #fff)" }}
-            >
-              <div
-                className="text-[10px] sm:text-[11px] font-semibold uppercase tracking-[0.12em] mb-2"
-                style={{ color: "var(--site-muted, #8A8A88)" }}
-              >
-                {item.label}
-              </div>
-              <div
-                className="text-sm sm:text-[15px] font-medium leading-snug"
-                style={{ color: "var(--site-text, #191919)" }}
-              >
-                {item.value}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </FadeIn>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   4. OVERVIEW — Editorial introduction
-   ═══════════════════════════════════════════════════ */
-
-function PortfolioOverview({ summary }: { summary: string }) {
-  return (
-    <FadeIn>
-      <section className="max-w-6xl mx-auto px-6 sm:px-8 pb-16 sm:pb-20">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-          {/* Label */}
-          <div className="lg:col-span-4">
-            <SectionLabel>Aperçu du projet</SectionLabel>
-          </div>
-          {/* Text */}
-          <div className="lg:col-span-8">
-            <p
-              className="text-lg sm:text-xl leading-[1.7] whitespace-pre-line"
-              style={{ color: "var(--site-text, #191919)" }}
-            >
-              {summary}
-            </p>
-          </div>
-        </div>
       </section>
     </FadeIn>
   );
 }
 
 /* ═══════════════════════════════════════════════════
-   5. CONTENT GRID — Context / Challenge / Solution
+   MetaChip — Tiny metadata pill
    ═══════════════════════════════════════════════════ */
 
-function PortfolioContentGrid({ sections }: { sections: { label: string; icon: string; text: string | null }[] }) {
-  const iconPaths: Record<string, React.ReactNode> = {
-    context: (
-      <>
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
-      </>
-    ),
-    challenge: (
-      <>
-        <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
-        <line x1="12" y1="9" x2="12" y2="13" />
-        <line x1="12" y1="17" x2="12.01" y2="17" />
-      </>
-    ),
-    solution: (
-      <>
-        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-        <polyline points="22 4 12 14.01 9 11.01" />
-      </>
-    ),
-  };
-
+function MetaChip({ children }: { children: React.ReactNode }) {
   return (
-    <section className="max-w-6xl mx-auto px-6 sm:px-8 pb-20 sm:pb-24">
-      {/* Divider */}
-      <div
-        className="mb-16 sm:mb-20"
-        style={{ borderTop: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 50%, transparent)" }}
-      />
-
-      <FadeIn>
-        <SectionLabel className="mb-10 sm:mb-12">Le processus</SectionLabel>
-      </FadeIn>
-
-      <div className={`grid grid-cols-1 ${sections.length >= 3 ? "md:grid-cols-3" : sections.length === 2 ? "md:grid-cols-2" : ""} gap-5 sm:gap-6`}>
-        {sections.map((section, i) => (
-          <FadeIn key={section.label} delay={i * 0.1}>
-            <div
-              className="rounded-xl sm:rounded-2xl p-6 sm:p-8 h-full flex flex-col"
-              style={{
-                backgroundColor: "color-mix(in srgb, var(--site-surface, #F7F7F5) 60%, var(--site-bg, #fff))",
-                border: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 40%, transparent)",
-              }}
-            >
-              {/* Icon */}
-              <div
-                className="w-10 h-10 rounded-lg flex items-center justify-center mb-5"
-                style={{
-                  backgroundColor: "color-mix(in srgb, var(--site-primary, #4F46E5) 10%, transparent)",
-                }}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{ stroke: "var(--site-primary, #4F46E5)" }}
-                >
-                  {iconPaths[section.icon] || iconPaths.context}
-                </svg>
-              </div>
-
-              {/* Label */}
-              <h3
-                className="text-[13px] font-semibold uppercase tracking-[0.1em] mb-3"
-                style={{ color: "var(--site-primary, #4F46E5)" }}
-              >
-                {section.label}
-              </h3>
-
-              {/* Text */}
-              <p
-                className="text-[15px] leading-[1.75] whitespace-pre-line flex-1"
-                style={{ color: "var(--site-text, #191919)", opacity: 0.85 }}
-              >
-                {section.text}
-              </p>
-            </div>
-          </FadeIn>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   6. GALLERY — Vertical editorial, native aspect ratios
-   ═══════════════════════════════════════════════════ */
-
-function PortfolioGallery({ gallery }: { gallery: GalleryItem[] }) {
-  return (
-    <section
-      className="py-20 sm:py-24"
-      style={{
-        backgroundColor: "color-mix(in srgb, var(--site-surface, #F7F7F5) 40%, var(--site-bg, #fff))",
-      }}
-    >
-      <div className="max-w-5xl mx-auto px-6 sm:px-8">
-        <FadeIn>
-          <SectionLabel className="mb-10 sm:mb-12">Galerie</SectionLabel>
-        </FadeIn>
-
-        <div className="space-y-8 sm:space-y-10">
-          {gallery.map((item, i) => (
-            <FadeIn key={item.id} delay={i * 0.06}>
-              <GalleryMedia item={item} />
-            </FadeIn>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function GalleryMedia({ item }: { item: GalleryItem }) {
-  const borderStyle: React.CSSProperties = {
-    border: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 40%, transparent)",
-  };
-
-  if (item.type === "video") {
-    return (
-      <div className="flex justify-center">
-        <div className="w-full overflow-hidden rounded-xl sm:rounded-2xl shadow-sm" style={borderStyle}>
-          <video src={item.url} controls className="w-full h-auto" />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex justify-center">
-      <div
-        className="w-full overflow-hidden rounded-xl sm:rounded-2xl shadow-sm transition-transform duration-500 hover:scale-[1.01]"
-        style={borderStyle}
-      >
-        <Image
-          src={item.url}
-          alt={item.title || ""}
-          width={1200}
-          height={800}
-          className="max-w-full w-full h-auto block"
-          unoptimized
-        />
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   7. RESULTS — Bold stats section
-   ═══════════════════════════════════════════════════ */
-
-function PortfolioResults({ result, resultText }: { result: string | null; resultText: string | null }) {
-  return (
-    <section className="max-w-6xl mx-auto px-6 sm:px-8 py-20 sm:py-24">
-      {/* Divider */}
-      <div
-        className="mb-16 sm:mb-20"
-        style={{ borderTop: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 50%, transparent)" }}
-      />
-
-      <FadeIn>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
-          {/* Left — label + key metric */}
-          <div className="lg:col-span-4">
-            <SectionLabel className="mb-6">Résultats</SectionLabel>
-
-            {result && (
-              <div
-                className="inline-block text-2xl sm:text-3xl font-bold px-5 py-3 rounded-xl"
-                style={{
-                  backgroundColor: "color-mix(in srgb, var(--site-primary, #4F46E5) 10%, transparent)",
-                  color: "var(--site-primary, #4F46E5)",
-                }}
-              >
-                {result}
-              </div>
-            )}
-          </div>
-
-          {/* Right — detailed text */}
-          <div className="lg:col-span-8 flex items-center">
-            {resultText && (
-              <p
-                className="text-lg sm:text-xl leading-[1.7] whitespace-pre-line"
-                style={{ color: "var(--site-text, #191919)" }}
-              >
-                {resultText}
-              </p>
-            )}
-          </div>
-        </div>
-      </FadeIn>
-    </section>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   8. CTA — Final call to action
-   ═══════════════════════════════════════════════════ */
-
-function PortfolioCTA({ ctaLabel, ctaUrl }: { ctaLabel: string; ctaUrl: string }) {
-  return (
-    <FadeIn>
-      <section className="max-w-6xl mx-auto px-6 sm:px-8 pb-20 sm:pb-24">
-        <div
-          className="rounded-2xl sm:rounded-3xl px-8 sm:px-16 py-14 sm:py-20 text-center"
-          style={{
-            backgroundColor: "color-mix(in srgb, var(--site-surface, #F7F7F5) 60%, var(--site-bg, #fff))",
-            border: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 50%, transparent)",
-          }}
-        >
-          <h2
-            className="text-2xl sm:text-3xl lg:text-4xl font-bold leading-tight mb-4"
-            style={{
-              color: "var(--site-text, #191919)",
-              fontFamily: "var(--site-heading-font, inherit)",
-            }}
-          >
-            Intéressé par un projet similaire ?
-          </h2>
-          <p
-            className="text-base sm:text-lg leading-relaxed max-w-lg mx-auto mb-8"
-            style={{ color: "var(--site-muted, #666)" }}
-          >
-            Discutons de votre prochain projet et voyons comment je peux vous aider.
-          </p>
-          <a
-            href={ctaUrl}
-            className="inline-flex items-center gap-2 px-8 sm:px-10 py-3.5 sm:py-4 rounded-xl text-[14px] sm:text-[15px] font-semibold transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
-            style={{
-              backgroundColor: "var(--btn-bg, var(--site-primary, #4F46E5))",
-              color: "var(--btn-text, #fff)",
-              borderRadius: "var(--site-btn-radius, 12px)",
-              boxShadow: "0 4px 16px color-mix(in srgb, var(--site-primary, #4F46E5) 25%, transparent)",
-            }}
-          >
-            {ctaLabel}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="5" y1="12" x2="19" y2="12" />
-              <polyline points="12 5 19 12 12 19" />
-            </svg>
-          </a>
-        </div>
-      </section>
-    </FadeIn>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   9. FOOTER
-   ═══════════════════════════════════════════════════ */
-
-function PortfolioFooter({ siteName, siteUrl }: { siteName: string; siteUrl: string }) {
-  return (
-    <footer
-      className="py-10"
-      style={{
-        borderTop: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 40%, transparent)",
-      }}
-    >
-      <div className="max-w-6xl mx-auto px-6 sm:px-8 flex items-center justify-between">
-        <a
-          href={siteUrl || "/"}
-          className="text-[13px] font-medium flex items-center gap-2 transition-opacity hover:opacity-70"
-          style={{ color: "var(--site-muted, #8A8A88)" }}
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-          Retour au site
-        </a>
-        <span
-          className="text-[11px] font-medium uppercase tracking-widest"
-          style={{ color: "var(--site-muted, #8A8A88)", opacity: 0.6 }}
-        >
-          {siteName}
-        </span>
-      </div>
-    </footer>
-  );
-}
-
-/* ═══════════════════════════════════════════════════
-   Shared sub-components
-   ═══════════════════════════════════════════════════ */
-
-function SectionLabel({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <div
-      className={`text-[11px] sm:text-xs font-semibold uppercase tracking-[0.15em] ${className || ""}`}
-      style={{ color: "var(--site-primary, #4F46E5)" }}
-    >
+    <span className="text-[10px] sm:text-[11px] font-medium text-white/30 bg-white/[0.04] px-2.5 py-1 rounded-full border border-white/[0.04]">
       {children}
-    </div>
+    </span>
   );
 }
