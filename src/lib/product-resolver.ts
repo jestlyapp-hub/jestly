@@ -12,10 +12,12 @@ export async function getPublicProductsByIds(ids: string[]): Promise<Product[]> 
 
   try {
     const supabase = await createClient();
+    // Include draft + active products — if a user referenced a product in a block,
+    // it should render publicly regardless of status. Only archived are excluded.
     const { data, error } = await (supabase.from("products") as any)
       .select("*")
       .in("id", ids)
-      .eq("status", "active");
+      .neq("status", "archived");
 
     if (error || !data) return [];
     return data.map((row: any) => dbToProduct(row));
