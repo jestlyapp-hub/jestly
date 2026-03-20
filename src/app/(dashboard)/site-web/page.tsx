@@ -9,8 +9,9 @@ import { createClient } from "@/lib/supabase/server";
  */
 export default async function SiteWebRedirectPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect("/login");
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) redirect("/login");
+  const user = session.user;
 
   // Find most recent site
   const { data: sites } = await (supabase.from("sites") as any)

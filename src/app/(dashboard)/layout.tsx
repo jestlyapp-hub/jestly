@@ -11,12 +11,13 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Auth check only — ensureProfile runs once at signup, not on every navigation
+  // Fast auth check — middleware already validated the token via getUser().
+  // Here we only read the session from cookies (0 network calls).
   let user;
   try {
     const supabase = await createClient();
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    user = authUser;
+    const { data: { session } } = await supabase.auth.getSession();
+    user = session?.user;
   } catch {
     // Supabase unreachable or session corrupted → redirect to login
   }
