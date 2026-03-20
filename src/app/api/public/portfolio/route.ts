@@ -29,9 +29,10 @@ export async function GET(req: NextRequest) {
 
   // Fetch portfolio-visible projects with safe public fields only
   const { data, error } = await (supabaseAdmin.from("projects") as any)
-    .select("id, name, description, project_type, color, status, tags, cover_url, is_portfolio, portfolio_description, portfolio_images, portfolio_category, portfolio_external_url, clients(name, company), created_at")
+    .select("id, name, description, project_type, color, status, tags, cover_url, portfolio_cover_url, portfolio_slug, is_portfolio, portfolio_description, portfolio_images, portfolio_category, portfolio_external_url, portfolio_visibility, clients(name, company), created_at")
     .eq("user_id", targetUserId)
     .eq("is_portfolio", true)
+    .eq("portfolio_visibility", "public")
     .neq("status", "archived")
     .order("updated_at", { ascending: false });
 
@@ -44,12 +45,13 @@ export async function GET(req: NextRequest) {
   const projects = (data ?? []).map((p: any) => ({
     id: p.id,
     title: p.name,
+    slug: p.portfolio_slug || null,
     description: p.portfolio_description || p.description || "",
     type: p.project_type,
     color: p.color,
     status: p.status,
     tags: p.tags || [],
-    coverUrl: p.cover_url,
+    coverUrl: p.portfolio_cover_url || p.cover_url || (p.portfolio_images?.length ? p.portfolio_images[0] : null),
     images: p.portfolio_images || [],
     category: p.portfolio_category || "",
     externalUrl: p.portfolio_external_url,

@@ -93,10 +93,11 @@ export function usePortfolioProjects() {
           const p = projects.find((pr) => pr.id === pid);
           if (!p) return null;
 
-          // Cover fallback chain
+          // Cover fallback chain: explicit cover → project cover → portfolio images → item images
           const coverUrl =
             p.portfolio.coverUrl ||
             p.coverUrl ||
+            (p.portfolio.images?.length ? p.portfolio.images[0] : undefined) ||
             p.itemImages[0] ||
             undefined;
 
