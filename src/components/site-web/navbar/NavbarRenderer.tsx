@@ -429,7 +429,7 @@ function NavWrapper({ nav, children, className }: { nav: NavConfig; children: Re
 
   return (
     <nav
-      className={`${nav.sticky ? "sticky top-0" : "relative"} z-50 ${className || ""}`}
+      className={`${nav.sticky === true || (nav.sticky as unknown) === "true" ? "sticky top-0" : "relative"} z-50 ${className || ""}`}
       style={{
         ...bgStyle,
         borderBottom: nav.showBorder ? "1px solid var(--site-border, #E6E6E4)" : "none",
