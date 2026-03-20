@@ -183,14 +183,16 @@ function Spinner() {
   return <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>;
 }
 
-function OfferCard({ product, index, onDuplicate, onArchive }: {
+function OfferCard({ product, index, onDuplicate, onArchive, onDelete }: {
   product: Product; index: number;
-  onDuplicate: (id: string) => void; onArchive: (id: string) => void;
+  onDuplicate: (id: string) => void; onArchive: (id: string) => void; onDelete: (id: string) => void;
 }) {
   const router = useRouter();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const handleDuplicate = async () => { setActionLoading("duplicate"); try { await onDuplicate(product.id); } finally { setActionLoading(null); } };
   const handleArchive = async () => { setActionLoading("archive"); try { await onArchive(product.id); } finally { setActionLoading(null); } };
+  const handleDelete = async () => { setShowDeleteConfirm(false); setActionLoading("delete"); try { await onDelete(product.id); } finally { setActionLoading(null); } };
   const badge = STATUS_BADGES[product.status] || STATUS_BADGES.draft;
 
   return (
@@ -231,11 +233,26 @@ function OfferCard({ product, index, onDuplicate, onArchive }: {
           Dupliquer
         </button>
         <div className="w-px h-3.5 bg-[#E6E6E4]" />
-        <button onClick={handleArchive} disabled={actionLoading === "archive"} className="flex-1 flex items-center justify-center gap-1 text-[11px] font-medium text-[#5A5A58] hover:text-red-500 py-1.5 rounded-md hover:bg-red-50/50 transition-all disabled:opacity-50">
+        <button onClick={handleArchive} disabled={actionLoading === "archive"} className="flex-1 flex items-center justify-center gap-1 text-[11px] font-medium text-[#5A5A58] hover:text-amber-600 py-1.5 rounded-md hover:bg-amber-50/50 transition-all disabled:opacity-50">
           {actionLoading === "archive" ? <Spinner /> : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" /></svg>}
           Archiver
         </button>
+        <div className="w-px h-3.5 bg-[#E6E6E4]" />
+        <button onClick={() => setShowDeleteConfirm(true)} disabled={!!actionLoading} className="flex-1 flex items-center justify-center gap-1 text-[11px] font-medium text-[#5A5A58] hover:text-red-500 py-1.5 rounded-md hover:bg-red-50/50 transition-all disabled:opacity-50">
+          {actionLoading === "delete" ? <Spinner /> : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" /></svg>}
+          Supprimer
+        </button>
       </div>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Supprimer cette offre"
+        message={`Supprimer "${product.name}" ? Cette action est irréversible. Le produit et toutes ses données seront définitivement supprimés.`}
+        variant="danger"
+        confirmLabel="Supprimer définitivement"
+        cancelLabel="Annuler"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
     </motion.div>
   );
 }
@@ -419,6 +436,7 @@ export default function OffresPage() {
 
   const handleDuplicate = async (id: string) => { await apiFetch(`/api/products/${id}/duplicate`, { method: "POST" }); mutateProducts(); };
   const handleArchive = async (id: string) => { await apiFetch(`/api/products/${id}/archive`, { method: "POST" }); mutateProducts(); };
+  const handleDelete = async (id: string) => { await apiFetch(`/api/products/${id}`, { method: "DELETE" }); mutateProducts(); };
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -482,7 +500,7 @@ export default function OffresPage() {
       {!productsLoading && !productsError && products.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           {products.map((p, i) => (
-            <OfferCard key={p.id} product={p} index={i} onDuplicate={handleDuplicate} onArchive={handleArchive} />
+            <OfferCard key={p.id} product={p} index={i} onDuplicate={handleDuplicate} onArchive={handleArchive} onDelete={handleDelete} />
           ))}
         </div>
       )}
