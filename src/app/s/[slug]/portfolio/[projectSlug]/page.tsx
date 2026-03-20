@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { getSiteBySlug } from "@/lib/site-resolver";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@supabase/supabase-js";
 import type { Metadata } from "next";
 import PortfolioCaseStudyPage from "@/components/site-public/PortfolioCaseStudyPage";
 
@@ -39,7 +39,13 @@ async function resolvePortfolio(siteSlug: string, projectSlug: string) {
   if (!site) return { site: null, portfolio: null };
 
   try {
-    const supabase = createAdminClient();
+    // Use anon key — this is a public page, no auth needed.
+    // createAdminClient may fail in Server Components if SUPABASE_SERVICE_ROLE_KEY
+    // isn't available at build/runtime.
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
 
     // Get site owner from slug
     const { data: siteRow } = await (supabase.from("sites") as any)
