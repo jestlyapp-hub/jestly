@@ -290,7 +290,7 @@ export default function TaskDetailPage() {
             Taches
           </button>
           <span className="text-[#CCC]">/</span>
-          <span className="text-[#1A1A1A] font-medium truncate max-w-[300px]">
+          <span className="text-[#191919] font-medium truncate max-w-[300px]">
             {task.title || "Sans titre"}
           </span>
         </div>
@@ -320,7 +320,7 @@ export default function TaskDetailPage() {
               value={task.title}
               onChange={(e) => update({ title: e.target.value })}
               placeholder="Titre de la tâche..."
-              className="w-full text-[22px] font-bold text-[#1A1A1A] placeholder-[#CCC] border-none outline-none bg-transparent"
+              className="w-full text-[22px] font-bold text-[#191919] placeholder-[#CCC] border-none outline-none bg-transparent"
             />
 
             {/* Status + Priority inline */}
@@ -381,7 +381,7 @@ export default function TaskDetailPage() {
               onChange={(e) => update({ description: e.target.value })}
               placeholder="Ajouter des notes, instructions, contexte..."
               rows={6}
-              className="w-full bg-[#FBFBFA] border border-[#E6E6E4] rounded-lg px-4 py-3 text-[14px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none leading-relaxed"
+              className="w-full bg-[#FBFBFA] border border-[#E6E6E4] rounded-lg px-4 py-3 text-[14px] text-[#191919] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none leading-relaxed"
               style={{ minHeight: "120px" }}
             />
           </div>
@@ -433,7 +433,7 @@ export default function TaskDetailPage() {
                   </button>
                   <span
                     className={`flex-1 text-[14px] ${
-                      sub.done ? "text-[#BBB] line-through" : "text-[#1A1A1A]"
+                      sub.done ? "text-[#BBB] line-through" : "text-[#191919]"
                     }`}
                   >
                     {sub.text}
@@ -459,7 +459,7 @@ export default function TaskDetailPage() {
                 onChange={(e) => setNewSubtaskText(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addSubtask()}
                 placeholder="Ajouter une sous-tâche..."
-                className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#191919] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               />
               <button
                 onClick={addSubtask}
@@ -483,7 +483,7 @@ export default function TaskDetailPage() {
               type="date"
               value={task.dueDate || ""}
               onChange={(e) => update({ dueDate: e.target.value || undefined })}
-              className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+              className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
             />
             {dueStat === "overdue" && (
               <div className="mt-2 flex items-center gap-1.5 text-[12px] text-[#EF4444] font-medium">
@@ -531,7 +531,7 @@ export default function TaskDetailPage() {
               value={task.orderTitle || ""}
               onChange={(e) => update({ orderTitle: e.target.value || undefined })}
               placeholder="Titre de la commande..."
-              className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+              className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
             />
             {task.orderTitle && task.orderId && (
               <div className="mt-2">
@@ -575,7 +575,7 @@ export default function TaskDetailPage() {
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addTag()}
                 placeholder="Ajouter un tag..."
-                className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#191919] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               />
               <button
                 onClick={addTag}

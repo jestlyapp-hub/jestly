@@ -10,6 +10,7 @@ const DATA: FeaturePageData = {
   subtitle:
     "Créez, envoyez et suivez vos documents financiers depuis le même espace que vos clients et commandes. Plus de jonglage entre cinq outils.",
   videoLabel: "Voir la facturation en action",
+  useFacturationDemo: true,
   accentColor: "#22C55E",
 
   benefitsTitle: "La facturation qui ne",

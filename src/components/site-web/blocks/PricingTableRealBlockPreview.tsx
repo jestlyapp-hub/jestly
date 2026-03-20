@@ -51,17 +51,17 @@ function PricingTableRealBlockPreviewInner({ content }: { content: PricingTableR
               )}
 
               {/* Product name */}
-              <div className="text-[13px] font-semibold mb-1" style={{ color: "var(--site-text, #1A1A1A)" }}>{product.name}</div>
+              <div className="text-[13px] font-semibold mb-1" style={{ color: "var(--site-text, #191919)" }}>{product.name}</div>
               <div className="text-[11px] mb-3" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</div>
 
               {/* Price */}
-              <div className="text-2xl font-bold mb-4" style={{ color: "var(--site-text, #1A1A1A)" }}>{formatPrice(product.priceCents)}</div>
+              <div className="text-2xl font-bold mb-4" style={{ color: "var(--site-text, #191919)" }}>{formatPrice(product.priceCents)}</div>
 
               {/* Features */}
               {content.showFeatures && product.features && product.features.length > 0 && (
                 <ul className="space-y-1.5 mb-5 flex-1">
                   {product.features.map((f, fi) => (
-                    <li key={fi} className="text-[11px] opacity-70 flex items-center gap-1.5" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                    <li key={fi} className="text-[11px] opacity-70 flex items-center gap-1.5" style={{ color: "var(--site-text, #191919)" }}>
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--site-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>

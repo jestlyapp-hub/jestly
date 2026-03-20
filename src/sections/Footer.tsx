@@ -54,7 +54,7 @@ export default function Footer() {
             <ul className="flex flex-col gap-2.5">
               <li>
                 <a
-                  href="#"
+                  href="/legal/cgu"
                   className="text-sm text-[#5A5A58] hover:text-[#191919] transition-colors"
                 >
                   CGU
@@ -62,10 +62,18 @@ export default function Footer() {
               </li>
               <li>
                 <a
-                  href="#"
+                  href="/legal/confidentialite"
                   className="text-sm text-[#5A5A58] hover:text-[#191919] transition-colors"
                 >
                   Confidentialité
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/legal/mentions-legales"
+                  className="text-sm text-[#5A5A58] hover:text-[#191919] transition-colors"
+                >
+                  Mentions légales
                 </a>
               </li>
             </ul>
@@ -77,17 +85,17 @@ export default function Footer() {
               Contact
             </h4>
             <a
-              href="mailto:contact@jestly.fr"
+              href="mailto:jestlyapp@gmail.com"
               className="text-sm text-[#5A5A58] hover:text-[#191919] transition-colors"
             >
-              contact@jestly.fr
+              jestlyapp@gmail.com
             </a>
           </div>
         </div>
 
         <div className="border-t border-[#E6E6E4] pt-8">
           <p className="text-xs text-[#8A8A88] text-center">
-            &copy; 2025 Jestly. Tous droits réservés.
+            &copy; 2026 Jestly. Tous droits réservés.
           </p>
         </div>
       </div>

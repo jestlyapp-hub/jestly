@@ -9,7 +9,7 @@ function TestimonialsVideoBlockPreviewInner({ content }: { content: Testimonials
       <div className="max-w-6xl mx-auto">
         <h2
           className="text-2xl font-bold text-center mb-2"
-          style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+          style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
         >
           {content.title}
         </h2>
@@ -51,7 +51,7 @@ function TestimonialsVideoBlockPreviewInner({ content }: { content: Testimonials
 
               {/* Info */}
               <div className="p-5">
-                <div className="text-sm font-semibold mb-0.5" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                <div className="text-sm font-semibold mb-0.5" style={{ color: "var(--site-text, #191919)" }}>
                   {t.name}
                 </div>
                 <div className="text-xs mb-3" style={{ color: "var(--site-primary, #4F46E5)" }}>

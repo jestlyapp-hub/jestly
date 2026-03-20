@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { enrichOrdersWithProducts } from "@/lib/supabase-helpers";
+import { logger } from "@/lib/logger";
+import { apiError, handleApiError } from "@/lib/api-error";
 
 // GET /api/orders — list user's orders with client join + product enrichment
 // NOTE: We do NOT use nested select `products(name)` because PostgREST
@@ -25,7 +27,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await query;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(500, error.message, { route: "/api/orders", userId: user.id });
 
   const enriched = await enrichOrdersWithProducts(supabase, data || [], user.id);
   return NextResponse.json(enriched);
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
   } = body;
 
   if (!client_id || !title || amount == null) {
-    return NextResponse.json({ error: "client_id, title and amount are required" }, { status: 400 });
+    return apiError(400, "client_id, title and amount are required", { route: "/api/orders", userId: user.id });
   }
 
   const qty = Math.max(1, Math.min(50, Math.floor(Number(quantity) || 1)));
@@ -76,7 +78,8 @@ export async function POST(req: NextRequest) {
       .select("*, clients(name, email, phone)")
       .single();
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return apiError(500, error.message, { route: "/api/orders", userId: user.id, action: "create_order" });
+    logger.info("order_created", { userId: user.id, entity: "order", entityId: data.id, route: "/api/orders" });
     const [enriched] = await enrichOrdersWithProducts(supabase, [data], user.id);
     return NextResponse.json(enriched, { status: 201 });
   }
@@ -95,7 +98,8 @@ export async function POST(req: NextRequest) {
     .insert(rows)
     .select("*, clients(name, email, phone)");
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(500, error.message, { route: "/api/orders", userId: user.id, action: "create_bulk_orders" });
+  logger.info("orders_bulk_created", { userId: user.id, entity: "order", route: "/api/orders", quantity: qty });
   const enriched = await enrichOrdersWithProducts(supabase, data || [], user.id);
   return NextResponse.json(enriched, { status: 201 });
 }

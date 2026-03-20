@@ -34,7 +34,7 @@ export function IntegrationsSection({ profile }: {
                       </div>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-[13px] font-medium text-[#1A1A1A]">{item.name}</span>
+                          <span className="text-[13px] font-medium text-[#191919]">{item.name}</span>
                           {isConnected && (
                             <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">Connecté</span>
                           )}

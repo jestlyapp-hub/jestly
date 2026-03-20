@@ -31,7 +31,7 @@ function ServiceCardsBlockPreviewInner({ content }: { content: ServiceCardsBlock
     return (
       <div className="py-6">
         <div className="max-w-7xl mx-auto px-6">
-          {content.title && <h3 className="text-lg font-bold text-center mb-6" style={{ color: "var(--site-text, #1A1A1A)" }}>{content.title}</h3>}
+          {content.title && <h3 className="text-lg font-bold text-center mb-6" style={{ color: "var(--site-text, #191919)" }}>{content.title}</h3>}
           <div className={`grid ${cols} gap-4`}>
             {products.map((product) => (
               <div key={product.id} className="rounded-xl p-5 hover:shadow-md transition-shadow flex flex-col" style={{ border: "1px solid var(--site-border, #E6E6E4)", background: "var(--site-surface, #fff)" }}>
@@ -44,7 +44,7 @@ function ServiceCardsBlockPreviewInner({ content }: { content: ServiceCardsBlock
                 <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ background: "var(--site-primary-light, #EEF2FF)", color: "var(--site-primary, #4F46E5)" }}>
                   {getIcon("star")}
                 </div>
-                <div className="text-[14px] font-bold mb-1" style={{ color: "var(--site-text, #1A1A1A)" }}>{product.name}</div>
+                <div className="text-[14px] font-bold mb-1" style={{ color: "var(--site-text, #191919)" }}>{product.name}</div>
                 <div className="text-[11px] opacity-50 mb-3" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</div>
                 {product.features && product.features.length > 0 && (
                   <ul className="space-y-1 mb-4 flex-1">
@@ -79,14 +79,14 @@ function ServiceCardsBlockPreviewInner({ content }: { content: ServiceCardsBlock
   return (
     <div className="py-6">
       <div className="max-w-7xl mx-auto px-6">
-        {content.title && <h3 className="text-lg font-bold text-center mb-6" style={{ color: "var(--site-text, #1A1A1A)" }}>{content.title}</h3>}
+        {content.title && <h3 className="text-lg font-bold text-center mb-6" style={{ color: "var(--site-text, #191919)" }}>{content.title}</h3>}
         <div className={`grid ${cols} gap-4`}>
           {content.services.map((s, i) => (
             <div key={i} className="rounded-xl p-5 hover:shadow-md transition-shadow flex flex-col" style={{ border: "1px solid var(--site-border, #E6E6E4)", background: "var(--site-surface, #fff)" }}>
               <div className="w-10 h-10 rounded-lg flex items-center justify-center mb-3" style={{ background: "var(--site-primary-light, #EEF2FF)", color: "var(--site-primary, #4F46E5)" }}>
                 {getIcon(s.icon)}
               </div>
-              <div className="text-[14px] font-bold mb-1" style={{ color: "var(--site-text, #1A1A1A)" }}>{s.name}</div>
+              <div className="text-[14px] font-bold mb-1" style={{ color: "var(--site-text, #191919)" }}>{s.name}</div>
               <div className="text-[11px] opacity-50 mb-3" style={{ color: "var(--site-muted, #999)" }}>{s.description}</div>
               {s.features.length > 0 && (
                 <ul className="space-y-1 mb-4 flex-1">

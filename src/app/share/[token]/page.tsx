@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Image from "next/image";
 
 interface SharedProject {
   name: string;
@@ -103,8 +104,8 @@ export default async function SharedProjectPage({ params }: { params: Promise<{ 
 
       {/* Cover */}
       {project.coverUrl && (
-        <div className="w-full h-48 md:h-64 overflow-hidden">
-          <img src={project.coverUrl} alt="" className="w-full h-full object-cover" />
+        <div className="relative w-full h-48 md:h-64 overflow-hidden">
+          <Image src={project.coverUrl} alt="" fill className="object-cover" unoptimized />
         </div>
       )}
 
@@ -115,7 +116,7 @@ export default async function SharedProjectPage({ params }: { params: Promise<{ 
           <div className="p-6 md:p-8">
             <div className="flex items-start justify-between gap-4 mb-4">
               <div>
-                <h1 className="text-2xl md:text-3xl font-bold text-[#1A1A1A] mb-2">{project.name}</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-[#191919] mb-2">{project.name}</h1>
                 {project.description && (
                   <p className="text-[14px] text-[#5A5A58] leading-relaxed max-w-2xl">{project.description}</p>
                 )}
@@ -152,11 +153,11 @@ export default async function SharedProjectPage({ params }: { params: Promise<{ 
         {/* Gallery from portfolio images */}
         {project.images.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-[14px] font-semibold text-[#1A1A1A] mb-4">Galerie</h2>
+            <h2 className="text-[14px] font-semibold text-[#191919] mb-4">Galerie</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {project.images.map((img, i) => (
-                <div key={i} className="rounded-xl overflow-hidden border border-[#E6E6E4] aspect-video">
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+                <div key={i} className="relative rounded-xl overflow-hidden border border-[#E6E6E4] aspect-video">
+                  <Image src={img} alt="" fill className="object-cover" unoptimized />
                 </div>
               ))}
             </div>
@@ -166,16 +167,16 @@ export default async function SharedProjectPage({ params }: { params: Promise<{ 
         {/* Media items */}
         {mediaItems.length > 0 && project.images.length === 0 && (
           <section className="mb-8">
-            <h2 className="text-[14px] font-semibold text-[#1A1A1A] mb-4">Assets ({mediaItems.length})</h2>
+            <h2 className="text-[14px] font-semibold text-[#191919] mb-4">Assets ({mediaItems.length})</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {mediaItems.map(item => (
                 <div key={item.id} className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden">
-                  <div className="aspect-video overflow-hidden">
-                    <img src={item.thumbnailUrl || item.url || ""} alt={item.title} className="w-full h-full object-cover" />
+                  <div className="relative aspect-video overflow-hidden">
+                    <Image src={item.thumbnailUrl || item.url || ""} alt={item.title} fill className="object-cover" unoptimized />
                   </div>
                   {item.title && (
                     <div className="p-2.5">
-                      <p className="text-[12px] font-medium text-[#1A1A1A] truncate">{item.title}</p>
+                      <p className="text-[12px] font-medium text-[#191919] truncate">{item.title}</p>
                     </div>
                   )}
                 </div>
@@ -187,7 +188,7 @@ export default async function SharedProjectPage({ params }: { params: Promise<{ 
         {/* Folders */}
         {folders.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-[14px] font-semibold text-[#1A1A1A] mb-4">Dossiers ({folders.length})</h2>
+            <h2 className="text-[14px] font-semibold text-[#191919] mb-4">Dossiers ({folders.length})</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {folders.map(folder => {
                 const folderItems = items.filter(i => i.folderId === folder.id);
@@ -196,7 +197,7 @@ export default async function SharedProjectPage({ params }: { params: Promise<{ 
                     <div className="w-9 h-9 rounded-lg flex items-center justify-center mb-2" style={{ backgroundColor: `${folder.color}15` }}>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={folder.color} strokeWidth="1.8"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
                     </div>
-                    <h4 className="text-[13px] font-semibold text-[#1A1A1A] truncate">{folder.name}</h4>
+                    <h4 className="text-[13px] font-semibold text-[#191919] truncate">{folder.name}</h4>
                     <span className="text-[11px] text-[#8A8A88]">{folderItems.length} élément{folderItems.length !== 1 ? "s" : ""}</span>
                     {/* Show folder items */}
                     {folderItems.length > 0 && (
@@ -222,19 +223,19 @@ export default async function SharedProjectPage({ params }: { params: Promise<{ 
         {/* Root items */}
         {rootItems.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-[14px] font-semibold text-[#1A1A1A] mb-4">Éléments ({rootItems.length})</h2>
+            <h2 className="text-[14px] font-semibold text-[#191919] mb-4">Éléments ({rootItems.length})</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
               {rootItems.map(item => (
                 <div key={item.id} className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden">
                   {["image", "video"].includes(item.type) && (item.thumbnailUrl || item.url) && (
-                    <div className="h-32 overflow-hidden">
-                      <img src={item.thumbnailUrl || item.url || ""} alt={item.title} className="w-full h-full object-cover" />
+                    <div className="relative h-32 overflow-hidden">
+                      <Image src={item.thumbnailUrl || item.url || ""} alt={item.title} fill className="object-cover" unoptimized />
                     </div>
                   )}
                   <div className="p-3.5">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-sm">{TYPE_ICONS[item.type] || "📄"}</span>
-                      <h4 className="text-[13px] font-semibold text-[#1A1A1A] truncate">{item.title || "Sans titre"}</h4>
+                      <h4 className="text-[13px] font-semibold text-[#191919] truncate">{item.title || "Sans titre"}</h4>
                       {item.isPinned && <span className="text-[9px] bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded font-semibold">Épinglé</span>}
                     </div>
                     {item.description && <p className="text-[11px] text-[#8A8A88] line-clamp-2">{item.description}</p>}

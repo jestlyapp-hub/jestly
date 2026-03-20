@@ -6,7 +6,7 @@ import { getButtonInlineStyle } from "@/lib/block-style-engine";
 import { useProducts } from "@/lib/product-context";
 
 const inputClass = "w-full rounded-lg px-3 py-2 text-[13px] focus:outline-none focus:ring-1 focus:ring-[var(--site-primary)]/20 transition-all border"
-  + " bg-[var(--site-surface,#F7F7F5)] border-[var(--site-border,#E6E6E4)] text-[var(--site-text,#1A1A1A)]";
+  + " bg-[var(--site-surface,#F7F7F5)] border-[var(--site-border,#E6E6E4)] text-[var(--site-text,#191919)]";
 
 interface LeadCtx { siteId: string; pagePath: string; blockType: string; }
 

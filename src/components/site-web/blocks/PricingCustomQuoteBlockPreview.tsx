@@ -24,7 +24,7 @@ function PricingCustomQuoteBlockPreviewInner({ content }: { content: PricingCust
         <h2
           className="text-3xl sm:text-4xl font-bold mb-4"
           style={{
-            color: "var(--site-text, #1A1A1A)",
+            color: "var(--site-text, #191919)",
             fontFamily: "var(--site-heading-font, inherit)",
           }}
         >
@@ -52,7 +52,7 @@ function PricingCustomQuoteBlockPreviewInner({ content }: { content: PricingCust
                 <li
                   key={i}
                   className="flex items-center gap-3 text-sm"
-                  style={{ color: "var(--site-text, #1A1A1A)" }}
+                  style={{ color: "var(--site-text, #191919)" }}
                 >
                   <svg
                     width="18"

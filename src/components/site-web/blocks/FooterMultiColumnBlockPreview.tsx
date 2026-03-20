@@ -26,7 +26,7 @@ function FooterMultiColumnBlockPreviewInner({ content }: { content: FooterMultiC
           <div className="md:col-span-4">
             <h3
               className="text-lg font-bold mb-3"
-              style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+              style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
             >
               {content.siteName || "Mon Site"}
             </h3>
@@ -43,7 +43,7 @@ function FooterMultiColumnBlockPreviewInner({ content }: { content: FooterMultiC
               <div key={i}>
                 <h4
                   className="text-sm font-semibold mb-4"
-                  style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+                  style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
                 >
                   {col.title}
                 </h4>

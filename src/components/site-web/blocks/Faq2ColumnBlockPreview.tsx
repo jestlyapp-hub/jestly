@@ -9,7 +9,7 @@ function Faq2ColumnBlockPreview({ content }: { content: Faq2ColumnBlockContent }
         {content.title && (
           <h2
             className="text-3xl font-bold text-center mb-3"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -25,7 +25,7 @@ function Faq2ColumnBlockPreview({ content }: { content: Faq2ColumnBlockContent }
             <div key={i}>
               <h3
                 className="text-[15px] font-semibold mb-2"
-                style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+                style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
               >
                 {item.question}
               </h3>

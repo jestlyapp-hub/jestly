@@ -71,7 +71,7 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
                 dragIdx === i ? "opacity-50" : ""
               }`}
             >
-              <span className="font-medium text-[#1A1A1A]">{p.name}</span>
+              <span className="font-medium text-[#191919]">{p.name}</span>
               <span className="text-[#999]">{formatPrice(p.priceCents)}</span>
               <button
                 onClick={() => remove(p.id)}
@@ -95,7 +95,7 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
           onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           placeholder="Rechercher un produit…"
-          className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+          className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
         />
         {open && available.length > 0 && (
           <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg max-h-48 overflow-y-auto">
@@ -106,7 +106,7 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
                 className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#F7F7F5] transition-colors text-left"
               >
                 <div>
-                  <div className="text-[13px] font-medium text-[#1A1A1A]">{p.name}</div>
+                  <div className="text-[13px] font-medium text-[#191919]">{p.name}</div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <span className="text-[10px] font-medium text-[#999] bg-[#F7F7F5] px-1.5 py-0.5 rounded">{p.category}</span>
                     {p.status !== "active" && <span className="text-[10px] text-red-400">{p.status === "archived" ? "Archivé" : "Brouillon"}</span>}

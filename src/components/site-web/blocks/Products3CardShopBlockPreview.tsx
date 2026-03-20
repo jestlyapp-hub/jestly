@@ -28,7 +28,7 @@ function Products3CardShopBlockPreviewInner({ content }: { content: Products3Car
             <h2
               className="text-3xl sm:text-4xl font-bold mb-4"
               style={{
-                color: "var(--site-text, #1A1A1A)",
+                color: "var(--site-text, #191919)",
                 fontFamily: "var(--site-heading-font, inherit)",
               }}
             >
@@ -92,7 +92,7 @@ function Products3CardShopBlockPreviewInner({ content }: { content: Products3Car
               <div className="p-5 flex flex-col flex-1">
                 <h3
                   className="text-base font-semibold mb-1"
-                  style={{ color: "var(--site-text, #1A1A1A)" }}
+                  style={{ color: "var(--site-text, #191919)" }}
                 >
                   {product.title}
                 </h3>

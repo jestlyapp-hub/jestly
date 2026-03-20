@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
@@ -278,7 +279,7 @@ function CreateTicketModal({
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ duration: 0.2 }}
       >
-        <h2 className="text-[16px] font-semibold text-[#1A1A1A] mb-4">
+        <h2 className="text-[16px] font-semibold text-[#191919] mb-4">
           Nouveau ticket
         </h2>
 
@@ -292,7 +293,7 @@ function CreateTicketModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="D\u00e9crivez votre probl\u00e8me..."
-              className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+              className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               autoFocus
             />
           </div>
@@ -305,7 +306,7 @@ function CreateTicketModal({
             <select
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all cursor-pointer"
+              className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all cursor-pointer"
             >
               {CATEGORIES.map((c) => (
                 <option key={c.value} value={c.value}>
@@ -324,7 +325,7 @@ function CreateTicketModal({
               onChange={(e) => setMessage(e.target.value)}
               placeholder="D\u00e9tails suppl\u00e9mentaires..."
               rows={4}
-              className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none"
+              className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none"
             />
           </div>
 
@@ -332,7 +333,7 @@ function CreateTicketModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-[13px] font-medium text-[#5A5A58] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+              className="px-4 py-2 text-[13px] font-medium text-[#5A5A58] hover:text-[#191919] transition-colors cursor-pointer"
             >
               Annuler
             </button>
@@ -585,7 +586,7 @@ function TicketConversation({
         </button>
 
         <div className="flex-1 min-w-0">
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A] truncate">
+          <h2 className="text-[15px] font-semibold text-[#191919] truncate">
             {ticket.title}
           </h2>
         </div>
@@ -645,8 +646,8 @@ function TicketConversation({
                 <div
                   className={`rounded-xl px-4 py-2.5 text-[13px] leading-relaxed ${
                     isAdmin
-                      ? "bg-[#F7F7F5] text-[#1A1A1A] rounded-tl-sm"
-                      : "bg-[#EEF2FF] text-[#1A1A1A] rounded-tr-sm"
+                      ? "bg-[#F7F7F5] text-[#191919] rounded-tl-sm"
+                      : "bg-[#EEF2FF] text-[#191919] rounded-tr-sm"
                   }`}
                 >
                   {msg.message}
@@ -722,16 +723,19 @@ function TicketConversation({
             {pendingFile && (
               <div className="flex items-center gap-2 mb-2 bg-[#F7F7F5] rounded-lg px-3 py-2">
                 {pendingFilePreview ? (
-                  <img
+                  <Image
                     src={pendingFilePreview}
                     alt=""
+                    width={40}
+                    height={40}
                     className="w-10 h-10 rounded object-cover flex-shrink-0"
+                    unoptimized
                   />
                 ) : (
                   <IconFile size={16} />
                 )}
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12px] text-[#1A1A1A] truncate">
+                  <p className="text-[12px] text-[#191919] truncate">
                     {pendingFile.name}
                   </p>
                   <p className="text-[11px] text-[#8A8A88]">
@@ -740,7 +744,7 @@ function TicketConversation({
                 </div>
                 <button
                   onClick={clearPendingFile}
-                  className="text-[#8A8A88] hover:text-[#1A1A1A] transition-colors cursor-pointer flex-shrink-0"
+                  className="text-[#8A8A88] hover:text-[#191919] transition-colors cursor-pointer flex-shrink-0"
                 >
                   <IconX size={14} />
                 </button>
@@ -771,7 +775,7 @@ function TicketConversation({
                 onKeyDown={handleKeyDown}
                 placeholder="\u00c9crivez votre message..."
                 rows={1}
-                className="flex-1 bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none"
+                className="flex-1 bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none"
                 style={{ maxHeight: 96 }}
               />
 
@@ -818,7 +822,7 @@ function WelcomePanel({ onNewTicket }: { onNewTicket: () => void }) {
           </button>
           <a
             href="mailto:jestly@gmail.com"
-            className="inline-flex items-center gap-2 bg-white border border-[#E6E6E4] text-[#1A1A1A] rounded-lg px-4 py-2.5 text-[13px] font-medium hover:bg-[#FBFBFA] transition-colors"
+            className="inline-flex items-center gap-2 bg-white border border-[#E6E6E4] text-[#191919] rounded-lg px-4 py-2.5 text-[13px] font-medium hover:bg-[#FBFBFA] transition-colors"
           >
             <IconMail size={15} />
             Envoyer un email
@@ -915,7 +919,7 @@ export default function SupportPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <h1 className="text-[18px] font-bold text-[#1A1A1A]">Support</h1>
+              <h1 className="text-[18px] font-bold text-[#191919]">Support</h1>
               <p className="text-[12px] text-[#8A8A88] mt-0.5 mb-3">
                 Besoin d&apos;aide ?
               </p>
@@ -949,7 +953,7 @@ export default function SupportPage() {
                   onClick={() => setFilter(tab.key)}
                   className={`flex-1 text-[12px] font-medium px-3 py-1.5 rounded-md transition-all cursor-pointer ${
                     filter === tab.key
-                      ? "bg-white text-[#1A1A1A] shadow-sm"
+                      ? "bg-white text-[#191919] shadow-sm"
                       : "text-[#8A8A88] hover:text-[#5A5A58]"
                   }`}
                 >
@@ -999,7 +1003,7 @@ export default function SupportPage() {
                       <div className="flex items-center gap-2 min-w-0">
                         <span
                           className={`text-[14px] font-medium truncate flex-1 ${
-                            isSelected ? "text-[#4F46E5]" : "text-[#1A1A1A]"
+                            isSelected ? "text-[#4F46E5]" : "text-[#191919]"
                           }`}
                         >
                           {ticket.title}

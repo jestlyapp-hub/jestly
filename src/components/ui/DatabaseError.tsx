@@ -124,7 +124,7 @@ export default function DatabaseError({
           {cfg.icon}
         </div>
 
-        <h2 className="text-[16px] font-semibold text-[#1A1A1A] mb-1.5">
+        <h2 className="text-[16px] font-semibold text-[#191919] mb-1.5">
           {title || cfg.defaultTitle}
         </h2>
 

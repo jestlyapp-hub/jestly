@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useBuilder, serializeSiteForSave, type Breakpoint } from "@/lib/site-builder-context";
 import { useSite } from "@/lib/hooks/use-site";
 import { validateSite, type ValidationError } from "@/lib/builder-validation";
+import { useTrack } from "@/lib/hooks/use-track";
 
 type RightPanel = "inspector" | "theme" | "nav";
 
@@ -43,6 +44,7 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
   const [publishStatus, setPublishStatus] = useState<"idle" | "publishing" | "published" | "error">("idle");
   const [publishError, setPublishError] = useState<string | null>(null);
   const [showErrors, setShowErrors] = useState(false);
+  const track = useTrack();
 
   const validationErrors = useMemo(() => validateSite(state.site), [state.site]);
   const blockingErrors = validationErrors.filter((e) => e.severity === "error");
@@ -81,6 +83,7 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
 
       dispatch({ type: "MARK_CLEAN" });
       setPublishStatus("published");
+      track("site_published", { siteId, subdomain: pubData.subdomain || state.site.domain?.subdomain });
 
       const subdomain = pubData.subdomain || state.site.domain?.subdomain;
       if (subdomain) window.open(`/s/${subdomain}`, "_blank");
@@ -126,7 +129,7 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
           <div className="w-6 h-6 rounded-md bg-[#EEF2FF] flex items-center justify-center flex-shrink-0">
             <span className="text-[10px] font-bold text-[#4F46E5]">{(state.site.settings.name || "S")[0].toUpperCase()}</span>
           </div>
-          <span className="text-[13px] font-semibold text-[#1A1A1A] truncate max-w-[120px]">
+          <span className="text-[13px] font-semibold text-[#191919] truncate max-w-[120px]">
             {state.site.settings.name || "Mon site"}
           </span>
         </div>
@@ -224,7 +227,7 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
         <button
           onClick={() => dispatch({ type: "TOGGLE_PREVIEW_MODE" })}
           className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
-            state.previewMode ? "bg-[#1A1A1A] text-white" : "text-[#666] hover:bg-[#F7F7F5]"
+            state.previewMode ? "bg-[#191919] text-white" : "text-[#666] hover:bg-[#F7F7F5]"
           }`}
         >
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -298,7 +301,7 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
                       }}
                       className="w-full px-3 py-2 text-left hover:bg-red-50/50 transition-colors border-b border-red-50 last:border-0"
                     >
-                      <div className="text-[11px] font-medium text-[#1A1A1A]">{err.blockType}</div>
+                      <div className="text-[11px] font-medium text-[#191919]">{err.blockType}</div>
                       <div className="text-[10px] text-red-600">{err.message}</div>
                       <div className="text-[9px] text-[#999]">Page : {err.pageName}</div>
                     </button>

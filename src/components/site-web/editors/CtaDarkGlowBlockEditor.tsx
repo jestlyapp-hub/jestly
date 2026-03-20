@@ -3,7 +3,7 @@
 import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
 
-const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 export default function CtaDarkGlowBlockEditor({ block }: { block: Extract<Block, { type: "cta-dark-glow" }> }) {
   const { dispatch } = useBuilder();

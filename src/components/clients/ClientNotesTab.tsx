@@ -41,12 +41,12 @@ export default function ClientNotesTab({ clientId }: Props) {
     <div className="space-y-6">
       {/* Add note */}
       <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-        <h3 className="text-[13px] font-semibold text-[#1A1A1A] mb-3">Ajouter une note</h3>
+        <h3 className="text-[13px] font-semibold text-[#191919] mb-3">Ajouter une note</h3>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Écrire une note..."
-          className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg p-3 text-[13px] text-[#1A1A1A] placeholder-[#BBB] min-h-[100px] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 resize-none"
+          className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg p-3 text-[13px] text-[#191919] placeholder-[#BBB] min-h-[100px] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 resize-none"
         />
         <div className="flex justify-end mt-2">
           <button
@@ -62,11 +62,11 @@ export default function ClientNotesTab({ clientId }: Props) {
       {/* Notes list */}
       {notes.length > 0 && (
         <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-          <h3 className="text-[13px] font-semibold text-[#1A1A1A] mb-3">Notes ({notes.length})</h3>
+          <h3 className="text-[13px] font-semibold text-[#191919] mb-3">Notes ({notes.length})</h3>
           <div className="space-y-3">
             {notes.map((note) => (
               <div key={note.id} className="p-3 bg-[#F7F7F5] rounded-lg">
-                <p className="text-[13px] text-[#1A1A1A] whitespace-pre-wrap">{note.content}</p>
+                <p className="text-[13px] text-[#191919] whitespace-pre-wrap">{note.content}</p>
                 <p className="text-[11px] text-[#999] mt-2">
                   {new Date(note.createdAt).toLocaleDateString("fr-FR", {
                     day: "numeric",
@@ -84,7 +84,7 @@ export default function ClientNotesTab({ clientId }: Props) {
 
       {/* Timeline */}
       <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-        <h3 className="text-[13px] font-semibold text-[#1A1A1A] mb-4">Historique</h3>
+        <h3 className="text-[13px] font-semibold text-[#191919] mb-4">Historique</h3>
         <ClientEventTimeline events={events} />
       </div>
     </div>

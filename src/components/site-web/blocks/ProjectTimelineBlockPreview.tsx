@@ -13,7 +13,7 @@ function ProjectTimelineBlockPreviewInner({ content }: { content: ProjectTimelin
           <h2
             className="text-3xl font-bold mb-2"
             style={{
-              color: "var(--site-text, #1A1A1A)",
+              color: "var(--site-text, #191919)",
               fontFamily: "var(--site-heading-font, inherit)",
             }}
           >
@@ -54,7 +54,7 @@ function ProjectTimelineBlockPreviewInner({ content }: { content: ProjectTimelin
                   <h3
                     className="text-base font-semibold mb-1"
                     style={{
-                      color: "var(--site-text, #1A1A1A)",
+                      color: "var(--site-text, #191919)",
                       fontFamily: "var(--site-heading-font, inherit)",
                     }}
                   >
@@ -114,7 +114,7 @@ function ProjectTimelineBlockPreviewInner({ content }: { content: ProjectTimelin
               </div>
               <p
                 className="text-sm font-medium"
-                style={{ color: "var(--site-text, #1A1A1A)" }}
+                style={{ color: "var(--site-text, #191919)" }}
               >
                 {content.resultSummary}
               </p>

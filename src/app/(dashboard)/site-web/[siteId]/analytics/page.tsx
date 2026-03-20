@@ -1,5 +1,6 @@
 "use client";
 
+import { use } from "react";
 import { motion } from "framer-motion";
 import StatCard from "@/components/ui/StatCard";
 import { useApi } from "@/lib/hooks/use-api";
@@ -8,12 +9,14 @@ interface AnalyticsSummary {
   totalRevenue: number;
   totalOrders: number;
   clientCount: number;
+  leadCount?: number;
   avgBasket: number;
   months: { month: string; revenue: number; orders: number }[];
 }
 
-export default function SiteAnalyticsPage() {
-  const { data } = useApi<AnalyticsSummary>("/api/analytics/summary");
+export default function SiteAnalyticsPage({ params }: { params: Promise<{ siteId: string }> }) {
+  const { siteId } = use(params);
+  const { data } = useApi<AnalyticsSummary>(`/api/analytics/summary?siteId=${siteId}`);
 
   const totalRevenue = data?.totalRevenue ?? 0;
   const totalOrders = data?.totalOrders ?? 0;

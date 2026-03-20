@@ -78,7 +78,7 @@ export default function DeleteClientDialog({ client, open, onClose, onDeleted }:
             </div>
 
             {/* Title */}
-            <h3 className="text-[15px] font-semibold text-[#1A1A1A] mb-2">
+            <h3 className="text-[15px] font-semibold text-[#191919] mb-2">
               Supprimer {client.name} ?
             </h3>
 
@@ -99,14 +99,14 @@ export default function DeleteClientDialog({ client, open, onClose, onDeleted }:
             {/* Confirmation input */}
             <div className="mb-6">
               <label className="block text-[12px] text-[#8A8A88] mb-1.5">
-                Tapez <span className="font-semibold text-[#1A1A1A]">SUPPRIMER</span> pour confirmer
+                Tapez <span className="font-semibold text-[#191919]">SUPPRIMER</span> pour confirmer
               </label>
               <input
                 type="text"
                 value={confirmation}
                 onChange={(e) => setConfirmation(e.target.value)}
                 placeholder="SUPPRIMER"
-                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-all"
+                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-red-300 focus:ring-1 focus:ring-red-200 transition-all"
               />
             </div>
 

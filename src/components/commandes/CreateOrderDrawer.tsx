@@ -106,6 +106,11 @@ export default function CreateOrderDrawer({
       return;
     }
 
+    if (Number(amount) < 0) {
+      setError("Le montant doit être positif");
+      return;
+    }
+
     setSaving(true);
     setError("");
 
@@ -118,11 +123,37 @@ export default function CreateOrderDrawer({
           setSaving(false);
           return;
         }
-        const newClient = await apiFetch<{ id: string }>("/api/clients", {
-          method: "POST",
-          body: { name: newClientName, email: newClientEmail || undefined },
-        });
-        finalClientId = newClient.id;
+        try {
+          const newClient = await apiFetch<{ id: string }>("/api/clients", {
+            method: "POST",
+            body: { name: newClientName, email: newClientEmail || undefined },
+          });
+          finalClientId = newClient.id;
+        } catch (clientErr) {
+          // If 409 duplicate email → reuse the existing client
+          const msg = clientErr instanceof Error ? clientErr.message : "";
+          if (msg.includes("duplicate")) {
+            try {
+              const res = await fetch("/api/clients", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: newClientName, email: newClientEmail || undefined }),
+              });
+              if (res.status === 409) {
+                const body = await res.json();
+                if (body.existingClientId) {
+                  finalClientId = body.existingClientId;
+                } else {
+                  throw new Error("Client avec cet email existe déjà");
+                }
+              }
+            } catch {
+              throw new Error("Client avec cet email existe déjà");
+            }
+          } else {
+            throw clientErr;
+          }
+        }
       }
 
       if (!finalClientId) {
@@ -248,7 +279,7 @@ export default function CreateOrderDrawer({
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Montant (EUR)</label>
-                  <input type="number" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)}
+                  <input type="number" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} min={0}
                     className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30" />
                 </div>
                 <div className="w-[140px]">

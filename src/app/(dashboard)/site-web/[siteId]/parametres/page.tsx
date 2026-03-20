@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useSite } from "@/lib/hooks/use-site";
 import { useParams } from "next/navigation";
 
-const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const toggleClass = "relative w-11 h-6 rounded-full transition-colors cursor-pointer";
 const toggleDotClass = "absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform";
 
@@ -126,7 +126,7 @@ export default function SiteParametresPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-5">Informations générales</h2>
+          <h2 className="text-[15px] font-semibold text-[#191919] mb-5">Informations générales</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-[12px] font-medium text-[#999] mb-1.5">Nom du site</label>
@@ -164,7 +164,7 @@ export default function SiteParametresPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.04 }}
         >
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-5">Navigation</h2>
+          <h2 className="text-[15px] font-semibold text-[#191919] mb-5">Navigation</h2>
           <div className="space-y-3">
             {navLinks.map((link, i) => (
               <div key={i} className="flex items-center gap-2">
@@ -222,7 +222,7 @@ export default function SiteParametresPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.08 }}
         >
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-5">Footer</h2>
+          <h2 className="text-[15px] font-semibold text-[#191919] mb-5">Footer</h2>
           <div className="space-y-3">
             {footerLinks.map((link, i) => (
               <div key={i} className="flex items-center gap-2">
@@ -280,7 +280,7 @@ export default function SiteParametresPage() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Mode maintenance</h2>
+              <h2 className="text-[15px] font-semibold text-[#191919]">Mode maintenance</h2>
               <p className="text-[12px] text-[#999] mt-0.5">
                 {maintenance ? "Votre site est actuellement hors ligne." : "Votre site est en ligne et accessible."}
               </p>
@@ -303,7 +303,7 @@ export default function SiteParametresPage() {
         >
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Génération automatique</h2>
+              <h2 className="text-[15px] font-semibold text-[#191919]">Génération automatique</h2>
               <p className="text-[12px] text-[#999] mt-0.5">Page services auto depuis produits actifs</p>
             </div>
             <button
@@ -328,7 +328,7 @@ export default function SiteParametresPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-5">Langues</h2>
+          <h2 className="text-[15px] font-semibold text-[#191919] mb-5">Langues</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-[12px] font-medium text-[#999] mb-1.5">Langue par défaut</label>
@@ -365,7 +365,7 @@ export default function SiteParametresPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.24 }}
         >
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-5">Réseaux sociaux</h2>
+          <h2 className="text-[15px] font-semibold text-[#191919] mb-5">Réseaux sociaux</h2>
           <div className="space-y-4">
             {[
               { key: "instagram", label: "Instagram", placeholder: "https://instagram.com/..." },

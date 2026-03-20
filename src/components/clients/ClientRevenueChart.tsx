@@ -11,7 +11,7 @@ export default function ClientRevenueChart({ months }: Props) {
 
   return (
     <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-      <h3 className="text-[13px] font-semibold text-[#1A1A1A] mb-4">Revenus (12 mois)</h3>
+      <h3 className="text-[13px] font-semibold text-[#191919] mb-4">Revenus (12 mois)</h3>
       <div className="flex items-end gap-1.5 h-[140px]">
         {months.map((m) => {
           const pct = (m.revenue / maxRevenue) * 100;

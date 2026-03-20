@@ -23,7 +23,7 @@ function PricingMiniFaqBlockPreviewInner({ content }: { content: PricingMiniFaqB
         {content.title && (
           <h2
             className="text-2xl font-bold text-center mb-10"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -40,7 +40,7 @@ function PricingMiniFaqBlockPreviewInner({ content }: { content: PricingMiniFaqB
                 border: "1px solid var(--site-border, #E6E6E4)",
               }}
             >
-              <div className="text-sm font-semibold mb-1" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <div className="text-sm font-semibold mb-1" style={{ color: "var(--site-text, #191919)" }}>
                 {plan.name}
               </div>
               <div className="text-3xl font-bold mb-4" style={{ color: "var(--site-primary, #4F46E5)" }}>
@@ -83,7 +83,7 @@ function PricingMiniFaqBlockPreviewInner({ content }: { content: PricingMiniFaqB
                 style={{ backgroundColor: "var(--site-surface, #F7F7F5)" }}
                 onClick={() => setOpenIdx(openIdx === i ? null : i)}
               >
-                <span className="text-sm font-medium" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                <span className="text-sm font-medium" style={{ color: "var(--site-text, #191919)" }}>
                   {item.question}
                 </span>
                 <svg

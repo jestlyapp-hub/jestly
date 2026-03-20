@@ -150,7 +150,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
           {date.getDate()}
         </span>
         <div>
-          <div className={`text-[16px] font-bold tracking-[-0.01em] ${today ? "text-[#4F46E5]" : "text-[#1A1A1A]"}`}>
+          <div className={`text-[16px] font-bold tracking-[-0.01em] ${today ? "text-[#4F46E5]" : "text-[#191919]"}`}>
             {formatDayName(date)}
           </div>
           <div className="text-[12px] font-medium text-[#999]">{formatMonthName(date)} {date.getFullYear()}</div>

@@ -6,10 +6,18 @@ export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string; pageId: string }> }
 ) {
-  const { pageId } = await params;
+  const { id: siteId, pageId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Ownership check
+  const { data: site } = await (supabase.from("sites") as any)
+    .select("id")
+    .eq("id", siteId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("site_blocks") as any)
@@ -26,10 +34,18 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; pageId: string }> }
 ) {
-  const { pageId } = await params;
+  const { id: siteId, pageId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Ownership check
+  const { data: site } = await (supabase.from("sites") as any)
+    .select("id")
+    .eq("id", siteId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
 
   const { blocks } = await req.json();
 

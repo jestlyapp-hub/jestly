@@ -71,7 +71,7 @@ export function formatDateFR(iso: string | undefined | null): string | null {
   }
 }
 
-/** Is this deadline in the past? */
+/** Is this deadline in the past? (date-only check, no status awareness) */
 export function isOverdue(iso: string | undefined | null): boolean {
   if (!iso) return false;
   try {
@@ -82,4 +82,23 @@ export function isOverdue(iso: string | undefined | null): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Statuts terminés — une commande dans ces statuts ne peut plus être "en retard"
+ * car elle a quitté le flux opérationnel de production.
+ */
+const TERMINAL_STATUSES = new Set(["delivered", "invoiced", "paid", "cancelled", "refunded", "dispute"]);
+
+/** Is this order status still in active production (not yet delivered/completed)? */
+export function isActiveProductionStatus(status: string): boolean {
+  return !TERMINAL_STATUSES.has(status);
+}
+
+/**
+ * Is this order operationally overdue?
+ * True only if: deadline is past AND status is still in active production.
+ */
+export function isOrderOverdue(deadline: string | undefined | null, status: string): boolean {
+  return isOverdue(deadline) && isActiveProductionStatus(status);
 }

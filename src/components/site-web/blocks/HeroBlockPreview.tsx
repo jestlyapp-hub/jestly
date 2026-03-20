@@ -1,4 +1,5 @@
 import { memo } from "react";
+import Image from "next/image";
 import type { HeroBlockContent } from "@/types";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
@@ -12,8 +13,7 @@ function HeroBlockPreviewInner({ content }: { content: HeroBlockContent }) {
       )}
       {content.imageUrl && (
         <div className="mt-6 max-w-2xl mx-auto rounded-xl overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={content.imageUrl} alt="" className="w-full h-auto object-cover" />
+          <Image src={content.imageUrl} alt="" width={800} height={450} className="w-full h-auto object-cover" unoptimized />
         </div>
       )}
     </div>

@@ -22,10 +22,10 @@ const FIELD_TYPE_CONFIG: Record<BriefFieldType, { label: string; color: string; 
 };
 
 const inputClass =
-  "w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all";
+  "w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder:text-[#C4C4C2] focus:outline-none focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all";
 
 const selectClass =
-  "w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all appearance-none cursor-pointer";
+  "w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all appearance-none cursor-pointer";
 
 const labelClass = "block text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide mb-1.5";
 
@@ -530,7 +530,7 @@ export default function BriefFieldEditor({ field, onChange, onDelete, orderField
                       type="text"
                       value={opt}
                       onChange={(e) => updateOption(idx, e.target.value)}
-                      className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-1.5 text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
+                      className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-1.5 text-[13px] text-[#191919] placeholder:text-[#C4C4C2] focus:outline-none focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
                       placeholder={`Option ${idx + 1}`}
                     />
                     <button

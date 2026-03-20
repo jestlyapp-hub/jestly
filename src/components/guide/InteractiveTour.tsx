@@ -117,7 +117,7 @@ export default function InteractiveTour({
               Etape {current + 1} sur {steps.length}
             </p>
 
-            <h3 className="text-[15px] font-bold text-[#1A1A1A] mb-1.5">
+            <h3 className="text-[15px] font-bold text-[#191919] mb-1.5">
               {step.title}
             </h3>
             <p className="text-[13px] text-[#5A5A58] leading-relaxed mb-5">

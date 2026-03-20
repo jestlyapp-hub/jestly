@@ -33,7 +33,7 @@ function InlineCheckoutBlockPreviewInner({ content }: { content: InlineCheckoutB
           {/* Product info line */}
           <div className="flex items-center justify-between mb-4">
             <div>
-              <div className="text-[13px] font-semibold" style={{ color: "var(--site-text, #1A1A1A)" }}>{product.name}</div>
+              <div className="text-[13px] font-semibold" style={{ color: "var(--site-text, #191919)" }}>{product.name}</div>
               <div className="text-[11px]" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</div>
             </div>
             <div className="text-lg font-bold text-[var(--site-primary)] whitespace-nowrap ml-4">{formatPrice(product.priceCents)}</div>
@@ -66,7 +66,7 @@ function InlineCheckoutBlockPreviewInner({ content }: { content: InlineCheckoutB
       <div className="rounded-xl border p-6 max-w-md mx-auto" style={{ borderColor: "var(--site-border, #E6E6E4)" }}>
         {/* Product details */}
         <div className="text-center mb-5">
-          <div className="text-lg font-bold mb-1" style={{ color: "var(--site-text, #1A1A1A)" }}>{product.name}</div>
+          <div className="text-lg font-bold mb-1" style={{ color: "var(--site-text, #191919)" }}>{product.name}</div>
           <p className="text-[12px] mb-3" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</p>
           <div className="text-2xl font-bold text-[var(--site-primary)]">{formatPrice(product.priceCents)}</div>
         </div>
@@ -74,7 +74,7 @@ function InlineCheckoutBlockPreviewInner({ content }: { content: InlineCheckoutB
         {product.features && product.features.length > 0 && (
           <ul className="space-y-1.5 mb-5 border-t pt-4" style={{ borderColor: "var(--site-border, #E6E6E4)" }}>
             {product.features.slice(0, 4).map((f, i) => (
-              <li key={i} className="text-[11px] opacity-70 flex items-center gap-2" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <li key={i} className="text-[11px] opacity-70 flex items-center gap-2" style={{ color: "var(--site-text, #191919)" }}>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--site-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                 {f}
               </li>

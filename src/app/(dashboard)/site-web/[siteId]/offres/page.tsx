@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { useConfirm } from "@/lib/hooks/use-confirm";
 import { dbToProduct } from "@/lib/adapters";
 import { PRODUCT_TYPES, formatPrice } from "@/lib/productTypes";
 import { slugify } from "@/lib/slug";
@@ -27,7 +30,7 @@ const STATUS_BADGES: Record<string, { label: string; className: string }> = {
   archived: { label: "Archivé", className: "bg-orange-50/90 text-orange-600 border border-orange-200/60" },
 };
 const INPUT_CLASS =
-  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 interface TemplateRow {
   id: string; name: string; description: string | null; version: number;
@@ -67,8 +70,8 @@ function CreationModal({ onClose, onCreated, briefTemplates }: {
       const res = await apiFetch("/api/products", {
         method: "POST",
         body: {
-          title: name.trim(), type, price: isLeadMagnet ? 0 : priceEuros,
-          checkout_mode: mode, slug: slugify(name.trim()),
+          name: name.trim(), type, price_cents: isLeadMagnet ? 0 : Math.round(priceEuros * 100),
+          mode, slug: slugify(name.trim()),
           delivery_time_days: type === "service" && deliveryTimeDays > 0 ? deliveryTimeDays : null,
           delivery_type: (isDigital || isLeadMagnet) ? deliveryType : "none",
           delivery_url: deliveryType === "url" ? deliveryUrl : null,
@@ -90,7 +93,7 @@ function CreationModal({ onClose, onCreated, briefTemplates }: {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/10 z-40" />
       <motion.div initial={{ opacity: 0, scale: 0.96, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 8 }} transition={{ duration: 0.2, ease: "easeOut" as const }} className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-xl border border-[#E6E6E4] shadow-lg z-50 p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-[16px] font-semibold text-[#1A1A1A]">Nouvelle offre</h2>
+          <h2 className="text-[16px] font-semibold text-[#191919]">Nouvelle offre</h2>
           <button onClick={onClose} className="text-[#8A8A88] hover:text-[#5A5A58] transition-colors p-1">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
@@ -161,7 +164,7 @@ function CreationModal({ onClose, onCreated, briefTemplates }: {
         )}
         {error && <p className="text-[12px] text-red-500 mt-3">{error}</p>}
         <div className="flex items-center justify-end gap-3 mt-5 pt-4 border-t border-[#E6E6E4]">
-          <button onClick={onClose} className="text-[13px] text-[#5A5A58] hover:text-[#1A1A1A] px-4 py-2 transition-colors">Annuler</button>
+          <button onClick={onClose} className="text-[13px] text-[#5A5A58] hover:text-[#191919] px-4 py-2 transition-colors">Annuler</button>
           <button onClick={handleCreate} disabled={!name.trim() || saving}
             className="flex items-center gap-1.5 bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             {saving && <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
@@ -195,7 +198,7 @@ function OfferCard({ product, index, onDuplicate, onArchive }: {
       <div className="flex">
         <div className="relative w-28 flex-shrink-0 bg-[#F7F7F5] flex items-center justify-center overflow-hidden">
           {product.coverImageUrl ? (
-            <img src={product.coverImageUrl} alt={product.name} className="w-full h-full object-cover" />
+            <Image src={product.coverImageUrl} alt={product.name} fill className="object-cover" unoptimized />
           ) : (
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D4D4D2" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
           )}
@@ -206,11 +209,11 @@ function OfferCard({ product, index, onDuplicate, onArchive }: {
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${badge.className}`}>{badge.label}</span>
               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border border-transparent ${TYPE_COLORS[product.type] || "bg-gray-100 text-gray-600"}`}>{TYPE_LABELS[product.type] || product.type}</span>
             </div>
-            <h3 className="text-[13px] font-semibold text-[#1A1A1A] truncate">{product.name}</h3>
+            <h3 className="text-[13px] font-semibold text-[#191919] truncate">{product.name}</h3>
             {product.shortDescription && <p className="text-[11px] text-[#8A8A88] line-clamp-1 mt-0.5">{product.shortDescription}</p>}
           </div>
           <div className="flex items-center justify-between mt-2">
-            <span className="text-[14px] font-bold text-[#1A1A1A]">
+            <span className="text-[14px] font-bold text-[#191919]">
               {product.type === "lead_magnet" ? <span className="text-emerald-600 text-[12px] font-semibold">Gratuit</span> : formatPrice(product.priceCents)}
             </span>
             <span className="text-[10px] text-[#8A8A88]">{product.sales} vente{product.sales !== 1 ? "s" : ""}</span>
@@ -255,6 +258,7 @@ function BriefsSection({ templates, loading: briefsLoading, mutate: mutateBriefs
   const [editName, setEditName] = useState("");
   const [saving, setSaving] = useState(false);
   const [briefMutating, setBriefMutating] = useState(false);
+  const { confirm: confirmDialog, dialogProps } = useConfirm();
 
   const handleCreate = async (useDefault = false) => {
     if (!createName.trim() || briefMutating) return;
@@ -291,7 +295,8 @@ function BriefsSection({ templates, loading: briefsLoading, mutate: mutateBriefs
 
   const handleDelete = async (id: string) => {
     if (briefMutating) return;
-    if (!confirm("Supprimer ce template ?")) return;
+    const ok = await confirmDialog({ title: "Supprimer le template", message: "Supprimer ce template ? Cette action est irréversible.", variant: "danger", confirmLabel: "Supprimer" });
+    if (!ok) return;
     setBriefMutating(true);
     try {
       await apiFetch(`/api/brief-templates/${id}`, { method: "DELETE" });
@@ -306,7 +311,7 @@ function BriefsSection({ templates, loading: briefsLoading, mutate: mutateBriefs
     <div>
       <div className="flex items-start justify-between mb-4 gap-3">
         <div>
-          <h3 className="text-[15px] font-semibold text-[#1A1A1A]">Briefs</h3>
+          <h3 className="text-[15px] font-semibold text-[#191919]">Briefs</h3>
           <p className="text-[12px] text-[#8A8A88] mt-0.5">{briefCount > 0 ? `${briefCount} questionnaire${briefCount !== 1 ? "s" : ""} — envoyés après achat` : "Questionnaires envoyés aux clients après achat"}</p>
         </div>
         <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg border border-[#E6E6E4] text-[#5A5A58] hover:bg-[#F7F7F5] transition-colors whitespace-nowrap">
@@ -398,6 +403,7 @@ function BriefsSection({ templates, loading: briefsLoading, mutate: mutateBriefs
           ))}
         </div>
       )}
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }
@@ -419,7 +425,7 @@ export default function OffresPage() {
       {/* Header */}
       <motion.div className="flex items-start justify-between mb-6 gap-3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
         <div>
-          <h1 className="text-lg font-bold text-[#1A1A1A]">Offres</h1>
+          <h1 className="text-lg font-bold text-[#191919]">Offres</h1>
           <p className="text-[12px] text-[#8A8A88] mt-1">
             {products.length > 0 ? `${products.length} offre${products.length !== 1 ? "s" : ""} — services, packs et produits digitaux` : "Gérez les offres et services que vous proposez sur votre site"}
           </p>
@@ -463,7 +469,7 @@ export default function OffresPage() {
               <rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" />
             </svg>
           </div>
-          <h3 className="text-[16px] font-semibold text-[#1A1A1A] mb-1.5">Aucune offre</h3>
+          <h3 className="text-[16px] font-semibold text-[#191919] mb-1.5">Aucune offre</h3>
           <p className="text-[13px] text-[#8A8A88] mb-6 max-w-sm mx-auto">Créez votre première offre pour commencer à vendre vos services directement depuis votre site Jestly.</p>
           <button onClick={() => setShowModal(true)} className="inline-flex items-center gap-1.5 bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>

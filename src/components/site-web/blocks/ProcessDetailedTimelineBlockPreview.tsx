@@ -9,7 +9,7 @@ function ProcessDetailedTimelineBlockPreview({ content }: { content: ProcessDeta
         {content.title && (
           <h2
             className="text-3xl font-bold text-center mb-3"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -60,7 +60,7 @@ function ProcessDetailedTimelineBlockPreview({ content }: { content: ProcessDeta
                 <div className="flex-1 pb-2">
                   <h3
                     className="text-[16px] font-semibold mb-1"
-                    style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+                    style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
                   >
                     {step.title}
                   </h3>

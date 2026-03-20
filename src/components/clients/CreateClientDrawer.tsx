@@ -12,7 +12,7 @@ interface CreateClientDrawerProps {
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const inputClass =
-  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
+  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
 
 const labelClass = "block text-[11px] font-medium text-[#999] mb-1";
 
@@ -96,6 +96,25 @@ export default function CreateClientDrawer({ open, onClose, onCreated }: CreateC
         setError(data.error || "Erreur lors de la création");
         return;
       }
+
+      // Reset du formulaire après succès
+      setForm({
+        email: "",
+        firstName: "",
+        lastName: "",
+        phone: "",
+        company: "",
+        website: "",
+        tags: "",
+        initialNote: "",
+        address: "",
+        language: "fr",
+        timezone: "Europe/Paris",
+      });
+      setCustomFields([]);
+      setError(null);
+      setDuplicateId(null);
+      setShowAdvanced(false);
 
       onCreated(data.id);
     } catch {
@@ -247,7 +266,7 @@ export default function CreateClientDrawer({ open, onClose, onCreated }: CreateC
         <button
           type="button"
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-1.5 text-[12px] text-[#999] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+          className="flex items-center gap-1.5 text-[12px] text-[#999] hover:text-[#191919] transition-colors cursor-pointer"
         >
           <svg
             width="12"

@@ -15,7 +15,7 @@ function FaqAccordionFullBlockPreview({ content }: { content: FaqAccordionFullBl
         {content.title && (
           <h2
             className="text-3xl font-bold text-center mb-3"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -44,7 +44,7 @@ function FaqAccordionFullBlockPreview({ content }: { content: FaqAccordionFullBl
                 >
                   <span
                     className="text-[15px] font-medium"
-                    style={{ color: "var(--site-text, #1A1A1A)" }}
+                    style={{ color: "var(--site-text, #191919)" }}
                   >
                     {item.question}
                   </span>

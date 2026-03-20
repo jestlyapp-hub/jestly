@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 interface HighlightZone {
@@ -59,11 +60,13 @@ export default function GuideStepCard({
         {/* Screenshot (only if provided) */}
         {screenshot && (
           <div className="mt-3 relative rounded-lg border border-[#E6E6E4] overflow-hidden shadow-sm">
-            <img
+            <Image
               src={screenshot}
               alt={`Étape ${stepNumber}`}
+              width={800}
+              height={450}
               className="w-full h-auto block"
-              loading="lazy"
+              unoptimized
             />
 
             {/* Highlight overlay */}

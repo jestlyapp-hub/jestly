@@ -10,7 +10,7 @@ function TimelineProcessBlockPreviewInner({ content }: { content: TimelineProces
             {i + 1}
           </div>
           <div>
-            <div className="text-[13px] font-semibold" style={{ color: "var(--site-text, #1A1A1A)" }}>{step.title}</div>
+            <div className="text-[13px] font-semibold" style={{ color: "var(--site-text, #191919)" }}>{step.title}</div>
             <div className="text-[11px]" style={{ color: "var(--site-muted, #999)" }}>{step.description}</div>
           </div>
         </div>

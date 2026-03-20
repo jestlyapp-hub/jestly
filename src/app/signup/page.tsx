@@ -3,8 +3,10 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { signUp } from "@/lib/auth/actions";
 import AuthLayout from "@/components/auth/AuthLayout";
+import { useTrack } from "@/lib/hooks/use-track";
 
 /* ═══════════════════════════════════════════════════════════════════════
    SIGNUP — White left panel + purple right visual
@@ -29,6 +31,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  const track = useTrack();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setError(""); setLoading(true);
@@ -39,6 +42,7 @@ export default function SignupPage() {
     if (pw.length < 6) { setError("Le mot de passe doit contenir au moins 6 caractères."); setLoading(false); return; }
     const result = await signUp(fd);
     if (result?.error) { setError(result.error); setLoading(false); }
+    else { track("signup_completed"); }
   };
 
   return (
@@ -47,7 +51,7 @@ export default function SignupPage() {
       {/* Logo + badge */}
       <div className="flex items-center justify-between mb-10">
         <Link href="/landing" className="flex items-center gap-2.5">
-          <img src="/logo-color.png" alt="Jestly" className="w-8 h-8" />
+          <Image src="/logo-color.png" alt="Jestly" width={32} height={32} className="w-8 h-8" priority />
           <span className="text-[17px] font-bold text-[#111118] tracking-tight">Jestly</span>
         </Link>
         <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full" style={{ background: "rgba(124,58,237,0.08)", color: "#7C3AED", border: "1px solid rgba(124,58,237,0.12)" }}>

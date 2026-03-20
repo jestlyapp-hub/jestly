@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import type { PortfolioGridBlockContent, PortfolioCard } from "@/types";
 import { getProjectHref } from "@/lib/site-utils";
 
@@ -94,7 +95,7 @@ function PortfolioGridBlockPreviewInner({ content, siteSlug }: { content: Portfo
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Rechercher un projet..."
             className="w-full rounded-lg pl-9 pr-3 py-2 text-[12px] focus:outline-none focus:border-[var(--site-primary)]/30"
-            style={{ background: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #1A1A1A)" }}
+            style={{ background: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #191919)" }}
           />
         </div>
       )}
@@ -144,13 +145,13 @@ function PortfolioGridBlockPreviewInner({ content, siteSlug }: { content: Portfo
                   En vedette
                 </span>
               )}
-              <div className="h-24 overflow-hidden" style={{ background: "linear-gradient(135deg, var(--site-primary-light), var(--site-border))" }}>
+              <div className="relative h-24 overflow-hidden" style={{ background: "linear-gradient(135deg, var(--site-primary-light), var(--site-border))" }}>
                 {item.imageUrl && (
-                  <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                  <Image src={item.imageUrl} alt={item.title} fill className="object-cover" unoptimized />
                 )}
               </div>
               <div className="p-3">
-                <div className="text-[12px] font-medium" style={{ color: "var(--site-text, #1A1A1A)" }}>{item.title}</div>
+                <div className="text-[12px] font-medium" style={{ color: "var(--site-text, #191919)" }}>{item.title}</div>
                 <div className="text-[10px]" style={{ color: "var(--site-muted, #999)" }}>
                   {item.category}
                   {item.clientName && ` · ${item.clientName}`}

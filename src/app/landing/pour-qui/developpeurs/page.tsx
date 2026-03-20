@@ -57,7 +57,6 @@ const DATA: PersonaPageData = {
     { title: "Suivi", gradient: "de projets.", description: "Kanban visuel pour suivre chaque mission du brief au déploiement.", bullets: ["Vue kanban par statut", "Filtres par client / deadline", "Historique par projet"], icon: "M9 5H2v7l6.29 6.29a1 1 0 001.42 0l5.58-5.58a1 1 0 000-1.42z", color: "#F59E0B" },
     { title: "Facturation", gradient: "dev-friendly.", description: "Générez des factures conformes en 2 clics. TJM, forfait, par projet.", bullets: ["TJM ou forfait", "Factures conformes auto", "Relances programmées"], icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 14l2 2 4-4", color: "#22C55E" },
     { title: "Dashboard", gradient: "revenus.", description: "Suivez votre CA, TJM effectif, projets en cours et projections financières.", bullets: ["CA mensuel et cumulé", "TJM effectif calculé", "Projections trésorerie"], icon: "M3 3v18h18M7 16l4-8 4 4 5-9", color: "#7C3AED" },
-    { title: "Automations", gradient: "métier.", description: "Relance de paiement, onboarding client, notification livraison : tout automatisé.", bullets: ["Workflows personnalisables", "Déclencheurs smart", "Zéro intervention manuelle"], icon: "M13 2L3 14h9l-1 8 10-12h-9z", color: "#6366F1" },
   ],
 
   proofTitle: "Des devs freelance",

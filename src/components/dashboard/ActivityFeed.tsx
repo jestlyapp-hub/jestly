@@ -7,7 +7,7 @@ export default function ActivityFeed() {
     <div className="bg-white rounded-xl border border-[#E6E6E4]">
       {/* Header */}
       <div className="px-5 py-4 border-b border-[#E6E6E4] flex items-center justify-between">
-        <h2 className="text-[14px] font-semibold text-[#1A1A1A]">Activité récente</h2>
+        <h2 className="text-[14px] font-semibold text-[#191919]">Activité récente</h2>
       </div>
 
       {/* Empty state */}

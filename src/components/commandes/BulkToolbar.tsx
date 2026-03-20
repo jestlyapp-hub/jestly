@@ -46,7 +46,7 @@ export default function BulkToolbar({ count, onDelete, onDuplicate, onMove, onCl
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 24, scale: 0.96 }}
       transition={{ type: "spring", damping: 28, stiffness: 350 }}
-      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-1 bg-[#1A1A1A] text-white rounded-2xl px-2 py-2 shadow-[0_20px_60px_-12px_rgba(0,0,0,0.35)]"
+      className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-1 bg-[#191919] text-white rounded-2xl px-2 py-2 shadow-[0_20px_60px_-12px_rgba(0,0,0,0.35)]"
     >
       {/* Count badge */}
       <div className="flex items-center gap-2 pl-3 pr-2">

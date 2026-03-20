@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { MANUAL_TEMPLATES } from "@/lib/email/types";
 import type { WaitlistTemplateKey, SendEmailResult } from "@/lib/email/types";
 
@@ -135,11 +136,13 @@ export default function AdminWaitlistPage() {
     }
   };
 
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
   const deleteEntry = async (id: string) => {
-    if (!confirm("Supprimer cette entrée ?")) return;
     await fetch(`/api/admin/waitlist?id=${id}`, { method: "DELETE" });
     fetchEntries();
     if (selected?.id === id) setSelected(null);
+    setDeleteTarget(null);
   };
 
   const saveNotes = async () => {
@@ -267,11 +270,11 @@ export default function AdminWaitlistPage() {
   const templateLabel = MANUAL_TEMPLATES.find((t) => t.key === emailTemplate)?.label ?? "";
 
   return (
-    <div className="space-y-5">
+    <><div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold text-[#1A1A1A]">Waitlist CRM</h1>
+          <h1 className="text-xl font-bold text-[#191919]">Waitlist CRM</h1>
           <p className="text-sm text-[#666] mt-0.5">
             {total} inscrit{total > 1 ? "s" : ""} au total
             {checkedIds.size > 0 && (
@@ -315,7 +318,7 @@ export default function AdminWaitlistPage() {
             type="text"
             placeholder="Rechercher email, nom, twitter..."
             onChange={(e) => handleSearchChange(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white border border-[#E6E6E4] text-[13px] text-[#1A1A1A] placeholder:text-[#999] outline-none focus:border-[#7C3AED] focus:ring-2 focus:ring-violet-500/10"
+            className="w-full pl-9 pr-4 py-2.5 rounded-lg bg-white border border-[#E6E6E4] text-[13px] text-[#191919] placeholder:text-[#999] outline-none focus:border-[#7C3AED] focus:ring-2 focus:ring-violet-500/10"
           />
         </div>
 
@@ -403,7 +406,7 @@ export default function AdminWaitlistPage() {
                         {entry.first_name[0]?.toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-[13px] font-semibold text-[#1A1A1A]">{entry.first_name}</p>
+                        <p className="text-[13px] font-semibold text-[#191919]">{entry.first_name}</p>
                         <p className="text-[11px] text-[#999]">{entry.email}</p>
                       </div>
                     </div>
@@ -423,7 +426,7 @@ export default function AdminWaitlistPage() {
                   <td className="px-4 py-3 text-[12px] text-[#999]" onClick={() => openDrawer(entry)}>{formatDate(entry.created_at)}</td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={(e) => { e.stopPropagation(); deleteEntry(entry.id); }}
+                      onClick={(e) => { e.stopPropagation(); setDeleteTarget(entry.id); }}
                       className="p-1 rounded hover:bg-red-50 text-[#999] hover:text-red-500 transition-colors cursor-pointer"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -444,7 +447,7 @@ export default function AdminWaitlistPage() {
           <div className="absolute inset-0 bg-black/20" onClick={() => setSelected(null)} />
           <div className="relative w-full max-w-md bg-white shadow-xl overflow-y-auto">
             <div className="sticky top-0 bg-white border-b border-[#E6E6E4] px-6 py-4 flex items-center justify-between z-10">
-              <h3 className="text-[15px] font-semibold text-[#1A1A1A]">Détail inscrit</h3>
+              <h3 className="text-[15px] font-semibold text-[#191919]">Détail inscrit</h3>
               <button onClick={() => setSelected(null)} className="p-1 rounded hover:bg-[#F7F7F5] cursor-pointer">
                 <svg className="w-5 h-5 text-[#999]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -458,7 +461,7 @@ export default function AdminWaitlistPage() {
                   {selected.first_name[0]?.toUpperCase()}
                 </div>
                 <div>
-                  <p className="text-lg font-bold text-[#1A1A1A]">{selected.first_name}</p>
+                  <p className="text-lg font-bold text-[#191919]">{selected.first_name}</p>
                   <p className="text-[13px] text-[#666]">{selected.email}</p>
                   {selected.twitter && (
                     <p className="text-[12px] text-[#7C3AED] mt-0.5">@{selected.twitter.replace("@", "")}</p>
@@ -498,7 +501,7 @@ export default function AdminWaitlistPage() {
                 ].map((item) => (
                   <div key={item.label}>
                     <p className="text-[11px] font-medium text-[#999] mb-0.5">{item.label}</p>
-                    <p className="text-[13px] text-[#1A1A1A]">{item.value}</p>
+                    <p className="text-[13px] text-[#191919]">{item.value}</p>
                   </div>
                 ))}
               </div>
@@ -521,7 +524,7 @@ export default function AdminWaitlistPage() {
                   value={drawerNotes}
                   onChange={(e) => setDrawerNotes(e.target.value)}
                   rows={3}
-                  className="w-full px-3 py-2 rounded-lg bg-[#F7F7F5] border border-[#E6E6E4] text-[13px] text-[#1A1A1A] outline-none focus:border-[#7C3AED] resize-none"
+                  className="w-full px-3 py-2 rounded-lg bg-[#F7F7F5] border border-[#E6E6E4] text-[13px] text-[#191919] outline-none focus:border-[#7C3AED] resize-none"
                   placeholder="Ajouter des notes..."
                 />
                 <button
@@ -544,7 +547,7 @@ export default function AdminWaitlistPage() {
                   Email
                 </a>
                 <button
-                  onClick={() => deleteEntry(selected.id)}
+                  onClick={() => setDeleteTarget(selected.id)}
                   className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-red-200 text-[12px] font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -572,7 +575,7 @@ export default function AdminWaitlistPage() {
                   </svg>
                 </div>
                 <div>
-                  <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Envoyer un email</h2>
+                  <h2 className="text-[15px] font-semibold text-[#191919]">Envoyer un email</h2>
                   <p className="text-[12px] text-[#999]">Campagne email waitlist</p>
                 </div>
               </div>
@@ -641,7 +644,7 @@ export default function AdminWaitlistPage() {
                               : "border-[#E6E6E4] bg-white hover:bg-[#FBFBFA]"
                           }`}
                         >
-                          <p className={`text-[13px] font-semibold ${emailTemplate === t.key ? "text-[#7C3AED]" : "text-[#1A1A1A]"}`}>
+                          <p className={`text-[13px] font-semibold ${emailTemplate === t.key ? "text-[#7C3AED]" : "text-[#191919]"}`}>
                             {t.label}
                           </p>
                           <p className="text-[11px] text-[#999] mt-0.5">{t.description}</p>
@@ -697,7 +700,7 @@ export default function AdminWaitlistPage() {
                       </svg>
                     </div>
                     <div>
-                      <p className="text-[13px] font-semibold text-[#1A1A1A]">
+                      <p className="text-[13px] font-semibold text-[#191919]">
                         {recipientCount()} destinataire{recipientCount() > 1 ? "s" : ""}
                       </p>
                       <p className="text-[11px] text-[#999]">
@@ -773,5 +776,16 @@ export default function AdminWaitlistPage() {
         </div>
       )}
     </div>
+    <ConfirmDialog
+      open={!!deleteTarget}
+      title="Supprimer l'entrée"
+      message="Supprimer cette entrée de la liste d'attente ?"
+      variant="danger"
+      confirmLabel="Supprimer"
+      cancelLabel="Annuler"
+      onConfirm={() => { if (deleteTarget) deleteEntry(deleteTarget); }}
+      onCancel={() => setDeleteTarget(null)}
+    />
+    </>
   );
 }

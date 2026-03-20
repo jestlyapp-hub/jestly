@@ -66,7 +66,7 @@ function ProductFeaturedCardBlockPreviewInner({ content }: { content: ProductFea
             <h2
               className="text-2xl sm:text-3xl font-bold mb-2"
               style={{
-                color: "var(--site-text, #1A1A1A)",
+                color: "var(--site-text, #191919)",
                 fontFamily: "var(--site-heading-font, inherit)",
               }}
             >
@@ -94,7 +94,7 @@ function ProductFeaturedCardBlockPreviewInner({ content }: { content: ProductFea
                   <li
                     key={i}
                     className="flex items-center gap-2 text-sm"
-                    style={{ color: "var(--site-text, #1A1A1A)" }}
+                    style={{ color: "var(--site-text, #191919)" }}
                   >
                     <svg
                       width="16"

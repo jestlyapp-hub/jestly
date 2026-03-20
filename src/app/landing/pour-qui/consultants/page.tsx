@@ -57,7 +57,6 @@ const DATA: PersonaPageData = {
     { title: "Agenda", gradient: "connecté.", description: "Vos rendez-vous sont liés à vos clients et missions. Un clic pour tout le contexte.", bullets: ["Lié au CRM", "Contexte client instantané", "Rappels automatiques"], icon: "M3 4h18v18H3zM16 2v4M8 2v4M3 10h18", color: "#4C8DFF" },
     { title: "Facturation", gradient: "intelligente.", description: "TJM, forfait, par mission. Factures conformes générées automatiquement.", bullets: ["TJM ou forfait", "Génération automatique", "Relances programmées"], icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 14l2 2 4-4", color: "#22C55E" },
     { title: "Dashboard", gradient: "consultant.", description: "TJM effectif, jours facturés, CA mensuel, projections. Pilotez avec des chiffres.", bullets: ["TJM effectif calculé", "Jours facturés vs disponibles", "Projections financières"], icon: "M3 3v18h18M7 16l4-8 4 4 5-9", color: "#7C3AED" },
-    { title: "Automations", gradient: "métier.", description: "Relances factures, rappels RDV, suivi post-mission : tout tourne en arrière-plan.", bullets: ["Relances automatiques", "Rappels intelligents", "Suivi post-mission"], icon: "M13 2L3 14h9l-1 8 10-12h-9z", color: "#6366F1" },
   ],
 
   proofTitle: "Des consultants qui ont",

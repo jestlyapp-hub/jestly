@@ -10,7 +10,7 @@ function NumbersImpactBlockPreviewInner({ content }: { content: NumbersImpactBlo
         {content.title && (
           <h2
             className="text-2xl font-bold text-center mb-2"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -37,7 +37,7 @@ function NumbersImpactBlockPreviewInner({ content }: { content: NumbersImpactBlo
               >
                 {stat.value}
               </div>
-              <div className="text-sm font-medium mb-1" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <div className="text-sm font-medium mb-1" style={{ color: "var(--site-text, #191919)" }}>
                 {stat.label}
               </div>
               {stat.context && (

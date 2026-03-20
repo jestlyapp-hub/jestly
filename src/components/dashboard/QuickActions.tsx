@@ -125,7 +125,7 @@ export default function QuickActions() {
                   <span className="text-[#999] group-hover:text-[#4F46E5] transition-colors">
                     {action.icon}
                   </span>
-                  <span className="text-[12px] font-medium text-[#1A1A1A] group-hover:text-[#4F46E5] transition-colors">
+                  <span className="text-[12px] font-medium text-[#191919] group-hover:text-[#4F46E5] transition-colors">
                     {action.label}
                   </span>
                 </button>

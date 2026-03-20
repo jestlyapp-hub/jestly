@@ -70,7 +70,7 @@ export default function PortfolioSourceEditor({
             onClick={() => onSourceChange("manual")}
             className={`flex-1 py-2 text-[12px] font-medium transition-all ${
               source === "manual"
-                ? "bg-[#1A1A1A] text-white"
+                ? "bg-[#191919] text-white"
                 : "bg-[#F7F7F5] text-[#5A5A58] hover:bg-[#EFEFEF]"
             }`}
           >
@@ -80,7 +80,7 @@ export default function PortfolioSourceEditor({
             onClick={() => onSourceChange("linked_projects")}
             className={`flex-1 py-2 text-[12px] font-medium transition-all ${
               source === "linked_projects"
-                ? "bg-[#1A1A1A] text-white"
+                ? "bg-[#191919] text-white"
                 : "bg-[#F7F7F5] text-[#5A5A58] hover:bg-[#EFEFEF]"
             }`}
           >
@@ -165,7 +165,7 @@ export default function PortfolioSourceEditor({
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[12px] font-medium text-[#1A1A1A] truncate">
+                    <span className="text-[12px] font-medium text-[#191919] truncate">
                       {resolved?.title || proj.name}
                     </span>
                     {!hasProfile && (

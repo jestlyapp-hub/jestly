@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 
 /* ═══════════════════════════════════════════════════════════════════════
    LandingFooter — Premium marketing footer
@@ -21,28 +22,28 @@ const COLUMNS = [
   {
     title: "Ressources",
     links: [
-      { label: "Blog", href: "#" },
-      { label: "Guide freelance", href: "#" },
+      { label: "Blog", href: "", disabled: true },
+      { label: "Guide freelance", href: "", disabled: true },
       { label: "FAQ", href: "/landing#faq" },
-      { label: "Centre d'aide", href: "#" },
+      { label: "Centre d'aide", href: "", disabled: true },
     ],
   },
   {
     title: "Entreprise",
     links: [
-      { label: "À propos", href: "#" },
-      { label: "Contact", href: "#" },
-      { label: "Partenariats", href: "#" },
-      { label: "Roadmap", href: "#" },
+      { label: "À propos", href: "", disabled: true },
+      { label: "Contact", href: "/contact" },
+      { label: "Partenariats", href: "", disabled: true },
+      { label: "Roadmap", href: "", disabled: true },
     ],
   },
   {
     title: "Légal",
     links: [
-      { label: "Mentions légales", href: "#" },
-      { label: "Confidentialité", href: "#" },
-      { label: "Conditions générales", href: "#" },
-      { label: "Cookies", href: "#" },
+      { label: "Mentions légales", href: "/legal/mentions-legales" },
+      { label: "Confidentialité", href: "/legal/confidentialite" },
+      { label: "Conditions générales", href: "/legal/cgu" },
+      { label: "Cookies", href: "", disabled: true },
     ],
   },
 ];
@@ -58,7 +59,7 @@ export default function LandingFooter() {
           {/* Brand column */}
           <div className="lg:pr-8">
             <Link href="/landing" className="flex items-center gap-2.5 mb-5">
-              <img src="/logo-color.png" alt="Jestly" className="w-8 h-8" />
+              <Image src="/logo-color.png" alt="Jestly" width={32} height={32} className="w-8 h-8" />
               <span className="text-[18px] font-bold text-[#111118] tracking-tight">Jestly</span>
             </Link>
             <p className="text-[14px] leading-relaxed mb-4" style={{ color: "#57534E" }}>
@@ -82,13 +83,23 @@ export default function LandingFooter() {
               <ul className="space-y-3">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    <Link
-                      href={link.href}
-                      className="text-[13px] font-medium transition-all duration-200 hover:text-[#7C3AED] hover:translate-x-0.5 inline-block"
-                      style={{ color: "#6B7280" }}
-                    >
-                      {link.label}
-                    </Link>
+                    {"disabled" in link && link.disabled ? (
+                      <span
+                        className="text-[13px] font-medium inline-block cursor-default opacity-50"
+                        style={{ color: "#6B7280" }}
+                        title="Bientôt disponible"
+                      >
+                        {link.label}
+                      </span>
+                    ) : (
+                      <Link
+                        href={link.href}
+                        className="text-[13px] font-medium transition-all duration-200 hover:text-[#7C3AED] hover:translate-x-0.5 inline-block"
+                        style={{ color: "#6B7280" }}
+                      >
+                        {link.label}
+                      </Link>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -107,9 +118,9 @@ export default function LandingFooter() {
 
           <div className="flex items-center gap-6">
             {[
-              { label: "Confidentialité", href: "#" },
-              { label: "Conditions", href: "#" },
-              { label: "Contact", href: "#" },
+              { label: "Confidentialité", href: "/legal/confidentialite" },
+              { label: "Conditions", href: "/legal/cgu" },
+              { label: "Contact", href: "/contact" },
             ].map((link) => (
               <Link
                 key={link.label}
@@ -124,13 +135,13 @@ export default function LandingFooter() {
             {/* Social icons */}
             <div className="flex items-center gap-3 ml-2">
               {/* X / Twitter */}
-              <a href="#" className="transition-all duration-200 hover:-translate-y-0.5" aria-label="Twitter">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#9CA3AF" className="hover:fill-[#7C3AED] transition-colors"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
-              </a>
+              <span className="opacity-40 cursor-default" aria-label="Twitter" title="Bientôt disponible">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" /></svg>
+              </span>
               {/* LinkedIn */}
-              <a href="#" className="transition-all duration-200 hover:-translate-y-0.5" aria-label="LinkedIn">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="#9CA3AF" className="hover:fill-[#7C3AED] transition-colors"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
-              </a>
+              <span className="opacity-40 cursor-default" aria-label="LinkedIn" title="Bientôt disponible">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="#9CA3AF"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+              </span>
             </div>
           </div>
         </div>

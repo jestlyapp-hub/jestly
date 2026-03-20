@@ -215,7 +215,7 @@ export default function EventFormModal({
 
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-[#F0F0EE]">
-                <h2 className="text-[15px] font-bold text-[#1A1A1A] tracking-[-0.01em]">
+                <h2 className="text-[15px] font-bold text-[#191919] tracking-[-0.01em]">
                   {isEditing ? "Modifier l'événement" : "Nouvel événement"}
                 </h2>
                 <button
@@ -243,7 +243,7 @@ export default function EventFormModal({
                     placeholder="Ex: Appel decouverte avec Marie"
                     required
                     autoFocus
-                    className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#1A1A1A] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
+                    className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#191919] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
                   />
                 </div>
 
@@ -296,7 +296,7 @@ export default function EventFormModal({
                           type="button"
                           onClick={() => setColor(color === c ? "" : c)}
                           className={`w-5 h-5 rounded-full transition-all cursor-pointer ${
-                            color === c ? "ring-2 ring-offset-2 ring-[#1A1A1A]/30 scale-110" : "hover:scale-110"
+                            color === c ? "ring-2 ring-offset-2 ring-[#191919]/30 scale-110" : "hover:scale-110"
                           }`}
                           style={{ backgroundColor: c }}
                         />
@@ -339,7 +339,7 @@ export default function EventFormModal({
                       value={date}
                       onChange={(e) => setDate(e.target.value)}
                       required
-                      className="flex-1 bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#1A1A1A] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
+                      className="flex-1 bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#191919] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
                     />
                     <label className="flex items-center gap-2.5 cursor-pointer">
                       <button
@@ -374,7 +374,7 @@ export default function EventFormModal({
                           showStartPicker
                             ? "border-[#4F46E5] ring-2 ring-[#4F46E5]/10 bg-white"
                             : "border-[#E6E6E4] hover:border-[#D0D0CE]"
-                        } ${startTime ? "text-[#1A1A1A]" : "text-[#C0C0BE]"}`}
+                        } ${startTime ? "text-[#191919]" : "text-[#C0C0BE]"}`}
                       >
                         {startTime || "Choisir l'heure"}
                       </button>
@@ -415,7 +415,7 @@ export default function EventFormModal({
                           showEndPicker
                             ? "border-[#4F46E5] ring-2 ring-[#4F46E5]/10 bg-white"
                             : "border-[#E6E6E4] hover:border-[#D0D0CE]"
-                        } ${endTime ? "text-[#1A1A1A]" : "text-[#C0C0BE]"}`}
+                        } ${endTime ? "text-[#191919]" : "text-[#C0C0BE]"}`}
                       >
                         {endTime || "Choisir l'heure"}
                       </button>
@@ -493,7 +493,7 @@ export default function EventFormModal({
                       }}
                       onFocus={() => setShowClientDropdown(true)}
                       placeholder="Rechercher..."
-                      className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#1A1A1A] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
+                      className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#191919] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
                     />
                     {showClientDropdown && filteredClients.length > 0 && (
                       <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E2E2E0] rounded-xl shadow-xl z-20 max-h-[150px] overflow-y-auto py-1">
@@ -506,7 +506,7 @@ export default function EventFormModal({
                               clientId === c.id ? "bg-[#4F46E5]/[0.04]" : ""
                             }`}
                           >
-                            <div className="font-bold text-[#1A1A1A]">{c.name}</div>
+                            <div className="font-bold text-[#191919]">{c.name}</div>
                             <div className="text-[10px] text-[#999] font-medium">{c.email}</div>
                           </button>
                         ))}
@@ -525,7 +525,7 @@ export default function EventFormModal({
                     onChange={(e) => setNotes(e.target.value)}
                     placeholder="Ajouter des notes..."
                     rows={2}
-                    className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#1A1A1A] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all resize-none"
+                    className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#191919] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all resize-none"
                   />
                 </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
+import Image from "next/image";
 
 interface ImageUploaderProps {
   value: string | undefined;
@@ -13,7 +14,7 @@ interface ImageUploaderProps {
 }
 
 const inputClass =
-  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 export default function ImageUploader({
   value,
@@ -97,20 +98,22 @@ export default function ImageUploader({
       {value ? (
         <div className="relative group">
           <div
-            className="rounded-lg border border-[#E6E6E4] overflow-hidden bg-[#F7F7F5]"
+            className="relative rounded-lg border border-[#E6E6E4] overflow-hidden bg-[#F7F7F5]"
             style={{ aspectRatio: previewAspect }}
           >
-            <img
+            <Image
               src={value}
               alt=""
-              className="w-full h-full object-cover"
+              fill
+              className="object-cover"
+              unoptimized
             />
           </div>
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              className="px-3 py-1.5 bg-white rounded-md text-[11px] font-medium text-[#1A1A1A] hover:bg-[#F7F7F5] transition-colors"
+              className="px-3 py-1.5 bg-white rounded-md text-[11px] font-medium text-[#191919] hover:bg-[#F7F7F5] transition-colors"
             >
               Changer
             </button>

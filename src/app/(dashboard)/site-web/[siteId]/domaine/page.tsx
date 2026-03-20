@@ -297,7 +297,7 @@ export default function SiteDomainePage() {
     return (
       <div className="max-w-2xl mx-auto">
         <div className="bg-white rounded-xl border border-[#E6E6E4] p-6">
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-3">Domaine</h2>
+          <h2 className="text-[15px] font-semibold text-[#191919] mb-3">Domaine</h2>
           <div className="flex items-center gap-2.5 p-3.5 bg-red-50 rounded-lg border border-red-100">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
@@ -337,7 +337,7 @@ export default function SiteDomainePage() {
                 <IconGlobe size={16} />
               </div>
               <div>
-                <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Adresse publique Jestly</h2>
+                <h2 className="text-[15px] font-semibold text-[#191919]">Adresse publique Jestly</h2>
                 <p className="text-[12px] text-[#8A8A88] mt-0.5">
                   {serverSlug
                     ? "L'adresse publique de votre site"
@@ -362,7 +362,7 @@ export default function SiteDomainePage() {
           <div className="flex items-center gap-2 p-3 bg-[#F7F7F5] rounded-lg border border-[#EFEFEF]">
             <IconLock size={13} />
             <span className="text-[13px] text-[#8A8A88] select-none">https://{baseDomain}/s/</span>
-            <span className={`text-[13px] font-semibold ${serverSlug || (editing && normalized) ? "text-[#1A1A1A]" : "text-[#CCCCCC]"}`}>
+            <span className={`text-[13px] font-semibold ${serverSlug || (editing && normalized) ? "text-[#191919]" : "text-[#CCCCCC]"}`}>
               {previewSlug}
             </span>
           </div>
@@ -448,7 +448,7 @@ export default function SiteDomainePage() {
                     onKeyDown={(e) => { if (e.key === "Enter" && canSave) handleSave(); if (e.key === "Escape") cancelEditing(); }}
                     placeholder={normalizeSubdomain(site.settings.name) || "mon-site"}
                     maxLength={40}
-                    className="flex-1 bg-transparent px-3 py-2.5 text-[13px] text-[#1A1A1A] font-medium focus:outline-none"
+                    className="flex-1 bg-transparent px-3 py-2.5 text-[13px] text-[#191919] font-medium focus:outline-none"
                   />
                 </div>
 
@@ -521,7 +521,7 @@ export default function SiteDomainePage() {
                   {serverSlug && (
                     <button
                       onClick={cancelEditing}
-                      className="px-4 py-2 rounded-lg text-[13px] font-medium text-[#8A8A88] hover:text-[#1A1A1A] hover:bg-[#F7F7F5] transition-colors"
+                      className="px-4 py-2 rounded-lg text-[13px] font-medium text-[#8A8A88] hover:text-[#191919] hover:bg-[#F7F7F5] transition-colors"
                     >
                       Annuler
                     </button>
@@ -585,7 +585,7 @@ export default function SiteDomainePage() {
               <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
                 <IconStar size={16} />
               </div>
-              <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Domaine personnalisé</h2>
+              <h2 className="text-[15px] font-semibold text-[#191919]">Domaine personnalisé</h2>
             </div>
             <span className="text-[11px] font-semibold text-[#4F46E5] bg-[#EEF2FF] px-2.5 py-1 rounded-full">
               Plan Pro

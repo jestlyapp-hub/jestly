@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
+import { apiError, handleApiError } from "@/lib/api-error";
 
 // GET /api/clients — list user's clients
 // ?status=active|archived|all (default: active)
@@ -46,7 +48,7 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await query;
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(500, error.message, { route: "/api/clients", userId: user.id });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapped = (data || []).map((c: any) => ({
@@ -122,7 +124,9 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(500, error.message, { route: "/api/clients", userId: user.id, action: "create_client" });
+
+  logger.info("client_created", { userId: user.id, entity: "client", entityId: client.id, route: "/api/clients" });
 
   // Insert client_created event
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

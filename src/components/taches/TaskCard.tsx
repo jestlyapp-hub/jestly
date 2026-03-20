@@ -56,7 +56,7 @@ export default function TaskCard({ task, onClick, overlay }: TaskCardProps) {
       }`}
     >
       {/* Title */}
-      <p className="text-[13px] font-semibold text-[#1A1A1A] leading-snug mb-2 line-clamp-2">
+      <p className="text-[13px] font-semibold text-[#191919] leading-snug mb-2 line-clamp-2">
         {task.title || "Sans titre"}
       </p>
 

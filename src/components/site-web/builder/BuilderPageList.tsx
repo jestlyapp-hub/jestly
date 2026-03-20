@@ -375,7 +375,7 @@ export default function BuilderPageList() {
           <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" onClick={() => setShowTemplateModal(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl border border-[#E6E6E4] w-full max-w-[560px] max-h-[500px] flex flex-col overflow-hidden">
             <div className="px-5 py-3.5 border-b border-[#E6E6E4] flex items-center justify-between">
-              <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Nouvelle page</h2>
+              <h2 className="text-[15px] font-semibold text-[#191919]">Nouvelle page</h2>
               <button onClick={() => setShowTemplateModal(false)} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -395,7 +395,7 @@ export default function BuilderPageList() {
                   </svg>
                 </div>
                 <div>
-                  <div className="text-[13px] font-semibold text-[#1A1A1A]">Page vide</div>
+                  <div className="text-[13px] font-semibold text-[#191919]">Page vide</div>
                   <div className="text-[11px] text-[#999]">Commencer de zero</div>
                 </div>
               </button>
@@ -415,7 +415,7 @@ export default function BuilderPageList() {
                     <span className="text-[14px] font-bold text-[#4F46E5]">{tpl.blocks.length}</span>
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[13px] font-semibold text-[#1A1A1A]">{tpl.name}</div>
+                    <div className="text-[13px] font-semibold text-[#191919]">{tpl.name}</div>
                     <div className="text-[11px] text-[#999] truncate">{tpl.description} — {tpl.blocks.length} blocs</div>
                   </div>
                 </button>

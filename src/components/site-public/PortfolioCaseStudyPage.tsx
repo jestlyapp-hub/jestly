@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import type { Site } from "@/types";
 import type { PortfolioData } from "@/app/s/[slug]/portfolio/[projectSlug]/page";
 import { resolveTheme, computeThemeVars } from "@/lib/block-style-engine";
@@ -210,10 +211,13 @@ function PortfolioHero({ portfolio: p }: { portfolio: PortfolioData }) {
               className="w-full overflow-hidden rounded-xl sm:rounded-2xl"
               style={{ border: "1px solid color-mix(in srgb, var(--site-border, #E6E6E4) 60%, transparent)" }}
             >
-              <img
+              <Image
                 src={p.coverUrl}
                 alt={p.title}
+                width={1200}
+                height={675}
                 className="w-full aspect-[16/9] object-cover"
+                unoptimized
               />
             </div>
           ) : (
@@ -463,10 +467,13 @@ function GalleryMedia({ item }: { item: GalleryItem }) {
         className="w-full overflow-hidden rounded-xl sm:rounded-2xl shadow-sm transition-transform duration-500 hover:scale-[1.01]"
         style={borderStyle}
       >
-        <img
+        <Image
           src={item.url}
           alt={item.title || ""}
+          width={1200}
+          height={800}
           className="max-w-full w-full h-auto block"
+          unoptimized
         />
       </div>
     </div>

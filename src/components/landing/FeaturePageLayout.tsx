@@ -4,6 +4,13 @@ import { motion } from "framer-motion";
 import TextSwapButton from "@/components/ui/TextSwapButton";
 import VideoPlaceholder from "./VideoPlaceholder";
 import BuilderDemoPlayer from "./BuilderDemoPlayer";
+import CrmDemoPlayer from "./CrmDemoPlayer";
+import AgendaDemoPlayer from "./AgendaDemoPlayer";
+import FacturationDemoPlayer from "./FacturationDemoPlayer";
+import CommandesDemoPlayer from "./CommandesDemoPlayer";
+import AnalyticsDemoPlayer from "./AnalyticsDemoPlayer";
+import PortfolioDemoPlayer from "./PortfolioDemoPlayer";
+import PaiementsDemoPlayer from "./PaiementsDemoPlayer";
 
 /* ═══════════════════════════════════════════════════════════════════════
    FeaturePageLayout — Premium high-contrast feature pages
@@ -37,6 +44,13 @@ export interface FeaturePageData {
   integrationSubtitle: string; integrationModules: IntegrationModule[];
   ctaTitle: string; ctaTitleGradient: string; ctaSubtitle: string;
   useBuilderDemo?: boolean;
+  useCrmDemo?: boolean;
+  useAgendaDemo?: boolean;
+  useFacturationDemo?: boolean;
+  useCommandesDemo?: boolean;
+  useAnalyticsDemo?: boolean;
+  usePortfolioDemo?: boolean;
+  usePaiementsDemo?: boolean;
 }
 
 /* ── Section wrapper ── */
@@ -105,6 +119,20 @@ export default function FeaturePageLayout({ data: d }: { data: FeaturePageData }
 
           {d.useBuilderDemo ? (
             <BuilderDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
+          ) : d.useCrmDemo ? (
+            <CrmDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
+          ) : d.useAgendaDemo ? (
+            <AgendaDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
+          ) : d.useFacturationDemo ? (
+            <FacturationDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
+          ) : d.useCommandesDemo ? (
+            <CommandesDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
+          ) : d.useAnalyticsDemo ? (
+            <AnalyticsDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
+          ) : d.usePortfolioDemo ? (
+            <PortfolioDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
+          ) : d.usePaiementsDemo ? (
+            <PaiementsDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
           ) : (
             <VideoPlaceholder label={d.videoLabel} accentColor={d.accentColor} />
           )}

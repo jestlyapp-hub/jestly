@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import AdminHeader from "@/components/admin/AdminHeader";
 import {
@@ -391,11 +392,15 @@ export default function AdminUsersPage() {
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
                         {user.avatar_url ? (
-                          <img
-                            src={user.avatar_url}
-                            alt=""
-                            className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                          />
+                          <div className="relative w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                            <Image
+                              src={user.avatar_url}
+                              alt=""
+                              fill
+                              className="object-cover"
+                              unoptimized
+                            />
+                          </div>
                         ) : (
                           <div className="w-8 h-8 rounded-full bg-[#EDE9FE] flex items-center justify-center text-[11px] font-bold text-[#7C3AED] flex-shrink-0">
                             {getInitials(user.full_name, user.email)}

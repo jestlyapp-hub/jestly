@@ -66,7 +66,7 @@ export default function ArchivePage() {
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </Link>
-          <h1 className="text-2xl font-bold text-[#1A1A1A]">Archives</h1>
+          <h1 className="text-2xl font-bold text-[#191919]">Archives</h1>
           <span className="text-[13px] text-[#999] bg-[#F7F7F5] px-2 py-0.5 rounded-full">
             {filtered.length}
           </span>
@@ -81,7 +81,7 @@ export default function ArchivePage() {
             placeholder="Rechercher..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+            className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
           />
         </div>
       </motion.div>
@@ -120,7 +120,7 @@ export default function ArchivePage() {
                 >
                   {/* Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] font-medium text-[#1A1A1A] truncate">
+                    <p className="text-[13px] font-medium text-[#191919] truncate">
                       {task.title}
                     </p>
                     <div className="flex items-center gap-3 mt-1">

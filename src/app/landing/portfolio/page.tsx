@@ -10,6 +10,7 @@ const DATA: FeaturePageData = {
   subtitle:
     "Votre portfolio n'est plus un PDF ou un Behance oublié. Il vit dans votre site Jestly, se nourrit de vos projets et impressionne vos prospects.",
   videoLabel: "Voir le portfolio en action",
+  usePortfolioDemo: true,
   accentColor: "#A855F7",
 
   benefitsTitle: "Un portfolio qui",

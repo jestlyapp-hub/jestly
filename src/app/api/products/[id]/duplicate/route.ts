@@ -26,7 +26,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     slug: originalSlug, name: originalName, ...rest
   } = original;
 
-  const newSlug = originalSlug ? `${originalSlug}-copy` : null;
+  const newSlug = originalSlug ? `${originalSlug}-copy-${Date.now()}` : null;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("products") as any)
@@ -36,7 +36,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       name: `${originalName} (copie)`,
       slug: newSlug,
       sales_count: 0,
-      status: "inactive",
+      status: "draft",
     })
     .select()
     .single();

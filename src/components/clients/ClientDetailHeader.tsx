@@ -44,7 +44,7 @@ export default function ClientDetailHeader({ client }: Props) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-1">
-            <h1 className="text-xl font-bold text-[#1A1A1A] truncate">{client.name}</h1>
+            <h1 className="text-xl font-bold text-[#191919] truncate">{client.name}</h1>
             <BadgeStatus status={client.status} />
           </div>
 

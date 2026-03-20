@@ -49,7 +49,7 @@ function ProjectBeforeAfterBlockPreviewInner({
           <h2
             className="text-3xl font-bold mb-3"
             style={{
-              color: "var(--site-text, #1A1A1A)",
+              color: "var(--site-text, #191919)",
               fontFamily: "var(--site-heading-font, inherit)",
             }}
           >
@@ -126,7 +126,7 @@ function ProjectBeforeAfterBlockPreviewInner({
                       </div>
                       <p
                         className="text-[11px] mt-1.5 text-center font-medium truncate px-1"
-                        style={{ color: "var(--site-text, #1A1A1A)" }}
+                        style={{ color: "var(--site-text, #191919)" }}
                       >
                         {item.beforeLabel}
                       </p>
@@ -177,7 +177,7 @@ function ProjectBeforeAfterBlockPreviewInner({
                       </div>
                       <p
                         className="text-[11px] mt-1.5 text-center font-medium truncate px-1"
-                        style={{ color: "var(--site-text, #1A1A1A)" }}
+                        style={{ color: "var(--site-text, #191919)" }}
                       >
                         {item.afterLabel}
                       </p>
@@ -209,7 +209,7 @@ function ProjectBeforeAfterBlockPreviewInner({
                       <span
                         className="text-sm font-medium"
                         style={{
-                          color: "var(--site-text, #1A1A1A)",
+                          color: "var(--site-text, #191919)",
                         }}
                       >
                         {item.beforeLabel}
@@ -229,7 +229,7 @@ function ProjectBeforeAfterBlockPreviewInner({
                       <span
                         className="text-sm font-medium"
                         style={{
-                          color: "var(--site-text, #1A1A1A)",
+                          color: "var(--site-text, #191919)",
                         }}
                       >
                         {item.afterLabel}

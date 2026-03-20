@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { use } from "react";
 import { motion } from "framer-motion";
@@ -8,12 +8,14 @@ import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { dbToProduct } from "@/lib/adapters";
 import { PRODUCT_TYPES, PRODUCT_STATUSES, formatPrice, eurosToCents, centsToEuros } from "@/lib/productTypes";
 import type { Product, ProductType, ProductMode, ProductStatus, DeliveryType, BriefField } from "@/types";
+import ImageUploader from "@/components/site-web/editors/ImageUploader";
+import { toast } from "@/lib/hooks/use-toast";
 import type { ProductRow } from "@/types/database";
 import BriefFormRenderer from "@/components/briefs/BriefFormRenderer";
 
 /* ─── Shared style tokens ─── */
 const inputClass =
-  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const labelClass = "block text-[13px] font-medium text-[#5A5A58] mb-1.5";
 const cardClass = "bg-white rounded-xl border border-[#E6E6E4] p-6";
 
@@ -97,9 +99,12 @@ export default function EditProductPage({
   const [linkedBriefs, setLinkedBriefs] = useState<{ brief_template_id: string; is_default: boolean }[]>([]);
   const [briefLoaded, setBriefLoaded] = useState(false);
 
+  const isSavingRef = useRef(false);
+
   /* ─── Init local state from API data ─── */
   useEffect(() => {
     if (!product) return;
+    if (isSavingRef.current) return; // ne pas écraser pendant un save
     setName(product.name);
     setSlug(product.slug);
     setShortDescription(product.shortDescription);
@@ -155,7 +160,7 @@ export default function EditProductPage({
       await apiFetch(`/api/products/${id}`, {
         method: "PATCH",
         body: {
-          title: name,
+          name,
           slug,
           short_description: shortDescription,
           long_description: longDescription || null,
@@ -163,10 +168,10 @@ export default function EditProductPage({
           category,
           features,
           type,
-          price: priceEuros,
-          checkout_mode: mode,
+          price_cents: Math.round(priceEuros * 100),
+          status,
+          mode,
           cta_label: ctaLabel,
-          is_active: status === "active",
           delivery_type: deliveryType,
           delivery_file_path: deliveryFilePath || null,
           delivery_url: deliveryUrl || null,
@@ -174,11 +179,13 @@ export default function EditProductPage({
           is_featured: isFeatured,
         },
       });
+      isSavingRef.current = true;
       await mutate();
+      isSavingRef.current = false;
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch {
-      alert("Erreur lors de la sauvegarde");
+      toast.error("Erreur lors de la sauvegarde");
     } finally {
       setSaving(false);
     }
@@ -203,7 +210,7 @@ export default function EditProductPage({
         body: { briefs: linkedBriefs },
       });
     } catch {
-      alert("Erreur lors de la sauvegarde du brief");
+      toast.error("Erreur lors de la sauvegarde du brief");
     }
   };
 
@@ -287,7 +294,7 @@ export default function EditProductPage({
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <h1 className="text-xl font-bold text-[#1A1A1A] truncate max-w-[280px]">{name || "Sans titre"}</h1>
+          <h1 className="text-xl font-bold text-[#191919] truncate max-w-[280px]">{name || "Sans titre"}</h1>
           <span className={`text-[11px] font-semibold px-2 py-0.5 rounded ${badge.className}`}>
             {badge.label}
           </span>
@@ -356,8 +363,13 @@ export default function EditProductPage({
               <textarea value={longDescription} onChange={(e) => setLongDescription(e.target.value)} className={inputClass} rows={4} placeholder="Description détaillée du produit..." />
             </div>
             <div>
-              <label className={labelClass}>Image de couverture</label>
-              <input type="text" value={coverImageUrl} onChange={(e) => setCoverImageUrl(e.target.value)} className={inputClass} placeholder="https://..." />
+              <ImageUploader
+                value={coverImageUrl || undefined}
+                onChange={(url) => setCoverImageUrl(url)}
+                label="Image de couverture"
+                hint="PNG, JPG ou WebP · 10 Mo max"
+                previewAspect="16 / 9"
+              />
             </div>
             <div>
               <label className={labelClass}>Catégorie</label>
@@ -488,7 +500,7 @@ export default function EditProductPage({
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[13px] font-medium text-[#1A1A1A]">Mis en avant</p>
+                <p className="text-[13px] font-medium text-[#191919]">Mis en avant</p>
                 <p className="text-[11px] text-[#8A8A88]">Affiche ce produit en priorité sur votre site</p>
               </div>
               <button
@@ -504,7 +516,7 @@ export default function EditProductPage({
         {tab === "brief" && (
           <div className={`${cardClass} space-y-5`}>
             <div>
-              <p className="text-[13px] font-medium text-[#1A1A1A]">Briefs liés à ce produit</p>
+              <p className="text-[13px] font-medium text-[#191919]">Briefs liés à ce produit</p>
               <p className="text-[11px] text-[#8A8A88]">Le client remplira le brief par défaut au checkout</p>
             </div>
 
@@ -600,7 +612,7 @@ export default function EditProductPage({
                 </svg>
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#1A1A1A]">{salesCount}</p>
+                <p className="text-2xl font-bold text-[#191919]">{salesCount}</p>
                 <p className="text-[12px] text-[#8A8A88]">Ventes totales</p>
               </div>
             </div>
@@ -617,11 +629,11 @@ export default function EditProductPage({
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 rounded-lg bg-[#F7F7F5]">
                     <p className="text-[12px] text-[#8A8A88] mb-1">Chiffre d&apos;affaires</p>
-                    <p className="text-lg font-bold text-[#1A1A1A]">{(salesCount * centsToEuros(product.priceCents)).toFixed(2)} &euro;</p>
+                    <p className="text-lg font-bold text-[#191919]">{(salesCount * centsToEuros(product.priceCents)).toFixed(2)} &euro;</p>
                   </div>
                   <div className="p-4 rounded-lg bg-[#F7F7F5]">
                     <p className="text-[12px] text-[#8A8A88] mb-1">Panier moyen</p>
-                    <p className="text-lg font-bold text-[#1A1A1A]">{centsToEuros(product.priceCents).toFixed(2)} &euro;</p>
+                    <p className="text-lg font-bold text-[#191919]">{centsToEuros(product.priceCents).toFixed(2)} &euro;</p>
                   </div>
                 </div>
               </div>

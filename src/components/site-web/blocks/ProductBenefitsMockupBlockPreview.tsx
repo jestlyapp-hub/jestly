@@ -58,7 +58,7 @@ function ProductBenefitsMockupBlockPreviewInner({ content }: { content: ProductB
           <h2
             className="text-3xl sm:text-4xl font-bold mb-3"
             style={{
-              color: "var(--site-text, #1A1A1A)",
+              color: "var(--site-text, #191919)",
               fontFamily: "var(--site-heading-font, inherit)",
             }}
           >
@@ -78,7 +78,7 @@ function ProductBenefitsMockupBlockPreviewInner({ content }: { content: ProductB
                 <li
                   key={i}
                   className="flex items-start gap-3 text-sm"
-                  style={{ color: "var(--site-text, #1A1A1A)" }}
+                  style={{ color: "var(--site-text, #191919)" }}
                 >
                   <svg
                     width="18"

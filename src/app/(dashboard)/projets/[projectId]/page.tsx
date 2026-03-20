@@ -1,12 +1,15 @@
 "use client";
 
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { useConfirm } from "@/lib/hooks/use-confirm";
 import DatabaseError, { detectErrorVariant } from "@/components/ui/DatabaseError";
 import type { Project, ProjectFolder, ProjectItem, ProjectItemType, ProjectStatus, ProjectPriority } from "@/types";
 
@@ -88,16 +91,18 @@ function SortableItemCard({ item, isSelected, onSelect, onEdit, onDelete, onPin,
       {/* Image/Video preview — full width, auto height */}
       {isMedia && (item.thumbnailUrl || item.url) && (
         <div className="relative cursor-pointer" onClick={onPreview}>
-          <img
+          <Image
             src={item.thumbnailUrl || item.url || ""}
             alt={item.title}
+            width={600}
+            height={400}
             className="w-full object-cover"
-            loading="lazy"
             style={{ minHeight: "80px", maxHeight: "400px" }}
+            unoptimized
           />
           {item.itemType === "video" && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/30 transition-colors">
-              <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg"><svg width="18" height="18" viewBox="0 0 24 24" fill="#1A1A1A"><polygon points="5 3 19 12 5 21 5 3" /></svg></div>
+              <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center shadow-lg"><svg width="18" height="18" viewBox="0 0 24 24" fill="#191919"><polygon points="5 3 19 12 5 21 5 3" /></svg></div>
             </div>
           )}
           {/* Overlay actions on hover */}
@@ -115,11 +120,11 @@ function SortableItemCard({ item, isSelected, onSelect, onEdit, onDelete, onPin,
             </div>
           </div>
           <div className="absolute bottom-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button onClick={(e) => { e.stopPropagation(); onPreview?.(); }} className="p-1.5 rounded-lg bg-white/90 shadow-sm text-[#666] hover:text-[#1A1A1A] cursor-pointer" title="Agrandir">
+            <button onClick={(e) => { e.stopPropagation(); onPreview?.(); }} className="p-1.5 rounded-lg bg-white/90 shadow-sm text-[#666] hover:text-[#191919] cursor-pointer" title="Agrandir">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
             </button>
-            <button onClick={(e) => { e.stopPropagation(); onMove(); }} className="p-1.5 rounded-lg bg-white/90 shadow-sm text-[#666] hover:text-[#1A1A1A] cursor-pointer" title="Déplacer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg></button>
-            <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1.5 rounded-lg bg-white/90 shadow-sm text-[#666] hover:text-[#1A1A1A] cursor-pointer" title="Modifier"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg></button>
+            <button onClick={(e) => { e.stopPropagation(); onMove(); }} className="p-1.5 rounded-lg bg-white/90 shadow-sm text-[#666] hover:text-[#191919] cursor-pointer" title="Déplacer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg></button>
+            <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1.5 rounded-lg bg-white/90 shadow-sm text-[#666] hover:text-[#191919] cursor-pointer" title="Modifier"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg></button>
             <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1.5 rounded-lg bg-white/90 shadow-sm text-[#666] hover:text-red-500 cursor-pointer" title="Supprimer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg></button>
           </div>
           {item.isPinned && <div className="absolute top-2 left-2"><span className="text-[10px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-semibold shadow-sm">Épinglé</span></div>}
@@ -129,7 +134,7 @@ function SortableItemCard({ item, isSelected, onSelect, onEdit, onDelete, onPin,
       {/* YouTube embed preview */}
       {isLink && isYouTube && item.url && (
         <div className="relative aspect-video bg-black cursor-pointer" onClick={onPreview}>
-          <img src={`https://img.youtube.com/vi/${getYouTubeId(item.url)}/hqdefault.jpg`} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+          <Image src={`https://img.youtube.com/vi/${getYouTubeId(item.url)}/hqdefault.jpg`} alt={item.title} fill className="object-cover" />
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-14 h-10 rounded-xl bg-red-600 flex items-center justify-center shadow-lg"><svg width="18" height="18" viewBox="0 0 24 24" fill="white"><polygon points="5 3 19 12 5 21 5 3" /></svg></div>
           </div>
@@ -155,8 +160,8 @@ function SortableItemCard({ item, isSelected, onSelect, onEdit, onDelete, onPin,
           </div>
           <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <div {...listeners} className="p-1 rounded-lg bg-white/80 shadow-sm cursor-grab"><svg width="10" height="10" viewBox="0 0 24 24" fill="#999"><circle cx="8" cy="4" r="2"/><circle cx="16" cy="4" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="20" r="2"/><circle cx="16" cy="20" r="2"/></svg></div>
-            <button onClick={(e) => { e.stopPropagation(); onMove(); }} className="p-1 rounded-lg bg-white/80 shadow-sm text-[#999] hover:text-[#1A1A1A] cursor-pointer" title="Déplacer"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></button>
-            <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1 rounded-lg bg-white/80 shadow-sm text-[#999] hover:text-[#1A1A1A] cursor-pointer" title="Modifier"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+            <button onClick={(e) => { e.stopPropagation(); onMove(); }} className="p-1 rounded-lg bg-white/80 shadow-sm text-[#999] hover:text-[#191919] cursor-pointer" title="Déplacer"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></button>
+            <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="p-1 rounded-lg bg-white/80 shadow-sm text-[#999] hover:text-[#191919] cursor-pointer" title="Modifier"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
             <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1 rounded-lg bg-white/80 shadow-sm text-[#999] hover:text-red-500 cursor-pointer" title="Supprimer"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
           </div>
           {item.isPinned && <div className="absolute top-2 left-2"><span className="text-[9px] bg-amber-500 text-white px-1.5 py-0.5 rounded-full font-semibold shadow-sm">Épinglé</span></div>}
@@ -181,7 +186,7 @@ function SortableItemCard({ item, isSelected, onSelect, onEdit, onDelete, onPin,
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-[13px] font-semibold text-[#1A1A1A] truncate">{item.title || "Document"}</h4>
+              <h4 className="text-[13px] font-semibold text-[#191919] truncate">{item.title || "Document"}</h4>
               <div className="flex items-center gap-2 mt-0.5">
                 {item.mimeType && <span className="text-[10px] font-medium text-[#8B5CF6] bg-purple-50 px-1.5 py-0.5 rounded">{item.mimeType.split("/").pop()?.toUpperCase()}</span>}
                 {item.fileSize ? <span className="text-[10px] text-[#8A8A88]">{(item.fileSize / 1024 / 1024).toFixed(1)} Mo</span> : null}
@@ -228,7 +233,7 @@ function SortableItemCard({ item, isSelected, onSelect, onEdit, onDelete, onPin,
       {/* Content */}
       <div className="p-3">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <h4 className="text-[13px] font-semibold text-[#1A1A1A] line-clamp-2 flex-1">{item.title || "Sans titre"}</h4>
+          <h4 className="text-[13px] font-semibold text-[#191919] line-clamp-2 flex-1">{item.title || "Sans titre"}</h4>
           {/* Actions for non-image items (images have overlay actions) */}
           {!isImage && (
             <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
@@ -331,10 +336,13 @@ function Lightbox({ items, currentId, onClose, onNavigate }: {
             allowFullScreen
           />
         ) : (
-          <img
+          <Image
             src={current.thumbnailUrl || current.url || ""}
             alt={current.title}
+            width={960}
+            height={720}
             className="max-w-full max-h-[80vh] object-contain rounded-lg"
+            unoptimized
           />
         )}
         {(current.title || current.description) && (
@@ -355,9 +363,9 @@ function simpleMarkdown(text: string): string {
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.+?)\*/g, "<em>$1</em>")
     .replace(/`(.+?)`/g, '<code class="bg-[#F7F7F5] px-1 rounded text-[#4F46E5]">$1</code>')
-    .replace(/^### (.+)$/gm, '<span class="text-[12px] font-bold text-[#1A1A1A] block mt-2">$1</span>')
-    .replace(/^## (.+)$/gm, '<span class="text-[13px] font-bold text-[#1A1A1A] block mt-2">$1</span>')
-    .replace(/^# (.+)$/gm, '<span class="text-[14px] font-bold text-[#1A1A1A] block mt-2">$1</span>')
+    .replace(/^### (.+)$/gm, '<span class="text-[12px] font-bold text-[#191919] block mt-2">$1</span>')
+    .replace(/^## (.+)$/gm, '<span class="text-[13px] font-bold text-[#191919] block mt-2">$1</span>')
+    .replace(/^# (.+)$/gm, '<span class="text-[14px] font-bold text-[#191919] block mt-2">$1</span>')
     .replace(/^- (.+)$/gm, '<span class="block pl-3">• $1</span>')
     .replace(/\n/g, "<br/>");
 }
@@ -378,7 +386,7 @@ function FolderCard({ folder, itemCount, onOpen, onRename, onDelete }: { folder:
           <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="p-1 rounded hover:bg-red-50 text-[#BBB] hover:text-red-500 cursor-pointer"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></svg></button>
         </div>
       </div>
-      <h4 className="text-[13px] font-semibold text-[#1A1A1A] mb-1 truncate">{folder.name}</h4>
+      <h4 className="text-[13px] font-semibold text-[#191919] mb-1 truncate">{folder.name}</h4>
       <span className="text-[11px] text-[#8A8A88]">{itemCount} élément{itemCount !== 1 ? "s" : ""}</span>
     </motion.div>
   );
@@ -393,7 +401,7 @@ function AddItemModal({ open, folderId, projectId, folders, onClose, onCreated }
   const [error, setError] = useState("");
   const [videoPreview, setVideoPreview] = useState<{ provider: string; thumb: string } | null>(null);
 
-  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
+  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
 
   const resetAndClose = () => {
     setMode("menu");
@@ -497,7 +505,7 @@ function AddItemModal({ open, folderId, projectId, folders, onClose, onCreated }
           <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
               <div className="flex items-center justify-between px-6 pt-5 pb-3">
-                <h3 className="text-[16px] font-bold text-[#1A1A1A]">
+                <h3 className="text-[16px] font-bold text-[#191919]">
                   {mode === "menu" ? "Ajouter du contenu" : mode === "video" ? "Ajouter une vidéo" : mode === "note" ? "Ajouter une note" : "Nouveau dossier"}
                 </h3>
                 <button onClick={resetAndClose} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] cursor-pointer">
@@ -553,7 +561,7 @@ function AddItemModal({ open, folderId, projectId, folders, onClose, onCreated }
                     }} className="w-full flex items-center gap-4 p-4 rounded-xl border border-[#E6E6E4] hover:border-[#EC4899]/30 hover:bg-pink-50/30 transition-all cursor-pointer text-left">
                       <div className="w-10 h-10 rounded-xl bg-pink-50 flex items-center justify-center text-lg shrink-0">🖼️</div>
                       <div>
-                        <span className="text-[14px] font-semibold text-[#1A1A1A] block">Image</span>
+                        <span className="text-[14px] font-semibold text-[#191919] block">Image</span>
                         <span className="text-[12px] text-[#8A8A88]">Upload photo, maquette, inspiration</span>
                       </div>
                     </button>
@@ -596,7 +604,7 @@ function AddItemModal({ open, folderId, projectId, folders, onClose, onCreated }
                     }} className="w-full flex items-center gap-4 p-4 rounded-xl border border-[#E6E6E4] hover:border-[#8B5CF6]/30 hover:bg-purple-50/30 transition-all cursor-pointer text-left">
                       <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center text-lg shrink-0">📄</div>
                       <div>
-                        <span className="text-[14px] font-semibold text-[#1A1A1A] block">Document</span>
+                        <span className="text-[14px] font-semibold text-[#191919] block">Document</span>
                         <span className="text-[12px] text-[#8A8A88]">Upload PDF, document de référence</span>
                       </div>
                     </button>
@@ -604,7 +612,7 @@ function AddItemModal({ open, folderId, projectId, folders, onClose, onCreated }
                     <button onClick={() => setMode("video")} className="w-full flex items-center gap-4 p-4 rounded-xl border border-[#E6E6E4] hover:border-[#EF4444]/30 hover:bg-red-50/30 transition-all cursor-pointer text-left">
                       <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-lg shrink-0">🎬</div>
                       <div>
-                        <span className="text-[14px] font-semibold text-[#1A1A1A] block">Vidéo</span>
+                        <span className="text-[14px] font-semibold text-[#191919] block">Vidéo</span>
                         <span className="text-[12px] text-[#8A8A88]">Lien YouTube, Vimeo ou Loom</span>
                       </div>
                     </button>
@@ -612,7 +620,7 @@ function AddItemModal({ open, folderId, projectId, folders, onClose, onCreated }
                     <button onClick={() => setMode("note")} className="w-full flex items-center gap-4 p-4 rounded-xl border border-[#E6E6E4] hover:border-[#F59E0B]/30 hover:bg-amber-50/30 transition-all cursor-pointer text-left">
                       <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-lg shrink-0">📝</div>
                       <div>
-                        <span className="text-[14px] font-semibold text-[#1A1A1A] block">Note</span>
+                        <span className="text-[14px] font-semibold text-[#191919] block">Note</span>
                         <span className="text-[12px] text-[#8A8A88]">Texte libre, idée, brief</span>
                       </div>
                     </button>
@@ -635,7 +643,7 @@ function AddItemModal({ open, folderId, projectId, folders, onClose, onCreated }
                   </div>
                   {videoPreview && (
                     <div className="rounded-xl border border-[#E6E6E4] overflow-hidden">
-                      {videoPreview.thumb && <img src={videoPreview.thumb} alt="" className="w-full h-32 object-cover" />}
+                      {videoPreview.thumb && <Image src={videoPreview.thumb} alt="" width={600} height={128} className="w-full h-32 object-cover" unoptimized />}
                       <div className="px-3 py-2 bg-[#FAFAF9]">
                         <span className="text-[11px] font-semibold text-emerald-600">{videoPreview.provider} détecté</span>
                       </div>
@@ -747,7 +755,7 @@ function EditItemPanel({ item, projectId, open, onClose, onSaved }: { item: Proj
     }
   };
 
-  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
+  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
   const cfg = item ? (ITEM_TYPE_CONFIG[item.itemType] || ITEM_TYPE_CONFIG.note) : ITEM_TYPE_CONFIG.note;
   const needsUpload = item && ["image", "video", "file"].includes(item.itemType);
 
@@ -762,7 +770,7 @@ function EditItemPanel({ item, projectId, open, onClose, onSaved }: { item: Proj
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#E6E6E4]">
               <div className="flex items-center gap-2">
                 <span className="text-lg">{cfg.icon}</span>
-                <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Modifier — {cfg.label}</h2>
+                <h2 className="text-[15px] font-semibold text-[#191919]">Modifier — {cfg.label}</h2>
               </div>
               <button onClick={() => { onClose(); setInitialized(null); }} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] cursor-pointer">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -783,7 +791,7 @@ function EditItemPanel({ item, projectId, open, onClose, onSaved }: { item: Proj
                   />
                   {url && item.itemType === "image" && (
                     <div className="rounded-lg overflow-hidden border border-[#E6E6E4] mb-2">
-                      <img src={url} alt={title} className="w-full h-40 object-cover" />
+                      <Image src={url} alt={title} width={600} height={160} className="w-full h-40 object-cover" unoptimized />
                     </div>
                   )}
                   <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
@@ -808,7 +816,7 @@ function EditItemPanel({ item, projectId, open, onClose, onSaved }: { item: Proj
                   {content && (
                     <div className="mt-2 p-3 bg-[#FAFAF9] rounded-lg border border-[#EFEFEF]">
                       <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">Aperçu</div>
-                      <div className="text-[12px] text-[#1A1A1A] leading-relaxed" dangerouslySetInnerHTML={{ __html: simpleMarkdown(content) }} />
+                      <div className="text-[12px] text-[#191919] leading-relaxed" dangerouslySetInnerHTML={{ __html: simpleMarkdown(content) }} />
                     </div>
                   )}
                 </div>
@@ -821,7 +829,7 @@ function EditItemPanel({ item, projectId, open, onClose, onSaved }: { item: Proj
               {!needsUpload && (item.itemType === "image" || item.itemType === "video") && (item.thumbnailUrl || item.url) && (
                 <div>
                   <label className="block text-[11px] font-semibold text-[#5A5A58] uppercase tracking-wider mb-1.5">Aperçu</label>
-                  <div className="rounded-lg overflow-hidden border border-[#E6E6E4]"><img src={item.thumbnailUrl || item.url || ""} alt={title} className="w-full h-40 object-cover" /></div>
+                  <div className="rounded-lg overflow-hidden border border-[#E6E6E4]"><Image src={item.thumbnailUrl || item.url || ""} alt={title} width={600} height={160} className="w-full h-40 object-cover" unoptimized /></div>
                 </div>
               )}
 
@@ -904,7 +912,7 @@ function EditProjectPanel({ project, open, onClose, onSaved, clients, briefTempl
     }
   };
 
-  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
+  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
 
   return (
     <AnimatePresence>
@@ -915,7 +923,7 @@ function EditProjectPanel({ project, open, onClose, onSaved, clients, briefTempl
             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 300 }}
           >
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#E6E6E4]">
-              <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Modifier le projet</h2>
+              <h2 className="text-[15px] font-semibold text-[#191919]">Modifier le projet</h2>
               <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] cursor-pointer">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
               </button>
@@ -947,7 +955,7 @@ function EditProjectPanel({ project, open, onClose, onSaved, clients, briefTempl
 
               {/* Brief template */}
               <div className="border border-[#E6E6E4] rounded-xl p-4">
-                <h4 className="text-[13px] font-semibold text-[#1A1A1A] mb-1">Brief associé</h4>
+                <h4 className="text-[13px] font-semibold text-[#191919] mb-1">Brief associé</h4>
                 <p className="text-[11px] text-[#8A8A88] mb-2">Lier un questionnaire brief à ce projet</p>
                 <select className={inputClass} value={form.briefTemplateId} onChange={(e) => setForm({ ...form, briefTemplateId: e.target.value })}>
                   <option value="">Aucun brief</option>
@@ -958,7 +966,7 @@ function EditProjectPanel({ project, open, onClose, onSaved, clients, briefTempl
               {/* Portfolio */}
               <div className="border border-[#E6E6E4] rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <div><h4 className="text-[13px] font-semibold text-[#1A1A1A]">Publier en portfolio</h4><p className="text-[11px] text-[#8A8A88]">Visible sur votre site public</p></div>
+                  <div><h4 className="text-[13px] font-semibold text-[#191919]">Publier en portfolio</h4><p className="text-[11px] text-[#8A8A88]">Visible sur votre site public</p></div>
                   <button onClick={() => setForm({ ...form, isPortfolio: !form.isPortfolio })} className={`w-10 h-6 rounded-full transition-colors cursor-pointer ${form.isPortfolio ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"}`}>
                     <div className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform mx-1 ${form.isPortfolio ? "translate-x-4" : ""}`} />
                   </button>
@@ -1000,7 +1008,7 @@ function RenameFolderModal({ folder, projectId, open, onClose, onSaved }: { fold
     } catch { alert("Erreur lors du renommage du dossier"); } finally { setSaving(false); }
   };
 
-  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
+  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
 
   return (
     <AnimatePresence>
@@ -1009,7 +1017,7 @@ function RenameFolderModal({ folder, projectId, open, onClose, onSaved }: { fold
           <motion.div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
           <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-              <div className="px-6 pt-5 pb-3"><h3 className="text-[16px] font-bold text-[#1A1A1A]">Renommer le dossier</h3></div>
+              <div className="px-6 pt-5 pb-3"><h3 className="text-[16px] font-bold text-[#191919]">Renommer le dossier</h3></div>
               <div className="px-6 pb-6 space-y-3">
                 <input className={inputClass} value={name} onChange={(e) => setName(e.target.value)} autoFocus />
                 <div><label className="block text-[11px] font-semibold text-[#5A5A58] uppercase tracking-wider mb-1.5">Couleur</label><div className="flex gap-1.5">{FOLDER_COLORS.map((c) => <button key={c} type="button" onClick={() => setColor(c)} className={`w-6 h-6 rounded-full cursor-pointer ${color === c ? "ring-2 ring-offset-2 ring-[#4F46E5]" : "hover:scale-110"} transition-all`} style={{ backgroundColor: c }} />)}</div></div>
@@ -1040,7 +1048,7 @@ function MoveItemModal({ item, projectId, folders, open, onClose, onMoved }: { i
     } catch { alert("Erreur lors du déplacement"); } finally { setSaving(false); }
   };
 
-  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
+  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
 
   return (
     <AnimatePresence>
@@ -1049,7 +1057,7 @@ function MoveItemModal({ item, projectId, folders, open, onClose, onMoved }: { i
           <motion.div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
           <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-              <div className="px-6 pt-5 pb-3"><h3 className="text-[16px] font-bold text-[#1A1A1A]">Déplacer &laquo;{item.title || "Sans titre"}&raquo;</h3></div>
+              <div className="px-6 pt-5 pb-3"><h3 className="text-[16px] font-bold text-[#191919]">Déplacer &laquo;{item.title || "Sans titre"}&raquo;</h3></div>
               <div className="px-6 pb-6 space-y-3">
                 <select className={inputClass} value={target} onChange={(e) => setTarget(e.target.value)}>
                   <option value="">Racine du projet</option>
@@ -1081,7 +1089,7 @@ function BatchMoveModal({ open, folders, projectId, selectedIds, onClose, onMove
     } catch { alert("Erreur lors du déplacement groupé"); } finally { setSaving(false); }
   };
 
-  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
+  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
 
   return (
     <AnimatePresence>
@@ -1090,7 +1098,7 @@ function BatchMoveModal({ open, folders, projectId, selectedIds, onClose, onMove
           <motion.div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
           <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onClick={(e) => e.stopPropagation()}>
-              <div className="px-6 pt-5 pb-3"><h3 className="text-[16px] font-bold text-[#1A1A1A]">Déplacer {selectedIds.length} élément{selectedIds.length > 1 ? "s" : ""}</h3></div>
+              <div className="px-6 pt-5 pb-3"><h3 className="text-[16px] font-bold text-[#191919]">Déplacer {selectedIds.length} élément{selectedIds.length > 1 ? "s" : ""}</h3></div>
               <div className="px-6 pb-6 space-y-3">
                 <select className={inputClass} value={target} onChange={(e) => setTarget(e.target.value)}>
                   <option value="">Racine du projet</option>
@@ -1145,7 +1153,7 @@ function QuickAddBar({ onAddVideoLink, onUploadImages, onUploadDocs, onOpenNoteM
           onBlur={() => setFocused(false)}
           onKeyDown={(e) => { if (e.key === "Enter") handleSubmitVideo(); }}
           placeholder="Colle un lien YouTube, Vimeo ou Loom..."
-          className="flex-1 text-[13px] text-[#1A1A1A] placeholder-[#B0B0AE] bg-transparent focus:outline-none min-w-0"
+          className="flex-1 text-[13px] text-[#191919] placeholder-[#B0B0AE] bg-transparent focus:outline-none min-w-0"
         />
         {videoUrl.trim() && (
           <button onClick={handleSubmitVideo} className="text-[11px] font-semibold text-[#4F46E5] hover:underline cursor-pointer shrink-0">Ajouter</button>
@@ -1190,6 +1198,7 @@ export default function ProjectDetailPage() {
   const [editingItem, setEditingItem] = useState<ProjectItem | null>(null);
   const [renamingFolder, setRenamingFolder] = useState<ProjectFolder | null>(null);
   const [movingItem, setMovingItem] = useState<ProjectItem | null>(null);
+  const { confirm, dialogProps } = useConfirm();
   const [activeTab, setActiveTab] = useState<"all" | "notes" | "files" | "links" | "pinned">("all");
   const [itemSearch, setItemSearch] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -1246,25 +1255,28 @@ export default function ProjectDetailPage() {
   }, [allItems, activeFolder, activeTab, itemSearch]);
 
   const handleDeleteItem = useCallback(async (id: string) => {
-    if (!window.confirm("Supprimer cet élément ? Cette action est irréversible.")) return;
+    const ok = await confirm({ title: "Supprimer l'élément", message: "Supprimer cet élément ? Cette action est irréversible.", variant: "danger", confirmLabel: "Supprimer" });
+    if (!ok) return;
     try { await apiFetch(`/api/projects/${projectId}/items/${id}`, { method: "DELETE" }); mutate(); } catch { showError("Erreur lors de la suppression"); }
-  }, [projectId, mutate]);
+  }, [projectId, mutate, confirm]);
 
   const handleDeleteFolder = useCallback(async (id: string) => {
     const itemCount = allItems.filter(i => i.folderId === id).length;
     const msg = itemCount > 0
       ? `Supprimer ce dossier ? Les ${itemCount} élément${itemCount > 1 ? "s" : ""} seront déplacé${itemCount > 1 ? "s" : ""} à la racine.`
       : "Supprimer ce dossier vide ?";
-    if (!window.confirm(msg)) return;
+    const ok = await confirm({ title: "Supprimer le dossier", message: msg, variant: "danger", confirmLabel: "Supprimer" });
+    if (!ok) return;
     try { await apiFetch(`/api/projects/${projectId}/items/${id}?type=folder`, { method: "DELETE" }); if (activeFolder === id) setActiveFolder(null); mutate(); } catch { showError("Erreur lors de la suppression du dossier"); }
-  }, [projectId, activeFolder, mutate, allItems]);
+  }, [projectId, activeFolder, mutate, allItems, confirm]);
 
   const handleTogglePin = useCallback(async (item: ProjectItem) => {
     try { await apiFetch(`/api/projects/${projectId}/items/${item.id}`, { method: "PATCH", body: { isPinned: !item.isPinned } }); mutate(); } catch { showError("Erreur lors de l'épinglage"); }
   }, [projectId, mutate]);
 
   const handleDeleteProject = async () => {
-    if (!window.confirm("Supprimer ce projet ? Cette action est irréversible.")) return;
+    const ok = await confirm({ title: "Supprimer le projet", message: "Supprimer ce projet ? Cette action est irréversible.", variant: "danger", confirmLabel: "Supprimer" });
+    if (!ok) return;
     try { await apiFetch(`/api/projects/${projectId}`, { method: "DELETE" }); router.push("/projets"); } catch { showError("Erreur lors de la suppression du projet"); }
   };
 
@@ -1525,7 +1537,7 @@ export default function ProjectDetailPage() {
             <div className="flex items-start justify-between gap-4 mb-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-2 flex-wrap">
-                  <h1 className="text-[22px] font-bold text-[#1A1A1A]">{project.name}</h1>
+                  <h1 className="text-[22px] font-bold text-[#191919]">{project.name}</h1>
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${statusCfg.bg} ${statusCfg.text}`}>
                     <span className={`w-1.5 h-1.5 rounded-full ${statusCfg.dot}`} />
                     {statusCfg.label}
@@ -1565,7 +1577,7 @@ export default function ProjectDetailPage() {
                   {(project.client as any).name}
                 </button>
               )}
-              {project.budget > 0 && <span className="inline-flex items-center text-[12px] font-semibold text-[#1A1A1A] bg-[#F7F7F5] px-3 py-1.5 rounded-lg">{project.budget.toLocaleString("fr-FR")}€</span>}
+              {project.budget > 0 && <span className="inline-flex items-center text-[12px] font-semibold text-[#191919] bg-[#F7F7F5] px-3 py-1.5 rounded-lg">{project.budget.toLocaleString("fr-FR")}€</span>}
               {project.startDate && <span className="inline-flex items-center gap-1 text-[12px] text-[#8A8A88] bg-[#F7F7F5] px-3 py-1.5 rounded-lg">▶ {new Date(project.startDate).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>}
               {project.deadline && <span className="inline-flex items-center gap-1 text-[12px] text-[#8A8A88] bg-[#F7F7F5] px-3 py-1.5 rounded-lg">📅 {new Date(project.deadline).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>}
               <span className="inline-flex items-center gap-1 text-[12px] text-[#8A8A88] bg-[#F7F7F5] px-3 py-1.5 rounded-lg">{allItems.length} items · {folders.length} dossiers</span>
@@ -1600,7 +1612,7 @@ export default function ProjectDetailPage() {
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
               </div>
               <div>
-                <h3 className="text-[13px] font-semibold text-[#1A1A1A]">Brief associé : {(project.briefTemplate as any).name}</h3>
+                <h3 className="text-[13px] font-semibold text-[#191919]">Brief associé : {(project.briefTemplate as any).name}</h3>
                 <p className="text-[11px] text-[#8A8A88]">Questionnaire lié à ce projet</p>
               </div>
             </div>
@@ -1797,7 +1809,7 @@ export default function ProjectDetailPage() {
               </>
             ) : (
               <>
-                <p className="text-[16px] font-semibold text-[#1A1A1A] mb-1">
+                <p className="text-[16px] font-semibold text-[#191919] mb-1">
                   {activeFolder ? "Ce dossier est vide" : itemSearch ? "Aucun résultat" : activeTab === "pinned" ? "Aucun élément épinglé" : "Ajoute des inspirations à ton projet"}
                 </p>
                 <p className="text-[12px] text-[#8A8A88] mb-6 max-w-sm text-center">
@@ -1810,7 +1822,7 @@ export default function ProjectDetailPage() {
                   >
                     <div className="w-9 h-9 rounded-lg bg-pink-50 flex items-center justify-center text-base shrink-0">🖼️</div>
                     <div>
-                      <span className="text-[13px] font-semibold text-[#1A1A1A] block">Image</span>
+                      <span className="text-[13px] font-semibold text-[#191919] block">Image</span>
                       <span className="text-[11px] text-[#8A8A88]">Upload photos</span>
                     </div>
                   </button>
@@ -1830,7 +1842,7 @@ export default function ProjectDetailPage() {
                   >
                     <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center text-base shrink-0">📄</div>
                     <div>
-                      <span className="text-[13px] font-semibold text-[#1A1A1A] block">Document</span>
+                      <span className="text-[13px] font-semibold text-[#191919] block">Document</span>
                       <span className="text-[11px] text-[#8A8A88]">PDF, références</span>
                     </div>
                   </button>
@@ -1840,7 +1852,7 @@ export default function ProjectDetailPage() {
                   >
                     <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center text-base shrink-0">🎬</div>
                     <div>
-                      <span className="text-[13px] font-semibold text-[#1A1A1A] block">Vidéo</span>
+                      <span className="text-[13px] font-semibold text-[#191919] block">Vidéo</span>
                       <span className="text-[11px] text-[#8A8A88]">YouTube, Vimeo</span>
                     </div>
                   </button>
@@ -1850,7 +1862,7 @@ export default function ProjectDetailPage() {
                   >
                     <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center text-base shrink-0">📝</div>
                     <div>
-                      <span className="text-[13px] font-semibold text-[#1A1A1A] block">Note</span>
+                      <span className="text-[13px] font-semibold text-[#191919] block">Note</span>
                       <span className="text-[11px] text-[#8A8A88]">Texte libre, idée</span>
                     </div>
                   </button>
@@ -1895,6 +1907,7 @@ export default function ProjectDetailPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

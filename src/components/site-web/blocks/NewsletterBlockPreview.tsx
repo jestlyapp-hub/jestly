@@ -43,7 +43,7 @@ function NewsletterBlockPreviewInner({ content, leadCtx }: { content: Newsletter
             type="email"
             placeholder={content.placeholder}
             className="flex-1 h-10 rounded-lg px-3 text-[12px] outline-none"
-            style={{ background: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #1A1A1A)" }}
+            style={{ background: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #191919)" }}
           />
         ) : (
           <div

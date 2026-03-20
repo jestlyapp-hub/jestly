@@ -12,7 +12,7 @@ function TestimonialsBlockPreviewInner({ content }: { content: TestimonialsBlock
               {t.name.split(" ").map((n) => n[0]).join("")}
             </div>
             <div>
-              <div className="text-[11px] font-semibold" style={{ color: "var(--site-text, #1A1A1A)" }}>{t.name}</div>
+              <div className="text-[11px] font-semibold" style={{ color: "var(--site-text, #191919)" }}>{t.name}</div>
               <div className="text-[10px]" style={{ color: "var(--site-muted, #999)" }}>{t.role}</div>
             </div>
           </div>

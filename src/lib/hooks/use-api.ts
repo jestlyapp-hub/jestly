@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, type Dispatch, type SetStateAction } from "react";
+import useSWR, { type KeyedMutator } from "swr";
+import { useCallback, useRef, type Dispatch, type SetStateAction } from "react";
 
 interface UseApiResult<T> {
   data: T | null;
@@ -13,79 +14,101 @@ interface UseApiResult<T> {
 }
 
 /**
- * Lightweight data-fetching hook (zero deps — no SWR, no React Query).
+ * Global fetcher for SWR — throws on non-2xx with the server's error message.
+ */
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const err: Error & { status?: number } = new Error(body.error || `HTTP ${res.status}`);
+    err.status = res.status;
+    throw err;
+  }
+  return res.json();
+};
+
+/**
+ * Data-fetching hook backed by SWR for caching, deduplication, and stale-while-revalidate.
  *
- * Guarantees:
- * - loading=true ONLY on initial fetch (before first data arrives).
- * - mutate() silently refetches — never flashes loading/blank.
- * - fallback is read via ref → passing inline [] won't cause infinite loops.
- * - Errors are surfaced in `error`, never silently swallowed.
- * - No polling, no auto-revalidation, no window-focus refetch.
+ * Drop-in replacement for the previous hand-rolled hook — same public API:
+ * - `data`: fetched payload (or fallback / null).
+ * - `loading`: true ONLY on initial fetch (before first data arrives).
+ * - `error`: string message on failure (null otherwise).
+ * - `mutate()`: silently refetch — keeps existing data visible, no loading flash.
+ * - `setData(value | updaterFn)`: optimistic cache update, same Dispatch<SetStateAction> signature.
+ *
+ * SWR guarantees:
+ * - Request deduplication (5 s window — multiple components sharing the same URL won't double-fetch).
+ * - Stale-while-revalidate caching across navigations.
+ * - No auto-revalidation on window focus (opt-out to match previous behaviour).
  */
 export function useApi<T>(url: string | null, fallback?: T): UseApiResult<T> {
-  const [data, setData] = useState<T | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const mountedRef = useRef(true);
-  const hasLoadedRef = useRef(false);
-
-  // Store fallback in ref so it never triggers a re-create of fetchData
+  // Store fallback in ref so it never triggers SWR key changes
   const fallbackRef = useRef(fallback);
   fallbackRef.current = fallback;
 
-  const fetchData = useCallback(async () => {
-    if (!url) {
-      setLoading(false);
-      return;
-    }
+  const {
+    data: swrData,
+    error: swrError,
+    isLoading,
+    mutate: swrMutate,
+  } = useSWR<T>(
+    url, // null key → SWR won't fetch (same as previous url guard)
+    fetcher,
+    {
+      fallbackData: fallback as T | undefined,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      dedupingInterval: 5000,
+      keepPreviousData: true,
+      // On error with fallback: still surface data so the UI doesn't break
+      onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
+        // Don't retry more than 2 times
+        if (retryCount >= 2) return;
+        // Don't retry on 4xx errors (client errors)
+        if (error?.status >= 400 && error?.status < 500) return;
+        setTimeout(() => revalidate({ retryCount }), 3000);
+      },
+    },
+  );
 
-    // Only show loading skeleton on initial fetch (no data yet)
-    if (!hasLoadedRef.current) setLoading(true);
-    setError(null);
+  // ── Derived state matching the previous API ──
 
-    try {
-      const res = await fetch(url);
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        const errMsg = body.error || `HTTP ${res.status}`;
-        if (mountedRef.current) {
-          if (fallbackRef.current !== undefined) {
-            setData(fallbackRef.current as T);
-            hasLoadedRef.current = true;
-          } else {
-            setError(errMsg);
-          }
-        }
-        return;
-      }
-      const json = await res.json();
-      if (mountedRef.current) {
-        setData(json);
-        hasLoadedRef.current = true;
-      }
-    } catch (e) {
-      if (mountedRef.current) {
-        if (fallbackRef.current !== undefined) {
-          setData(fallbackRef.current as T);
-          hasLoadedRef.current = true;
-        } else {
-          setError(e instanceof Error ? e.message : "Erreur réseau");
-        }
-      }
-    } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
-    }
-  }, [url]); // ← ONLY url — fallback read via ref, no infinite loop risk
+  const data: T | null = swrData ?? (fallback as T) ?? null;
+  const loading = isLoading && data === null;
+  const error: string | null = swrError
+    ? (swrError instanceof Error ? swrError.message : "Erreur")
+    : null;
 
-  useEffect(() => {
-    mountedRef.current = true;
-    fetchData();
-    return () => { mountedRef.current = false; };
-  }, [fetchData]);
+  // ── mutate() → silent refetch (no loading flash, keeps stale data visible) ──
 
-  return { data, loading, error, mutate: fetchData, setData };
+  const mutate = useCallback(async () => {
+    // revalidate: true → refetch from server; populateCache not needed (SWR handles it)
+    await swrMutate();
+  }, [swrMutate]);
+
+  // ── setData() → optimistic cache update with Dispatch<SetStateAction<T | null>> signature ──
+  // Supports both direct value and updater fn: setData(newVal) or setData(prev => ...)
+
+  const setData: Dispatch<SetStateAction<T | null>> = useCallback(
+    (valueOrUpdater) => {
+      if (typeof valueOrUpdater === "function") {
+        const updater = valueOrUpdater as (prev: T | null) => T | null;
+        swrMutate(
+          (current) => {
+            const result = updater(current ?? null);
+            return result as T | undefined;
+          },
+          { revalidate: false },
+        );
+      } else {
+        swrMutate(valueOrUpdater as T | undefined, { revalidate: false });
+      }
+    },
+    [swrMutate],
+  );
+
+  return { data, loading, error, mutate, setData };
 }
 
 /**

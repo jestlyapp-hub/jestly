@@ -84,7 +84,7 @@ export default function OrderDots({ orders, onSelect, compact }: OrderDotsProps)
                     {initial}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[12px] font-medium text-[#1A1A1A] truncate leading-tight">
+                    <div className="text-[12px] font-medium text-[#191919] truncate leading-tight">
                       {order.title}
                     </div>
                     {order.orderStatus && (

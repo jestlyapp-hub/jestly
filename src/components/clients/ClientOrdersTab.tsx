@@ -69,7 +69,7 @@ export default function ClientOrdersTab({ clientId }: Props) {
             placeholder="Rechercher..."
             value={search}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
+            className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
           />
         </div>
         <div className="flex gap-1.5 flex-wrap">
@@ -114,10 +114,10 @@ export default function ClientOrdersTab({ clientId }: Props) {
               <tbody>
                 {orders.map((o) => (
                   <tr key={o.id} className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors">
-                    <td className="px-5 py-3 text-[13px] font-medium text-[#1A1A1A]">
+                    <td className="px-5 py-3 text-[13px] font-medium text-[#191919]">
                       {o.services?.title || o.title}
                     </td>
-                    <td className="px-5 py-3 text-[13px] text-[#1A1A1A]">{o.amount}€</td>
+                    <td className="px-5 py-3 text-[13px] text-[#191919]">{o.amount}€</td>
                     <td className="px-5 py-3">
                       <BadgeStatus status={o.status as "new"} />
                     </td>

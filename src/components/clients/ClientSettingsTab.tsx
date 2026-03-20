@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { apiFetch } from "@/lib/hooks/use-api";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import type { ClientDetail, ClientStatus } from "@/types";
 
 interface Props {
@@ -61,9 +62,9 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
     }
   };
 
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+
   const handleArchive = async () => {
-    const action = form.status === "archived" ? "réactiver" : "archiver";
-    if (!window.confirm(`Voulez-vous ${action} ce client ?`)) return;
     const newStatus = form.status === "archived" ? "active" : "archived";
     setForm((prev) => ({ ...prev, status: newStatus }));
     setSaving(true);
@@ -84,9 +85,9 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
   };
 
   return (
-    <div className="space-y-6">
+    <><div className="space-y-6">
       <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-        <h3 className="text-[13px] font-semibold text-[#1A1A1A] mb-4">Informations du client</h3>
+        <h3 className="text-[13px] font-semibold text-[#191919] mb-4">Informations du client</h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Name */}
@@ -96,7 +97,7 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
               type="text"
               value={form.name}
               onChange={(e) => handleChange("name", e.target.value)}
-              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
+              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
             />
           </div>
 
@@ -107,7 +108,7 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
               type="email"
               value={form.email}
               onChange={(e) => handleChange("email", e.target.value)}
-              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
+              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
             />
           </div>
 
@@ -118,7 +119,7 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
               type="tel"
               value={form.phone}
               onChange={(e) => handleChange("phone", e.target.value)}
-              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
+              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
             />
           </div>
 
@@ -129,7 +130,7 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
               type="text"
               value={form.company}
               onChange={(e) => handleChange("company", e.target.value)}
-              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
+              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
             />
           </div>
 
@@ -141,7 +142,7 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
               value={form.website}
               onChange={(e) => handleChange("website", e.target.value)}
               placeholder="https://"
-              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
+              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
             />
           </div>
 
@@ -151,7 +152,7 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
             <select
               value={form.status}
               onChange={(e) => handleChange("status", e.target.value)}
-              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
+              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
             >
               <option value="active">Actif</option>
               <option value="inactive">Inactif</option>
@@ -168,7 +169,7 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
             value={form.tags}
             onChange={(e) => handleChange("tags", e.target.value)}
             placeholder="vip, design, web..."
-            className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
+            className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
           />
         </div>
 
@@ -179,7 +180,7 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
             value={form.notes}
             onChange={(e) => handleChange("notes", e.target.value)}
             rows={3}
-            className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 resize-none"
+            className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 resize-none"
           />
         </div>
 
@@ -203,14 +204,14 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
 
       {/* Archive / Unarchive */}
       <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-        <h3 className="text-[13px] font-semibold text-[#1A1A1A] mb-2">Zone de danger</h3>
+        <h3 className="text-[13px] font-semibold text-[#191919] mb-2">Zone de danger</h3>
         <p className="text-[12px] text-[#999] mb-3">
           {form.status === "archived"
             ? "Ce client est archivé. Vous pouvez le réactiver."
             : "Archiver ce client le masquera des listes actives."}
         </p>
         <button
-          onClick={handleArchive}
+          onClick={() => setShowArchiveConfirm(true)}
           disabled={saving}
           className={`px-4 py-2 text-[13px] font-medium rounded-md transition-colors cursor-pointer ${
             form.status === "archived"
@@ -225,5 +226,16 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
         )}
       </div>
     </div>
+    <ConfirmDialog
+      open={showArchiveConfirm}
+      title={form.status === "archived" ? "Réactiver le client" : "Archiver le client"}
+      message={form.status === "archived" ? "Voulez-vous réactiver ce client ?" : "Voulez-vous archiver ce client ?"}
+      variant={form.status === "archived" ? "default" : "danger"}
+      confirmLabel={form.status === "archived" ? "Réactiver" : "Archiver"}
+      cancelLabel="Annuler"
+      onConfirm={() => { setShowArchiveConfirm(false); handleArchive(); }}
+      onCancel={() => setShowArchiveConfirm(false)}
+    />
+    </>
   );
 }

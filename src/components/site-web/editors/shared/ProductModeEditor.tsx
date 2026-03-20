@@ -43,7 +43,7 @@ export default function ProductModeEditor({
             onClick={() => onModeChange(manualLabel === "Statique" ? "static" as Mode : "manual")}
             className={`flex-1 py-2 text-[12px] font-medium transition-all ${
               !isProduct
-                ? "bg-[#1A1A1A] text-white"
+                ? "bg-[#191919] text-white"
                 : "bg-[#F7F7F5] text-[#5A5A58] hover:bg-[#EFEFEF]"
             }`}
           >
@@ -53,7 +53,7 @@ export default function ProductModeEditor({
             onClick={() => onModeChange("product")}
             className={`flex-1 py-2 text-[12px] font-medium transition-all ${
               isProduct
-                ? "bg-[#1A1A1A] text-white"
+                ? "bg-[#191919] text-white"
                 : "bg-[#F7F7F5] text-[#5A5A58] hover:bg-[#EFEFEF]"
             }`}
           >

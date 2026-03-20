@@ -10,6 +10,7 @@ const DATA: FeaturePageData = {
   subtitle:
     "Fini de naviguer à l'aveugle. Jestly transforme vos données en tableaux de bord lisibles — revenus, activité, tendances — pour décider avec clarté.",
   videoLabel: "Explorer les analytics",
+  useAnalyticsDemo: true,
   accentColor: "#7C3AED",
 
   benefitsTitle: "Des chiffres qui",

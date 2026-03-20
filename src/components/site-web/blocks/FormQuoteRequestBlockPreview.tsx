@@ -48,7 +48,7 @@ function FormQuoteRequestBlockPreview({ content, leadCtx }: { content: FormQuote
           <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
           </div>
-          <p className="text-[15px] font-medium" style={{ color: "var(--site-text, #1A1A1A)" }}>Merci ! Votre demande de devis a bien été envoyée.</p>
+          <p className="text-[15px] font-medium" style={{ color: "var(--site-text, #191919)" }}>Merci ! Votre demande de devis a bien été envoyée.</p>
         </div>
       </section>
     );
@@ -58,7 +58,7 @@ function FormQuoteRequestBlockPreview({ content, leadCtx }: { content: FormQuote
     <section className="py-16 px-6">
       <div className="max-w-5xl mx-auto">
         {content.title && (
-          <h2 className="text-3xl font-bold text-center mb-3" style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}>
+          <h2 className="text-3xl font-bold text-center mb-3" style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}>
             {content.title}
           </h2>
         )}
@@ -73,7 +73,7 @@ function FormQuoteRequestBlockPreview({ content, leadCtx }: { content: FormQuote
                 const isFullWidth = field.type === "textarea";
                 return (
                   <div key={i} className={isFullWidth ? "md:col-span-2" : ""}>
-                    <label className="block text-[13px] font-medium mb-1.5" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                    <label className="block text-[13px] font-medium mb-1.5" style={{ color: "var(--site-text, #191919)" }}>
                       {field.label}
                       {field.required && <span style={{ color: "var(--site-primary, #4F46E5)" }}> *</span>}
                     </label>
@@ -84,14 +84,14 @@ function FormQuoteRequestBlockPreview({ content, leadCtx }: { content: FormQuote
                         required={field.required}
                         rows={4}
                         className="w-full rounded-lg px-4 py-3 text-[14px] outline-none transition-colors"
-                        style={{ backgroundColor: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #1A1A1A)" }}
+                        style={{ backgroundColor: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #191919)" }}
                       />
                     ) : field.type === "select" && field.options ? (
                       <select
                         name={field.label}
                         required={field.required}
                         className="w-full rounded-lg px-4 py-3 text-[14px] outline-none transition-colors appearance-none"
-                        style={{ backgroundColor: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #1A1A1A)" }}
+                        style={{ backgroundColor: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #191919)" }}
                       >
                         <option value="">{field.placeholder || "Choisir..."}</option>
                         {field.options.map((opt, j) => (
@@ -105,7 +105,7 @@ function FormQuoteRequestBlockPreview({ content, leadCtx }: { content: FormQuote
                         placeholder={field.placeholder || ""}
                         required={field.required}
                         className="w-full rounded-lg px-4 py-3 text-[14px] outline-none transition-colors"
-                        style={{ backgroundColor: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #1A1A1A)" }}
+                        style={{ backgroundColor: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #191919)" }}
                       />
                     )}
                   </div>

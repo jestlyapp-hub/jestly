@@ -177,7 +177,7 @@ function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: stri
     case "pricing-modern": return <PricingModernBlockPreview content={block.content} />;
     case "testimonials-dark": return <TestimonialsDarkBlockPreview content={block.content} />;
     case "cta-banner": return <CtaBannerBlockPreview content={block.content} />;
-    case "contact-premium": return <ContactPremiumBlockPreview content={block.content} />;
+    case "contact-premium": return <ContactPremiumBlockPreview content={block.content} leadCtx={lp} />;
     case "footer-block": return <FooterBlockBlockPreview content={block.content} />;
     case "video-showcase": return <VideoShowcaseBlockPreview content={block.content} />;
     case "tech-stack": return <TechStackBlockPreview content={block.content} />;
@@ -347,11 +347,31 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
 
         {/* Desktop CTA + Mobile hamburger */}
         <div className="flex items-center gap-3">
+          {nav.showSecondaryCta && nav.secondaryCtaLabel && (
+            <a
+              href={nav.secondaryCtaUrl || "#"}
+              target={nav.secondaryCtaOpenNewTab ? "_blank" : undefined}
+              rel={nav.secondaryCtaOpenNewTab ? "noopener noreferrer" : undefined}
+              className="hidden md:inline-flex text-[13px] font-semibold px-4 py-2 border transition-colors hover:opacity-80"
+              style={{
+                backgroundColor: nav.secondaryCtaBgColor || "transparent",
+                color: nav.secondaryCtaTextColor || "var(--site-text, #191919)",
+                borderColor: nav.secondaryCtaBorderColor || "var(--site-border, #E6E6E4)",
+                borderRadius: "var(--site-btn-radius, 6px)",
+              }}
+            >
+              {nav.secondaryCtaLabel}
+            </a>
+          )}
           {nav.showCta && nav.ctaLabel && (
             <a
               href={nav.ctaLink?.value ? resolvePageSlug(site, nav.ctaLink.value) : "#"}
               className="hidden md:inline-flex text-[13px] font-semibold px-4 py-2 transition-colors hover:opacity-90"
-              style={{ backgroundColor: "var(--btn-bg, var(--site-primary))", color: "var(--btn-text, #fff)", borderRadius: "var(--site-btn-radius, 6px)" }}
+              style={{
+                backgroundColor: nav.ctaBgColor || "var(--btn-bg, var(--site-primary))",
+                color: nav.ctaTextColor || "var(--btn-text, #fff)",
+                borderRadius: nav.ctaBorderRadius || "var(--site-btn-radius, 6px)",
+              }}
             >
               {nav.ctaLabel}
             </a>
@@ -398,11 +418,30 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
                 </a>
               );
             })}
+            {nav.showSecondaryCta && nav.secondaryCtaLabel && (
+              <a
+                href={nav.secondaryCtaUrl || "#"}
+                onClick={() => setMobileOpen(false)}
+                className="block text-center text-sm font-semibold px-4 py-2.5 border transition-colors mt-2"
+                style={{
+                  backgroundColor: nav.secondaryCtaBgColor || "transparent",
+                  color: nav.secondaryCtaTextColor || "var(--site-text, #191919)",
+                  borderColor: nav.secondaryCtaBorderColor || "var(--site-border, #E6E6E4)",
+                  borderRadius: "var(--site-btn-radius, 6px)",
+                }}
+              >
+                {nav.secondaryCtaLabel}
+              </a>
+            )}
             {nav.showCta && nav.ctaLabel && (
               <a
                 href={nav.ctaLink?.value ? resolvePageSlug(site, nav.ctaLink.value) : "#"}
                 className="block text-center text-sm font-semibold px-4 py-2.5 transition-colors mt-2"
-                style={{ backgroundColor: "var(--btn-bg, var(--site-primary))", color: "var(--btn-text, #fff)", borderRadius: "var(--site-btn-radius, 6px)" }}
+                style={{
+                  backgroundColor: nav.ctaBgColor || "var(--btn-bg, var(--site-primary))",
+                  color: nav.ctaTextColor || "var(--btn-text, #fff)",
+                  borderRadius: nav.ctaBorderRadius || "var(--site-btn-radius, 6px)",
+                }}
               >
                 {nav.ctaLabel}
               </a>

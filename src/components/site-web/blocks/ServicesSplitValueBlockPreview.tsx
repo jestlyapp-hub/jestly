@@ -14,7 +14,7 @@ function ServicesSplitValueBlockPreviewInner({ content }: { content: ServicesSpl
           <h2
             className="text-3xl sm:text-4xl font-bold mb-4"
             style={{
-              color: "var(--site-text, #1A1A1A)",
+              color: "var(--site-text, #191919)",
               fontFamily: "var(--site-heading-font, inherit)",
             }}
           >
@@ -51,7 +51,7 @@ function ServicesSplitValueBlockPreviewInner({ content }: { content: ServicesSpl
             >
               <h3
                 className="text-base font-semibold mb-1.5"
-                style={{ color: "var(--site-text, #1A1A1A)" }}
+                style={{ color: "var(--site-text, #191919)" }}
               >
                 {pillar.title}
               </h3>

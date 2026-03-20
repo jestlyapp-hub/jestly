@@ -24,7 +24,7 @@ function ServicesProcessOffersBlockPreviewInner({ content }: { content: Services
           <h2
             className="text-3xl sm:text-4xl font-bold mb-12 text-center"
             style={{
-              color: "var(--site-text, #1A1A1A)",
+              color: "var(--site-text, #191919)",
               fontFamily: "var(--site-heading-font, inherit)",
             }}
           >
@@ -45,7 +45,7 @@ function ServicesProcessOffersBlockPreviewInner({ content }: { content: Services
             >
               <h3
                 className="text-lg font-semibold mb-2"
-                style={{ color: "var(--site-text, #1A1A1A)" }}
+                style={{ color: "var(--site-text, #191919)" }}
               >
                 {offer.title}
               </h3>
@@ -70,7 +70,7 @@ function ServicesProcessOffersBlockPreviewInner({ content }: { content: Services
                       >
                         {j + 1}
                       </span>
-                      <span style={{ color: "var(--site-text, #1A1A1A)" }}>
+                      <span style={{ color: "var(--site-text, #191919)" }}>
                         {step}
                       </span>
                     </li>

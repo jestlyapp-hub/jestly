@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getAuthUser } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -33,7 +34,7 @@ export async function POST(
   try {
     // Verify ownership + get current status (using user client for auth check)
     const { data: site, error: siteErr } = await (supabase.from("sites") as any)
-      .select("id, status")
+      .select("id, status, slug")
       .eq("id", id)
       .eq("owner_id", user.id)
       .single();
@@ -68,31 +69,31 @@ export async function POST(
       return NextResponse.json({ error: updateErr.message, step: "site_update" }, { status: 500 });
     }
 
-    // 2. Replace pages + blocks (V1: delete all, re-insert)
+    // 2. Replace pages + blocks (safe: insert new first, delete old only on success)
     // Uses admin client to bypass RLS timing issues on cascading inserts
-    const { error: deleteErr } = await (admin.from("site_pages") as any)
-      .delete()
-      .eq("site_id", id);
-
-    if (deleteErr) {
-      console.error("[draft] pages delete error:", deleteErr.message);
-      return NextResponse.json({ error: deleteErr.message, step: "pages_delete" }, { status: 500 });
-    }
-
     const pages = body.pages || [];
     if (pages.length > 0) {
+      // Fetch existing page IDs before insert (to delete later on success)
+      const { data: existingPages } = await (admin.from("site_pages") as any)
+        .select("id")
+        .eq("site_id", id);
+      const oldPageIds: string[] = (existingPages ?? []).map((p: any) => p.id);
+
       // Insert pages — deduplicate slugs to avoid unique constraint violation
+      // Use temporary suffixed slugs to avoid conflicts with existing pages
       const usedSlugs = new Set<string>();
       const pageRows = pages.map((p: any, i: number) => {
         let slug = p.slug || `page-${i}`;
         if (usedSlugs.has(slug)) {
           slug = `${slug}-${i}`;
         }
+        // Suffix with __draft_new to avoid unique constraint with existing pages
         usedSlugs.add(slug);
         return {
           site_id: id,
           title: p.title || p.name || "Sans titre",
-          slug,
+          slug: `${slug}__draft_new`,
+          _final_slug: slug,
           is_home: !!p.is_home,
           sort_order: p.sort_order ?? i,
           status: siteIsPublished ? "published" : (p.status || "draft"),
@@ -101,46 +102,35 @@ export async function POST(
         };
       });
 
+      // Strip _final_slug before insert (not a DB column)
+      const insertRows = pageRows.map(({ _final_slug, ...row }: any) => row);
+
       let insertedPages: any[] | null = null;
 
-      // Try insert — on unique constraint conflict (race condition), retry once
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const { data, error: pageErr } = await (admin.from("site_pages") as any)
-          .insert(pageRows)
-          .select("id, slug");
+      const { data, error: pageErr } = await (admin.from("site_pages") as any)
+        .insert(insertRows)
+        .select("id, slug");
 
-        if (!pageErr && data) {
-          insertedPages = data;
-          break;
-        }
-
-        if (pageErr?.message?.includes("unique constraint") && attempt === 0) {
-          console.warn("[draft] slug conflict (race condition), retrying delete+insert...");
-          await (admin.from("site_pages") as any).delete().eq("site_id", id);
-          continue;
-        }
-
-        console.error("[draft] pages insert error:", pageErr?.message, pageErr?.details, "slugs:", pageRows.map((r: any) => r.slug));
+      if (pageErr || !data) {
+        console.error("[draft] pages insert error:", pageErr?.message, pageErr?.details, "slugs:", insertRows.map((r: any) => r.slug));
         return NextResponse.json({ error: pageErr?.message || "Erreur insertion pages.", step: "pages_insert" }, { status: 500 });
       }
 
-      if (!insertedPages) {
-        return NextResponse.json({ error: "Erreur insertion pages après retry.", step: "pages_insert" }, { status: 500 });
-      }
+      insertedPages = data!;
 
       // Build slug → DB id map (insertion order is NOT guaranteed by Supabase)
       const slugToId = new Map<string, string>();
-      for (const row of insertedPages) {
+      for (const row of insertedPages!) {
         slugToId.set(row.slug, row.id);
       }
 
-      // Insert blocks for each page — match by slug, not by array index
+      // Insert blocks for each page — match by temp slug, not by array index
       const blockRows: any[] = [];
       for (let i = 0; i < pages.length; i++) {
-        const pageSlug = pageRows[i]?.slug;
-        const pageId = slugToId.get(pageSlug);
+        const tempSlug = insertRows[i]?.slug;
+        const pageId = slugToId.get(tempSlug);
         if (!pageId) {
-          console.error("[draft] missing page id for slug", pageSlug, "available:", [...slugToId.keys()]);
+          console.error("[draft] missing page id for slug", tempSlug, "available:", [...slugToId.keys()]);
           continue;
         }
         const blocks = pages[i].blocks || [];
@@ -166,9 +156,56 @@ export async function POST(
           .insert(blockRows);
 
         if (blockErr) {
+          // Rollback: delete the newly inserted pages (cascade deletes their blocks)
           console.error("[draft] blocks insert error:", blockErr.message, blockErr.details, "count:", blockRows.length);
+          const newPageIds = insertedPages!.map((p: any) => p.id);
+          await (admin.from("site_pages") as any).delete().in("id", newPageIds);
           return NextResponse.json({ error: blockErr.message, step: "blocks_insert" }, { status: 500 });
         }
+      }
+
+      // Insert succeeded — now safely delete old pages (cascade deletes old blocks)
+      if (oldPageIds.length > 0) {
+        const { error: deleteErr } = await (admin.from("site_pages") as any)
+          .delete()
+          .in("id", oldPageIds);
+
+        if (deleteErr) {
+          console.error("[draft] old pages delete error:", deleteErr.message);
+          // Non-fatal: new pages are in place, old ones remain as orphans
+        }
+      }
+
+      // Rename temp slugs to final slugs
+      for (let i = 0; i < pageRows.length; i++) {
+        const tempSlug = insertRows[i]?.slug;
+        const finalSlug = pageRows[i]._final_slug;
+        const pageId = slugToId.get(tempSlug);
+        if (pageId && tempSlug !== finalSlug) {
+          await (admin.from("site_pages") as any)
+            .update({ slug: finalSlug })
+            .eq("id", pageId);
+        }
+      }
+    } else {
+      // No pages in payload — delete all existing pages
+      const { error: deleteErr } = await (admin.from("site_pages") as any)
+        .delete()
+        .eq("site_id", id);
+
+      if (deleteErr) {
+        console.error("[draft] pages delete error:", deleteErr.message);
+        return NextResponse.json({ error: deleteErr.message, step: "pages_delete" }, { status: 500 });
+      }
+    }
+
+    // Invalider le cache ISR si le site est publié, pour que les changements
+    // soient visibles immédiatement sur le site public
+    if (siteIsPublished && site.slug) {
+      try {
+        revalidatePath(`/s/${site.slug}`, "layout");
+      } catch {
+        // Ignore en dev ou si le chemin n'est pas en cache
       }
     }
 

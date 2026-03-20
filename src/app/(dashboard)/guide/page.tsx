@@ -713,7 +713,7 @@ export default function GuidePage() {
           {totalArticles} articles &middot; 6 vid&eacute;os
         </div>
 
-        <h1 className="text-[28px] font-bold text-[#1A1A1A] mb-2">
+        <h1 className="text-[28px] font-bold text-[#191919] mb-2">
           Guide Jestly
         </h1>
         <p className="text-[15px] text-[#5A5A58] max-w-lg mx-auto mb-8">
@@ -745,7 +745,7 @@ export default function GuidePage() {
               setSearch(e.target.value);
               setActiveCategory(null);
             }}
-            className="w-full bg-white border border-[#E6E6E4] rounded-xl pl-11 pr-4 py-3 text-[14px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all shadow-sm"
+            className="w-full bg-white border border-[#E6E6E4] rounded-xl pl-11 pr-4 py-3 text-[14px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all shadow-sm"
           />
         </div>
 
@@ -771,7 +771,7 @@ export default function GuidePage() {
           </button>
           <button
             onClick={handlePillVideos}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#1A1A1A] text-[13px] font-medium rounded-lg border border-[#E6E6E4] hover:bg-[#FBFBFA] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#191919] text-[13px] font-medium rounded-lg border border-[#E6E6E4] hover:bg-[#FBFBFA] transition-colors cursor-pointer"
           >
             <svg
               width="14"
@@ -854,7 +854,7 @@ export default function GuidePage() {
         >
           {/* ── Quick Start Onboarding ── */}
           <div className="mb-12">
-            <h2 className="text-[18px] font-bold text-[#1A1A1A] mb-1">
+            <h2 className="text-[18px] font-bold text-[#191919] mb-1">
               D&eacute;marrage rapide
             </h2>
             <p className="text-[13px] text-[#8A8A88] mb-5">
@@ -889,7 +889,7 @@ export default function GuidePage() {
                       <QuickStartIcon icon={step.icon} />
                     </div>
 
-                    <h3 className="text-[14px] font-semibold text-[#1A1A1A] mb-0.5 group-hover:text-[#4F46E5] transition-colors">
+                    <h3 className="text-[14px] font-semibold text-[#191919] mb-0.5 group-hover:text-[#4F46E5] transition-colors">
                       {step.title}
                     </h3>
                     <p className="text-[12px] text-[#8A8A88]">
@@ -921,7 +921,7 @@ export default function GuidePage() {
 
           {/* ── Categories Grid ── */}
           <div className="mb-12">
-            <h2 className="text-[18px] font-bold text-[#1A1A1A] mb-1">
+            <h2 className="text-[18px] font-bold text-[#191919] mb-1">
               Cat&eacute;gories
             </h2>
             <p className="text-[13px] text-[#8A8A88] mb-5">
@@ -950,7 +950,7 @@ export default function GuidePage() {
                     {cat.icon}
                   </div>
 
-                  <h3 className="text-[14px] font-semibold text-[#1A1A1A] mb-0.5 group-hover:text-[#4F46E5] transition-colors">
+                  <h3 className="text-[14px] font-semibold text-[#191919] mb-0.5 group-hover:text-[#4F46E5] transition-colors">
                     {cat.label}
                   </h3>
                   <p className="text-[12px] text-[#8A8A88] mb-2">
@@ -983,7 +983,7 @@ export default function GuidePage() {
 
           {/* ── Video Tutorials ── */}
           <div ref={videosRef} className="mb-12">
-            <h2 className="text-[18px] font-bold text-[#1A1A1A] mb-1">
+            <h2 className="text-[18px] font-bold text-[#191919] mb-1">
               Tutoriels vid&eacute;o
             </h2>
             <p className="text-[13px] text-[#8A8A88] mb-5">
@@ -1019,7 +1019,7 @@ export default function GuidePage() {
                     <span className="text-[10px] font-semibold text-[#4F46E5] uppercase tracking-wider">
                       {video.category}
                     </span>
-                    <h4 className="text-[13px] font-medium text-[#1A1A1A] mt-0.5">
+                    <h4 className="text-[13px] font-medium text-[#191919] mt-0.5">
                       {video.title}
                     </h4>
                   </div>
@@ -1030,7 +1030,7 @@ export default function GuidePage() {
 
           {/* ── FAQ ── */}
           <div className="mb-12">
-            <h2 className="text-[18px] font-bold text-[#1A1A1A] mb-1">
+            <h2 className="text-[18px] font-bold text-[#191919] mb-1">
               Questions fr&eacute;quentes
             </h2>
             <p className="text-[13px] text-[#8A8A88] mb-5">
@@ -1045,7 +1045,7 @@ export default function GuidePage() {
                     }
                     className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-[#FBFBFA] transition-colors cursor-pointer"
                   >
-                    <span className="text-[14px] font-medium text-[#1A1A1A] pr-4">
+                    <span className="text-[14px] font-medium text-[#191919] pr-4">
                       {item.q}
                     </span>
                     <motion.svg
@@ -1110,7 +1110,7 @@ export default function GuidePage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-[15px] font-bold text-[#1A1A1A]">
+                <h3 className="text-[15px] font-bold text-[#191919]">
                   Que voulez-vous faire ?
                 </h3>
                 <p className="text-[12px] text-[#8A8A88]">
@@ -1162,7 +1162,7 @@ export default function GuidePage() {
             transition={{ duration: 0.4, delay: 0.2 }}
             className="bg-[#F7F7F5] rounded-xl border border-[#E6E6E4] p-8 text-center"
           >
-            <h2 className="text-[18px] font-bold text-[#1A1A1A] mb-2">
+            <h2 className="text-[18px] font-bold text-[#191919] mb-2">
               Besoin d&apos;aide ?
             </h2>
             <p className="text-[13px] text-[#5A5A58] mb-6 max-w-md mx-auto">
@@ -1172,7 +1172,7 @@ export default function GuidePage() {
             <div className="flex items-center justify-center gap-3 flex-wrap">
               <a
                 href="mailto:support@jestly.fr"
-                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-[#1A1A1A] text-[13px] font-medium rounded-lg border border-[#E6E6E4] hover:bg-[#FBFBFA] transition-colors"
+                className="inline-flex items-center gap-2 px-4 py-2.5 bg-white text-[#191919] text-[13px] font-medium rounded-lg border border-[#E6E6E4] hover:bg-[#FBFBFA] transition-colors"
               >
                 <svg
                   width="16"
@@ -1232,7 +1232,7 @@ export default function GuidePage() {
               {activeData.icon}
             </div>
             <div>
-              <h2 className="text-[20px] font-bold text-[#1A1A1A]">
+              <h2 className="text-[20px] font-bold text-[#191919]">
                 {activeData.label}
               </h2>
               <p className="text-[13px] text-[#8A8A88]">
@@ -1285,7 +1285,7 @@ function ArticleCard({
         className="w-full flex items-center justify-between px-5 py-4 text-left cursor-pointer hover:bg-[#FBFBFA] transition-colors"
       >
         <div className="flex-1 min-w-0 pr-4">
-          <h4 className="text-[14px] font-medium text-[#1A1A1A] mb-0.5">
+          <h4 className="text-[14px] font-medium text-[#191919] mb-0.5">
             {article.title}
           </h4>
           <p className="text-[12px] text-[#8A8A88]">{article.summary}</p>

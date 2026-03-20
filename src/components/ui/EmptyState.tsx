@@ -30,7 +30,7 @@ export default function EmptyState({ icon, title, description, actionLabel, acti
       <div className="mb-4 text-[#D1D5DB]">
         {icon || defaultIcon}
       </div>
-      <h3 className="text-[15px] font-semibold text-[#1A1A1A] mb-1.5">{title}</h3>
+      <h3 className="text-[15px] font-semibold text-[#191919] mb-1.5">{title}</h3>
       <p className="text-[13px] text-[#999] max-w-sm mb-5">{description}</p>
       {actionLabel && (
         onAction ? (

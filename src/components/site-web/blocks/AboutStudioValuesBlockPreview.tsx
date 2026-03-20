@@ -9,7 +9,7 @@ function AboutStudioValuesBlockPreviewInner({ content }: { content: AboutStudioV
       <div className="max-w-6xl mx-auto">
         <h2
           className="text-2xl font-bold text-center mb-2"
-          style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+          style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
         >
           {content.title}
         </h2>
@@ -39,7 +39,7 @@ function AboutStudioValuesBlockPreviewInner({ content }: { content: AboutStudioV
               >
                 {v.icon || (i + 1)}
               </div>
-              <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--site-text, #191919)" }}>
                 {v.title}
               </h3>
               <p className="text-xs leading-relaxed" style={{ color: "var(--site-muted, #666)" }}>

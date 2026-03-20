@@ -50,7 +50,7 @@ function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlo
     <div className="py-6">
       {/* Header */}
       <div className="text-center mb-5">
-        <h3 className="text-lg font-bold mb-1" style={{ color: "var(--site-text, #1A1A1A)" }}>{content.title}</h3>
+        <h3 className="text-lg font-bold mb-1" style={{ color: "var(--site-text, #191919)" }}>{content.title}</h3>
         {content.description && (
           <p className="text-[12px] max-w-md mx-auto" style={{ color: "var(--site-muted, #999)" }}>{content.description}</p>
         )}
@@ -77,11 +77,11 @@ function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlo
               </div>
 
               <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-semibold" style={{ color: "var(--site-text, #1A1A1A)" }}>{product.name}</div>
+                <div className="text-[13px] font-semibold" style={{ color: "var(--site-text, #191919)" }}>{product.name}</div>
                 <div className="text-[11px] truncate" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</div>
               </div>
 
-              <div className="text-[13px] font-medium whitespace-nowrap" style={{ color: "var(--site-text, #1A1A1A)" }}>{formatPrice(product.priceCents)}</div>
+              <div className="text-[13px] font-medium whitespace-nowrap" style={{ color: "var(--site-text, #191919)" }}>{formatPrice(product.priceCents)}</div>
             </div>
           );
         })}
@@ -100,7 +100,7 @@ function BundleBuilderBlockPreviewInner({ content }: { content: BundleBuilderBlo
           </div>
         )}
         <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: "var(--site-border, #E6E6E4)" }}>
-          <span className="text-[14px] font-bold" style={{ color: "var(--site-text, #1A1A1A)" }}>Total</span>
+          <span className="text-[14px] font-bold" style={{ color: "var(--site-text, #191919)" }}>Total</span>
           <span className="text-xl font-bold text-[var(--site-primary)]">{formatPrice(discountedPrice)}</span>
         </div>
       </div>

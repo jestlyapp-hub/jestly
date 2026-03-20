@@ -9,7 +9,7 @@ function Testimonials3DarkBlockPreviewInner({ content }: { content: Testimonials
       <div className="max-w-6xl mx-auto">
         <h2
           className="text-2xl font-bold text-center mb-10"
-          style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+          style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
         >
           {content.title}
         </h2>
@@ -42,7 +42,7 @@ function Testimonials3DarkBlockPreviewInner({ content }: { content: Testimonials
               </div>
 
               {/* Quote */}
-              <p className="text-sm leading-relaxed flex-1 mb-5" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <p className="text-sm leading-relaxed flex-1 mb-5" style={{ color: "var(--site-text, #191919)" }}>
                 &ldquo;{t.text}&rdquo;
               </p>
 
@@ -58,7 +58,7 @@ function Testimonials3DarkBlockPreviewInner({ content }: { content: Testimonials
                   {t.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase()}
                 </div>
                 <div>
-                  <div className="text-sm font-semibold" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                  <div className="text-sm font-semibold" style={{ color: "var(--site-text, #191919)" }}>
                     {t.name}
                   </div>
                   <div className="text-xs" style={{ color: "var(--site-muted, #666)" }}>

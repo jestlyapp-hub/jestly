@@ -23,7 +23,7 @@ export async function GET() {
   // ── Fetch all billing items ──
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: items } = await (supabase.from("billing_items") as any)
-    .select("id, title, client_id, status, total, unit_price, category, description, performed_at, tax_rate, source, recurring, created_at, updated_at")
+    .select("id, title, client_id, status, total, unit_price, category, description, performed_at, tax_rate, source, recurring, order_id, recurring_profile_id, created_at, updated_at")
     .eq("user_id", user.id)
     .neq("status", "cancelled");
 

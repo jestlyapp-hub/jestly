@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { useSite } from "@/lib/hooks/use-site";
 import type { Site, PortfolioGridBlockContent } from "@/types";
@@ -27,7 +28,7 @@ export default function ProjectDetailPage() {
     return (
       <div className="max-w-lg mx-auto text-center py-20">
         <div className="text-5xl mb-4">404</div>
-        <h1 className="text-xl font-bold text-[#1A1A1A] mb-2">Projet introuvable</h1>
+        <h1 className="text-xl font-bold text-[#191919] mb-2">Projet introuvable</h1>
         <p className="text-[13px] text-[#999]">Ce projet n&apos;existe pas ou a été retiré.</p>
       </div>
     );
@@ -48,7 +49,7 @@ export default function ProjectDetailPage() {
         {/* Header */}
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-bold text-[#1A1A1A]">{project.title}</h1>
+            <h1 className="text-2xl font-bold text-[#191919]">{project.title}</h1>
             <span className="bg-[#EEF2FF] text-[#4F46E5] text-[11px] font-semibold px-2.5 py-0.5 rounded-full">
               {project.category}
             </span>
@@ -68,7 +69,7 @@ export default function ProjectDetailPage() {
           {images.map((img, i) => (
             <div key={i} className="rounded-xl overflow-hidden border border-[#E6E6E4]">
               {img ? (
-                <img src={img} alt={`${project.title} — Image ${i + 1}`} className="w-full object-cover" />
+                <Image src={img} alt={`${project.title} — Image ${i + 1}`} width={800} height={500} className="w-full object-cover" unoptimized />
               ) : (
                 <div className="h-64 bg-gradient-to-br from-[#EEF2FF] to-[#E6E6E4] flex items-center justify-center">
                   <div className="text-center">
@@ -87,7 +88,7 @@ export default function ProjectDetailPage() {
 
         {/* CTA */}
         <div className="bg-white rounded-xl border border-[#E6E6E4] p-6 text-center">
-          <h3 className="text-[15px] font-semibold text-[#1A1A1A] mb-2">Ce projet vous inspire ?</h3>
+          <h3 className="text-[15px] font-semibold text-[#191919] mb-2">Ce projet vous inspire ?</h3>
           <p className="text-[12px] text-[#999] mb-4">Discutons de votre projet et trouvons la meilleure approche.</p>
           <button className="bg-[#4F46E5] text-white text-[13px] font-semibold px-6 py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors">
             Demander un devis

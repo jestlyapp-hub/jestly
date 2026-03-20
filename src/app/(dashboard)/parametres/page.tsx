@@ -222,7 +222,7 @@ export default function SettingsPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
       {/* ── Header ── */}
       <div className="mb-8">
-        <h1 className="text-[22px] font-bold text-[#1A1A1A]">Paramètres</h1>
+        <h1 className="text-[22px] font-bold text-[#191919]">Paramètres</h1>
         <p className="text-[14px] text-[#A8A29E] mt-1">Gérez votre compte, votre workspace et vos préférences.</p>
 
         {/* Search */}
@@ -233,7 +233,7 @@ export default function SettingsPage() {
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder="Rechercher un paramètre..."
-            className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-[#7C3AED]/30 focus:ring-1 focus:ring-[#7C3AED]/20 transition-all"
+            className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#191919] placeholder:text-[#C4C4C2] focus:outline-none focus:border-[#7C3AED]/30 focus:ring-1 focus:ring-[#7C3AED]/20 transition-all"
           />
           {searchResults.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E6E6E4] rounded-lg shadow-lg z-20 py-1">

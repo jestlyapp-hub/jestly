@@ -31,14 +31,14 @@ function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHer
   if (isCenter) {
     return (
       <div className="py-8 text-center">
-        <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--site-text, #1A1A1A)" }}>{product.name}</h2>
+        <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--site-text, #191919)" }}>{product.name}</h2>
         <p className="text-[13px] mb-4 max-w-md mx-auto" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</p>
         <div className="text-3xl font-bold text-[var(--site-primary)] mb-5">{formatPrice(product.priceCents)}</div>
 
         {content.benefits.length > 0 && (
           <ul className="space-y-2 mb-5 max-w-sm mx-auto">
             {content.benefits.map((b, i) => (
-              <li key={i} className="text-[12px] flex items-center gap-2 justify-center" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <li key={i} className="text-[12px] flex items-center gap-2 justify-center" style={{ color: "var(--site-text, #191919)" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--site-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                 {b}
               </li>
@@ -51,7 +51,7 @@ function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHer
             <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--site-muted, #999)" }}>Inclus</div>
             <ul className="space-y-1.5">
               {product.features.map((f, i) => (
-                <li key={i} className="text-[11px] opacity-70 flex items-center gap-2 justify-center" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                <li key={i} className="text-[11px] opacity-70 flex items-center gap-2 justify-center" style={{ color: "var(--site-text, #191919)" }}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--site-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                   {f}
                 </li>
@@ -71,14 +71,14 @@ function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHer
   return (
     <div className="py-8 flex gap-8 items-center">
       <div className="flex-1">
-        <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--site-text, #1A1A1A)" }}>{product.name}</h2>
+        <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--site-text, #191919)" }}>{product.name}</h2>
         <p className="text-[13px] mb-3" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</p>
         <div className="text-3xl font-bold text-[var(--site-primary)] mb-4">{formatPrice(product.priceCents)}</div>
 
         {content.benefits.length > 0 && (
           <ul className="space-y-2 mb-4">
             {content.benefits.map((b, i) => (
-              <li key={i} className="text-[12px] flex items-center gap-2" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <li key={i} className="text-[12px] flex items-center gap-2" style={{ color: "var(--site-text, #191919)" }}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--site-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                 {b}
               </li>
@@ -91,7 +91,7 @@ function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHer
             <div className="text-[11px] font-semibold uppercase tracking-wider mb-2" style={{ color: "var(--site-muted, #999)" }}>Inclus</div>
             <ul className="space-y-1.5">
               {product.features.map((f, i) => (
-                <li key={i} className="text-[11px] opacity-70 flex items-center gap-2" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                <li key={i} className="text-[11px] opacity-70 flex items-center gap-2" style={{ color: "var(--site-text, #191919)" }}>
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--site-primary)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                   {f}
                 </li>

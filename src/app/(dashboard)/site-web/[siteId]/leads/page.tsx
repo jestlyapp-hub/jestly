@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import SlidePanel from "@/components/ui/SlidePanel";
 import StatCard from "@/components/ui/StatCard";
 import { useApi } from "@/lib/hooks/use-api";
+import { toast } from "@/lib/hooks/use-toast";
 import type { Lead, LeadStatus } from "@/types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -22,16 +23,17 @@ const sourceConfig: Record<string, { label: string; color: string; bg: string }>
   "other": { label: "Autre", color: "#8A8A88", bg: "#F7F7F5" },
 };
 
-const statusConfig: Record<LeadStatus, { label: string; color: string; bg: string }> = {
+const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
   new: { label: "Nouveau", color: "#4F46E5", bg: "#EEF2FF" },
   contacted: { label: "Contacté", color: "#F59E0B", bg: "#FFFBEB" },
   qualified: { label: "Qualifié", color: "#10B981", bg: "#ECFDF5" },
-  won: { label: "Converti", color: "#059669", bg: "#D1FAE5" },
+  nurturing: { label: "En suivi", color: "#8B5CF6", bg: "#F5F3FF" },
+  converted_signup: { label: "Converti", color: "#059669", bg: "#D1FAE5" },
   lost: { label: "Perdu", color: "#EF4444", bg: "#FEF2F2" },
   archived: { label: "Archivé", color: "#8A8A88", bg: "#F7F7F5" },
 };
 
-const allStatuses: LeadStatus[] = ["new", "contacted", "qualified", "won", "lost", "archived"];
+const allStatuses: string[] = ["new", "contacted", "qualified", "nurturing", "converted_signup", "lost", "archived"];
 
 function transformLead(row: any): Lead {
   return {
@@ -118,13 +120,17 @@ export default function SiteLeadsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id, ...data }),
       });
-      if (!res.ok) throw new Error("update failed");
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Échec de la mise à jour");
+      }
       mutate();
       if (selected && selected.id === id) {
         setSelected(prev => prev ? { ...prev, ...data } as Lead : null);
       }
-    } catch {
-      alert("Erreur lors de la mise à jour du lead");
+      toast.success(data.status ? "Statut mis à jour" : "Lead mis à jour");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur lors de la mise à jour");
     } finally {
       setSavingStatus(false);
     }
@@ -353,187 +359,187 @@ export default function SiteLeadsPage() {
       </motion.div>
 
       {/* ─── Detail Drawer ─── */}
-      <SlidePanel open={!!selected} onClose={() => setSelected(null)} title={selected?.name || selected?.email || "Lead"}>
-        {selected && (
-          <div className="space-y-6">
-            {/* Identity card */}
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-[16px] font-bold text-white flex-shrink-0" style={{ backgroundColor: sourceConfig[selected.source]?.color || "#8A8A88" }}>
-                {(selected.name || selected.email)[0]?.toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <div className="text-[16px] font-semibold text-[#191919]">{selected.name || "—"}</div>
-                <a href={`mailto:${selected.email}`} className="text-[13px] text-[#4F46E5] hover:underline">{selected.email}</a>
-                {selected.phone && <div className="text-[12px] text-[#5A5A58] mt-0.5">{selected.phone}</div>}
-                {selected.company && <div className="text-[12px] text-[#5A5A58]">{selected.company}</div>}
-              </div>
-            </div>
+      <SlidePanel open={!!selected} onClose={() => setSelected(null)} title="">
+        {selected && (() => {
+          // ── Normalize fields: separate user data from system metadata ──
+          const userFields: [string, string][] = [];
+          const sysFields: [string, string][] = [];
+          let extractedMessage = selected.message || "";
 
-            {/* Status selector */}
-            <div>
-              <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">Statut</div>
-              <div className="flex flex-wrap gap-1.5">
-                {allStatuses.map(s => {
-                  const cfg = statusConfig[s];
-                  const active = selected.status === s;
-                  return (
-                    <button
-                      key={s}
-                      onClick={() => updateLead(selected.id, { status: s })}
-                      disabled={savingStatus}
-                      className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all border ${
-                        active
-                          ? "border-current"
-                          : "border-transparent hover:bg-[#F7F7F5]"
-                      }`}
-                      style={active ? { color: cfg.color, backgroundColor: cfg.bg, borderColor: cfg.color + "40" } : { color: "#5A5A58" }}
-                    >
-                      {cfg.label}
+          for (const [key, value] of Object.entries(selected.fields || {})) {
+            if (value == null || String(value).trim() === "") continue;
+            const v = String(value).trim();
+            // System metadata (prefixed with _)
+            if (key.startsWith("_")) { sysFields.push([key.replace(/^_/, ""), v]); continue; }
+            // Skip fields already shown in header
+            const kl = key.toLowerCase();
+            if (kl.includes("email") && v === selected.email) continue;
+            if ((kl.includes("nom") || kl.includes("name") || kl.includes("pseudo") || kl.includes("prénom")) && v === selected.name) continue;
+            if ((kl.includes("téléphone") || kl.includes("phone")) && v === selected.phone) continue;
+            // Extract message from textarea fields
+            if ((kl.includes("message") || kl.includes("demande") || kl.includes("description") || kl.includes("détail")) && !extractedMessage) {
+              extractedMessage = v; continue;
+            }
+            userFields.push([key, v]);
+          }
+
+          const sCfg = statusConfig[selected.status] || statusConfig.new;
+          const srcCfg = sourceConfig[selected.source] || sourceConfig.other;
+
+          return (
+            <div className="space-y-5">
+              {/* ════ HEADER: Identity + Status ════ */}
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center text-[16px] font-bold text-white flex-shrink-0 shadow-sm" style={{ backgroundColor: "#4F46E5" }}>
+                  {(selected.name || selected.email)[0]?.toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[17px] font-bold text-[#191919] leading-tight">{selected.name || "Lead anonyme"}</div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <a href={`mailto:${selected.email}`} className="text-[13px] text-[#4F46E5] hover:underline truncate">{selected.email}</a>
+                    <button onClick={() => { navigator.clipboard.writeText(selected.email); }} className="text-[#C0C0BE] hover:text-[#4F46E5] transition-colors flex-shrink-0" title="Copier l'email">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
                     </button>
-                  );
-                })}
+                  </div>
+                  {selected.phone && <div className="text-[12px] text-[#5A5A58] mt-0.5">{selected.phone}</div>}
+                  {selected.company && <div className="text-[12px] text-[#5A5A58]">{selected.company}</div>}
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full" style={{ color: sCfg.color, backgroundColor: sCfg.bg }}>{sCfg.label}</span>
+                    <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full" style={{ color: srcCfg.color, backgroundColor: srcCfg.bg }}>{srcCfg.label}</span>
+                    <span className="text-[10px] text-[#8A8A88]">{formatDateTime(selected.created_at)}</span>
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div className="h-px bg-[#E6E6E4]" />
-
-            {/* Source & Attribution */}
-            <div>
-              <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-3">Attribution</div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[#F7F7F5] rounded-lg p-3">
-                  <div className="text-[10px] font-medium text-[#8A8A88] mb-1">Source</div>
-                  {getSourceBadge(selected.source)}
+              {/* ════ STATUS SELECTOR ════ */}
+              <div className="bg-[#FAFAF9] rounded-xl p-3 border border-[#F0F0EE]">
+                <div className="text-[10px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">Changer le statut</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {allStatuses.map(s => {
+                    const cfg = statusConfig[s];
+                    const active = selected.status === s;
+                    return (
+                      <button key={s} onClick={() => updateLead(selected.id, { status: s })} disabled={savingStatus}
+                        className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all border cursor-pointer ${active ? "border-current shadow-sm" : "border-transparent hover:bg-white hover:shadow-sm"}`}
+                        style={active ? { color: cfg.color, backgroundColor: cfg.bg, borderColor: cfg.color + "30" } : { color: "#5A5A58" }}
+                      >{cfg.label}</button>
+                    );
+                  })}
                 </div>
-                <div className="bg-[#F7F7F5] rounded-lg p-3">
-                  <div className="text-[10px] font-medium text-[#8A8A88] mb-1">Date</div>
-                  <div className="text-[12px] text-[#191919]">{formatDateTime(selected.created_at)}</div>
-                </div>
-                {selected.page_path && (
-                  <div className="bg-[#F7F7F5] rounded-lg p-3">
-                    <div className="text-[10px] font-medium text-[#8A8A88] mb-1">Page</div>
-                    <div className="text-[12px] text-[#191919] font-mono">{selected.page_path}</div>
-                  </div>
-                )}
-                {selected.block_type && (
-                  <div className="bg-[#F7F7F5] rounded-lg p-3">
-                    <div className="text-[10px] font-medium text-[#8A8A88] mb-1">Bloc</div>
-                    <div className="text-[12px] text-[#191919]">{selected.block_label || selected.block_type}</div>
-                  </div>
-                )}
-                {selected.utm_source && (
-                  <div className="bg-[#F7F7F5] rounded-lg p-3 col-span-2">
-                    <div className="text-[10px] font-medium text-[#8A8A88] mb-1">Campagne</div>
-                    <div className="text-[12px] text-[#191919]">
-                      {[selected.utm_source, selected.utm_medium, selected.utm_campaign].filter(Boolean).join(" / ")}
-                    </div>
-                  </div>
-                )}
-                {selected.referrer && (
-                  <div className="bg-[#F7F7F5] rounded-lg p-3 col-span-2">
-                    <div className="text-[10px] font-medium text-[#8A8A88] mb-1">Referrer</div>
-                    <div className="text-[12px] text-[#191919] truncate">{selected.referrer}</div>
-                  </div>
-                )}
               </div>
-            </div>
 
-            {/* Business context */}
-            {(selected.product_name || selected.amount) && (
-              <>
-                <div className="h-px bg-[#E6E6E4]" />
+              {/* ════ MESSAGE (priority section) ════ */}
+              {extractedMessage && (
                 <div>
-                  <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-3">Contexte commercial</div>
-                  <div className="grid grid-cols-2 gap-3">
-                    {selected.product_name && (
-                      <div className="bg-[#F7F7F5] rounded-lg p-3">
-                        <div className="text-[10px] font-medium text-[#8A8A88] mb-1">Produit / Service</div>
-                        <div className="text-[12px] text-[#191919]">{selected.product_name}</div>
-                      </div>
-                    )}
-                    {selected.amount != null && selected.amount > 0 && (
-                      <div className="bg-[#F7F7F5] rounded-lg p-3">
-                        <div className="text-[10px] font-medium text-[#8A8A88] mb-1">Montant</div>
-                        <div className="text-[14px] font-semibold text-[#191919]">{selected.amount} €</div>
-                      </div>
-                    )}
+                  <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">💬 Message</div>
+                  <div className="bg-white rounded-xl border border-[#E6E6E4] p-4 text-[13px] text-[#191919] leading-relaxed whitespace-pre-wrap shadow-sm">
+                    {extractedMessage}
                   </div>
                 </div>
-              </>
-            )}
+              )}
 
-            {/* Message */}
-            {selected.message && (
-              <>
-                <div className="h-px bg-[#E6E6E4]" />
+              {/* ════ FORM RESPONSES (user fields only) ════ */}
+              {userFields.length > 0 && (
                 <div>
-                  <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">Message</div>
-                  <div className="bg-[#F7F7F5] rounded-lg p-4 text-[13px] text-[#191919] leading-relaxed whitespace-pre-wrap">
-                    {selected.message}
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Submitted fields */}
-            {Object.keys(selected.fields).length > 0 && (
-              <>
-                <div className="h-px bg-[#E6E6E4]" />
-                <div>
-                  <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">Données soumises</div>
-                  <div className="space-y-2">
-                    {Object.entries(selected.fields).map(([key, value]) => (
-                      <div key={key} className="bg-[#F7F7F5] rounded-lg p-3">
-                        <div className="text-[10px] font-medium text-[#8A8A88] mb-0.5">{key}</div>
-                        <div className="text-[13px] text-[#191919]">{String(value ?? "—")}</div>
+                  <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">📋 Réponses du formulaire</div>
+                  <div className="bg-white rounded-xl border border-[#E6E6E4] divide-y divide-[#F5F5F3] shadow-sm overflow-hidden">
+                    {userFields.map(([key, value]) => (
+                      <div key={key} className="flex items-start gap-3 px-4 py-3">
+                        <div className="text-[11px] font-medium text-[#8A8A88] w-[120px] flex-shrink-0 pt-0.5">{key}</div>
+                        <div className="text-[13px] text-[#191919] flex-1 min-w-0">{value}</div>
                       </div>
                     ))}
                   </div>
                 </div>
-              </>
-            )}
-
-            {/* Internal notes */}
-            <div className="h-px bg-[#E6E6E4]" />
-            <div>
-              <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">Notes internes</div>
-              <textarea
-                value={editNotes}
-                onChange={(e) => setEditNotes(e.target.value)}
-                placeholder="Ajouter des notes sur ce lead..."
-                rows={3}
-                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-3 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none"
-              />
-              {editNotes !== (selected.notes || "") && (
-                <button
-                  onClick={() => updateLead(selected.id, { notes: editNotes })}
-                  disabled={savingStatus}
-                  className="mt-2 px-4 py-1.5 bg-[#4F46E5] text-white text-[12px] font-semibold rounded-lg hover:bg-[#4338CA] transition-colors disabled:opacity-50"
-                >
-                  Sauvegarder
-                </button>
               )}
-            </div>
 
-            {/* Actions */}
-            <div className="pt-2 space-y-2">
-              <a
-                href={`mailto:${selected.email}`}
-                className="block w-full text-center bg-[#4F46E5] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors"
-              >
-                Envoyer un email
-              </a>
-              {selected.phone && (
-                <a
-                  href={`tel:${selected.phone}`}
-                  className="block w-full text-center border border-[#E6E6E4] text-[#191919] text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#F7F7F5] transition-colors"
-                >
-                  Appeler
+              {/* ════ ATTRIBUTION (secondary) ════ */}
+              <div>
+                <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">📍 Attribution</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="bg-[#FAFAF9] rounded-lg p-2.5"><div className="text-[9px] font-medium text-[#B0B0AE] mb-0.5">Source</div><div className="text-[11px] text-[#191919] font-medium">{srcCfg.label}</div></div>
+                  <div className="bg-[#FAFAF9] rounded-lg p-2.5"><div className="text-[9px] font-medium text-[#B0B0AE] mb-0.5">Date</div><div className="text-[11px] text-[#191919]">{formatDateTime(selected.created_at)}</div></div>
+                  {(selected.page_path || sysFields.find(([k]) => k === "page_path")) && (
+                    <div className="bg-[#FAFAF9] rounded-lg p-2.5"><div className="text-[9px] font-medium text-[#B0B0AE] mb-0.5">Page</div><div className="text-[11px] text-[#191919] font-mono truncate">{selected.page_path || sysFields.find(([k]) => k === "page_path")?.[1] || ""}</div></div>
+                  )}
+                  {(selected.block_type || sysFields.find(([k]) => k === "block_type")) && (
+                    <div className="bg-[#FAFAF9] rounded-lg p-2.5"><div className="text-[9px] font-medium text-[#B0B0AE] mb-0.5">Bloc</div><div className="text-[11px] text-[#191919]">{selected.block_label || selected.block_type || sysFields.find(([k]) => k === "block_type")?.[1] || ""}</div></div>
+                  )}
+                  {selected.utm_source && (
+                    <div className="bg-[#FAFAF9] rounded-lg p-2.5 col-span-2"><div className="text-[9px] font-medium text-[#B0B0AE] mb-0.5">Campagne</div><div className="text-[11px] text-[#191919]">{[selected.utm_source, selected.utm_medium, selected.utm_campaign].filter(Boolean).join(" → ")}</div></div>
+                  )}
+                  {selected.referrer && (
+                    <div className="bg-[#FAFAF9] rounded-lg p-2.5 col-span-2"><div className="text-[9px] font-medium text-[#B0B0AE] mb-0.5">Referrer</div><div className="text-[11px] text-[#191919] truncate">{selected.referrer}</div></div>
+                  )}
+                </div>
+              </div>
+
+              {/* ════ BUSINESS CONTEXT ════ */}
+              {(selected.product_name || (selected.amount != null && selected.amount > 0)) && (
+                <div>
+                  <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">💰 Contexte commercial</div>
+                  <div className="flex gap-2">
+                    {selected.product_name && (
+                      <div className="flex-1 bg-[#FAFAF9] rounded-lg p-2.5"><div className="text-[9px] font-medium text-[#B0B0AE] mb-0.5">Produit</div><div className="text-[11px] text-[#191919] font-medium">{selected.product_name}</div></div>
+                    )}
+                    {selected.amount != null && selected.amount > 0 && (
+                      <div className="flex-1 bg-[#FAFAF9] rounded-lg p-2.5"><div className="text-[9px] font-medium text-[#B0B0AE] mb-0.5">Montant</div><div className="text-[13px] text-[#191919] font-bold">{selected.amount} €</div></div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ════ NOTES INTERNES ════ */}
+              <div>
+                <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">📝 Notes internes</div>
+                <textarea
+                  value={editNotes}
+                  onChange={(e) => setEditNotes(e.target.value)}
+                  placeholder="Ajouter des notes sur ce lead..."
+                  rows={3}
+                  className="w-full bg-white border border-[#E6E6E4] rounded-xl px-4 py-3 text-[13px] text-[#191919] placeholder-[#C0C0BE] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none shadow-sm"
+                />
+                {editNotes !== (selected.notes || "") && (
+                  <button onClick={() => updateLead(selected.id, { notes: editNotes })} disabled={savingStatus}
+                    className="mt-2 px-4 py-1.5 bg-[#4F46E5] text-white text-[12px] font-semibold rounded-lg hover:bg-[#4338CA] transition-colors disabled:opacity-50 cursor-pointer">
+                    Sauvegarder
+                  </button>
+                )}
+              </div>
+
+              {/* ════ ACTIONS ════ */}
+              <div className="pt-1 flex gap-2">
+                <a href={`mailto:${selected.email}`} className="flex-1 flex items-center justify-center gap-2 bg-[#4F46E5] text-white text-[12px] font-semibold py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  Email
                 </a>
+                {selected.phone && (
+                  <a href={`tel:${selected.phone}`} className="flex-1 flex items-center justify-center gap-2 border border-[#E6E6E4] text-[#191919] text-[12px] font-semibold py-2.5 rounded-lg hover:bg-[#F7F7F5] transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Appeler
+                  </a>
+                )}
+              </div>
+
+              {/* ════ TECHNICAL META (collapsed, secondary) ════ */}
+              {sysFields.length > 0 && (
+                <details className="group">
+                  <summary className="text-[10px] font-medium text-[#C0C0BE] cursor-pointer hover:text-[#8A8A88] transition-colors select-none">
+                    Métadonnées techniques ({sysFields.length})
+                  </summary>
+                  <div className="mt-2 space-y-1">
+                    {sysFields.map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-2 text-[10px] text-[#B0B0AE]">
+                        <span className="font-mono">{key}</span>
+                        <span className="text-[#191919]">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </details>
               )}
             </div>
-          </div>
-        )}
+          );
+        })()}
       </SlidePanel>
     </div>
   );

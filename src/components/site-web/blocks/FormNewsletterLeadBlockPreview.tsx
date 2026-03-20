@@ -33,7 +33,7 @@ function FormNewsletterLeadBlockPreview({ content, leadCtx }: { content: FormNew
           <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-3">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
           </div>
-          <p className="text-[15px] font-medium" style={{ color: "var(--site-text, #1A1A1A)" }}>Merci ! Vous êtes inscrit.</p>
+          <p className="text-[15px] font-medium" style={{ color: "var(--site-text, #191919)" }}>Merci ! Vous êtes inscrit.</p>
         </div>
       </section>
     );
@@ -43,7 +43,7 @@ function FormNewsletterLeadBlockPreview({ content, leadCtx }: { content: FormNew
     <section className="py-16 px-6">
       <div className="max-w-md mx-auto text-center">
         {content.title && (
-          <h2 className="text-3xl font-bold mb-3" style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}>
+          <h2 className="text-3xl font-bold mb-3" style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}>
             {content.title}
           </h2>
         )}
@@ -58,7 +58,7 @@ function FormNewsletterLeadBlockPreview({ content, leadCtx }: { content: FormNew
             placeholder={content.placeholder || "votre@email.com"}
             required
             className="flex-1 rounded-lg px-4 py-3 text-[14px] outline-none transition-colors"
-            style={{ backgroundColor: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #1A1A1A)" }}
+            style={{ backgroundColor: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #191919)" }}
           />
           <button
             type="submit"

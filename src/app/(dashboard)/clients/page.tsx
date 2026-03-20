@@ -1,14 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useTrack } from "@/lib/hooks/use-track";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
 import BadgeStatus from "@/components/ui/BadgeStatus";
 import EmptyState from "@/components/ui/EmptyState";
-import CreateClientDrawer from "@/components/clients/CreateClientDrawer";
-import EditClientSheet from "@/components/clients/EditClientSheet";
+
+const CreateClientDrawer = dynamic(() => import("@/components/clients/CreateClientDrawer"), { ssr: false });
+const EditClientSheet = dynamic(() => import("@/components/clients/EditClientSheet"), { ssr: false });
 import ArchiveClientDialog from "@/components/clients/ArchiveClientDialog";
 import DeleteClientDialog from "@/components/clients/DeleteClientDialog";
 import RestoreClientDialog from "@/components/clients/RestoreClientDialog";
@@ -86,6 +89,10 @@ const SORT_LABELS: Record<SortKey, string> = {
 // ---------------------------------------------------------------------------
 export default function ClientsPage() {
   const router = useRouter();
+  const track = useTrack();
+
+  // Track page view au montage
+  useEffect(() => { track("clients_page_viewed"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Data
   const [tab, setTab] = useState<Tab>("active");
@@ -272,7 +279,7 @@ export default function ClientsPage() {
         transition={{ duration: 0.35 }}
       >
         <div className="flex items-center gap-3">
-          <h1 className="text-[22px] font-bold text-[#1A1A1A]">Clients</h1>
+          <h1 className="text-[22px] font-bold text-[#191919]">Clients</h1>
           {rows.length > 0 && (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#F7F7F5] text-[#5A5A58]">
               {rows.length} client{rows.length > 1 ? "s" : ""}
@@ -302,7 +309,7 @@ export default function ClientsPage() {
               placeholder="Rechercher un client..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+              className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
             />
           </div>
 
@@ -414,7 +421,7 @@ export default function ClientsPage() {
                 <button
                   onClick={() => handleBulk("archive")}
                   disabled={bulkLoading}
-                  className="text-[12px] font-medium text-[#5A5A58] hover:text-[#1A1A1A] transition-colors cursor-pointer disabled:opacity-40"
+                  className="text-[12px] font-medium text-[#5A5A58] hover:text-[#191919] transition-colors cursor-pointer disabled:opacity-40"
                 >
                   Archiver
                 </button>
@@ -547,7 +554,7 @@ export default function ClientsPage() {
                           {initials(client.name)}
                         </div>
                         <div className="min-w-0">
-                          <span className="text-[13px] font-medium text-[#1A1A1A] truncate block">{client.name}</span>
+                          <span className="text-[13px] font-medium text-[#191919] truncate block">{client.name}</span>
                           {client.company && (
                             <span className="text-[11px] text-[#8A8A88] truncate block">{client.company}</span>
                           )}
@@ -559,10 +566,10 @@ export default function ClientsPage() {
                     <td className="px-4 py-3 text-[13px] text-[#5A5A58]">{client.email || "\u2014"}</td>
 
                     {/* Commandes */}
-                    <td className="px-4 py-3 text-[13px] text-[#1A1A1A]">{client.orders_count}</td>
+                    <td className="px-4 py-3 text-[13px] text-[#191919]">{client.orders_count}</td>
 
                     {/* Revenu */}
-                    <td className="px-4 py-3 text-[13px] font-medium text-[#1A1A1A]">
+                    <td className="px-4 py-3 text-[13px] font-medium text-[#191919]">
                       {formatRevenue(client.total_revenue)}
                     </td>
 
@@ -691,6 +698,7 @@ export default function ClientsPage() {
         onCreated={(id) => {
           setShowCreate(false);
           mutate();
+          track("client_created", { clientId: id });
           router.push(`/clients/${id}`);
         }}
       />

@@ -69,9 +69,9 @@ function dbToRecurring(row: any): RecurringProfile {
 }
 
 const tw = {
-  input: "w-full px-3.5 py-2.5 text-[13px] text-[#1A1A1A] border border-[#E6E6E4] rounded-lg bg-white focus:outline-none focus:border-[#7C3AED]/40 focus:ring-2 focus:ring-[#7C3AED]/8 placeholder:text-[#C4C4C2] transition-all",
+  input: "w-full px-3.5 py-2.5 text-[13px] text-[#191919] border border-[#E6E6E4] rounded-lg bg-white focus:outline-none focus:border-[#7C3AED]/40 focus:ring-2 focus:ring-[#7C3AED]/8 placeholder:text-[#C4C4C2] transition-all",
   label: "block text-[12px] font-medium text-[#57534E] mb-1.5",
-  select: "w-full px-3.5 py-2.5 text-[13px] text-[#1A1A1A] border border-[#E6E6E4] rounded-lg bg-white focus:outline-none focus:border-[#7C3AED]/40 focus:ring-2 focus:ring-[#7C3AED]/8 transition-all appearance-none",
+  select: "w-full px-3.5 py-2.5 text-[13px] text-[#191919] border border-[#E6E6E4] rounded-lg bg-white focus:outline-none focus:border-[#7C3AED]/40 focus:ring-2 focus:ring-[#7C3AED]/8 transition-all appearance-none",
 } as const;
 
 const recurringStatusConfig: Record<RecurringStatus, { label: string; bg: string; text: string; dot: string }> = {
@@ -214,7 +214,7 @@ export default function TemplatesPage() {
           <a href="/facturation" className="p-1.5 rounded-lg text-[#A8A29E] hover:text-[#57534E] hover:bg-[#F5F5F4] transition-colors">
             <ChevronLeft size={18} />
           </a>
-          <h1 className="text-[24px] font-bold text-[#1A1A1A] tracking-tight">Templates & Récurrences</h1>
+          <h1 className="text-[24px] font-bold text-[#191919] tracking-tight">Templates & Récurrences</h1>
         </div>
         <p className="text-[14px] text-[#78716C] ml-10 leading-relaxed">
           Bibliothèque de prestations réutilisables et retainers mensuels automatisés.
@@ -259,7 +259,7 @@ export default function TemplatesPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Rechercher..."
-              className="pl-9 pr-3 py-2 text-[13px] text-[#1A1A1A] bg-white border border-[#E6E6E4] rounded-lg w-52 focus:outline-none focus:border-[#7C3AED]/40 focus:ring-2 focus:ring-[#7C3AED]/8 placeholder:text-[#C4C4C2] transition-all"
+              className="pl-9 pr-3 py-2 text-[13px] text-[#191919] bg-white border border-[#E6E6E4] rounded-lg w-52 focus:outline-none focus:border-[#7C3AED]/40 focus:ring-2 focus:ring-[#7C3AED]/8 placeholder:text-[#C4C4C2] transition-all"
             />
           </div>
 
@@ -425,7 +425,7 @@ function TemplateRow({ template: t, onEdit, onArchive, onDelete, mutating }: {
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-medium text-[#1A1A1A] truncate">{t.title}</span>
+          <span className="text-[13px] font-medium text-[#191919] truncate">{t.title}</span>
           {t.category && (
             <span className="text-[11px] text-[#A8A29E] bg-[#F5F5F4] px-1.5 py-0.5 rounded">{t.category}</span>
           )}
@@ -439,7 +439,7 @@ function TemplateRow({ template: t, onEdit, onArchive, onDelete, mutating }: {
         </div>
       </div>
       <div className="text-right mr-2">
-        <div className="text-[14px] font-bold text-[#1A1A1A] tabular-nums">{formatEur(t.quantity * t.unitPrice)}</div>
+        <div className="text-[14px] font-bold text-[#191919] tabular-nums">{formatEur(t.quantity * t.unitPrice)}</div>
         <div className="text-[10px] text-[#A8A29E]">HT</div>
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -477,7 +477,7 @@ function RecurringRow({ profile: r, onEdit, onDelete, onGenerate, onToggle, muta
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-medium text-[#1A1A1A] truncate">{r.title}</span>
+          <span className="text-[13px] font-medium text-[#191919] truncate">{r.title}</span>
           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${st.bg} ${st.text}`}>
             <span className={`w-1.5 h-1.5 rounded-full ${st.dot}`} />
             {st.label}
@@ -489,7 +489,7 @@ function RecurringRow({ profile: r, onEdit, onDelete, onGenerate, onToggle, muta
         </div>
       </div>
       <div className="text-right mr-2">
-        <div className="text-[14px] font-bold text-[#1A1A1A] tabular-nums">{formatEur(r.quantity * r.unitPrice)}</div>
+        <div className="text-[14px] font-bold text-[#191919] tabular-nums">{formatEur(r.quantity * r.unitPrice)}</div>
         <div className="text-[10px] text-[#A8A29E]">/ mois HT</div>
       </div>
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -566,7 +566,7 @@ function TemplateFormDrawer({ template, onClose, onSave }: {
             <div className="w-9 h-9 rounded-xl bg-[#F0EEFF] flex items-center justify-center">
               {isEdit ? <Pencil size={16} className="text-[#7C3AED]" /> : <Plus size={16} className="text-[#7C3AED]" />}
             </div>
-            <h2 className="text-[15px] font-semibold text-[#1A1A1A]">
+            <h2 className="text-[15px] font-semibold text-[#191919]">
               {isEdit ? "Modifier le template" : "Nouveau template"}
             </h2>
           </div>
@@ -626,7 +626,7 @@ function TemplateFormDrawer({ template, onClose, onSave }: {
           <div className="rounded-xl bg-[#FAFAFF] border border-[#E8E5F5] p-4">
             <div className="flex items-center justify-between">
               <span className="text-[12px] font-semibold text-[#78716C]">Total HT</span>
-              <span className="text-[18px] font-bold text-[#1A1A1A] tabular-nums">{formatEur(total)}</span>
+              <span className="text-[18px] font-bold text-[#191919] tabular-nums">{formatEur(total)}</span>
             </div>
           </div>
         </div>
@@ -727,7 +727,7 @@ function RecurringFormDrawer({ profile, clients, templates, onClose, onSave }: {
             <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
               <RotateCw size={16} className="text-emerald-600" />
             </div>
-            <h2 className="text-[15px] font-semibold text-[#1A1A1A]">
+            <h2 className="text-[15px] font-semibold text-[#191919]">
               {isEdit ? "Modifier la récurrence" : "Nouvelle récurrence"}
             </h2>
           </div>

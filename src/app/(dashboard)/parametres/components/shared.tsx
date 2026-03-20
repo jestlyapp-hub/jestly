@@ -173,11 +173,11 @@ export const SEARCH_INDEX: { keywords: string[]; section: SectionId; label: stri
    SHARED UI — Styles
    ══════════════════════════════════════════════════════════════════════ */
 
-export const inputCls = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-xl px-4 h-[44px] text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all";
-export const inputErrorCls = "w-full bg-[#FEF2F2] border border-red-300 rounded-xl px-4 h-[44px] text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all";
-export const inputSuccessCls = "w-full bg-[#F0FDF4] border border-emerald-300 rounded-xl px-4 h-[44px] text-[13px] text-[#1A1A1A] placeholder:text-[#C4C4C2] focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all";
+export const inputCls = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-xl px-4 h-[44px] text-[13px] text-[#191919] placeholder:text-[#C4C4C2] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all";
+export const inputErrorCls = "w-full bg-[#FEF2F2] border border-red-300 rounded-xl px-4 h-[44px] text-[13px] text-[#191919] placeholder:text-[#C4C4C2] focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all";
+export const inputSuccessCls = "w-full bg-[#F0FDF4] border border-emerald-300 rounded-xl px-4 h-[44px] text-[13px] text-[#191919] placeholder:text-[#C4C4C2] focus:outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 transition-all";
 export const labelCls = "block text-[12px] font-medium text-[#78716C] mb-1.5";
-export const selectCls = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-xl px-4 h-[44px] text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all appearance-none cursor-pointer";
+export const selectCls = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-xl px-4 h-[44px] text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all appearance-none cursor-pointer";
 
 /** Returns the appropriate input class based on validation state */
 export function getInputCls(value: string, error?: string, touched?: boolean): string {
@@ -203,7 +203,7 @@ export function SectionCard({ id, title, description, children, danger, dirty }:
       <div className={`bg-white rounded-xl border ${danger ? "border-red-200" : dirty ? "border-[#4F46E5]/30" : "border-[#E6E6E4]"} overflow-hidden transition-colors`}>
         <div className={`px-8 py-6 border-b ${danger ? "border-red-100 bg-red-50/30" : "border-[#F5F5F4]"}`}>
           <div className="flex items-center gap-2">
-            <h2 className={`text-[16px] font-semibold ${danger ? "text-red-600" : "text-[#1A1A1A]"}`}>{title}</h2>
+            <h2 className={`text-[16px] font-semibold ${danger ? "text-red-600" : "text-[#191919]"}`}>{title}</h2>
             {dirty && (
               <span className="text-[10px] font-semibold text-[#4F46E5] bg-[#EEF2FF] px-2 py-0.5 rounded-full">Modifié</span>
             )}
@@ -249,7 +249,7 @@ export function Toggle({ checked, onChange, label, description }: {
   return (
     <button type="button" onClick={() => onChange(!checked)} className="flex items-center justify-between w-full py-3 group text-left">
       <div className="flex-1 min-w-0 pr-4">
-        <div className="text-[13px] font-medium text-[#1A1A1A]">{label}</div>
+        <div className="text-[13px] font-medium text-[#191919]">{label}</div>
         {description && <div className="text-[12px] text-[#A8A29E] mt-0.5">{description}</div>}
       </div>
       <div className={`relative w-10 h-[22px] rounded-full transition-colors flex-shrink-0 ${checked ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"}`}>
@@ -401,7 +401,7 @@ export function CompletionWidget({ profile, form, onNavigate }: {
       <div className="px-6 py-5">
         <div className="flex items-center justify-between mb-3">
           <div>
-            <h3 className="text-[14px] font-semibold text-[#1A1A1A]">Configuration du compte</h3>
+            <h3 className="text-[14px] font-semibold text-[#191919]">Configuration du compte</h3>
             <p className="text-[12px] text-[#A8A29E] mt-0.5">Votre compte est configuré à {pct}%</p>
           </div>
           <span className="text-[20px] font-bold text-[#4F46E5] tabular-nums">{pct}%</span>

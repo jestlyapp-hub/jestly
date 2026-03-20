@@ -57,7 +57,6 @@ const DATA: PersonaPageData = {
     { title: "Suivi", gradient: "global.", description: "Vue kanban de tous vos projets. Filtrez par client, statut, date limite. Vision instantanée.", bullets: ["Kanban multi-projets", "Filtres par client", "Deadlines et alertes"], icon: "M9 5H2v7l6.29 6.29a1 1 0 001.42 0l5.58-5.58a1 1 0 000-1.42z", color: "#F59E0B" },
     { title: "Facturation", gradient: "pro.", description: "Générez devis et factures en masse. Relances auto, échéances, acomptes. Pour chaque client.", bullets: ["Facturation en masse", "Acomptes et échéances", "Relances automatiques"], icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 14l2 2 4-4", color: "#22C55E" },
     { title: "Analytics", gradient: "agence.", description: "CA par client, rentabilité par projet, prévisions de trésorerie. Décisions éclairées.", bullets: ["CA par client et global", "Rentabilité par projet", "Prévisions trésorerie"], icon: "M3 3v18h18M7 16l4-8 4 4 5-9", color: "#7C3AED" },
-    { title: "Automations", gradient: "à l'échelle.", description: "Onboarding, relances, notifications : tout tourne automatiquement pour chaque client.", bullets: ["Workflows par client", "Onboarding automatisé", "Notifications équipe"], icon: "M13 2L3 14h9l-1 8 10-12h-9z", color: "#6366F1" },
   ],
 
   proofTitle: "Des agences qui ont",

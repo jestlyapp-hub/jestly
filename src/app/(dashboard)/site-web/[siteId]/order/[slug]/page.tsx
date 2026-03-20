@@ -30,7 +30,7 @@ export default function OrderPage() {
     return (
       <div className="max-w-lg mx-auto text-center py-20">
         <div className="text-5xl mb-4">404</div>
-        <h1 className="text-xl font-bold text-[#1A1A1A] mb-2">Produit introuvable</h1>
+        <h1 className="text-xl font-bold text-[#191919] mb-2">Produit introuvable</h1>
         <p className="text-[13px] text-[#999]">Ce produit n&apos;existe pas ou a été retiré.</p>
       </div>
     );

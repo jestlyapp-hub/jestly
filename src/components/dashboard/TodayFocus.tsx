@@ -99,7 +99,7 @@ export default function TodayFocus() {
       {/* Header */}
       <div className="px-5 py-4 border-b border-[#E6E6E4] flex items-center justify-between">
         <div>
-          <h2 className="text-[14px] font-semibold text-[#1A1A1A]">Aujourd&apos;hui</h2>
+          <h2 className="text-[14px] font-semibold text-[#191919]">Aujourd&apos;hui</h2>
           <p className="text-[12px] text-[#999] mt-0.5">{formatTodayDate()}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -138,7 +138,7 @@ export default function TodayFocus() {
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <p className={`text-[13px] font-medium truncate ${item.status === "done" ? "text-[#BBB] line-through" : "text-[#1A1A1A]"}`}>
+                  <p className={`text-[13px] font-medium truncate ${item.status === "done" ? "text-[#BBB] line-through" : "text-[#191919]"}`}>
                     {item.title}
                   </p>
                   <span className="text-[11px] text-[#999]">{typeLabels[item.type]}</span>

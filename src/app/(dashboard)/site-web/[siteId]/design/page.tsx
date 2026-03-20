@@ -10,7 +10,7 @@ import type { SiteTheme } from "@/types";
    DESIGN STUDIO V2 — Premium theme customization
    ═══════════════════════════════════════════════════════════════════════ */
 
-const INPUT = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const INPUT = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 /* ── Font library ── */
 const FONTS = [
@@ -31,8 +31,8 @@ const FONTS = [
 /* ── Presets ── */
 const PRESETS = [
   { name: "Clean", primary: "#4F46E5", secondary: "#6366F1", accent: "#818CF8", bg: "#ffffff", surface: "#F9FAFB", text: "#111827", muted: "#6B7280", border: "#E5E7EB", headingFont: "Inter", bodyFont: "Inter", radius: "rounded" as const, shadow: "sm" as const, density: "balanced" as const, cardRadius: "md" as const, tags: ["Professionnel", "Sobre"] },
-  { name: "Bold", primary: "#E11D48", secondary: "#F43F5E", accent: "#FB7185", bg: "#ffffff", surface: "#FFF1F2", text: "#1A1A1A", muted: "#71717A", border: "#E4E4E7", headingFont: "Poppins", bodyFont: "Poppins", radius: "pill" as const, shadow: "lg" as const, density: "balanced" as const, cardRadius: "lg" as const, tags: ["Audacieux", "Punchy"] },
-  { name: "Minimal", primary: "#1A1A1A", secondary: "#404040", accent: "#737373", bg: "#ffffff", surface: "#FAFAFA", text: "#0A0A0A", muted: "#A3A3A3", border: "#E5E5E5", headingFont: "Inter", bodyFont: "Inter", radius: "none" as const, shadow: "none" as const, density: "balanced" as const, cardRadius: "sm" as const, tags: ["Épuré", "Moderne"] },
+  { name: "Bold", primary: "#E11D48", secondary: "#F43F5E", accent: "#FB7185", bg: "#ffffff", surface: "#FFF1F2", text: "#191919", muted: "#71717A", border: "#E4E4E7", headingFont: "Poppins", bodyFont: "Poppins", radius: "pill" as const, shadow: "lg" as const, density: "balanced" as const, cardRadius: "lg" as const, tags: ["Audacieux", "Punchy"] },
+  { name: "Minimal", primary: "#191919", secondary: "#404040", accent: "#737373", bg: "#ffffff", surface: "#FAFAFA", text: "#0A0A0A", muted: "#A3A3A3", border: "#E5E5E5", headingFont: "Inter", bodyFont: "Inter", radius: "none" as const, shadow: "none" as const, density: "balanced" as const, cardRadius: "sm" as const, tags: ["Épuré", "Moderne"] },
   { name: "Creative", primary: "#7C3AED", secondary: "#8B5CF6", accent: "#A78BFA", bg: "#ffffff", surface: "#F5F3FF", text: "#1E1B4B", muted: "#6D6996", border: "#DDD6FE", headingFont: "Space Grotesk", bodyFont: "DM Sans", radius: "rounded" as const, shadow: "md" as const, density: "spacious" as const, cardRadius: "lg" as const, tags: ["Créatif", "Fun"] },
   { name: "Editorial", primary: "#B45309", secondary: "#D97706", accent: "#FBBF24", bg: "#FFFBEB", surface: "#FEF3C7", text: "#1C1917", muted: "#78716C", border: "#D6D3D1", headingFont: "Playfair Display", bodyFont: "Libre Baskerville", radius: "none" as const, shadow: "sm" as const, density: "spacious" as const, cardRadius: "sm" as const, tags: ["Luxe", "Editorial"] },
   { name: "Studio", primary: "#0EA5E9", secondary: "#38BDF8", accent: "#7DD3FC", bg: "#ffffff", surface: "#F0F9FF", text: "#0C4A6E", muted: "#64748B", border: "#E2E8F0", headingFont: "Outfit", bodyFont: "Inter", radius: "rounded" as const, shadow: "md" as const, density: "compact" as const, cardRadius: "md" as const, tags: ["Tech", "Startup"] },
@@ -44,7 +44,7 @@ function Section({ title, children, defaultOpen = true }: { title: string; child
   return (
     <motion.section className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
       <button onClick={() => setOpen(!open)} className="w-full flex items-center justify-between p-5 hover:bg-[#FBFBFA] transition-colors">
-        <h2 className="text-[14px] font-semibold text-[#1A1A1A]">{title}</h2>
+        <h2 className="text-[14px] font-semibold text-[#191919]">{title}</h2>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" className={`transition-transform ${open ? "rotate-180" : ""}`}><polyline points="6 9 12 15 18 9" /></svg>
       </button>
       {open && <div className="px-5 pb-5 border-t border-[#F3F3F1]">{children}</div>}
@@ -214,7 +214,7 @@ export default function SiteDesignPage() {
                 <div className="ml-auto text-[8px] font-semibold" style={{ fontFamily: p.headingFont, color: p.text }}>Aa</div>
               </div>
               <div className="p-3">
-                <div className="text-[13px] font-semibold text-[#1A1A1A]">{p.name}</div>
+                <div className="text-[13px] font-semibold text-[#191919]">{p.name}</div>
                 <div className="flex gap-1 mt-1">{p.tags.map((tag) => <span key={tag} className="text-[9px] px-1.5 py-0.5 rounded-md bg-[#F7F7F5] text-[#8A8A88]">{tag}</span>)}</div>
               </div>
             </button>

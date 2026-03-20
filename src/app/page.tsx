@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 
 const JOB_TYPES = [
   { value: "freelance-creative", label: "Freelance créatif" },
@@ -293,7 +294,7 @@ export default function WaitlistLanding() {
         <header className="flex items-center justify-between px-5 sm:px-8 md:px-12 lg:px-16 py-4 sm:py-5 max-w-[1400px] mx-auto w-full">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-white/70 backdrop-blur-xl border border-white/80 shadow-[0_4px_20px_rgba(124,58,237,0.12)] flex items-center justify-center">
-              <img src="/logo-color.png" alt="Jestly" className="w-4 h-4 sm:w-5 sm:h-5 object-contain" draggable={false} />
+              <Image src="/logo-color.png" alt="Jestly" width={20} height={20} className="w-4 h-4 sm:w-5 sm:h-5 object-contain" draggable={false} priority />
             </div>
             <span className="text-[15px] sm:text-[17px] font-bold text-[#0B0F18] tracking-tight">Jestly</span>
           </div>
@@ -825,7 +826,7 @@ export default function WaitlistLanding() {
             {/* Center — Jestly */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
               <div className="w-20 h-20 rounded-2xl bg-white/80 backdrop-blur-xl border border-violet-200/50 shadow-[0_12px_40px_rgba(124,58,237,0.18)] flex items-center justify-center">
-                <img src="/logo-color.png" alt="Jestly" className="w-10 h-10 object-contain" draggable={false} />
+                <Image src="/logo-color.png" alt="Jestly" width={40} height={40} className="w-10 h-10 object-contain" draggable={false} />
               </div>
             </div>
 
@@ -908,7 +909,7 @@ export default function WaitlistLanding() {
             <div className="relative bg-emerald-50/30 border border-emerald-200/30 rounded-2xl p-8 flex flex-col items-center text-center">
               <p className="text-[11px] font-bold text-emerald-500 uppercase tracking-wider mb-5 self-start">Apr&egrave;s</p>
               <div className="w-16 h-16 rounded-2xl bg-white/80 border border-violet-200/50 shadow-[0_8px_30px_rgba(124,58,237,0.15)] flex items-center justify-center mb-4">
-                <img src="/logo-color.png" alt="Jestly" className="w-9 h-9 object-contain" draggable={false} />
+                <Image src="/logo-color.png" alt="Jestly" width={36} height={36} className="w-9 h-9 object-contain" draggable={false} />
               </div>
               <h3 className="text-[18px] font-bold text-[#0B0F18] mb-1">Jestly</h3>
               <p className="text-[13px] text-[#5B6270] mb-5">Tout-en-un pour freelances</p>
@@ -936,7 +937,7 @@ export default function WaitlistLanding() {
               </svg>
             </div>
             <div className="text-center bg-white/70 border border-violet-200/40 rounded-2xl p-6">
-              <img src="/logo-color.png" alt="Jestly" className="w-10 h-10 mx-auto mb-3 object-contain" />
+              <Image src="/logo-color.png" alt="Jestly" width={40} height={40} className="w-10 h-10 mx-auto mb-3 object-contain" />
               <span className="text-2xl font-extrabold text-[#7C3AED]">0&euro;</span>
               <span className="text-[13px] text-[#5B6270] ml-2">/ mois pour d&eacute;marrer</span>
               <p className="text-[11px] text-[#94A3B8] mt-1">Gratuit, sans carte bancaire</p>
@@ -975,7 +976,7 @@ export default function WaitlistLanding() {
         <footer className="px-5 sm:px-8 md:px-12 lg:px-16 py-6 sm:py-8 border-t border-[#0B0F18]/[0.06]">
           <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2">
-              <img src="/logo-color.png" alt="Jestly" className="w-4 h-4 sm:w-5 sm:h-5 object-contain" />
+              <Image src="/logo-color.png" alt="Jestly" width={20} height={20} className="w-4 h-4 sm:w-5 sm:h-5 object-contain" />
               <span className="text-[12px] sm:text-[13px] font-semibold text-[#0B0F18]">Jestly</span>
             </div>
             <p className="text-[10px] sm:text-[11px] text-[#94A3B8]">

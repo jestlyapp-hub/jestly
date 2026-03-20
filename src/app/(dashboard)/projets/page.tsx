@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
@@ -60,7 +61,7 @@ function StatsBar({ projects }: { projects: Project[] }) {
       ].map((s) => (
         <div key={s.label} className="bg-white rounded-xl border border-[#E6E6E4] p-4">
           <div className="text-[11px] font-medium text-[#8A8A88] uppercase tracking-wider mb-1">{s.label}</div>
-          <div className="text-[22px] font-bold text-[#1A1A1A]">{s.value}</div>
+          <div className="text-[22px] font-bold text-[#191919]">{s.value}</div>
         </div>
       ))}
     </div>
@@ -87,7 +88,7 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
       {/* Cover */}
       <div className="relative h-28 overflow-hidden">
         {project.coverUrl ? (
-          <img src={project.coverUrl} alt="" className="w-full h-full object-cover" />
+          <Image src={project.coverUrl} alt="" fill className="object-cover" unoptimized />
         ) : (
           <div
             className="w-full h-full flex items-center justify-center"
@@ -112,7 +113,7 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="text-[14px] font-semibold text-[#1A1A1A] leading-snug line-clamp-2 group-hover:text-[#4F46E5] transition-colors mb-1.5">
+        <h3 className="text-[14px] font-semibold text-[#191919] leading-snug line-clamp-2 group-hover:text-[#4F46E5] transition-colors mb-1.5">
           {project.name}
         </h3>
 
@@ -155,7 +156,7 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
             {project.foldersCount > 0 && ` · ${project.foldersCount} dossier${project.foldersCount !== 1 ? "s" : ""}`}
           </span>
           {project.budget > 0 && (
-            <span className="text-[12px] font-semibold text-[#1A1A1A]">{project.budget.toLocaleString("fr-FR")}€</span>
+            <span className="text-[12px] font-semibold text-[#191919]">{project.budget.toLocaleString("fr-FR")}€</span>
           )}
         </div>
       </div>
@@ -229,7 +230,7 @@ function CreateProjectModal({
     }
   };
 
-  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
+  const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20";
 
   return (
     <AnimatePresence>
@@ -241,7 +242,7 @@ function CreateProjectModal({
               {/* Header */}
               <div className="flex items-center justify-between px-6 pt-6 pb-3">
                 <div>
-                  <h2 className="text-[17px] font-bold text-[#1A1A1A]">Nouveau projet</h2>
+                  <h2 className="text-[17px] font-bold text-[#191919]">Nouveau projet</h2>
                   <p className="text-[12px] text-[#8A8A88] mt-0.5">Créez un espace de travail créatif</p>
                 </div>
                 <button onClick={() => { onClose(); resetForm(); }} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors cursor-pointer">
@@ -440,7 +441,7 @@ export default function ProjetsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-[22px] font-bold text-[#1A1A1A]">Projets</h1>
+            <h1 className="text-[22px] font-bold text-[#191919]">Projets</h1>
             <p className="text-[13px] text-[#8A8A88] mt-0.5">Votre espace de travail créatif</p>
           </div>
           <button onClick={() => setShowCreate(true)} className="flex items-center gap-2 px-4 py-2.5 text-[13px] font-semibold text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-lg transition-colors cursor-pointer shadow-sm">
@@ -465,7 +466,7 @@ export default function ProjetsPage() {
           {/* Search */}
           <div className="relative flex-1 min-w-[180px] max-w-sm">
             <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-[#BBB]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-            <input type="text" placeholder="Rechercher..." className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input type="text" placeholder="Rechercher..." className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-3 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
 
           <select className="bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#5A5A58] focus:outline-none cursor-pointer" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
@@ -521,7 +522,7 @@ export default function ProjetsPage() {
             <div className="w-20 h-20 rounded-2xl bg-[#EEF2FF] flex items-center justify-center mb-4">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /><line x1="12" y1="11" x2="12" y2="17" /><line x1="9" y1="14" x2="15" y2="14" /></svg>
             </div>
-            <h3 className="text-[16px] font-semibold text-[#1A1A1A] mb-1">
+            <h3 className="text-[16px] font-semibold text-[#191919] mb-1">
               {search || filterStatus !== "all" || filterType !== "all" || filterClient !== "all" ? "Aucun résultat" : "Aucun projet"}
             </h3>
             <p className="text-[13px] text-[#8A8A88] mb-4 text-center max-w-xs">
@@ -560,7 +561,7 @@ export default function ProjetsPage() {
                 >
                   <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: p.color }} />
                   <div className="flex-1 min-w-0">
-                    <div className="text-[13px] font-semibold text-[#1A1A1A] truncate">{p.name}</div>
+                    <div className="text-[13px] font-semibold text-[#191919] truncate">{p.name}</div>
                     <div className="text-[11px] text-[#8A8A88] truncate mt-0.5">
                       {typeInfo?.icon} {typeInfo?.label}{p.clientName ? ` · ${p.clientName}` : ""}
                     </div>
@@ -574,7 +575,7 @@ export default function ProjetsPage() {
                     {statusCfg.label}
                   </span>
                   {p.budget > 0 && (
-                    <span className="flex-shrink-0 text-[12px] font-semibold text-[#1A1A1A] w-16 text-right">{p.budget.toLocaleString("fr-FR")}€</span>
+                    <span className="flex-shrink-0 text-[12px] font-semibold text-[#191919] w-16 text-right">{p.budget.toLocaleString("fr-FR")}€</span>
                   )}
                   <span className="flex-shrink-0 text-[11px] text-[#8A8A88] w-16 text-right">
                     {p.itemsCount} item{p.itemsCount !== 1 ? "s" : ""}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -471,11 +472,15 @@ export default function AdminUserDetailPage() {
           {/* Left: Avatar + info */}
           <div className="flex items-start gap-4">
             {profile.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={profile.full_name}
-                className="w-16 h-16 rounded-full object-cover border border-[#E6E6E4]"
-              />
+              <div className="relative w-16 h-16 rounded-full overflow-hidden border border-[#E6E6E4]">
+                <Image
+                  src={profile.avatar_url}
+                  alt={profile.full_name}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              </div>
             ) : (
               <div className="w-16 h-16 rounded-full bg-[#EEF2FF] border border-[#E6E6E4] flex items-center justify-center text-[#4F46E5] font-bold text-lg">
                 {getInitials(profile.full_name)}

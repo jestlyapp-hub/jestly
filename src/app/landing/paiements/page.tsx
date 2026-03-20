@@ -10,6 +10,7 @@ const DATA: FeaturePageData = {
   subtitle:
     "Suivez chaque paiement reçu, en attente ou en retard — directement relié à vos factures et clients. Plus de flou sur qui a payé quoi.",
   videoLabel: "Voir le suivi des paiements",
+  usePaiementsDemo: true,
   accentColor: "#10B981",
 
   benefitsTitle: "Des paiements suivis",

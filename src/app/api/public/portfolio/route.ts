@@ -1,13 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // GET /api/public/portfolio?user_id=xxx — public portfolio projects
 export async function GET(req: NextRequest) {
+  const supabaseAdmin = createAdminClient();
   const url = new URL(req.url);
   const userId = url.searchParams.get("user_id");
   const siteSlug = url.searchParams.get("site_slug");
@@ -21,14 +17,14 @@ export async function GET(req: NextRequest) {
   // Resolve user_id from site slug if needed
   if (!targetUserId && siteSlug) {
     const { data: site } = await (supabaseAdmin.from("sites") as any)
-      .select("user_id")
+      .select("owner_id")
       .eq("slug", siteSlug)
       .single();
 
     if (!site) {
       return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
     }
-    targetUserId = site.user_id;
+    targetUserId = site.owner_id;
   }
 
   // Fetch portfolio-visible projects with safe public fields only

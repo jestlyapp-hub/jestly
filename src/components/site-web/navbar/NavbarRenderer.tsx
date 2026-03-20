@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import type { NavConfig, NavLink, NavSocialLink } from "@/types";
 
 // ═══════════════════════════════════════════════
@@ -52,10 +53,10 @@ const containerMap = {
 
 function NavLogo({ siteName, logoUrl }: { siteName: string; logoUrl?: string }) {
   if (logoUrl) {
-    return <img src={logoUrl} alt={siteName} className="h-7 w-auto object-contain" />;
+    return <Image src={logoUrl} alt={siteName} width={112} height={28} className="h-7 w-auto object-contain" unoptimized />;
   }
   return (
-    <span className="text-[15px] font-bold tracking-tight" style={{ color: "var(--site-text, #1A1A1A)" }}>
+    <span className="text-[15px] font-bold tracking-tight" style={{ color: "var(--site-text, #191919)" }}>
       {siteName}
     </span>
   );
@@ -141,7 +142,7 @@ function NavDropdown({ item, resolveHref, isBuilder }: { item: NavLink; resolveH
         onClick={() => setOpen(!open)}
         className="flex items-center gap-1 text-[13px] font-medium transition-colors"
         style={{ color: "var(--site-muted, #666)" }}
-        onMouseEnter={e => (e.currentTarget.style.color = "var(--site-text, #1A1A1A)")}
+        onMouseEnter={e => (e.currentTarget.style.color = "var(--site-text, #191919)")}
         onMouseLeave={e => { if (!open) e.currentTarget.style.color = "var(--site-muted, #666)"; }}
       >
         {item.label}
@@ -170,7 +171,7 @@ function NavDropdown({ item, resolveHref, isBuilder }: { item: NavLink; resolveH
                 className="block px-4 py-2 text-[13px] font-medium transition-colors"
                 style={{ color: "var(--site-muted, #666)" }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.color = "var(--site-text, #1A1A1A)";
+                  e.currentTarget.style.color = "var(--site-text, #191919)";
                   e.currentTarget.style.backgroundColor = "var(--site-surface, #F7F7F5)";
                 }}
                 onMouseLeave={e => {
@@ -223,7 +224,7 @@ function MobileMenu({
                     <button
                       onClick={() => setExpandedId(expandedId === (link.id || link.label) ? null : (link.id || link.label))}
                       className="w-full flex items-center justify-between py-3 text-[15px] font-medium border-b"
-                      style={{ color: "var(--site-text, #1A1A1A)", borderColor: "var(--site-border, #E6E6E4)" }}
+                      style={{ backgroundColor: nav.secondaryCtaBgColor || "transparent", color: nav.secondaryCtaTextColor || "var(--site-text, #191919)", borderColor: nav.secondaryCtaBorderColor || "var(--site-border, #E6E6E4)" }}
                     >
                       {link.label}
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className={`transition-transform ${expandedId === (link.id || link.label) ? "rotate-180" : ""}`}>
@@ -251,7 +252,7 @@ function MobileMenu({
                     href={isBuilder ? undefined : resolveHref(link)}
                     onClick={e => { if (isBuilder) e.preventDefault(); setOpen(false); }}
                     className="block py-3 text-[15px] font-medium border-b"
-                    style={{ color: "var(--site-text, #1A1A1A)", borderColor: "var(--site-border, #E6E6E4)" }}
+                    style={{ backgroundColor: nav.secondaryCtaBgColor || "transparent", color: nav.secondaryCtaTextColor || "var(--site-text, #191919)", borderColor: nav.secondaryCtaBorderColor || "var(--site-border, #E6E6E4)" }}
                   >
                     {link.label}
                   </a>
@@ -266,7 +267,7 @@ function MobileMenu({
                   href={isBuilder ? undefined : resolveCtaHref(nav, false, resolveHref)}
                   onClick={() => setOpen(false)}
                   className="block text-center text-[14px] font-semibold py-3 rounded-lg border transition-colors"
-                  style={{ color: "var(--site-text, #1A1A1A)", borderColor: "var(--site-border, #E6E6E4)" }}
+                  style={{ backgroundColor: nav.secondaryCtaBgColor || "transparent", color: nav.secondaryCtaTextColor || "var(--site-text, #191919)", borderColor: nav.secondaryCtaBorderColor || "var(--site-border, #E6E6E4)" }}
                 >
                   {nav.secondaryCtaLabel}
                 </a>
@@ -315,7 +316,7 @@ function NavItem({ item, resolveHref, isBuilder }: { item: NavLink; resolveHref:
       rel={isExternal && item.openNewTab ? "noopener noreferrer" : undefined}
       className="text-[13px] font-medium transition-colors"
       style={{ color: "var(--site-muted, #666)" }}
-      onMouseEnter={e => (e.currentTarget.style.color = "var(--site-text, #1A1A1A)")}
+      onMouseEnter={e => (e.currentTarget.style.color = "var(--site-text, #191919)")}
       onMouseLeave={e => (e.currentTarget.style.color = "var(--site-muted, #666)")}
     >
       {item.label}
@@ -341,25 +342,32 @@ function resolveCtaHref(nav: NavConfig, isPrimary: boolean, resolveHref: (link: 
 
 function CtaButton({ label, isPrimary, nav, href }: { label: string; isPrimary?: boolean; nav?: NavConfig; href?: string }) {
   const base = "text-[13px] font-semibold px-5 py-2 transition-all";
-  const style = isPrimary !== false
-    ? (nav?.ctaStyle || "filled")
-    : "outline";
+  const isSecondary = isPrimary === false;
+  const style = isSecondary
+    ? (nav?.secondaryCtaStyle || "outline")
+    : (nav?.ctaStyle || "filled");
 
   // Resolve target & rel for external links
   const isExternal = href && (href.startsWith("http") || href.startsWith("mailto:") || href.startsWith("tel:"));
-  const openNewTab = isPrimary !== false ? nav?.ctaOpenNewTab : nav?.secondaryCtaOpenNewTab;
+  const openNewTab = isSecondary ? nav?.secondaryCtaOpenNewTab : nav?.ctaOpenNewTab;
   const target = isExternal && openNewTab ? "_blank" : undefined;
   const rel = target ? "noopener noreferrer" : undefined;
   const resolvedHref = href || "#";
 
   const linkProps = { href: resolvedHref, target, rel };
 
+  // Resolve colors based on primary vs secondary
+  const bgColor = isSecondary ? nav?.secondaryCtaBgColor : nav?.ctaBgColor;
+  const textColor = isSecondary ? nav?.secondaryCtaTextColor : nav?.ctaTextColor;
+  const borderColor = isSecondary ? nav?.secondaryCtaBorderColor : nav?.ctaBgColor;
+  const radius = nav?.ctaBorderRadius || "var(--site-btn-radius, 8px)";
+
   if (style === "filled") {
     return (
       <a {...linkProps} className={`${base} hover:opacity-90`} style={{
-        backgroundColor: nav?.ctaBgColor || "var(--btn-bg, var(--site-primary, #4F46E5))",
-        color: nav?.ctaTextColor || "var(--btn-text, #fff)",
-        borderRadius: nav?.ctaBorderRadius || "var(--site-btn-radius, 8px)",
+        backgroundColor: bgColor || "var(--btn-bg, var(--site-primary, #4F46E5))",
+        color: textColor || "var(--btn-text, #fff)",
+        borderRadius: radius,
       }}>
         {label}
       </a>
@@ -368,9 +376,10 @@ function CtaButton({ label, isPrimary, nav, href }: { label: string; isPrimary?:
   if (style === "outline") {
     return (
       <a {...linkProps} className={`${base} border hover:opacity-80`} style={{
-        color: nav?.ctaBgColor || "var(--site-text, #1A1A1A)",
-        borderColor: nav?.ctaBgColor || "var(--site-border, #E6E6E4)",
-        borderRadius: nav?.ctaBorderRadius || "var(--site-btn-radius, 8px)",
+        backgroundColor: bgColor || "transparent",
+        color: textColor || "var(--site-text, #191919)",
+        borderColor: borderColor || "var(--site-border, #E6E6E4)",
+        borderRadius: radius,
       }}>
         {label}
       </a>
@@ -379,11 +388,11 @@ function CtaButton({ label, isPrimary, nav, href }: { label: string; isPrimary?:
   if (style === "soft") {
     return (
       <a {...linkProps} className={`${base} hover:opacity-80`} style={{
-        backgroundColor: nav?.ctaBgColor
-          ? `color-mix(in srgb, ${nav.ctaBgColor} 15%, transparent)`
+        backgroundColor: bgColor
+          ? `color-mix(in srgb, ${bgColor} 15%, transparent)`
           : "var(--site-primary-light, #EEF2FF)",
-        color: nav?.ctaBgColor || "var(--site-primary, #4F46E5)",
-        borderRadius: nav?.ctaBorderRadius || "var(--site-btn-radius, 8px)",
+        color: textColor || bgColor || "var(--site-primary, #4F46E5)",
+        borderRadius: radius,
       }}>
         {label}
       </a>
@@ -392,7 +401,7 @@ function CtaButton({ label, isPrimary, nav, href }: { label: string; isPrimary?:
   // ghost
   return (
     <a {...linkProps} className={`${base} hover:opacity-70`} style={{
-      color: nav?.ctaBgColor || "var(--site-primary, #4F46E5)",
+      color: textColor || bgColor || "var(--site-primary, #4F46E5)",
     }}>
       {label}
     </a>
@@ -459,6 +468,9 @@ function NavClassicFloating(props: NavbarProps) {
             {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
           </div>
           <div className="flex items-center gap-3">
+            {nav.showSecondaryCta && nav.secondaryCtaLabel && (
+              <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} href={resolveCtaHref(nav, false, resolveHref)} /></div>
+            )}
             {nav.showCta && nav.ctaLabel && (
               <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
             )}
@@ -484,6 +496,9 @@ function NavDarkPremium(props: NavbarProps) {
           {nav.links.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
         </div>
         <div className="flex items-center gap-3">
+          {nav.showSecondaryCta && nav.secondaryCtaLabel && (
+            <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} href={resolveCtaHref(nav, false, resolveHref)} /></div>
+          )}
           {nav.showCta && nav.ctaLabel && (
             <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
           )}
@@ -526,7 +541,7 @@ function NavCapsule(props: NavbarProps) {
                   className="text-[12px] font-medium px-3.5 py-1.5 rounded-full transition-all"
                   style={{ color: "var(--site-muted, #666)" }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.color = "var(--site-text, #1A1A1A)";
+                    e.currentTarget.style.color = "var(--site-text, #191919)";
                     e.currentTarget.style.backgroundColor = "var(--site-bg, #fff)";
                     e.currentTarget.style.boxShadow = "0 1px 3px rgba(0,0,0,0.06)";
                   }}
@@ -543,6 +558,9 @@ function NavCapsule(props: NavbarProps) {
           </div>
 
           <div className="flex items-center gap-3">
+            {nav.showSecondaryCta && nav.secondaryCtaLabel && (
+              <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} href={resolveCtaHref(nav, false, resolveHref)} /></div>
+            )}
             {nav.showCta && nav.ctaLabel && (
               <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
             )}
@@ -567,9 +585,9 @@ function NavBrandHeavy(props: NavbarProps) {
           {/* Larger brand presence */}
           <div className="flex items-center gap-3">
             {logoUrl ? (
-              <img src={logoUrl} alt={siteName} className="h-9 w-auto" />
+              <Image src={logoUrl} alt={siteName} width={144} height={36} className="h-9 w-auto" unoptimized />
             ) : (
-              <span className="text-lg font-extrabold tracking-tight" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <span className="text-lg font-extrabold tracking-tight" style={{ color: "var(--site-text, #191919)" }}>
                 {siteName}
               </span>
             )}
@@ -591,6 +609,9 @@ function NavBrandHeavy(props: NavbarProps) {
           <div className="flex items-center gap-3">
             {nav.showSocials && nav.socials && nav.socials.length > 0 && (
               <div className="hidden lg:flex"><SocialIcons socials={nav.socials} /></div>
+            )}
+            {nav.showSecondaryCta && nav.secondaryCtaLabel && (
+              <div className="hidden md:block"><CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} href={resolveCtaHref(nav, false, resolveHref)} /></div>
             )}
             {nav.showCta && nav.ctaLabel && (
               <div className="hidden md:block"><CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} /></div>
@@ -690,9 +711,9 @@ function NavCreativeSplit(props: NavbarProps) {
         <div className="flex items-center gap-3">
           <div className="hidden md:block w-8 h-px" style={{ backgroundColor: "var(--site-border, #E6E6E4)" }} />
           {logoUrl ? (
-            <img src={logoUrl} alt={siteName} className="h-8 w-auto" />
+            <Image src={logoUrl} alt={siteName} width={128} height={32} className="h-8 w-auto" unoptimized />
           ) : (
-            <span className="text-base font-black tracking-tighter" style={{ color: "var(--site-text, #1A1A1A)" }}>
+            <span className="text-base font-black tracking-tighter" style={{ color: "var(--site-text, #191919)" }}>
               {siteName}
             </span>
           )}
@@ -702,6 +723,7 @@ function NavCreativeSplit(props: NavbarProps) {
         {/* Right nav group */}
         <div className="hidden md:flex items-center gap-5 flex-1 justify-end">
           {rightLinks.map(item => <NavItem key={item.id || item.label} item={item} resolveHref={resolveHref} isBuilder={isBuilder} />)}
+          {nav.showSecondaryCta && nav.secondaryCtaLabel && <CtaButton label={nav.secondaryCtaLabel} isPrimary={false} nav={nav} href={resolveCtaHref(nav, false, resolveHref)} />}
           {nav.showCta && nav.ctaLabel && <CtaButton label={nav.ctaLabel} nav={nav} href={resolveCtaHref(nav, true, resolveHref)} />}
         </div>
 
@@ -751,11 +773,11 @@ function NavSignature(props: NavbarProps) {
         {/* Logo with accent dot */}
         <div className="flex items-center gap-2">
           {logoUrl ? (
-            <img src={logoUrl} alt={siteName} className="h-8 w-auto" />
+            <Image src={logoUrl} alt={siteName} width={128} height={32} className="h-8 w-auto" unoptimized />
           ) : (
             <>
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: "var(--site-primary, #4F46E5)" }} />
-              <span className="text-[15px] font-bold tracking-tight" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <span className="text-[15px] font-bold tracking-tight" style={{ color: "var(--site-text, #191919)" }}>
                 {siteName}
               </span>
             </>
@@ -776,7 +798,7 @@ function NavSignature(props: NavbarProps) {
                 className="relative text-[12px] font-medium px-4 py-2 rounded-lg transition-all"
                 style={{ color: "var(--site-muted, #666)" }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.color = "var(--site-text, #1A1A1A)";
+                  e.currentTarget.style.color = "var(--site-text, #191919)";
                   e.currentTarget.style.backgroundColor = "var(--site-surface, #F7F7F5)";
                 }}
                 onMouseLeave={e => {

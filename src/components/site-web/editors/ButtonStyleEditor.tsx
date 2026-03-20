@@ -7,7 +7,7 @@ interface ButtonStyleEditorProps {
   onChange: (style: ButtonStyle) => void;
 }
 
-const smallInputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const smallInputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const sectionLabel = "text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-2 block";
 
 const shadowOptions: { value: string; label: string }[] = [

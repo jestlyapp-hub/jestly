@@ -9,7 +9,7 @@ function TeamMiniGridBlockPreviewInner({ content }: { content: TeamMiniGridBlock
       <div className="max-w-6xl mx-auto">
         <h2
           className="text-2xl font-bold text-center mb-2"
-          style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+          style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
         >
           {content.title}
         </h2>
@@ -50,7 +50,7 @@ function TeamMiniGridBlockPreviewInner({ content }: { content: TeamMiniGridBlock
                 </div>
               )}
 
-              <h3 className="text-sm font-semibold mb-0.5" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <h3 className="text-sm font-semibold mb-0.5" style={{ color: "var(--site-text, #191919)" }}>
                 {m.name}
               </h3>
               <div className="text-xs font-medium mb-2" style={{ color: "var(--site-primary, #4F46E5)" }}>

@@ -28,7 +28,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
     <div className="border-b border-[#EFEFEF] last:border-b-0">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between py-4 text-left text-[15px] font-medium text-[#1A1A1A] hover:text-[#4F46E5] transition-colors"
+        className="flex w-full items-center justify-between py-4 text-left text-[15px] font-medium text-[#191919] hover:text-[#4F46E5] transition-colors"
       >
         {question}
         <svg
@@ -65,7 +65,7 @@ export default function ContactPage() {
     <div className="mx-auto max-w-2xl">
       {/* Hero */}
       <div className="mb-10 text-center">
-        <h1 className="text-[28px] font-bold text-[#1A1A1A]">Contactez-nous</h1>
+        <h1 className="text-[28px] font-bold text-[#191919]">Contactez-nous</h1>
         <p className="mt-3 text-[15px] text-[#5A5A58]">
           Une question ou un problème ? Notre équipe est là pour vous aider.
         </p>
@@ -130,7 +130,7 @@ export default function ContactPage() {
 
       {/* FAQ */}
       <div className="mt-14">
-        <h2 className="mb-6 text-[20px] font-semibold text-[#1A1A1A]">
+        <h2 className="mb-6 text-[20px] font-semibold text-[#191919]">
           Questions fréquentes
         </h2>
         <div className="rounded-xl border border-[#E6E6E4] bg-white px-6">

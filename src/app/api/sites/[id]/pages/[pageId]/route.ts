@@ -6,10 +6,18 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; pageId: string }> }
 ) {
-  const { pageId } = await params;
+  const { id: siteId, pageId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Ownership check
+  const { data: site } = await (supabase.from("sites") as any)
+    .select("id")
+    .eq("id", siteId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
 
   const body = await req.json();
   const allowed = ["slug", "title", "is_home", "sort_order", "status", "seo_title", "seo_description", "og_image_url"];
@@ -39,15 +47,24 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string; pageId: string }> }
 ) {
-  const { pageId } = await params;
+  const { id: siteId, pageId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Ownership check
+  const { data: site } = await (supabase.from("sites") as any)
+    .select("id")
+    .eq("id", siteId)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase.from("site_pages") as any)
     .delete()
-    .eq("id", pageId);
+    .eq("id", pageId)
+    .eq("site_id", siteId);
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json({ ok: true });

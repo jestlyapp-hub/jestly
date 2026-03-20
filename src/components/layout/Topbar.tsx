@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import GlobalSearch from "@/components/layout/GlobalSearch";
+import MobileNav from "@/components/layout/MobileNav";
 
 /* Mapping pathname → label pour le breadcrumb */
 const pageLabels: Record<string, string> = {
@@ -24,10 +25,11 @@ export default function Topbar() {
   const pageLabel = pageLabels[pathname] ?? (pathname.startsWith("/site-web") ? "Site web" : "Dashboard");
 
   return (
-    <header className="h-14 bg-white border-b border-[#E6E6E4] flex items-center justify-between px-6 flex-shrink-0">
-      {/* Gauche — Breadcrumb */}
+    <header className="h-14 bg-white border-b border-[#E6E6E4] flex items-center justify-between px-4 sm:px-6 flex-shrink-0">
+      {/* Gauche — Hamburger mobile + Breadcrumb */}
       <div className="flex items-center gap-2">
-        <span className="text-[15px] font-semibold text-[#1A1A1A]">{pageLabel}</span>
+        <MobileNav />
+        <span className="text-[15px] font-semibold text-[#191919]">{pageLabel}</span>
       </div>
 
       {/* Centre — Search */}

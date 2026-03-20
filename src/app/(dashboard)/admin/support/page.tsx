@@ -284,7 +284,7 @@ export default function AdminSupportPage() {
       <div className="flex flex-col h-full">
         {/* Header */}
         <div className="flex items-center gap-2.5 px-4 pt-4 pb-3">
-          <h1 className="text-[18px] font-bold text-[#1A1A1A]">Support</h1>
+          <h1 className="text-[18px] font-bold text-[#191919]">Support</h1>
           {sorted.length > 0 && (
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#F7F7F5] text-[#5A5A58]">
               {sorted.length}
@@ -344,7 +344,7 @@ export default function AdminSupportPage() {
                   >
                     {/* User name + email */}
                     <div className="flex items-center gap-1.5 mb-0.5">
-                      <span className="text-[13px] font-medium text-[#1A1A1A] truncate">
+                      <span className="text-[13px] font-medium text-[#191919] truncate">
                         {ticket.user_name || "Utilisateur"}
                       </span>
                       <span className="text-[11px] text-[#8A8A88] truncate flex-shrink-0">
@@ -353,7 +353,7 @@ export default function AdminSupportPage() {
                     </div>
 
                     {/* Ticket title */}
-                    <p className="text-[13px] text-[#1A1A1A] truncate mb-0.5">
+                    <p className="text-[13px] text-[#191919] truncate mb-0.5">
                       {ticket.title}
                     </p>
 
@@ -627,13 +627,13 @@ function TicketDetailPanel({
           {/* Back button — mobile only */}
           <button
             onClick={onBack}
-            className="md:hidden flex items-center justify-center text-[#5A5A58] hover:text-[#1A1A1A] transition-colors cursor-pointer"
+            className="md:hidden flex items-center justify-center text-[#5A5A58] hover:text-[#191919] transition-colors cursor-pointer"
           >
             <IconChevronLeft />
           </button>
 
           <div className="flex-1 min-w-0">
-            <h2 className="text-[15px] font-semibold text-[#1A1A1A] truncate">{ticket.title}</h2>
+            <h2 className="text-[15px] font-semibold text-[#191919] truncate">{ticket.title}</h2>
           </div>
 
           <StatusBadge status={ticket.status} />
@@ -690,8 +690,8 @@ function TicketDetailPanel({
                     <div
                       className={`rounded-xl px-4 py-2.5 text-[13px] leading-relaxed whitespace-pre-wrap ${
                         isAdmin
-                          ? "bg-[#EEF2FF] text-[#1A1A1A] rounded-tr-sm"
-                          : "bg-[#F7F7F5] text-[#1A1A1A] rounded-tl-sm"
+                          ? "bg-[#EEF2FF] text-[#191919] rounded-tr-sm"
+                          : "bg-[#F7F7F5] text-[#191919] rounded-tl-sm"
                       }`}
                     >
                       {msg.message}
@@ -721,7 +721,7 @@ function TicketDetailPanel({
                             >
                               <IconFile />
                               <div className="min-w-0">
-                                <p className="text-[12px] text-[#1A1A1A] truncate">{att.file_name}</p>
+                                <p className="text-[12px] text-[#191919] truncate">{att.file_name}</p>
                                 <p className="text-[10px] text-[#8A8A88]">{formatFileSize(att.file_size)}</p>
                               </div>
                             </button>
@@ -752,7 +752,7 @@ function TicketDetailPanel({
           {attachmentFile && (
             <div className="flex items-center gap-2 mb-2 px-3 py-2 bg-[#F7F7F5] rounded-lg border border-[#E6E6E4]">
               {isImageType(attachmentFile.type) ? <IconImage /> : <IconFile />}
-              <span className="text-[12px] text-[#1A1A1A] truncate flex-1">
+              <span className="text-[12px] text-[#191919] truncate flex-1">
                 {attachmentFile.name}
               </span>
               <span className="text-[11px] text-[#8A8A88] flex-shrink-0">
@@ -760,7 +760,7 @@ function TicketDetailPanel({
               </span>
               <button
                 onClick={() => setAttachmentFile(null)}
-                className="text-[#8A8A88] hover:text-[#1A1A1A] transition-colors cursor-pointer flex-shrink-0"
+                className="text-[#8A8A88] hover:text-[#191919] transition-colors cursor-pointer flex-shrink-0"
               >
                 <IconX />
               </button>
@@ -790,7 +790,7 @@ function TicketDetailPanel({
               onKeyDown={handleKeyDown}
               placeholder="Répondre..."
               rows={1}
-              className="flex-1 bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none"
+              className="flex-1 bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none"
               style={{ minHeight: "36px", maxHeight: "120px" }}
             />
 
@@ -820,7 +820,7 @@ function TicketDetailPanel({
                 {getInitials(ticket.user_name, ticket.user_email)}
               </span>
             </div>
-            <p className="text-[14px] font-semibold text-[#1A1A1A]">
+            <p className="text-[14px] font-semibold text-[#191919]">
               {ticket.user_name || "Utilisateur"}
             </p>
             <p className="text-[12px] text-[#8A8A88]">{ticket.user_email}</p>
@@ -839,7 +839,7 @@ function TicketDetailPanel({
               <select
                 value={ticket.status}
                 onChange={(e) => handleStatusChange(e.target.value as TicketStatus)}
-                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all cursor-pointer appearance-none"
+                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all cursor-pointer appearance-none"
                 style={{
                   backgroundImage: `url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%238A8A88' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")`,
                   backgroundRepeat: "no-repeat",
@@ -859,7 +859,7 @@ function TicketDetailPanel({
               <label className="block text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1">
                 Créé le
               </label>
-              <p className="text-[13px] text-[#1A1A1A]">{formatDate(ticket.created_at)}</p>
+              <p className="text-[13px] text-[#191919]">{formatDate(ticket.created_at)}</p>
             </div>
 
             {/* Last activity */}
@@ -867,7 +867,7 @@ function TicketDetailPanel({
               <label className="block text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1">
                 Dernière activité
               </label>
-              <p className="text-[13px] text-[#1A1A1A]">{relativeDate(ticket.updated_at)}</p>
+              <p className="text-[13px] text-[#191919]">{relativeDate(ticket.updated_at)}</p>
             </div>
 
             {/* Message count */}
@@ -875,7 +875,7 @@ function TicketDetailPanel({
               <label className="block text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1">
                 Messages
               </label>
-              <p className="text-[13px] text-[#1A1A1A]">{ticket.message_count}</p>
+              <p className="text-[13px] text-[#191919]">{ticket.message_count}</p>
             </div>
 
             {/* Category */}
@@ -912,7 +912,7 @@ function TicketDetailPanel({
                         {isImageType(att.file_type) ? <IconImage /> : <IconFile />}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-[12px] text-[#1A1A1A] truncate">{att.file_name}</p>
+                        <p className="text-[12px] text-[#191919] truncate">{att.file_name}</p>
                         <p className="text-[10px] text-[#8A8A88]">{formatFileSize(att.file_size)}</p>
                       </div>
                       <div className="flex-shrink-0 text-[#8A8A88] opacity-0 group-hover:opacity-100">

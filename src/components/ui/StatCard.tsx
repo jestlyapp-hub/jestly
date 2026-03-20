@@ -8,10 +8,10 @@ interface StatCardProps {
 export default function StatCard({ label, value, change, positive = true }: StatCardProps) {
   return (
     <div className="bg-white rounded-xl border border-[#E6E6E4] p-5 hover:shadow-sm hover:-translate-y-0.5 transition-all">
-      <div className="text-[12px] font-medium text-[#999] uppercase tracking-wider mb-2">
+      <div className="text-[12px] font-medium text-[#8A8A88] uppercase tracking-wider mb-2">
         {label}
       </div>
-      <div className="text-2xl font-bold text-[#1A1A1A]">{value}</div>
+      <div className="text-2xl font-bold text-[#191919]">{value}</div>
       {change && (
         <div className={`text-[12px] font-medium mt-1 ${positive ? "text-emerald-500" : "text-red-500"}`}>
           {change}

@@ -4,7 +4,7 @@ import type { Block } from "@/types";
 import ProductModeEditor from "./shared/ProductModeEditor";
 
 const inputClass =
-  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 export default function ProductBundleCompareBlockEditor({
   block,
@@ -92,7 +92,7 @@ export default function ProductBundleCompareBlockEditor({
 
       {/* Bundles array */}
       <div className="pt-2 border-t border-[#E6E6E4]">
-        <label className="block text-[12px] font-semibold text-[#1A1A1A] mb-2">
+        <label className="block text-[12px] font-semibold text-[#191919] mb-2">
           Bundles
         </label>
 

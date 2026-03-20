@@ -1399,13 +1399,13 @@ export const MAPPABLE_ORDER_FIELDS = [
  * that are NOT system board columns (title/client/price/status/deadline/date).
  */
 export const ORDER_DETAIL_FIELDS = [
-  { key: 'priority',     label: 'Priorite',      briefTypes: ['select', 'radio', 'text'] },
-  { key: 'paid',         label: 'Paye',           briefTypes: ['checkbox'] },
+  { key: 'priority',     label: 'Priorité',      briefTypes: ['select', 'radio', 'text'] },
+  { key: 'paid',         label: 'Payé',           briefTypes: ['checkbox'] },
   { key: 'notes',        label: 'Notes',          briefTypes: ['text', 'textarea'] },
   { key: 'briefing',     label: 'Briefing',       briefTypes: ['text', 'textarea'] },
   { key: 'resources',    label: 'Ressources',     briefTypes: ['file', 'url', 'text'] },
   { key: 'category',     label: 'Catégorie',      briefTypes: ['text', 'select'] },
-  { key: 'external_ref', label: 'Ref. externe',   briefTypes: ['text'] },
+  { key: 'external_ref', label: 'Réf. externe',   briefTypes: ['text'] },
   { key: 'tags',         label: 'Tags',           briefTypes: ['checkbox'] },
   { key: 'checklist',    label: 'Checklist',      briefTypes: ['checkbox'] },
 ] as const;
@@ -1531,6 +1531,11 @@ export interface NavConfig {
   ctaBgColor?: string;
   ctaTextColor?: string;
   ctaBorderRadius?: string;
+  // Secondary CTA button customization
+  secondaryCtaStyle?: "outline" | "filled" | "ghost" | "soft";
+  secondaryCtaBgColor?: string;
+  secondaryCtaTextColor?: string;
+  secondaryCtaBorderColor?: string;
 }
 
 export interface FooterLink {

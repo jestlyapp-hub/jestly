@@ -11,6 +11,14 @@ export async function GET(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  // Ownership check
+  const { data: site } = await (supabase.from("sites") as any)
+    .select("id")
+    .eq("id", id)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("site_pages") as any)
     .select("*, site_blocks(*)")
@@ -30,6 +38,14 @@ export async function POST(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  // Ownership check
+  const { data: site } = await (supabase.from("sites") as any)
+    .select("id")
+    .eq("id", id)
+    .eq("owner_id", user.id)
+    .maybeSingle();
+  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
 
   const body = await req.json();
   const { slug, title, is_home, sort_order } = body;

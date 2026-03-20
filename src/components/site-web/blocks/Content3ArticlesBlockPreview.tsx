@@ -30,7 +30,7 @@ function Content3ArticlesBlockPreviewInner({ content }: { content: Content3Artic
         <div className="text-center mb-12">
           <h2
             className="text-2xl font-bold mb-2"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -73,7 +73,7 @@ function Content3ArticlesBlockPreviewInner({ content }: { content: Content3Artic
                 )}
                 <h3
                   className="text-lg font-semibold mb-2"
-                  style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+                  style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
                 >
                   {article.title}
                 </h3>

@@ -63,7 +63,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
                 placeholder="Rechercher..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg pl-8 pr-3 py-2 text-[12px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg pl-8 pr-3 py-2 text-[12px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               />
             </div>
           </div>
@@ -98,7 +98,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
         {/* CENTER — Block grid */}
         <div className="flex-1 flex flex-col min-w-0">
           <div className="px-5 py-3.5 border-b border-[#E6E6E4] flex items-center justify-between">
-            <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Ajouter un bloc</h2>
+            <h2 className="text-[15px] font-semibold text-[#191919]">Ajouter un bloc</h2>
             <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] transition-colors">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
@@ -131,7 +131,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
                       <div className="w-full h-10 bg-white/60 rounded-lg p-1.5 mb-1.5 flex items-center justify-center overflow-hidden">
                         <div className="w-full"><BlockThumbnail type={entry.type} /></div>
                       </div>
-                      <div className="text-[11px] font-semibold text-[#1A1A1A]">{entry.name}</div>
+                      <div className="text-[11px] font-semibold text-[#191919]">{entry.name}</div>
                       <div className="text-[9px] text-[#999] line-clamp-1">{entry.description}</div>
                     </button>
                   ))}
@@ -166,7 +166,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
                         <BlockThumbnail type={entry.type} />
                       </div>
                     </div>
-                    <div className="text-[12px] font-semibold text-[#1A1A1A] mb-0.5">{entry.name}</div>
+                    <div className="text-[12px] font-semibold text-[#191919] mb-0.5">{entry.name}</div>
                     <div className="text-[10px] text-[#999] leading-snug line-clamp-2">{entry.description}</div>
                   </button>
                 ))}
@@ -180,7 +180,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
           {selectedType && variants.length > 0 ? (
             <>
               <div className="px-4 py-3.5 border-b border-[#E6E6E4] bg-white flex items-center justify-between">
-                <span className="text-[12px] font-semibold text-[#1A1A1A]">Choisir un style</span>
+                <span className="text-[12px] font-semibold text-[#191919]">Choisir un style</span>
                 <button onClick={() => setSelectedType(null)} className="text-[#999] hover:text-[#666]">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
                 </button>
@@ -191,7 +191,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
                   onClick={() => handleAdd(selectedType)}
                   className="w-full p-3 rounded-lg border border-[#E6E6E4] bg-white hover:border-[#4F46E5]/40 transition-all text-left"
                 >
-                  <div className="text-[12px] font-semibold text-[#1A1A1A] mb-0.5">Par défaut</div>
+                  <div className="text-[12px] font-semibold text-[#191919] mb-0.5">Par défaut</div>
                   <div className="text-[10px] text-[#999]">Style standard</div>
                 </button>
                 {/* Variants */}
@@ -205,7 +205,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
                       {v.style.backgroundColor && (
                         <div className="w-4 h-4 rounded border border-black/10 flex-shrink-0" style={{ background: v.style.backgroundColor }} />
                       )}
-                      <div className="text-[12px] font-semibold text-[#1A1A1A]">{v.name}</div>
+                      <div className="text-[12px] font-semibold text-[#191919]">{v.name}</div>
                     </div>
                     <div className="text-[10px] text-[#999]">{v.description}</div>
                   </button>

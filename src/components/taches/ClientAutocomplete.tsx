@@ -173,7 +173,7 @@ export default function ClientAutocomplete({
           onFocus={handleFocus}
           onKeyDown={handleKeyDown}
           placeholder="Rechercher ou créer un client..."
-          className={`w-full bg-white border rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#B0B0AE] focus:outline-none transition-all pr-8 ${
+          className={`w-full bg-white border rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#B0B0AE] focus:outline-none transition-all pr-8 ${
             clientId
               ? "border-[#10B981]/30 bg-emerald-50/20"
               : "border-[#E6E6E4] focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20"
@@ -232,7 +232,7 @@ export default function ClientAutocomplete({
                 {client.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-medium text-[#1A1A1A] truncate">
+                <div className="text-[13px] font-medium text-[#191919] truncate">
                   {client.name}
                 </div>
                 {client.email && (

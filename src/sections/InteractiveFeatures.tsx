@@ -31,24 +31,14 @@ interface Feature {
 
 const FEATURES: Feature[] = [
   {
-    id: "projects",
-    icon: "M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2M9 5h6M9 14l2 2 4-4",
-    title: "Gestion de projets",
-    description: "Kanban, timeline et suivi de tâches. Glissez, planifiez, livrez.",
-    cta: "Organiser",
-    gradient: "linear-gradient(135deg, #7C5CFF08 0%, #6C63FF12 100%)",
-    glowColor: "rgba(124,92,255,0.15)",
-    borderColor: "rgba(124,92,255,0.12)",
-  },
-  {
-    id: "invoicing",
-    icon: "M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z",
-    title: "Facturation",
-    description: "Factures automatiques, suivi des paiements, relances intelligentes.",
-    cta: "Facturer",
-    gradient: "linear-gradient(135deg, #FF6B3508 0%, #FF8F6512 100%)",
-    glowColor: "rgba(255,107,53,0.12)",
-    borderColor: "rgba(255,107,53,0.10)",
+    id: "portfolio",
+    icon: "M3 3h18v18H3zM3 9h18M9 21V9",
+    title: "Site web",
+    description: "Votre vitrine en ligne. Builder drag & drop, domaine personnalisé.",
+    cta: "Publier",
+    gradient: "linear-gradient(135deg, #8B5CF608 0%, #A78BFA12 100%)",
+    glowColor: "rgba(139,92,246,0.12)",
+    borderColor: "rgba(139,92,246,0.10)",
   },
   {
     id: "crm",
@@ -61,14 +51,14 @@ const FEATURES: Feature[] = [
     borderColor: "rgba(16,185,129,0.10)",
   },
   {
-    id: "portfolio",
-    icon: "M3 3h18v18H3zM3 9h18M9 21V9",
-    title: "Site portfolio",
-    description: "Votre vitrine en ligne. Builder drag & drop, domaine personnalisé.",
-    cta: "Publier",
-    gradient: "linear-gradient(135deg, #8B5CF608 0%, #A78BFA12 100%)",
-    glowColor: "rgba(139,92,246,0.12)",
-    borderColor: "rgba(139,92,246,0.10)",
+    id: "invoicing",
+    icon: "M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z",
+    title: "Facturation",
+    description: "Factures automatiques, suivi des paiements, relances intelligentes.",
+    cta: "Facturer",
+    gradient: "linear-gradient(135deg, #FF6B3508 0%, #FF8F6512 100%)",
+    glowColor: "rgba(255,107,53,0.12)",
+    borderColor: "rgba(255,107,53,0.10)",
   },
   {
     id: "analytics",
@@ -81,14 +71,24 @@ const FEATURES: Feature[] = [
     borderColor: "rgba(59,130,246,0.10)",
   },
   {
-    id: "automations",
-    icon: "M13 10V3L4 14h7v7l9-11h-7z",
-    title: "Automations",
-    description: "Workflows intelligents. Trigger → action, sans coder.",
-    cta: "Automatiser",
+    id: "commandes",
+    icon: "M9 5H2v7l6.29 6.29a1 1 0 0 0 1.42 0l5.58-5.58a1 1 0 0 0 0-1.42zM6 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2",
+    title: "Commandes",
+    description: "Pipeline complet du brief à la livraison. Statuts, deadlines, CA.",
+    cta: "Suivre",
     gradient: "linear-gradient(135deg, #F59E0B08 0%, #FBBF2412 100%)",
     glowColor: "rgba(245,158,11,0.12)",
     borderColor: "rgba(245,158,11,0.10)",
+  },
+  {
+    id: "agenda",
+    icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z",
+    title: "Agenda",
+    description: "Planning, rendez-vous et deadlines synchronisés. Rien n'est oublié.",
+    cta: "Planifier",
+    gradient: "linear-gradient(135deg, #4C8DFF08 0%, #60A5FA12 100%)",
+    glowColor: "rgba(76,141,255,0.12)",
+    borderColor: "rgba(76,141,255,0.10)",
   },
 ];
 
@@ -97,64 +97,7 @@ const FEATURES: Feature[] = [
    Each renders a mini UI mockup that animates on hover
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ── 1. Projects: Gantt bars sliding in ── */
-function ProjectsPreview({ active }: { active: boolean }) {
-  const tasks = [
-    { label: "Design", width: "65%", color: "#7C5CFF", delay: 0 },
-    { label: "Dev front", width: "80%", color: "#9F7BFF", delay: 0.12 },
-    { label: "Backend", width: "55%", color: "#6C63FF", delay: 0.24 },
-    { label: "Tests", width: "40%", color: "#B197FC", delay: 0.36 },
-  ];
-
-  return (
-    <div className="relative w-full h-full flex flex-col justify-center gap-[7px] px-1">
-      {/* Timeline header */}
-      <div className="flex items-center justify-between mb-1 px-1">
-        {["Lun", "Mar", "Mer", "Jeu", "Ven"].map((d) => (
-          <span key={d} className="text-[8px] font-medium" style={{ color: "#B0B3C0" }}>{d}</span>
-        ))}
-      </div>
-      {/* Gantt bars */}
-      {tasks.map((t) => (
-        <div key={t.label} className="flex items-center gap-2">
-          <span className="text-[8px] font-medium w-[42px] flex-shrink-0 text-right" style={{ color: "#8A8FA3" }}>
-            {t.label}
-          </span>
-          <div className="flex-1 h-[14px] rounded-full overflow-hidden" style={{ background: "rgba(124,92,255,0.06)" }}>
-            <motion.div
-              className="h-full rounded-full relative"
-              style={{ background: t.color }}
-              initial={{ width: "0%" }}
-              animate={active ? { width: t.width } : { width: "0%" }}
-              transition={{ duration: 0.7, delay: t.delay, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {/* Shimmer */}
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
-                }}
-                animate={active ? { x: ["-100%", "200%"] } : {}}
-                transition={{ duration: 1.5, delay: t.delay + 0.6, repeat: Infinity, repeatDelay: 2 }}
-              />
-            </motion.div>
-          </div>
-        </div>
-      ))}
-      {/* Floating avatar */}
-      <motion.div
-        className="absolute right-3 top-3 w-5 h-5 rounded-full flex items-center justify-center text-[7px] font-bold text-white"
-        style={{ background: "#7C5CFF", boxShadow: "0 2px 8px rgba(124,92,255,0.35)" }}
-        animate={active ? { y: [0, -4, 0], x: [0, 6, 0] } : { y: 0, x: 0 }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-      >
-        JB
-      </motion.div>
-    </div>
-  );
-}
-
-/* ── 2. Invoicing: Invoice appearing with counter ── */
+/* ── 1. Invoicing: Invoice appearing with counter ── */
 function InvoicingPreview({ active }: { active: boolean }) {
   const [count, setCount] = useState(0);
   const [paid, setPaid] = useState(false);
@@ -515,174 +458,77 @@ function AnalyticsPreview({ active }: { active: boolean }) {
   );
 }
 
-/* ── 6. Automations: Flow nodes with pulse ── */
-function AutomationsPreview({ active }: { active: boolean }) {
+/* ═══════════════════════════════════════════════════════════════════════
+   PREVIEW SELECTOR
+   ═══════════════════════════════════════════════════════════════════════ */
+
+function CommandesPreview({ active }: { active: boolean }) {
+  const items = [
+    { title: "Logo Pack", status: "Livré", color: "#10B981", bg: "#D1FAE5" },
+    { title: "Vidéo Edit", status: "En cours", color: "#F59E0B", bg: "#FEF3C7" },
+    { title: "Brand Kit", status: "À faire", color: "#9CA3AF", bg: "#F3F4F6" },
+  ];
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <svg width="100%" height="100%" viewBox="0 0 180 110" fill="none" className="absolute inset-0">
-        {/* Connection lines */}
-        <motion.path
-          d="M 40 35 C 65 35, 70 55, 90 55"
-          stroke="url(#flowGrad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={active ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
-          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        />
-        <motion.path
-          d="M 110 55 C 130 55, 130 35, 145 35"
-          stroke="url(#flowGrad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={active ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
-          transition={{ duration: 0.8, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        />
-        <motion.path
-          d="M 110 55 C 130 55, 130 78, 145 78"
-          stroke="url(#flowGrad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          initial={{ pathLength: 0, opacity: 0 }}
-          animate={active ? { pathLength: 1, opacity: 1 } : { pathLength: 0, opacity: 0 }}
-          transition={{ duration: 0.8, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        />
-        {/* Pulse particles on paths */}
-        {active && (
-          <>
-            <motion.circle
-              r="2.5"
-              fill="#7C5CFF"
-              style={{ filter: "drop-shadow(0 0 4px rgba(124,92,255,0.6))" }}
-              animate={{
-                offsetDistance: ["0%", "100%"],
-                opacity: [0, 1, 1, 0],
-              }}
-              transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
-            >
-              <animateMotion
-                dur="1.5s"
-                repeatCount="indefinite"
-                path="M 40 35 C 65 35, 70 55, 90 55"
-              />
-            </motion.circle>
-            <motion.circle
-              r="2.5"
-              fill="#9F7BFF"
-              style={{ filter: "drop-shadow(0 0 4px rgba(159,123,255,0.6))" }}
-            >
-              <animateMotion
-                dur="1.5s"
-                repeatCount="indefinite"
-                path="M 110 55 C 130 55, 130 35, 145 35"
-                begin="0.6s"
-              />
-            </motion.circle>
-          </>
-        )}
-        <defs>
-          <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#7C5CFF" />
-            <stop offset="100%" stopColor="#9F7BFF" />
-          </linearGradient>
-        </defs>
-      </svg>
+    <div className="w-full h-full flex flex-col justify-center gap-[6px] px-1">
+      {items.map((o, i) => (
+        <motion.div
+          key={o.title}
+          className="flex items-center justify-between px-3 py-2 rounded-lg"
+          style={{ background: "#FAFAFA" }}
+          initial={{ opacity: 0, x: -12 }}
+          animate={active ? { opacity: 1, x: 0 } : { opacity: 0, x: -12 }}
+          transition={{ duration: 0.5, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <span className="text-[10px] font-medium" style={{ color: "#333" }}>{o.title}</span>
+          <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded" style={{ background: o.bg, color: o.color }}>{o.status}</span>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
 
-      {/* Nodes */}
-      {/* Trigger */}
+function AgendaPreview({ active }: { active: boolean }) {
+  const days = Array.from({ length: 10 }, (_, i) => i + 14);
+  return (
+    <div className="w-full h-full flex flex-col justify-center gap-2 px-1">
+      <div className="grid grid-cols-5 gap-1">
+        {days.map((d, i) => (
+          <motion.div
+            key={d}
+            className="aspect-square rounded text-[8px] flex items-center justify-center font-medium"
+            style={{
+              background: d === 17 ? "#4C8DFF" : "#EAF3FF",
+              color: d === 17 ? "white" : "#4C8DFF",
+            }}
+            initial={{ opacity: 0, scale: 0.6 }}
+            animate={active ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
+            transition={{ duration: 0.35, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {d}
+          </motion.div>
+        ))}
+      </div>
       <motion.div
-        className="absolute rounded-xl flex flex-col items-center justify-center"
-        style={{
-          left: "12%", top: "18%",
-          width: 52, height: 34,
-          background: "white",
-          border: "1.5px solid rgba(124,92,255,0.25)",
-          boxShadow: "0 2px 8px rgba(124,92,255,0.08)",
-        }}
-        animate={active ? { scale: [1, 1.06, 1] } : {}}
-        transition={{ duration: 1.8, repeat: Infinity }}
+        className="px-2.5 py-1.5 rounded-lg"
+        style={{ background: "#EAF3FF" }}
+        initial={{ opacity: 0, y: 8 }}
+        animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+        transition={{ duration: 0.5, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
       >
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#7C5CFF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 4h16v16H4zM12 8v8M8 12h8" />
-        </svg>
-        <span className="text-[5px] font-bold mt-0.5" style={{ color: "#7C5CFF" }}>Trigger</span>
-      </motion.div>
-
-      {/* Process */}
-      <motion.div
-        className="absolute rounded-xl flex flex-col items-center justify-center"
-        style={{
-          left: "42%", top: "35%",
-          width: 52, height: 34,
-          background: "white",
-          border: "1.5px solid rgba(124,92,255,0.2)",
-          boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-        }}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={active ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-      >
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6C63FF" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        <span className="text-[5px] font-bold mt-0.5" style={{ color: "#6C63FF" }}>Process</span>
-      </motion.div>
-
-      {/* Actions */}
-      <motion.div
-        className="absolute rounded-xl flex flex-col items-center justify-center"
-        style={{
-          right: "8%", top: "16%",
-          width: 52, height: 34,
-          background: "white",
-          border: "1.5px solid rgba(16,185,129,0.25)",
-          boxShadow: "0 2px 8px rgba(16,185,129,0.08)",
-        }}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={active ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-        transition={{ delay: 0.7, duration: 0.5 }}
-      >
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
-        </svg>
-        <span className="text-[5px] font-bold mt-0.5" style={{ color: "#10B981" }}>Email</span>
-      </motion.div>
-
-      <motion.div
-        className="absolute rounded-xl flex flex-col items-center justify-center"
-        style={{
-          right: "8%", top: "55%",
-          width: 52, height: 34,
-          background: "white",
-          border: "1.5px solid rgba(245,158,11,0.25)",
-          boxShadow: "0 2px 8px rgba(245,158,11,0.08)",
-        }}
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={active ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-        transition={{ delay: 0.85, duration: 0.5 }}
-      >
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
-        </svg>
-        <span className="text-[5px] font-bold mt-0.5" style={{ color: "#F59E0B" }}>Facture</span>
+        <span className="text-[10px] font-semibold" style={{ color: "#4C8DFF" }}>Call client — 14h</span>
       </motion.div>
     </div>
   );
 }
 
-/* ═══════════════════════════════════════════════════════════════════════
-   PREVIEW SELECTOR
-   ═══════════════════════════════════════════════════════════════════════ */
-
 function AnimatedPreview({ featureId, active }: { featureId: string; active: boolean }) {
   switch (featureId) {
-    case "projects": return <ProjectsPreview active={active} />;
     case "invoicing": return <InvoicingPreview active={active} />;
     case "crm": return <CrmPreview active={active} />;
     case "portfolio": return <PortfolioPreview active={active} />;
     case "analytics": return <AnalyticsPreview active={active} />;
-    case "automations": return <AutomationsPreview active={active} />;
+    case "commandes": return <CommandesPreview active={active} />;
+    case "agenda": return <AgendaPreview active={active} />;
     default: return null;
   }
 }
@@ -889,7 +735,7 @@ export default function InteractiveFeatures() {
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 max-w-4xl mx-auto">
           {FEATURES.map((feature, i) => (
             <FeatureCard key={feature.id} feature={feature} index={i} />
           ))}

@@ -1,11 +1,57 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
+
+const checkLimit = rateLimit("public-leads", 10);
+
+// ── Auto-migration: ensure leads table has columns from migration 025 ──
+let migrationDone = false;
+async function ensureLeadsColumns(): Promise<boolean> {
+  if (migrationDone) return true;
+  const dbPassword = process.env.DATABASE_PASSWORD;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!dbPassword || !supabaseUrl) return false;
+  const ref = new URL(supabaseUrl).hostname.split(".")[0];
+  try {
+    const postgres = (await import("postgres")).default;
+    const sql = postgres({ host: `db.${ref}.supabase.co`, port: 5432, database: "postgres", username: "postgres", password: dbPassword, ssl: "require", connect_timeout: 15, idle_timeout: 5, max: 1 });
+    try {
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS company TEXT`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'new'`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS page_path TEXT`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS block_type TEXT`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS block_label TEXT`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS utm_source TEXT`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS utm_medium TEXT`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS utm_campaign TEXT`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS referrer TEXT`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS product_name TEXT`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS amount NUMERIC`;
+      await sql`ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS notes TEXT`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_leads_status ON public.leads(status)`;
+      await sql`CREATE INDEX IF NOT EXISTS idx_leads_source ON public.leads(source)`;
+      await sql`NOTIFY pgrst, 'reload schema'`;
+      console.log("[LEADS] ✅ Auto-migration: leads columns ensured");
+      migrationDone = true;
+      return true;
+    } finally { await sql.end(); }
+  } catch (e) {
+    console.error("[LEADS] Auto-migration failed:", e instanceof Error ? e.message : e);
+    migrationDone = true;
+    return false;
+  }
+}
 
 // POST /api/public/leads — unified lead ingestion endpoint
 // Accepts leads from all site surfaces: forms, newsletter, checkout, quote requests, etc.
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  if (!checkLimit(ip)) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+  }
+
   const body = await req.json();
   const {
     site_id, name, email, phone, company, source, message, fields,
@@ -51,8 +97,27 @@ export async function POST(req: NextRequest) {
 
   const supabase = await createClient();
 
-  // Build lead row with all enrichment fields
-  const leadRow: Record<string, unknown> = {
+  // ── Build enriched fields object (stores everything safely in JSONB) ──
+  const enrichedFields: Record<string, unknown> = { ...(fields || {}) };
+  if (page_path) enrichedFields._page_path = page_path;
+  if (block_type) enrichedFields._block_type = block_type;
+  if (block_label) enrichedFields._block_label = block_label;
+  if (company) enrichedFields._company = company;
+  if (utm_source) enrichedFields._utm_source = utm_source;
+  if (utm_medium) enrichedFields._utm_medium = utm_medium;
+  if (utm_campaign) enrichedFields._utm_campaign = utm_campaign;
+  if (utm_content) enrichedFields._utm_content = utm_content;
+  if (utm_term) enrichedFields._utm_term = utm_term;
+  if (referrer) enrichedFields._referrer = referrer;
+  if (anonymous_id) enrichedFields._anonymous_id = anonymous_id;
+  if (first_touch_source) enrichedFields._first_touch_source = first_touch_source;
+  if (last_touch_source) enrichedFields._last_touch_source = last_touch_source;
+  if (product_name) enrichedFields._product_name = product_name;
+  if (amount != null && amount !== 0) enrichedFields._amount = amount;
+
+
+  // Full lead row with all columns
+  const fullRow: Record<string, unknown> = {
     site_id,
     email,
     name: name || null,
@@ -61,31 +126,50 @@ export async function POST(req: NextRequest) {
     source: source || "contact-form",
     status: "new",
     message: message || null,
-    fields: fields || {},
+    fields: enrichedFields,
     page_path: page_path || null,
     block_type: block_type || null,
     block_label: block_label || null,
     utm_source: utm_source || null,
     utm_medium: utm_medium || null,
     utm_campaign: utm_campaign || null,
-    utm_content: utm_content || null,
-    utm_term: utm_term || null,
     referrer: referrer || null,
-    anonymous_id: anonymous_id || null,
-    first_touch_source: first_touch_source || null,
-    last_touch_source: last_touch_source || null,
     product_name: product_name || null,
     amount: amount ?? null,
   };
 
-  const { data: leadData, error: leadErr } = await (supabase.from("leads") as any)
-    .insert(leadRow)
-    .select()
-    .single();
+  // Try insert
+  let { data: leadData, error: leadErr } = await (supabase.from("leads") as any)
+    .insert(fullRow).select().single();
+
+  // If trigger/column error → auto-migrate and retry
+  if (leadErr && (leadErr.code === "42703" || leadErr.message?.includes("schema cache") || leadErr.message?.includes("has no field"))) {
+    console.warn("[LEADS] Column missing, running auto-migration...", leadErr.message);
+    const migrated = await ensureLeadsColumns();
+    if (migrated) {
+      // Wait for PostgREST schema cache reload
+      await new Promise(r => setTimeout(r, 2000));
+      const retry = await (supabase.from("leads") as any).insert(fullRow).select().single();
+      leadData = retry.data;
+      leadErr = retry.error;
+      if (leadErr) {
+        // Last resort: try without PostgREST (direct insert without .select)
+        console.warn("[LEADS] Retry still failed, trying without select...", leadErr.message);
+        const { error: lastErr } = await (supabase.from("leads") as any).insert(fullRow);
+        if (!lastErr) {
+          return NextResponse.json({ ok: true, id: null, order_id: null });
+        }
+        leadErr = lastErr;
+      }
+    }
+  }
 
   if (leadErr) {
-    return NextResponse.json({ error: leadErr.message }, { status: 500 });
+    console.error("[LEADS] ❌ Insert failed:", leadErr.message, leadErr.code);
+    return NextResponse.json({ error: "Erreur lors de l'enregistrement" }, { status: 500 });
   }
+
+  console.log("[LEADS] ✅ Lead created:", leadData?.id);
 
   // Link any existing attribution touches with same anonymous_id to this lead
   if (anonymous_id) {

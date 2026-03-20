@@ -241,7 +241,7 @@ function SearchResultItem({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <div className={`${isTopResult ? "text-[14px]" : "text-[13px]"} text-[#1A1A1A] font-medium truncate`}>
+        <div className={`${isTopResult ? "text-[14px]" : "text-[13px]"} text-[#191919] font-medium truncate`}>
           <HighlightText text={item.title} query={query} />
         </div>
 
@@ -548,7 +548,7 @@ export default function GlobalSearch() {
                   onChange={(e) => { setQuery(e.target.value); setSelectedIndex(0); }}
                   onKeyDown={handleKeyDown}
                   placeholder="Rechercher clients, projets, commandes, fichiers..."
-                  className="flex-1 bg-transparent py-3.5 text-[14px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none"
+                  className="flex-1 bg-transparent py-3.5 text-[14px] text-[#191919] placeholder-[#BBB] focus:outline-none"
                 />
                 {query && (
                   <button

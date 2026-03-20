@@ -3,7 +3,7 @@ import { useBuilder } from "@/lib/site-builder-context";
 import type { Block } from "@/types";
 import ProductModeEditor from "./shared/ProductModeEditor";
 
-const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 export default function Pricing3TierSaasBlockEditor({ block }: { block: Extract<Block, { type: "pricing-3tier-saas" }> }) {
   const { dispatch } = useBuilder();
@@ -106,7 +106,7 @@ export default function Pricing3TierSaasBlockEditor({ block }: { block: Extract<
                 placeholder={"Feature 1\nFeature 2\nFeature 3"}
               />
             </div>
-            <label className="flex items-center gap-2 text-[13px] text-[#1A1A1A] cursor-pointer">
+            <label className="flex items-center gap-2 text-[13px] text-[#191919] cursor-pointer">
               <input
                 type="checkbox"
                 checked={plan.isPopular ?? false}

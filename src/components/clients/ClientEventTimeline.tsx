@@ -65,7 +65,7 @@ export default function ClientEventTimeline({ events }: Props) {
               <div className={`absolute -left-6 top-1.5 w-[10px] h-[10px] rounded-full ${cfg.color} ring-2 ring-white`} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                  <span className="text-[12px] font-medium text-[#1A1A1A]">{cfg.label}</span>
+                  <span className="text-[12px] font-medium text-[#191919]">{cfg.label}</span>
                   <span className="text-[11px] text-[#999]">{formatDate(event.createdAt)}</span>
                 </div>
                 <p className="text-[12px] text-[#666] truncate">{eventDescription(event)}</p>

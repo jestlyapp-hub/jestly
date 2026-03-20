@@ -27,7 +27,7 @@ function ProjectMasonryWallBlockPreviewInner({ content, siteSlug, basePath }: { 
           <h2
             className="text-3xl font-bold mb-8"
             style={{
-              color: "var(--site-text, #1A1A1A)",
+              color: "var(--site-text, #191919)",
               fontFamily: "var(--site-heading-font, inherit)",
             }}
           >

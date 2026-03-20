@@ -4,6 +4,7 @@ import { enrichOrdersWithProducts } from "@/lib/supabase-helpers";
 import { getDashboardCalendarMonth } from "@/lib/dashboard/calendar";
 import { getDashboardToday } from "@/lib/dashboard/today";
 import { getDashboardRevenueSeries } from "@/lib/dashboard/revenue";
+import { computeOrdersPipelineSummary } from "@/lib/business-metrics";
 
 // GET /api/dashboard/stats — enriched dashboard data
 export async function GET() {
@@ -122,10 +123,17 @@ export async function GET() {
   // Recent orders
   const recentOrders = orders.slice(0, 8);
 
+  // ══════════════════════════════════════════════
+  // PIPELINE SUMMARY (source de vérité unique)
+  // ══════════════════════════════════════════════
+  const pipelineSummary = computeOrdersPipelineSummary(orders);
+
   console.log(`[DASHBOARD] ✅ user=${user.id} | orders=${orders.length} clients=${clients.length} | today=${todayData.totalCount} items | revenue=${revenueData.totalRevenue}€ | calendar=${Object.values(calendarData.days).filter(d => d.hasAny).length} active days`);
 
   return NextResponse.json({
-    // KPIs
+    // Pipeline summary (source de vérité unique — CA total / En cours / Prêtes)
+    pipelineSummary,
+    // KPIs (kept for other dashboard widgets)
     totalRevenue: revenueData.totalRevenue,
     monthRevenue: revenueData.currentMonthRevenue,
     todayRevenue: Math.round(todayRevenue * 100) / 100,

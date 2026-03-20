@@ -24,7 +24,7 @@ function HeroMinimalServiceBlockPreviewInner({ content }: { content: HeroMinimal
         <h1
           className="text-4xl sm:text-5xl font-bold leading-[1.1] mb-4 max-w-2xl"
           style={{
-            color: "var(--site-text, #1A1A1A)",
+            color: "var(--site-text, #191919)",
             fontFamily: "var(--site-heading-font, inherit)",
           }}
         >
@@ -55,7 +55,7 @@ function HeroMinimalServiceBlockPreviewInner({ content }: { content: HeroMinimal
               className="inline-flex items-center justify-center text-[13px] font-semibold px-6 py-3 border transition-all duration-200"
               style={{
                 backgroundColor: "transparent",
-                color: "var(--site-text, #1A1A1A)",
+                color: "var(--site-text, #191919)",
                 borderColor: "var(--site-border, #E6E6E4)",
                 borderRadius: "var(--site-btn-radius, 8px)",
               }}

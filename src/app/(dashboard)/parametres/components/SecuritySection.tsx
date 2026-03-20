@@ -18,7 +18,7 @@ export function SecuritySection({ profile }: {
               <Lock size={16} className="text-[#A8A29E]" />
             </div>
             <div className="flex-1 min-w-0">
-              <span className="text-[13px] font-medium text-[#1A1A1A]">Modifier le mot de passe</span>
+              <span className="text-[13px] font-medium text-[#191919]">Modifier le mot de passe</span>
               <p className="text-[12px] text-[#A8A29E]">Un email de réinitialisation sera envoyé à votre adresse.</p>
             </div>
             <span className="text-[10px] font-semibold text-[#A8A29E] bg-[#F5F5F4] px-2 py-0.5 rounded-full">Bientôt</span>
@@ -35,7 +35,7 @@ export function SecuritySection({ profile }: {
               <Smartphone size={16} className="text-[#A8A29E]" />
             </div>
             <div className="flex-1 min-w-0">
-              <span className="text-[13px] font-medium text-[#1A1A1A]">Application d&apos;authentification</span>
+              <span className="text-[13px] font-medium text-[#191919]">Application d&apos;authentification</span>
               <p className="text-[12px] text-[#A8A29E]">Google Authenticator, Authy...</p>
             </div>
             <span className="text-[10px] font-semibold text-[#A8A29E] bg-[#F5F5F4] px-2 py-0.5 rounded-full">Bientôt</span>
@@ -52,7 +52,7 @@ export function SecuritySection({ profile }: {
               <Monitor size={16} className="text-[#7C3AED] flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className="text-[13px] font-medium text-[#1A1A1A]">Session actuelle</span>
+                  <span className="text-[13px] font-medium text-[#191919]">Session actuelle</span>
                   <span className="text-[10px] font-semibold text-[#7C3AED] bg-[#F0EEFF] px-1.5 py-0.5 rounded-full">Cet appareil</span>
                 </div>
                 <p className="text-[12px] text-[#A8A29E]">Connecté maintenant</p>
@@ -69,7 +69,7 @@ export function SecuritySection({ profile }: {
           <div className="flex items-center gap-3 px-4 py-3 rounded-lg border border-[#E6E6E4]">
             <Globe size={16} className="text-[#A8A29E] flex-shrink-0" />
             <div className="flex-1 min-w-0">
-              <span className="text-[13px] font-medium text-[#1A1A1A]">Google</span>
+              <span className="text-[13px] font-medium text-[#191919]">Google</span>
               <p className="text-[12px] text-[#A8A29E]">{profile.email}</p>
             </div>
             <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full">Connecté</span>

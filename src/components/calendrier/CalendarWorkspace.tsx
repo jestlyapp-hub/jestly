@@ -267,7 +267,7 @@ export default function CalendarWorkspace() {
         {/* Left: Title + Navigation + Date range */}
         <div className="flex items-center gap-5">
           {/* Page title */}
-          <h1 className="text-[18px] font-bold text-[#1A1A1A] tracking-[-0.01em]">
+          <h1 className="text-[18px] font-bold text-[#191919] tracking-[-0.01em]">
             Calendrier
           </h1>
 
@@ -315,7 +315,7 @@ export default function CalendarWorkspace() {
                 onClick={() => setView(v)}
                 className={`px-3.5 py-[5px] rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
                   view === v
-                    ? "bg-white text-[#1A1A1A] shadow-sm"
+                    ? "bg-white text-[#191919] shadow-sm"
                     : "text-[#888] hover:text-[#555]"
                 }`}
               >

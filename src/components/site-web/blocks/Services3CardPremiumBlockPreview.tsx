@@ -27,7 +27,7 @@ function Services3CardPremiumBlockPreviewInner({ content }: { content: Services3
             <h2
               className="text-3xl sm:text-4xl font-bold mb-4"
               style={{
-                color: "var(--site-text, #1A1A1A)",
+                color: "var(--site-text, #191919)",
                 fontFamily: "var(--site-heading-font, inherit)",
               }}
             >
@@ -57,7 +57,7 @@ function Services3CardPremiumBlockPreviewInner({ content }: { content: Services3
             >
               <h3
                 className="text-lg font-semibold mb-2"
-                style={{ color: "var(--site-text, #1A1A1A)" }}
+                style={{ color: "var(--site-text, #191919)" }}
               >
                 {service.title}
               </h3>
@@ -75,7 +75,7 @@ function Services3CardPremiumBlockPreviewInner({ content }: { content: Services3
                     <li
                       key={j}
                       className="flex items-start gap-2 text-sm"
-                      style={{ color: "var(--site-text, #1A1A1A)" }}
+                      style={{ color: "var(--site-text, #191919)" }}
                     >
                       <svg
                         width="16"

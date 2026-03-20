@@ -9,7 +9,7 @@ function MediaFeaturedVideoBlockPreview({ content }: { content: MediaFeaturedVid
         {content.title && (
           <h2
             className="text-3xl font-bold text-center mb-3"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -91,7 +91,7 @@ function MediaFeaturedVideoBlockPreview({ content }: { content: MediaFeaturedVid
                 </div>
                 {video.title && (
                   <div className="absolute bottom-0 left-0 right-0 px-3 py-2 z-10">
-                    <span className="text-[12px] font-medium" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                    <span className="text-[12px] font-medium" style={{ color: "var(--site-text, #191919)" }}>
                       {video.title}
                     </span>
                   </div>

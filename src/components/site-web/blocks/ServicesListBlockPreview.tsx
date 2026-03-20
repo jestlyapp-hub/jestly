@@ -28,7 +28,7 @@ function ServicesListBlockPreviewInner({ content }: { content: ServicesListBlock
     <div className="py-4">
       <div className="max-w-7xl mx-auto px-6">
       {content.title && (
-        <h3 className="text-lg font-bold mb-4" style={{ color: "var(--site-text, #1A1A1A)" }}>{content.title}</h3>
+        <h3 className="text-lg font-bold mb-4" style={{ color: "var(--site-text, #191919)" }}>{content.title}</h3>
       )}
       <div className={isGrid ? "grid grid-cols-1 sm:grid-cols-2 gap-3" : "space-y-3"}>
         {sorted.map((product) => (
@@ -39,7 +39,7 @@ function ServicesListBlockPreviewInner({ content }: { content: ServicesListBlock
           >
             <div className={isGrid ? "" : "flex-1"}>
               <div className="flex items-center gap-2">
-                <div className="text-[13px] font-semibold" style={{ color: "var(--site-text, #1A1A1A)" }}>{product.name}</div>
+                <div className="text-[13px] font-semibold" style={{ color: "var(--site-text, #191919)" }}>{product.name}</div>
                 {product.featured && (
                   <span className="text-white text-[9px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--site-primary)" }}>En vedette</span>
                 )}

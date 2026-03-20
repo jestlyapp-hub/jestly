@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
-
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type Ctx = { params: Promise<{ token: string }> };
 
 // GET /api/public/share/[token] — public shared project view
 export async function GET(_req: NextRequest, ctx: Ctx) {
   const { token } = await ctx.params;
+  const supabaseAdmin = createAdminClient();
 
   if (!token || token.length < 8) {
     return NextResponse.json({ error: "Token invalide" }, { status: 400 });

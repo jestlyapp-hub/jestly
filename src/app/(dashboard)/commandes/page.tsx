@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useTrack } from "@/lib/hooks/use-track";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { useColumns } from "@/lib/hooks/use-columns";
 import { orderRecordToOrder } from "@/lib/adapters";
 import type { Order, FieldOption, BoardField } from "@/types";
-import OrderDrawer from "@/components/commandes/OrderDrawer";
-import CreateOrderDrawer from "@/components/commandes/CreateOrderDrawer";
+
+const OrderDrawer = dynamic(() => import("@/components/commandes/OrderDrawer"), { ssr: false });
+const CreateOrderDrawer = dynamic(() => import("@/components/commandes/CreateOrderDrawer"), { ssr: false });
 import EditableCell from "@/components/commandes/EditableCell";
 import ClientSelectCell from "@/components/commandes/ClientSelectCell";
 import StatusSelectCell from "@/components/commandes/StatusSelectCell";
@@ -16,9 +19,11 @@ import AddColumnButton from "@/components/commandes/AddColumnButton";
 import ColumnHeaderMenu from "@/components/commandes/ColumnHeaderMenu";
 import BulkToolbar from "@/components/commandes/BulkToolbar";
 import { toast } from "@/lib/hooks/use-toast";
-import { formatDateFR, isOverdue } from "@/lib/notion-colors";
+import { formatDateFR, isOverdue, isOrderOverdue, isActiveProductionStatus } from "@/lib/notion-colors";
 import { NEXT_STATUS, PREV_STATUS, STATUS_LABELS, LEGACY_SEEDED_KEYS } from "@/lib/kanban-config";
 import SelectableCheckbox from "@/components/ui/SelectableCheckbox";
+import PipelineSummaryCards from "@/components/ui/PipelineSummaryCards";
+import { computeOrdersPipelineSummary } from "@/lib/business-metrics";
 
 /* ─── Notion-style color palette for select options ─── */
 const OPTION_COLORS = ["violet", "blue", "cyan", "emerald", "amber", "orange", "rose", "pink", "indigo", "teal"];
@@ -79,10 +84,14 @@ function fmtEur(n: number): string {
 /* ─── Page ─── */
 
 export default function CommandesPage() {
+  const track = useTrack();
   const [activeTab, setActiveTab] = useState<TabKey>("todo");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+
+  // Track page view au montage
+  useEffect(() => { track("commandes_page_viewed"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ─── Data: single source of truth via useApi + setData ─── */
 
@@ -147,29 +156,51 @@ export default function CommandesPage() {
 
   /* ─── Counts + filter ─── */
 
+  /* ─── Status group mapping ─── */
+  const STATUS_GROUPS: Record<string, string[]> = {
+    todo: ["new", "brief_received"],
+    in_progress: ["in_progress", "in_review", "validated"],
+    delivered: ["delivered"],
+    paid: ["paid", "invoiced"],
+  };
+
+  const getTabForStatus = (status: string): keyof typeof STATUS_GROUPS | null => {
+    for (const [group, statuses] of Object.entries(STATUS_GROUPS)) {
+      if (statuses.includes(status)) return group as keyof typeof STATUS_GROUPS;
+    }
+    return null;
+  };
+
   const counts = useMemo(() => {
     const c = { todo: 0, in_progress: 0, delivered: 0, paid: 0, all: orders.length };
     for (const o of orders) {
-      if (o.status === "new") c.todo++;
-      else if (o.status === "in_progress") c.in_progress++;
-      else if (o.status === "delivered") c.delivered++;
-      else if (o.status === "paid") c.paid++;
+      const group = getTabForStatus(o.status);
+      if (group && group in c) c[group as keyof Omit<typeof c, "all">]++;
     }
     return c;
   }, [orders]);
 
-  /* ─── Aggregated stats ─── */
+  /* ─── Pipeline summary (source de vérité unique) ─── */
+  const pipelineSummary = useMemo(() => computeOrdersPipelineSummary(orders), [orders]);
+
+  /* ─── Aggregated stats (overdue/soon pour alertes) ─── */
   const stats = useMemo(() => {
-    const totalCA = orders.reduce((s, o) => s + o.price, 0);
-    const overdueCount = orders.filter(o => o.deadline && isOverdue(o.deadline) && o.status !== "paid").length;
-    const soonCount = orders.filter(o => o.deadline && isDeadlineSoon(o.deadline) && !isOverdue(o.deadline) && o.status !== "paid").length;
-    return { totalCA, overdueCount, soonCount };
+    const overdueCount = orders.filter(o => isOrderOverdue(o.deadline, o.status)).length;
+    const soonCount = orders.filter(o => o.deadline && isDeadlineSoon(o.deadline) && !isOverdue(o.deadline) && isActiveProductionStatus(o.status)).length;
+    return { overdueCount, soonCount };
   }, [orders]);
 
   const filtered = useMemo(() => {
     let list = orders;
     const tab = TABS.find((t) => t.key === activeTab);
-    if (tab?.slug) list = list.filter((o) => o.status === tab.slug);
+    if (tab?.slug) {
+      const groupStatuses = STATUS_GROUPS[activeTab];
+      if (groupStatuses) {
+        list = list.filter((o) => groupStatuses.includes(o.status));
+      } else {
+        list = list.filter((o) => o.status === tab.slug);
+      }
+    }
     if (search) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -495,16 +526,18 @@ export default function CommandesPage() {
             )}
           </div>
         );
-      case "deadline":
+      case "deadline": {
+        const operationallyOverdue = isOrderOverdue(order.deadline, order.status);
+        const operationallySoon = order.deadline && isDeadlineSoon(order.deadline) && !isOverdue(order.deadline) && isActiveProductionStatus(order.status);
         return order.deadline ? (
           <span className={`inline-flex items-center gap-1.5 text-[12px] px-2 py-0.5 rounded-md ${
-            isOverdue(order.deadline)
+            operationallyOverdue
               ? "bg-red-50 text-red-600 font-medium"
-              : isDeadlineSoon(order.deadline)
+              : operationallySoon
                 ? "bg-amber-50 text-amber-600 font-medium"
                 : "text-[#5A5A58]"
           }`}>
-            {isOverdue(order.deadline) && (
+            {operationallyOverdue && (
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
             )}
             {formatDateFR(order.deadline)}
@@ -512,6 +545,7 @@ export default function CommandesPage() {
         ) : (
           <span className="text-[#D0D0CE] text-[12px]">—</span>
         );
+      }
       case "date":
         return <span className="text-[12px] text-[#8A8A88]">{order.date}</span>;
       default:
@@ -556,27 +590,24 @@ export default function CommandesPage() {
           </button>
         </div>
 
-        {/* ─── Quick stats ─── */}
+        {/* ─── Pipeline Summary (source de vérité unique) ─── */}
         {orders.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2 mt-4">
-            <div className="flex items-center gap-1.5 text-[12px] text-[#5A5A58] bg-[#F7F7F5] rounded-lg px-3 py-1.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A8A88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-              <span className="font-medium text-[#191919]">{orders.length}</span> commande{orders.length > 1 ? "s" : ""}
-            </div>
-            <div className="flex items-center gap-1.5 text-[12px] text-[#5A5A58] bg-[#F7F7F5] rounded-lg px-3 py-1.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#8A8A88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              <span className="font-medium text-[#191919]">{fmtEur(stats.totalCA)}</span> CA total
-            </div>
-            {stats.overdueCount > 0 && (
-              <div className="flex items-center gap-1.5 text-[12px] text-red-600 bg-red-50 rounded-lg px-3 py-1.5">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <span className="font-medium">{stats.overdueCount}</span> en retard
-              </div>
-            )}
-            {stats.soonCount > 0 && (
-              <div className="flex items-center gap-1.5 text-[12px] text-amber-600 bg-amber-50 rounded-lg px-3 py-1.5">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <span className="font-medium">{stats.soonCount}</span> bientôt
+          <div className="mt-4">
+            <PipelineSummaryCards summary={pipelineSummary} />
+            {(stats.overdueCount > 0 || stats.soonCount > 0) && (
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {stats.overdueCount > 0 && (
+                  <div className="flex items-center gap-1.5 text-[12px] text-red-600 bg-red-50 rounded-lg px-3 py-1.5">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                    <span className="font-medium">{stats.overdueCount}</span> en retard
+                  </div>
+                )}
+                {stats.soonCount > 0 && (
+                  <div className="flex items-center gap-1.5 text-[12px] text-amber-600 bg-amber-50 rounded-lg px-3 py-1.5">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span className="font-medium">{stats.soonCount}</span> bientôt
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -805,7 +836,7 @@ export default function CommandesPage() {
       <CreateOrderDrawer
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={mutate}
+        onCreated={() => { mutate(); track("order_created"); if (orders.length === 0) track("first_order_created"); }}
       />
 
     </div>

@@ -7,7 +7,7 @@ import { TEMPLATES } from "@/lib/site-templates";
 import type { SiteTheme, SiteDesign, SitePage, Block, BackgroundPreset, BackgroundConfig } from "@/types";
 
 const sectionLabel = "text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-2 block";
-const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 /** Sanitize a color value for <input type="color"> — must be #rrggbb */
 function toHexColor(value: string | undefined, fallback: string): string {
@@ -32,7 +32,7 @@ function ColorField({ label, value, onChange }: { label: string; value: string; 
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder="#hex"
-          className="flex-1 bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 transition-all"
+          className="flex-1 bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 transition-all"
         />
       </div>
     </div>
@@ -182,7 +182,7 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
-          <span className="text-[12px] font-semibold text-[#1A1A1A]">Design system</span>
+          <span className="text-[12px] font-semibold text-[#191919]">Design system</span>
         </div>
         <button onClick={onClose} className="text-[#999] hover:text-[#666] p-1">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -226,7 +226,7 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
                     <span className="text-white text-[11px] font-bold">{template.name.charAt(0)}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[12px] font-semibold text-[#1A1A1A]">{template.name}</div>
+                    <div className="text-[12px] font-semibold text-[#191919]">{template.name}</div>
                     <div className="text-[10px] text-[#888] truncate">{template.audience}</div>
                   </div>
                   <div className="flex gap-0.5 flex-shrink-0">
@@ -417,7 +417,7 @@ export default function ThemeEditorPanel({ onClose }: { onClose: () => void }) {
                     value={theme.buttonHoverScale ?? ""}
                     onChange={(e) => updateTheme({ buttonHoverScale: e.target.value ? parseFloat(e.target.value) : undefined })}
                     placeholder="1.00"
-                    className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 transition-all"
+                    className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 transition-all"
                   />
                 </div>
               </div>

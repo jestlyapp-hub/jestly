@@ -45,7 +45,7 @@ export default function TaskListView({
               className="w-2.5 h-2.5 rounded-full"
               style={{ background: group.config.color }}
             />
-            <span className="text-[13px] font-semibold text-[#1A1A1A]">
+            <span className="text-[13px] font-semibold text-[#191919]">
               {group.config.label}
             </span>
             <span className="text-[12px] text-[#BBB] ml-1">
@@ -133,7 +133,7 @@ export default function TaskListView({
 
                         {/* Title */}
                         <td className="px-4 py-3 max-w-[300px]">
-                          <span className="text-[13px] font-medium text-[#1A1A1A] truncate block">
+                          <span className="text-[13px] font-medium text-[#191919] truncate block">
                             {task.title || "Sans titre"}
                           </span>
                         </td>

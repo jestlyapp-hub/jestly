@@ -87,7 +87,7 @@ const spacingPresetOptions: { value: SpacingPreset; label: string; desc: string 
   { value: "hero", label: "Hero", desc: "100px" },
 ];
 
-const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 const sectionLabel = "text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-2 block";
 
 function SegmentedPresets({ options, value, onChange }: { options: { value: string | number; label: string }[]; value: string | number | undefined; onChange: (v: string | number) => void }) {
@@ -158,7 +158,7 @@ export default function BuilderPropertyPanel() {
           <div className="w-5 h-5 rounded bg-[#EEF2FF] flex items-center justify-center flex-shrink-0">
             <div className="w-2 h-2 rounded-sm bg-[#4F46E5]" />
           </div>
-          <span className="text-[12px] font-semibold text-[#1A1A1A] truncate">{entry?.name || activeBlock.type}</span>
+          <span className="text-[12px] font-semibold text-[#191919] truncate">{entry?.name || activeBlock.type}</span>
         </div>
         <button
           onClick={() => dispatch({ type: "TOGGLE_BLOCK_VISIBILITY", blockId: activeBlock.id })}
@@ -241,7 +241,7 @@ export default function BuilderPropertyPanel() {
                         className="w-3 h-3 rounded border border-black/10 flex-shrink-0"
                         style={{ background: preset.style.backgroundColor || "#fff" }}
                       />
-                      <span className="text-[10px] font-semibold text-[#1A1A1A]">{preset.name}</span>
+                      <span className="text-[10px] font-semibold text-[#191919]">{preset.name}</span>
                     </div>
                     <span className="text-[9px] text-[#999]">{preset.description}</span>
                   </button>
@@ -411,7 +411,7 @@ export default function BuilderPropertyPanel() {
                       }`}
                     >
                       <div className="min-w-0">
-                        <div className="text-[12px] font-medium text-[#1A1A1A]">{v.name}</div>
+                        <div className="text-[12px] font-medium text-[#191919]">{v.name}</div>
                         <div className="text-[10px] text-[#999]">{v.description}</div>
                       </div>
                     </button>
@@ -447,7 +447,7 @@ export default function BuilderPropertyPanel() {
                         : "border-[#E6E6E4] hover:border-[#4F46E5]/30"
                     }`}
                   >
-                    <div className="text-[11px] font-medium text-[#1A1A1A]">{anim.label}</div>
+                    <div className="text-[11px] font-medium text-[#191919]">{anim.label}</div>
                     <div className="text-[9px] text-[#999]">{anim.description}</div>
                   </button>
                 ))}

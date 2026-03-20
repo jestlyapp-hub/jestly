@@ -25,7 +25,7 @@ function SocialProofMarqueeBlockPreviewInner({ content }: { content: SocialProof
                 border: "1px solid var(--site-border, #E6E6E4)",
               }}
             >
-              <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--site-text, #191919)" }}>
                 &ldquo;{item.text}&rdquo;
               </p>
               <div className="flex items-center justify-between">

@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getAuthUser } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
+import { apiError } from "@/lib/api-error";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -21,7 +24,7 @@ export async function POST(
     .single();
 
   if (siteError || !site) {
-    return NextResponse.json({ error: "Site introuvable." }, { status: 404 });
+    return apiError(404, "Site introuvable.", { route: "/api/sites/[id]/publish", userId: user.id, entityId: id });
   }
 
   // 2. Récupérer pages + blocs
@@ -31,7 +34,7 @@ export async function POST(
     .order("sort_order");
 
   if (pagesError) {
-    return NextResponse.json({ error: pagesError.message }, { status: 500 });
+    return apiError(500, pagesError.message, { route: "/api/sites/[id]/publish", userId: user.id, entityId: id, action: "fetch_pages" });
   }
 
   // 3. Auto-réserver sous-domaine si absent
@@ -78,12 +81,9 @@ export async function POST(
 
   if (updateSiteError) {
     if (updateSiteError.code === "23505") {
-      return NextResponse.json(
-        { error: "Sous-domaine indisponible. Réessayez." },
-        { status: 409 }
-      );
+      return apiError(409, "Sous-domaine indisponible. Réessayez.", { route: "/api/sites/[id]/publish", userId: user.id, entityId: id });
     }
-    return NextResponse.json({ error: updateSiteError.message }, { status: 500 });
+    return apiError(500, updateSiteError.message, { route: "/api/sites/[id]/publish", userId: user.id, entityId: id, action: "update_site" });
   }
 
   // Tenter d'écrire published_at (ignore si la colonne n'existe pas)
@@ -133,8 +133,8 @@ export async function POST(
   if (snapshots.length > 0) {
     const { error: snapshotError } = await (supabase.from("site_published_snapshots") as any).insert(snapshots);
     if (snapshotError) {
-      console.error("[publish] snapshot insert error:", snapshotError);
-      return NextResponse.json({ error: "Erreur lors de la sauvegarde des snapshots" }, { status: 500 });
+      logger.error("publish_snapshot_failed", { route: "/api/sites/[id]/publish", userId: user.id, entityId: id, error: snapshotError.message } as Record<string, unknown>);
+      return apiError(500, "Erreur lors de la sauvegarde des snapshots", { route: "/api/sites/[id]/publish", userId: user.id, entityId: id });
     }
   }
 
@@ -154,7 +154,7 @@ export async function POST(
       site_id: id,
       version: nextVersion,
       snapshot: {
-        site: { name: site.name, settings: site.settings, theme: site.theme, seo: site.seo, nav: site.nav, footer: site.footer },
+        site: { name: site.name, settings: site.settings, theme: site.theme, design: site.design, seo: site.seo, nav: site.nav, footer: site.footer },
         pages: (pages || []).map((p: any) => ({
           title: p.title,
           slug: p.slug,
@@ -170,7 +170,16 @@ export async function POST(
     console.log("[publish] site_versions table not available, skipping version snapshot");
   }
 
-  console.log(`[publish] site=${id} user=${user.id} subdomain=${subdomain}`);
+  // 7. Invalider le cache ISR des pages publiques pour que les changements
+  //    (thème, design, contenu) soient visibles immédiatement
+  try {
+    revalidatePath(`/s/${subdomain}`, "layout");
+  } catch {
+    // revalidatePath peut échouer en dev ou si le chemin n'est pas en cache
+    console.log("[publish] revalidatePath skipped or failed");
+  }
+
+  logger.info("site_published", { userId: user.id, entity: "site", entityId: id, route: "/api/sites/[id]/publish", action: "publish" });
 
   return NextResponse.json({
     ok: true,
@@ -197,7 +206,8 @@ export async function DELETE(
     .eq("id", id)
     .eq("owner_id", user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(500, error.message, { route: "/api/sites/[id]/publish", userId: user.id, entityId: id, action: "unpublish" });
 
+  logger.info("site_unpublished", { userId: user.id, entity: "site", entityId: id, route: "/api/sites/[id]/publish", action: "unpublish" });
   return NextResponse.json({ ok: true, status: "draft" });
 }

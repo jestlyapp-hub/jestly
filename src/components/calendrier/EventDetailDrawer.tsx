@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import SlidePanel from "@/components/ui/SlidePanel";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import RelationBadge from "@/components/ui/RelationBadge";
 import {
   CATEGORY_CONFIG,
@@ -19,6 +21,8 @@ interface EventDetailDrawerProps {
 }
 
 export default function EventDetailDrawer({ event, open, onClose, onEdit, onDelete }: EventDetailDrawerProps) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   if (!event) return null;
 
   const cat = CATEGORY_CONFIG[event.category];
@@ -27,6 +31,7 @@ export default function EventDetailDrawer({ event, open, onClose, onEdit, onDele
   const eventDate = new Date(event.date + "T00:00:00");
 
   return (
+    <><ConfirmDialog open={showDeleteConfirm} title="Supprimer l'événement" message="Supprimer cet événement ? Cette action est irréversible." variant="danger" confirmLabel="Supprimer" cancelLabel="Annuler" onConfirm={() => { setShowDeleteConfirm(false); onDelete(event.id); }} onCancel={() => setShowDeleteConfirm(false)} />
     <SlidePanel open={open} onClose={onClose} title="Détail de l'événement">
       <div className="space-y-6">
         {/* Color bar */}
@@ -40,7 +45,7 @@ export default function EventDetailDrawer({ event, open, onClose, onEdit, onDele
               style={{ backgroundColor: getEventDisplayColor(event) }}
             />
             <div className="flex-1 min-w-0">
-              <h3 className="text-[16px] font-semibold text-[#1A1A1A] leading-tight break-words">
+              <h3 className="text-[16px] font-semibold text-[#191919] leading-tight break-words">
                 {event.title || "Sans titre"}
               </h3>
             </div>
@@ -143,7 +148,7 @@ export default function EventDetailDrawer({ event, open, onClose, onEdit, onDele
               <h4 className="text-[11px] font-semibold text-[#999] uppercase tracking-wider">
                 Notes
               </h4>
-              <p className="text-[13px] text-[#1A1A1A] leading-relaxed whitespace-pre-wrap bg-[#F7F7F5] rounded-lg p-3">
+              <p className="text-[13px] text-[#191919] leading-relaxed whitespace-pre-wrap bg-[#F7F7F5] rounded-lg p-3">
                 {event.notes}
               </p>
             </section>
@@ -166,9 +171,7 @@ export default function EventDetailDrawer({ event, open, onClose, onEdit, onDele
               </button>
               <button
                 onClick={() => {
-                  if (confirm("Supprimer cet événement ?")) {
-                    onDelete(event.id);
-                  }
+                  setShowDeleteConfirm(true);
                 }}
                 className="px-4 py-2.5 rounded-md text-[13px] font-medium text-red-600 bg-red-50 hover:bg-red-100 transition-colors cursor-pointer"
               >
@@ -184,6 +187,7 @@ export default function EventDetailDrawer({ event, open, onClose, onEdit, onDele
         </section>
       </div>
     </SlidePanel>
+    </>
   );
 }
 
@@ -191,7 +195,7 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-[12px] text-[#999]">{label}</span>
-      <span className="text-[13px] font-medium text-[#1A1A1A]">{value}</span>
+      <span className="text-[13px] font-medium text-[#191919]">{value}</span>
     </div>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 import { signIn, forgotPassword } from "@/lib/auth/actions";
 import AuthLayout from "@/components/auth/AuthLayout";
 
@@ -51,7 +52,7 @@ export default function LoginPage() {
       {/* Logo + badge */}
       <div className="flex items-center justify-between mb-10">
         <Link href="/landing" className="flex items-center gap-2.5">
-          <img src="/logo-color.png" alt="Jestly" className="w-8 h-8" />
+          <Image src="/logo-color.png" alt="Jestly" width={32} height={32} className="w-8 h-8" priority />
           <span className="text-[17px] font-bold text-[#111118] tracking-tight">Jestly</span>
         </Link>
         <span className="text-[10px] font-semibold px-2.5 py-1 rounded-full" style={{ background: "rgba(124,58,237,0.08)", color: "#7C3AED", border: "1px solid rgba(124,58,237,0.12)" }}>

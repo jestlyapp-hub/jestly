@@ -107,7 +107,7 @@ export default function UpcomingDeadlines() {
     <div className="bg-white rounded-xl border border-[#E6E6E4]">
       {/* Header */}
       <div className="px-5 py-4 border-b border-[#E6E6E4] flex items-center justify-between">
-        <h2 className="text-[14px] font-semibold text-[#1A1A1A]">Echeances a venir</h2>
+        <h2 className="text-[14px] font-semibold text-[#191919]">Echeances a venir</h2>
         <a href="/calendrier" className="text-[12px] font-medium text-[#4F46E5] hover:underline">
           Voir le calendrier
         </a>
@@ -139,7 +139,7 @@ export default function UpcomingDeadlines() {
                 <div className="flex-1 min-w-0">
                   <Link
                     href={dl.href}
-                    className="text-[13px] font-medium text-[#1A1A1A] truncate block hover:text-[#4F46E5] transition-colors"
+                    className="text-[13px] font-medium text-[#191919] truncate block hover:text-[#4F46E5] transition-colors"
                   >
                     {dl.title}
                   </Link>

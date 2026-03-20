@@ -21,7 +21,7 @@ export default function SitePagesPage() {
         transition={{ duration: 0.4 }}
       >
         <div>
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A]">Pages du site</h2>
+          <h2 className="text-[15px] font-semibold text-[#191919]">Pages du site</h2>
           <p className="text-[12px] text-[#999] mt-0.5">{pages.length} pages</p>
         </div>
       </motion.div>
@@ -51,7 +51,7 @@ export default function SitePagesPage() {
                   onClick={() => setSelected(page)}
                   className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors cursor-pointer"
                 >
-                  <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">{page.name}</td>
+                  <td className="px-5 py-3.5 text-[13px] font-medium text-[#191919]">{page.name}</td>
                   <td className="px-5 py-3.5 text-[12px] font-mono text-[#999]">{page.slug}</td>
                   <td className="px-5 py-3.5"><BadgeStatus status={page.status} /></td>
                   <td className="px-5 py-3.5 text-[13px] text-[#666]">{page.blocks.length} blocs</td>
@@ -70,20 +70,20 @@ export default function SitePagesPage() {
           <div className="space-y-5">
             <div>
               <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1.5">Nom de la page</label>
-              <input type="text" defaultValue={selected.name} className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
+              <input type="text" defaultValue={selected.name} className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
             </div>
             <div>
               <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1.5">Slug</label>
-              <input type="text" defaultValue={selected.slug} className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
+              <input type="text" defaultValue={selected.slug} className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
             </div>
             <div className="h-px bg-[#E6E6E4]" />
             <div>
               <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1.5">SEO — Titre</label>
-              <input type="text" defaultValue={selected.seoTitle || ""} placeholder="Titre de la page" className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
+              <input type="text" defaultValue={selected.seoTitle || ""} placeholder="Titre de la page" className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
             </div>
             <div>
               <label className="block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1.5">SEO — Description</label>
-              <textarea defaultValue={selected.seoDescription || ""} rows={3} placeholder="Description pour les moteurs de recherche" className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
+              <textarea defaultValue={selected.seoDescription || ""} rows={3} placeholder="Description pour les moteurs de recherche" className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all" />
             </div>
             <div className="flex gap-3 pt-4">
               <button className="flex-1 bg-[#4F46E5] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors">

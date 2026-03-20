@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useSite } from "@/lib/hooks/use-site";
 import { useParams } from "next/navigation";
 
-const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 export default function SiteSeoPage() {
   const { site, mutate } = useSite();
@@ -87,7 +87,7 @@ export default function SiteSeoPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-5">Méta globales</h2>
+          <h2 className="text-[15px] font-semibold text-[#191919] mb-5">Méta globales</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-[12px] font-medium text-[#999] mb-1.5">Titre global (meta title)</label>
@@ -121,7 +121,7 @@ export default function SiteSeoPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.08 }}
         >
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-4">SEO par page</h2>
+          <h2 className="text-[15px] font-semibold text-[#191919] mb-4">SEO par page</h2>
           <div className="space-y-3">
             {site.pages.map((page) => {
               const isExpanded = expandedPageId === page.id;
@@ -133,7 +133,7 @@ export default function SiteSeoPage() {
                     className="w-full flex items-center justify-between p-3 hover:bg-[#FBFBFA] transition-colors"
                   >
                     <div className="text-left">
-                      <div className="text-[13px] font-medium text-[#1A1A1A]">{page.name}</div>
+                      <div className="text-[13px] font-medium text-[#191919]">{page.name}</div>
                       <div className="text-[11px] text-[#999]">{seo?.seoTitle || "Titre non défini"}</div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -206,7 +206,7 @@ export default function SiteSeoPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.16 }}
         >
-          <h2 className="text-[15px] font-semibold text-[#1A1A1A] mb-3">Sitemap</h2>
+          <h2 className="text-[15px] font-semibold text-[#191919] mb-3">Sitemap</h2>
           <div className="p-3 bg-[#F7F7F5] rounded-lg">
             <div className="text-[12px] font-mono text-[#999]">
               https://jestly.fr/s/studionova/sitemap.xml

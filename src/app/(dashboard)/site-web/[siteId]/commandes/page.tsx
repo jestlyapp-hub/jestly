@@ -94,7 +94,7 @@ export default function SiteCommandesPage() {
             placeholder="Filtrer par client ou service..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+            className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
           />
         </div>
       </motion.div>
@@ -125,9 +125,9 @@ export default function SiteCommandesPage() {
                   className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors cursor-pointer"
                 >
                   <td className="px-5 py-3.5 text-[12px] font-mono text-[#999]">{order.id.slice(0, 8)}</td>
-                  <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">{order.client}</td>
+                  <td className="px-5 py-3.5 text-[13px] font-medium text-[#191919]">{order.client}</td>
                   <td className="px-5 py-3.5 text-[13px] text-[#666]">{order.product}</td>
-                  <td className="px-5 py-3.5 text-[13px] font-medium text-[#1A1A1A]">{order.price} &euro;</td>
+                  <td className="px-5 py-3.5 text-[13px] font-medium text-[#191919]">{order.price} &euro;</td>
                   <td className="px-5 py-3.5"><BadgeStatus status={order.status} /></td>
                   <td className="px-5 py-3.5 text-[13px] text-[#999]">{order.date}</td>
                 </tr>
@@ -150,18 +150,18 @@ export default function SiteCommandesPage() {
           <div className="space-y-6">
             <div>
               <div className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">Client</div>
-              <div className="text-[15px] font-semibold text-[#1A1A1A]">{selected.client}</div>
+              <div className="text-[15px] font-semibold text-[#191919]">{selected.client}</div>
               <div className="text-[13px] text-[#999]">{selected.clientEmail}</div>
             </div>
             <div className="h-px bg-[#E6E6E4]" />
             <div>
               <div className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">Service</div>
-              <div className="text-[14px] text-[#1A1A1A]">{selected.product}</div>
+              <div className="text-[14px] text-[#191919]">{selected.product}</div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <div className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">Prix</div>
-                <div className="text-xl font-bold text-[#1A1A1A]">{selected.price} &euro;</div>
+                <div className="text-xl font-bold text-[#191919]">{selected.price} &euro;</div>
               </div>
               <div>
                 <div className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">Statut</div>
@@ -171,7 +171,7 @@ export default function SiteCommandesPage() {
             <div className="h-px bg-[#E6E6E4]" />
             <div>
               <div className="text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-1">Date</div>
-              <div className="text-[14px] text-[#1A1A1A]">{selected.date}</div>
+              <div className="text-[14px] text-[#191919]">{selected.date}</div>
             </div>
             <div className="flex gap-3 pt-4">
               <button

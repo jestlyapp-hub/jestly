@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { enrichOrdersWithProducts } from "@/lib/supabase-helpers";
+import { computeOrdersPipelineSummary, isRevenueOrder, getOrderDate } from "@/lib/business-metrics";
 
 // ═══════════════════════════════════════════════════════════
 // GET /api/analytics/advanced
@@ -93,15 +94,17 @@ export async function GET(req: NextRequest) {
     const periodMs = endDate.getTime() - startDate.getTime();
     const prevStartISO = new Date(startDate.getTime() - periodMs).toISOString();
 
-    // Filter orders by date range — use created_at (same as Commandes page)
+    // Filter orders by date range — use getOrderDate (paid_at avec fallback created_at)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const orders = allOrders.filter((o: any) =>
-      o.created_at >= startISO && o.created_at <= endISO
-    );
+    const orders = allOrders.filter((o: any) => {
+      const d = getOrderDate(o);
+      return d >= startISO && d <= endISO;
+    });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const prevOrders = allOrders.filter((o: any) =>
-      o.created_at >= prevStartISO && o.created_at < startISO
-    );
+    const prevOrders = allOrders.filter((o: any) => {
+      const d = getOrderDate(o);
+      return d >= prevStartISO && d < startISO;
+    });
 
     console.log(`[ANALYTICS] range=${range} | ${startISO.slice(0,10)}..${endISO.slice(0,10)} | period orders=${orders.length} | prev=${prevOrders.length} | total=${allOrders.length}`);
 
@@ -116,8 +119,9 @@ export async function GET(req: NextRequest) {
     // ── Categorize orders ──
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const isActive = (o: any) => o.status !== "cancelled" && o.status !== "refunded" && o.status !== "dispute";
+    // isPaid = REVENUE_STATUSES (paid/invoiced/delivered) — source de vérité unique
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const isPaid = (o: any) => o.status === "paid" || o.status === "delivered" || o.status === "invoiced";
+    const isPaid = (o: any) => isRevenueOrder(o.status);
 
     const activeOrders = orders.filter(isActive);
     const prevActiveOrders = prevOrders.filter(isActive);
@@ -221,7 +225,7 @@ export async function GET(req: NextRequest) {
       // Hourly
       timeSeries = Array.from({ length: 24 }, (_, i) => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const hourOrders = paidOrders.filter((o: any) => new Date(o.created_at).getHours() === i);
+        const hourOrders = paidOrders.filter((o: any) => new Date(getOrderDate(o)).getHours() === i);
         const rev = hourOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
         return { label: `${i}h`, revenue: Math.round(rev * 100) / 100, orders: hourOrders.length, profit: Math.round(rev * 100) / 100 };
       });
@@ -231,7 +235,7 @@ export async function GET(req: NextRequest) {
       while (cursor <= endDate) {
         const dayStr = cursor.toISOString().slice(0, 10);
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const dayOrders = paidOrders.filter((o: any) => o.created_at?.slice(0, 10) === dayStr);
+        const dayOrders = paidOrders.filter((o: any) => getOrderDate(o)?.slice(0, 10) === dayStr);
         const rev = dayOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
         timeSeries.push({
           label: cursor.toLocaleDateString("fr-FR", { day: "numeric", month: "short" }),
@@ -249,7 +253,7 @@ export async function GET(req: NextRequest) {
         const next = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1);
         const mEnd = next.toISOString();
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const monthOrders = paidOrders.filter((o: any) => o.created_at >= mStart && o.created_at < mEnd);
+        const monthOrders = paidOrders.filter((o: any) => { const d = getOrderDate(o); return d >= mStart && d < mEnd; });
         const rev = monthOrders.reduce((s: number, o: { amount: number }) => s + num(o.amount), 0);
         timeSeries.push({
           label: cursor.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" }),
@@ -266,7 +270,7 @@ export async function GET(req: NextRequest) {
     const revenueByDay = dayNames.map((name) => ({ name, revenue: 0, orders: 0 }));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     paidOrders.forEach((o: any) => {
-      const day = new Date(o.created_at).getDay();
+      const day = new Date(getOrderDate(o)).getDay();
       revenueByDay[day].revenue += num(o.amount);
       revenueByDay[day].orders += 1;
     });
@@ -276,17 +280,17 @@ export async function GET(req: NextRequest) {
     const revenueByHour = Array.from({ length: 24 }, (_, i) => ({ hour: `${i}h`, revenue: 0, orders: 0 }));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     paidOrders.forEach((o: any) => {
-      const hour = new Date(o.created_at).getHours();
+      const hour = new Date(getOrderDate(o)).getHours();
       revenueByHour[hour].revenue += num(o.amount);
       revenueByHour[hour].orders += 1;
     });
     revenueByHour.forEach((h) => { h.revenue = Math.round(h.revenue * 100) / 100; });
 
-    // ── Product Performance ──
+    // ── Product Performance (basée sur paidOrders = REVENUE_STATUSES) ──
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const byProduct = new Map<string, { name: string; revenue: number; orders: number; refunds: number }>();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    activeOrders.forEach((o: any) => {
+    paidOrders.forEach((o: any) => {
       const key = o.product_id || "no_product";
       const name = o.products?.name || o.title || "Sans produit";
       const entry = byProduct.get(key) || { name, revenue: 0, orders: 0, refunds: 0 };
@@ -314,7 +318,7 @@ export async function GET(req: NextRequest) {
 
     // Check if any orders actually have product_id
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const ordersWithProduct = activeOrders.filter((o: any) => o.product_id).length;
+    const ordersWithProduct = paidOrders.filter((o: any) => o.product_id).length;
     const productsLinked = ordersWithProduct > 0;
 
     // ── Top Clients ──
@@ -364,14 +368,15 @@ export async function GET(req: NextRequest) {
       ? [{ method: "stripe", count: activeOrders.length, revenue: Math.round(totalRevenue * 100) / 100 }]
       : [];
 
-    // ── Monthly Growth (all orders, no date filter) ──
+    // ── Monthly Growth (REVENUE_STATUSES uniquement, getOrderDate pour le mois) ──
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const allActive = allOrders.filter((o: any) => isActive(o));
+    const allPaidOrders = allOrders.filter((o: any) => isRevenueOrder(o.status));
     const monthMap = new Map<string, { month: string; revenue: number; orders: number; clients: Set<string> }>();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    allActive.forEach((o: any) => {
-      const key = o.created_at?.slice(0, 7) || "unknown";
-      const d = new Date(o.created_at);
+    allPaidOrders.forEach((o: any) => {
+      const dateRef = getOrderDate(o);
+      const key = dateRef?.slice(0, 7) || "unknown";
+      const d = new Date(dateRef);
       const entry = monthMap.get(key) || {
         month: d.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" }),
         revenue: 0, orders: 0, clients: new Set<string>(),
@@ -452,8 +457,12 @@ export async function GET(req: NextRequest) {
     // ══════════════════════════════════════════════════════════
     // STEP 4: Build response
     // ══════════════════════════════════════════════════════════
+    // Pipeline summary (source de vérité unique — ALL orders, pas filtré par période)
+    const pipelineSummary = computeOrdersPipelineSummary(allOrders);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const response: Record<string, any> = {
+      pipelineSummary,
       kpis: {
         totalRevenue: Math.round(totalRevenue * 100) / 100,
         revenueChange: Math.round(revenueChange * 10) / 10,

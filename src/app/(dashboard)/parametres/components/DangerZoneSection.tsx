@@ -44,7 +44,7 @@ function DangerAction({ icon: Icon, title, description, buttonLabel, buttonColor
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-[13px] font-medium text-[#1A1A1A]">{title}</span>
+          <span className="text-[13px] font-medium text-[#191919]">{title}</span>
           {!implemented && <span className="text-[10px] font-semibold text-[#A8A29E] bg-[#F5F5F4] px-1.5 py-0.5 rounded-full">Bientôt</span>}
         </div>
         <p className="text-[12px] text-[#A8A29E] mt-0.5">{description}</p>

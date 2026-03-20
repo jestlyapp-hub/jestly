@@ -45,7 +45,7 @@ interface PortfolioProfileDrawerProps {
 }
 
 const inputClass =
-  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+  "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 const tabs = [
   { id: "general", label: "Général" },
@@ -154,10 +154,10 @@ export default function PortfolioProfileDrawer({ project, onClose, onSaved }: Po
         <div className="px-5 pt-5 pb-0 border-b border-[#E6E6E4]">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-[15px] font-semibold text-[#1A1A1A]">Page portfolio</h3>
+              <h3 className="text-[15px] font-semibold text-[#191919]">Page portfolio</h3>
               <p className="text-[11px] text-[#8A8A88] mt-0.5">{project.name}</p>
             </div>
-            <button onClick={onClose} className="text-[#8A8A88] hover:text-[#1A1A1A] transition-colors">
+            <button onClick={onClose} className="text-[#8A8A88] hover:text-[#191919] transition-colors">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
           </div>
@@ -416,7 +416,7 @@ export default function PortfolioProfileDrawer({ project, onClose, onSaved }: Po
 
         {/* Footer */}
         <div className="px-5 py-3 border-t border-[#E6E6E4] flex justify-end gap-2">
-          <button onClick={onClose} className="px-4 py-2 text-[12px] text-[#5A5A58] hover:text-[#1A1A1A] transition-colors">
+          <button onClick={onClose} className="px-4 py-2 text-[12px] text-[#5A5A58] hover:text-[#191919] transition-colors">
             Annuler
           </button>
           <button

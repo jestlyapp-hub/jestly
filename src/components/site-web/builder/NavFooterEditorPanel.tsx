@@ -7,10 +7,10 @@ import { getBlockLabel, inferDestinationType, validateNavLink } from "@/lib/site
 import type { LinkValidation } from "@/lib/site-utils";
 import { NAVBAR_VARIANTS, defaultNavConfig } from "@/components/site-web/navbar/NavbarRenderer";
 
-const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
-const smallInputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const smallInputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 transition-all";
 const sectionLabel = "block text-[11px] font-semibold text-[#999] uppercase tracking-wider mb-2";
-const selectClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-2 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 transition-all";
+const selectClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-2 text-[12px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 transition-all";
 
 function genId() { return Math.random().toString(36).slice(2, 9); }
 
@@ -272,7 +272,7 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" /><line x1="3" y1="9" x2="21" y2="9" />
           </svg>
-          <span className="text-[12px] font-semibold text-[#1A1A1A]">Navigation</span>
+          <span className="text-[12px] font-semibold text-[#191919]">Navigation</span>
         </div>
         <button onClick={onClose} className="text-[#999] hover:text-[#666] p-1">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -340,7 +340,7 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                             : "border-[#E6E6E4] hover:border-[#C5C5C3] bg-white"
                         }`}
                       >
-                        <div className="text-[11px] font-semibold text-[#1A1A1A] mb-0.5">{v.name}</div>
+                        <div className="text-[11px] font-semibold text-[#191919] mb-0.5">{v.name}</div>
                         <div className="text-[9px] text-[#999] leading-tight">{v.description}</div>
                       </button>
                     ))}
@@ -549,6 +549,32 @@ export default function NavFooterEditorPanel({ onClose }: { onClose: () => void 
                           secondaryCtaOpenNewTab: patch.openNewTab !== undefined ? patch.openNewTab : nav.secondaryCtaOpenNewTab,
                         })}
                       />
+
+                      {/* Secondary CTA Colors */}
+                      <div>
+                        <label className={sectionLabel}>Couleur du bouton secondaire</label>
+                        <div className="flex items-center gap-2">
+                          <input type="color" value={nav.secondaryCtaBgColor || "transparent"} onChange={(e) => updateNav({ secondaryCtaBgColor: e.target.value })} className="w-8 h-8 rounded-md border border-[#E6E6E4] cursor-pointer p-0.5" />
+                          <input type="text" value={nav.secondaryCtaBgColor || ""} onChange={(e) => updateNav({ secondaryCtaBgColor: e.target.value || undefined })} className={smallInputClass} placeholder="Fond (ex: transparent)" />
+                          <button onClick={() => updateNav({ secondaryCtaBgColor: undefined })} className="text-[9px] text-[#999] hover:text-[#666] whitespace-nowrap" title="Réinitialiser">Reset</button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className={sectionLabel}>Texte du bouton secondaire</label>
+                        <div className="flex items-center gap-2">
+                          <input type="color" value={nav.secondaryCtaTextColor || "#191919"} onChange={(e) => updateNav({ secondaryCtaTextColor: e.target.value })} className="w-8 h-8 rounded-md border border-[#E6E6E4] cursor-pointer p-0.5" />
+                          <input type="text" value={nav.secondaryCtaTextColor || ""} onChange={(e) => updateNav({ secondaryCtaTextColor: e.target.value || undefined })} className={smallInputClass} placeholder="Couleur texte" />
+                          <button onClick={() => updateNav({ secondaryCtaTextColor: undefined })} className="text-[9px] text-[#999] hover:text-[#666] whitespace-nowrap" title="Réinitialiser">Reset</button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className={sectionLabel}>Bordure du bouton secondaire</label>
+                        <div className="flex items-center gap-2">
+                          <input type="color" value={nav.secondaryCtaBorderColor || "#E6E6E4"} onChange={(e) => updateNav({ secondaryCtaBorderColor: e.target.value })} className="w-8 h-8 rounded-md border border-[#E6E6E4] cursor-pointer p-0.5" />
+                          <input type="text" value={nav.secondaryCtaBorderColor || ""} onChange={(e) => updateNav({ secondaryCtaBorderColor: e.target.value || undefined })} className={smallInputClass} placeholder="Couleur bordure" />
+                          <button onClick={() => updateNav({ secondaryCtaBorderColor: undefined })} className="text-[9px] text-[#999] hover:text-[#666] whitespace-nowrap" title="Réinitialiser">Reset</button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>

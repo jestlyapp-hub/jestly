@@ -5,8 +5,8 @@ import type { Block, BlockStyle, BlockType, BackgroundPreset, BackgroundConfig, 
 import { backgroundPresets } from "@/lib/site-designs";
 import ButtonStyleEditor from "./ButtonStyleEditor";
 
-const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
-const smallInputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const smallInputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-2.5 py-1.5 text-[12px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 /** Sanitize a color value for <input type="color"> — must be #rrggbb */
 function toHexColor(value: string | undefined, fallback: string): string {
@@ -195,28 +195,28 @@ export default function BlockStyleEditor({ block }: { block: Block }) {
                 type="number"
                 value={block.style.paddingTop ?? 0}
                 onChange={(e) => update({ paddingTop: parseInt(e.target.value) || 0 })}
-                className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40"
+                className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/40"
               />
               <div className="flex items-center gap-1 w-full">
                 <input
                   type="number"
                   value={block.style.paddingLeft ?? 0}
                   onChange={(e) => update({ paddingLeft: parseInt(e.target.value) || 0 })}
-                  className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40"
+                  className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/40"
                 />
                 <div className="flex-1 h-8 border border-dashed border-[#D0D5E0] rounded bg-white" />
                 <input
                   type="number"
                   value={block.style.paddingRight ?? 0}
                   onChange={(e) => update({ paddingRight: parseInt(e.target.value) || 0 })}
-                  className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40"
+                  className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/40"
                 />
               </div>
               <input
                 type="number"
                 value={block.style.paddingBottom ?? 0}
                 onChange={(e) => update({ paddingBottom: parseInt(e.target.value) || 0 })}
-                className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/40"
+                className="w-14 text-center bg-white border border-[#E6E6E4] rounded px-1 py-0.5 text-[11px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/40"
               />
             </div>
           </div>

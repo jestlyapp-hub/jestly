@@ -149,7 +149,7 @@ function creatorPages(): TemplatePage[] {
           content: {
             title: "Avis clients",
             testimonials: [
-              { name: "Alex Morand", role: "YouTuber", company: "450K abonnes", text: "Mes thumbnails ont triplé mon CTR en 2 semaines. Travail incroyable !", rating: 5 },
+              { name: "Alex Morand", role: "YouTuber", company: "450K abonnés", text: "Mes thumbnails ont triplé mon CTR en 2 semaines. Travail incroyable !", rating: 5 },
               { name: "Julie Pham", role: "CEO", company: "Studio Nova", text: "L'identité visuelle est parfaite. Exactement ce qu'on cherchait.", rating: 5 },
               { name: "Marc Tissot", role: "Streamer", company: "Twitch Partner", text: "Rapide, créatif et professionnel. Je recommande à 100%.", rating: 5 },
             ],
@@ -810,7 +810,7 @@ function neonPages(): TemplatePage[] {
           content: {
             title: "Retours",
             testimonials: [
-              { name: "MaxGaming", role: "YouTuber", company: "2.5M abonnes", text: "Les montages sont insane. Mon audience a triple en 6 mois.", rating: 5 },
+              { name: "MaxGaming", role: "YouTuber", company: "2.5M abonnés", text: "Les montages sont insane. Mon audience a triplé en 6 mois.", rating: 5 },
               { name: "Luna_Art", role: "Streameuse", company: "Twitch Partner", text: "Le branding est parfait. Mon stream a un look pro maintenant.", rating: 5 },
               { name: "CyberKev", role: "Créateur AI", company: "500K followers", text: "Des thumbnails qui cartonnent. CTR multiplié par 3.", rating: 5 },
             ],

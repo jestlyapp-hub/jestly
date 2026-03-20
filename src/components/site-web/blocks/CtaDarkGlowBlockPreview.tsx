@@ -25,7 +25,7 @@ function CtaDarkGlowBlockPreview({ content }: { content: CtaDarkGlowBlockContent
           <div className="relative z-10">
             <h2
               className="text-3xl font-bold mb-3"
-              style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+              style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
             >
               {content.title}
             </h2>

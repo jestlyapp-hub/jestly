@@ -18,7 +18,7 @@ interface LinkPickerProps {
   label?: string;
 }
 
-const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
+const inputClass = "w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all";
 
 const linkTypes: { value: LinkType; label: string }[] = [
   { value: "none", label: "Aucun" },
@@ -108,7 +108,7 @@ export default function LinkPicker({ value, onChange, label }: LinkPickerProps) 
           {selectedProduct ? (
             <div className="bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg p-2 flex items-center justify-between">
               <div>
-                <div className="text-[12px] font-medium text-[#1A1A1A]">{selectedProduct.name}</div>
+                <div className="text-[12px] font-medium text-[#191919]">{selectedProduct.name}</div>
                 <div className="text-[10px] text-[#999]">{formatPrice(selectedProduct.priceCents)} — {selectedProduct.category}</div>
               </div>
               <div className="flex gap-1.5">
@@ -146,7 +146,7 @@ export default function LinkPicker({ value, onChange, label }: LinkPickerProps) 
                     onClick={() => { setValue(p.id); setProductOpen(false); setProductSearch(""); }}
                     className="w-full flex items-center justify-between px-3 py-1.5 hover:bg-[#F7F7F5] transition-colors text-left"
                   >
-                    <span className="text-[12px] text-[#1A1A1A]">{p.name}</span>
+                    <span className="text-[12px] text-[#191919]">{p.name}</span>
                     <span className="text-[10px] text-[#4F46E5]">{formatPrice(p.priceCents)}</span>
                   </button>
                 ))}

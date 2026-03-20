@@ -178,7 +178,7 @@ export default function TaskDetailDrawer({
                   value={local.title}
                   onChange={(e) => update({ title: e.target.value })}
                   placeholder="Titre de la tâche..."
-                  className="w-full text-[18px] font-bold text-[#1A1A1A] placeholder-[#CCC] border-none outline-none bg-transparent"
+                  className="w-full text-[18px] font-bold text-[#191919] placeholder-[#CCC] border-none outline-none bg-transparent"
                 />
 
                 {/* Status + Priority row */}
@@ -250,7 +250,7 @@ export default function TaskDetailDrawer({
                     type="date"
                     value={local.dueDate || ""}
                     onChange={(e) => update({ dueDate: e.target.value || undefined })}
-                    className="bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                    className="bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
                   />
                 </div>
 
@@ -281,14 +281,14 @@ export default function TaskDetailDrawer({
                             type="date"
                             value={scheduleDate}
                             onChange={(e) => setScheduleDate(e.target.value)}
-                            className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30"
+                            className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30"
                           />
                           <input
                             type="time"
                             value={scheduleTime}
                             onChange={(e) => setScheduleTime(e.target.value)}
                             placeholder="Heure"
-                            className="w-28 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30"
+                            className="w-28 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30"
                           />
                         </div>
                         <div className="flex gap-2">
@@ -343,7 +343,7 @@ export default function TaskDetailDrawer({
                     value={local.orderTitle || ""}
                     onChange={(e) => update({ orderTitle: e.target.value || undefined })}
                     placeholder="Titre de la commande..."
-                    className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                    className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[13px] text-[#191919] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
                   />
                   {local.orderTitle && (
                     <div className="mt-1.5">
@@ -367,7 +367,7 @@ export default function TaskDetailDrawer({
                     onChange={(e) => update({ description: e.target.value })}
                     placeholder="Ajouter des notes..."
                     rows={3}
-                    className="w-full bg-[#FBFBFA] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none"
+                    className="w-full bg-[#FBFBFA] border border-[#E6E6E4] rounded-lg px-3 py-2.5 text-[13px] text-[#191919] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none"
                     style={{ minHeight: "80px" }}
                   />
                 </div>
@@ -417,7 +417,7 @@ export default function TaskDetailDrawer({
                         </button>
                         <span
                           className={`flex-1 text-[13px] ${
-                            sub.done ? "text-[#BBB] line-through" : "text-[#1A1A1A]"
+                            sub.done ? "text-[#BBB] line-through" : "text-[#191919]"
                           }`}
                         >
                           {sub.text}
@@ -442,7 +442,7 @@ export default function TaskDetailDrawer({
                       onChange={(e) => setNewSubtaskText(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && addSubtask()}
                       placeholder="Ajouter une sous-tâche..."
-                      className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                      className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#191919] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
                     />
                     <button
                       onClick={addSubtask}
@@ -485,7 +485,7 @@ export default function TaskDetailDrawer({
                       onChange={(e) => setNewTag(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && addTag()}
                       placeholder="Ajouter un tag..."
-                      className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                      className="flex-1 bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#191919] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
                     />
                     <button
                       onClick={addTag}

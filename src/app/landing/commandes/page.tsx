@@ -10,6 +10,7 @@ const DATA: FeaturePageData = {
   subtitle:
     "Transformez chaque demande client en commande structurée — avec brief, statut, livrables et suivi. Plus de briefs perdus dans les messages.",
   videoLabel: "Découvrir la gestion de commandes",
+  useCommandesDemo: true,
   accentColor: "#F59E0B",
 
   benefitsTitle: "Des briefs au livrable,",

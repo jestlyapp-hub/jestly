@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 import type { ProfileData } from "./shared";
 import { SectionCard } from "./shared";
+import { useTrack } from "@/lib/hooks/use-track";
 
 const FREE_FEATURES = [
   "10 commandes / mois",
@@ -24,6 +25,7 @@ export function SubscriptionSection({ profile }: {
   profile: ProfileData;
 }) {
   const isPro = profile.plan === "pro";
+  const track = useTrack();
 
   return (
     <SectionCard id="abonnement" title="Abonnement" description="Gérez votre plan et votre facturation.">
@@ -32,7 +34,7 @@ export function SubscriptionSection({ profile }: {
           <div className="flex items-center justify-between mb-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[15px] font-bold text-[#1A1A1A]">
+                <span className="text-[15px] font-bold text-[#191919]">
                   {isPro ? "Plan Pro" : "Plan Free"}
                 </span>
                 {isPro && (
@@ -63,6 +65,7 @@ export function SubscriptionSection({ profile }: {
           ) : (
             <a
               href="mailto:support@jestly.fr?subject=Upgrade%20Pro"
+              onClick={() => track("upgrade_clicked", { source: "settings" })}
               className="flex items-center gap-1.5 text-[13px] font-semibold text-white bg-[#7C3AED] px-5 py-2.5 rounded-lg hover:bg-[#6D28D9] transition-colors shadow-sm shadow-[#7C3AED]/20"
             >
               Passer au Pro — 7 €/mois

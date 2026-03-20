@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback } from "react";
+import Image from "next/image";
 import { Camera, Loader2, X } from "lucide-react";
 import type { ProfileData, SettingsForm, SettingsFormActions } from "./shared";
 import { SectionCard, inputCls, labelCls, selectCls, FieldError, validatePhone, TIMEZONES } from "./shared";
@@ -107,8 +108,7 @@ export function AccountSection({ profile, form, actions, dirty, onAvatarChange }
               {uploading ? (
                 <Loader2 size={20} className="animate-spin text-[#7C3AED]" />
               ) : displayUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={displayUrl} alt="" className="w-full h-full object-cover" />
+                <Image src={displayUrl} alt="" fill className="object-cover" unoptimized />
               ) : (
                 form.fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "?"
               )}
@@ -137,7 +137,7 @@ export function AccountSection({ profile, form, actions, dirty, onAvatarChange }
             className="hidden"
           />
           <div>
-            <div className="text-[13px] font-medium text-[#1A1A1A]">{form.fullName || "Votre nom"}</div>
+            <div className="text-[13px] font-medium text-[#191919]">{form.fullName || "Votre nom"}</div>
             <div className="text-[12px] text-[#A8A29E]">{profile.email}</div>
             <div className="text-[11px] text-[#C4C4C2] mt-0.5">
               Membre depuis {new Date(profile.created_at).toLocaleDateString("fr-FR", { month: "long", year: "numeric" })}

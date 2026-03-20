@@ -31,7 +31,7 @@ function Gallery3UpStripBlockPreviewInner({ content }: { content: Gallery3UpStri
         {content.title && (
           <h2
             className="text-2xl font-bold mb-8 text-center"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>

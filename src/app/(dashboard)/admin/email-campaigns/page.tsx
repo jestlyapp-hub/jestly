@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import AdminHeader from "@/components/admin/AdminHeader";
 import {
   Search,
@@ -151,6 +152,7 @@ export default function AdminEmailCampaignsPage() {
   const [detailRecipientCount, setDetailRecipientCount] = useState(0);
   const [detailLoading, setDetailLoading] = useState(false);
   const [sendLoading, setSendLoading] = useState(false);
+  const [showSendConfirm, setShowSendConfirm] = useState(false);
 
   // Linked campaigns list (for dropdowns)
   const [linkedCampaigns, setLinkedCampaigns] = useState<LinkedCampaign[]>([]);
@@ -272,7 +274,6 @@ export default function AdminEmailCampaignsPage() {
   // ── Send campaign ──
   const handleSend = async () => {
     if (!detail || detail.status !== "draft") return;
-    if (!confirm("Envoyer cette campagne email ? Cette action est irréversible.")) return;
     setSendLoading(true);
     try {
       const res = await fetch(`/api/admin/email-campaigns/${detail.id}/send`, { method: "POST" });
@@ -325,7 +326,7 @@ export default function AdminEmailCampaignsPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <><div className="space-y-5">
       <AdminHeader
         title="Campagnes email"
         description="Envoi et suivi de vos campagnes email"
@@ -828,7 +829,7 @@ export default function AdminEmailCampaignsPage() {
                 {detail.status === "draft" && (
                   <div className="px-6 py-4 flex items-center gap-3">
                     <button
-                      onClick={handleSend}
+                      onClick={() => setShowSendConfirm(true)}
                       disabled={sendLoading}
                       className="flex items-center gap-2 px-4 py-2 text-[13px] font-medium text-white bg-[#4F46E5] rounded-md hover:bg-[#4338CA] transition-colors cursor-pointer disabled:opacity-50"
                     >
@@ -890,5 +891,16 @@ export default function AdminEmailCampaignsPage() {
         </div>
       )}
     </div>
+    <ConfirmDialog
+      open={showSendConfirm}
+      title="Envoyer la campagne"
+      message="Envoyer cette campagne email ? Cette action est irréversible."
+      variant="danger"
+      confirmLabel="Envoyer"
+      cancelLabel="Annuler"
+      onConfirm={() => { setShowSendConfirm(false); handleSend(); }}
+      onCancel={() => setShowSendConfirm(false)}
+    />
+    </>
   );
 }

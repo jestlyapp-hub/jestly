@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { TEMPLATES } from "@/lib/site-templates";
+import { useTrack } from "@/lib/hooks/use-track";
 
 const BLANK_CARD = {
   id: "blank",
@@ -19,6 +20,7 @@ const allCards = [...TEMPLATES.map((t) => ({ id: t.id, name: t.name, description
 export default function NouveauSitePage() {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
+  const track = useTrack();
 
   async function handleSelect(templateId: string) {
     if (loading) return;
@@ -39,6 +41,7 @@ export default function NouveauSitePage() {
       }
 
       const { siteId } = await res.json();
+      track("site_created", { siteId, templateId });
       router.push(`/site-web/${siteId}/createur`);
     } catch (e) {
       console.error("Erreur:", e);

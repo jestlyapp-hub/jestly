@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { signOut } from "@/lib/auth/actions";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTrack } from "@/lib/hooks/use-track";
 import {
   LayoutDashboard,
   Globe,
@@ -143,17 +144,16 @@ function AccountMenu({ user, open, onClose, triggerRef }: {
             {/* ── Header ── */}
             <div className="px-4 py-3.5 border-b border-[#F0F0EE]">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#EDE9FE] ring-1 ring-[#E8E5F5] flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <div className="relative w-10 h-10 rounded-full bg-[#EDE9FE] ring-1 ring-[#E8E5F5] flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {user.avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+                    <Image src={user.avatar_url} alt="" fill className="object-cover" unoptimized />
                   ) : (
                     <span className="text-[13px] font-bold text-[#7C3AED]">{initials}</span>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-semibold text-[#1A1A1A] truncate">{displayName}</span>
+                    <span className="text-[13px] font-semibold text-[#191919] truncate">{displayName}</span>
                     <span className={`text-[9px] font-bold uppercase tracking-wider px-1.5 py-[1px] rounded-full flex-shrink-0 ${
                       user.plan === "pro"
                         ? "bg-[#7C3AED] text-white"
@@ -206,7 +206,7 @@ function MenuLink({ href, icon, label, onClick }: {
     <Link
       href={href}
       onClick={onClick}
-      className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#1A1A1A] transition-all duration-150"
+      className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#191919] transition-all duration-150"
     >
       <span className="text-[#ACACAA]">{icon}</span>
       <span>{label}</span>
@@ -230,7 +230,7 @@ function MenuButton({ icon, label, onClick, external, disabled, hint }: {
       className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] font-medium transition-all duration-150 ${
         disabled
           ? "text-[#D6D3D1] cursor-default"
-          : "text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#1A1A1A] cursor-pointer"
+          : "text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#191919] cursor-pointer"
       }`}
     >
       <span className={disabled ? "text-[#E6E6E4]" : "text-[#ACACAA]"}>{icon}</span>
@@ -249,6 +249,7 @@ function MenuButton({ icon, label, onClick, external, disabled, hint }: {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const track = useTrack();
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -306,7 +307,7 @@ export default function Sidebar() {
               className="object-contain"
             />
           </div>
-          <span className="text-[16px] font-bold text-[#1A1A1A] tracking-[-0.01em]">
+          <span className="text-[16px] font-bold text-[#191919] tracking-[-0.01em]">
             Jestly
           </span>
         </Link>
@@ -329,7 +330,7 @@ export default function Sidebar() {
                     className={`group/item flex items-center gap-3 px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 ${
                       active
                         ? "bg-[#F0EEFF] text-[#6D28D9]"
-                        : "text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#1A1A1A]"
+                        : "text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#191919]"
                     }`}
                   >
                     <span className={`transition-colors duration-150 ${
@@ -369,7 +370,7 @@ export default function Sidebar() {
                     className={`group/item flex items-center gap-3 px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 ${
                       active
                         ? "bg-[#F0EEFF] text-[#6D28D9]"
-                        : "text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#1A1A1A]"
+                        : "text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#191919]"
                     }`}
                   >
                     <span className={`transition-colors duration-150 ${
@@ -400,7 +401,7 @@ export default function Sidebar() {
                   className={`group/item flex items-center gap-3 px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 ${
                     active
                       ? "bg-[#F0EEFF] text-[#6D28D9]"
-                      : "text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#1A1A1A]"
+                      : "text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#191919]"
                   }`}
                 >
                   <span className={`transition-colors duration-150 ${
@@ -421,13 +422,13 @@ export default function Sidebar() {
       {/* ── Upgrade CTA ── */}
       {(!user || user.plan !== "pro") && (
         <div className="px-3 py-3">
-          <div className="rounded-xl border border-[#E8E5F5] bg-[#FAFAFF] p-3.5 group/cta hover:border-[#D4CEF0] hover:bg-[#F5F3FF] transition-all duration-200 cursor-pointer">
+          <div onClick={() => track("upgrade_clicked", { source: "sidebar" })} className="rounded-xl border border-[#E8E5F5] bg-[#FAFAFF] p-3.5 group/cta hover:border-[#D4CEF0] hover:bg-[#F5F3FF] transition-all duration-200 cursor-pointer">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED] flex-shrink-0">
                 <Sparkles size={16} strokeWidth={1.8} />
               </div>
               <div className="flex-1 min-w-0">
-                <span className="block text-[12px] font-semibold text-[#1A1A1A]">Passer au Pro</span>
+                <span className="block text-[12px] font-semibold text-[#191919]">Passer au Pro</span>
                 <span className="block text-[11px] text-[#8A8A88] mt-0.5">Débloquer tout le potentiel</span>
               </div>
               <ChevronRight size={14} className="text-[#CCCCCC] group-hover/cta:text-[#7C3AED] transition-colors flex-shrink-0" />
@@ -456,16 +457,15 @@ export default function Sidebar() {
               : "hover:bg-[#F7F7F5]"
           }`}
         >
-          <div className="w-8 h-8 rounded-full bg-[#EDE9FE] ring-1 ring-[#E8E5F5] flex items-center justify-center text-[11px] font-semibold text-[#7C3AED] flex-shrink-0 overflow-hidden">
+          <div className="relative w-8 h-8 rounded-full bg-[#EDE9FE] ring-1 ring-[#E8E5F5] flex items-center justify-center text-[11px] font-semibold text-[#7C3AED] flex-shrink-0 overflow-hidden">
             {user?.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={user.avatar_url} alt="" className="w-full h-full object-cover" />
+              <Image src={user.avatar_url} alt="" fill className="object-cover" unoptimized />
             ) : (
               initials
             )}
           </div>
           <div className="flex-1 min-w-0 text-left">
-            <div className="text-[13px] font-medium text-[#1A1A1A] truncate">{displayName}</div>
+            <div className="text-[13px] font-medium text-[#191919] truncate">{displayName}</div>
             <div className="text-[11px] text-[#ACACAA]">{user?.plan === "pro" ? "Pro" : "Free"}</div>
           </div>
           <ChevronsUpDown size={14} className={`flex-shrink-0 transition-colors duration-150 ${menuOpen ? "text-[#7C3AED]" : "text-[#D6D3D1]"}`} />

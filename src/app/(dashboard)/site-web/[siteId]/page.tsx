@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -91,7 +92,7 @@ export default function SiteWebDashboard() {
               <div className="h-4 bg-[#F7F7F5] rounded w-48 animate-pulse" />
             ) : hasSubdomain ? (
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-[14px] font-medium text-[#1A1A1A] truncate">{siteUrl}</span>
+                <span className="text-[14px] font-medium text-[#191919] truncate">{siteUrl}</span>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
                   siteStatus === "maintenance"
                     ? "bg-amber-50 text-amber-600 border border-amber-200"
@@ -133,7 +134,7 @@ export default function SiteWebDashboard() {
         {/* LEFT — Site Preview (image-based, simple & robust) */}
         <motion.div className="lg:col-span-2 bg-white rounded-xl border border-[#E6E6E4] overflow-hidden" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.2 }}>
           <div className="px-5 py-3.5 border-b border-[#E6E6E4] flex items-center justify-between">
-            <h2 className="text-[14px] font-semibold text-[#1A1A1A]">Aperçu du site</h2>
+            <h2 className="text-[14px] font-semibold text-[#191919]">Aperçu du site</h2>
             {hasSubdomain && (
               <a href={fullUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#4F46E5] hover:underline flex items-center gap-1">
                 Ouvrir en grand
@@ -155,12 +156,13 @@ export default function SiteWebDashboard() {
           {/* Preview body — fixed height, image or fallback */}
           <div className="h-[280px] bg-[#F7F7F5] overflow-hidden relative">
             {site.seo.ogImageUrl && !previewError ? (
-              /* eslint-disable-next-line @next/next/no-img-element */
-              <img
+              <Image
                 src={site.seo.ogImageUrl}
                 alt={`Aperçu de ${site.settings.name}`}
-                className="w-full h-full object-cover object-top"
+                fill
+                className="object-cover object-top"
                 onError={() => setPreviewError(true)}
+                unoptimized
               />
             ) : (
               <div className="h-full flex flex-col items-center justify-center gap-3">
@@ -171,7 +173,7 @@ export default function SiteWebDashboard() {
                     <line x1="12" y1="17" x2="12" y2="21" />
                   </svg>
                 </div>
-                <div className="text-[14px] font-semibold text-[#1A1A1A]">{site.settings.name}</div>
+                <div className="text-[14px] font-semibold text-[#191919]">{site.settings.name}</div>
                 <div className="text-[12px] text-[#8A8A88] max-w-xs text-center">
                   {hasSubdomain ? "Ajoutez une image OG dans les paramètres SEO pour afficher un aperçu." : "Configurez un domaine pour voir l'aperçu."}
                 </div>
@@ -198,7 +200,7 @@ export default function SiteWebDashboard() {
         <motion.div className="space-y-4" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.25 }}>
           {/* Quick Actions */}
           <div className="bg-white rounded-xl border border-[#E6E6E4] p-5">
-            <h3 className="text-[13px] font-semibold text-[#1A1A1A] mb-3">Actions rapides</h3>
+            <h3 className="text-[13px] font-semibold text-[#191919] mb-3">Actions rapides</h3>
             <div className="space-y-1.5">
               {[
                 { href: `/site-web/${siteId}/editor`, label: "Modifier le site", sub: "Ouvrir l'éditeur", icon: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" },
@@ -213,7 +215,7 @@ export default function SiteWebDashboard() {
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={a.icon} /></svg>
                   </div>
                   <div className="min-w-0">
-                    <div className="text-[12px] font-medium text-[#1A1A1A] group-hover:text-[#4F46E5] transition-colors">{a.label}</div>
+                    <div className="text-[12px] font-medium text-[#191919] group-hover:text-[#4F46E5] transition-colors">{a.label}</div>
                     <div className="text-[10px] text-[#8A8A88]">{a.sub}</div>
                   </div>
                 </Link>
@@ -225,7 +227,7 @@ export default function SiteWebDashboard() {
           <div className={`rounded-xl border p-5 transition-colors ${maintenance ? "bg-amber-50/50 border-amber-200" : "bg-white border-[#E6E6E4]"}`}>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-[13px] font-semibold text-[#1A1A1A] flex items-center gap-1.5">
+                <div className="text-[13px] font-semibold text-[#191919] flex items-center gap-1.5">
                   Mode maintenance
                   {savingMaintenance && <span className="text-[10px] font-normal text-[#8A8A88]">Sauvegarde...</span>}
                 </div>
@@ -247,11 +249,11 @@ export default function SiteWebDashboard() {
               <div className="text-[11px] font-medium text-[#8A8A88] uppercase tracking-wider mb-2">Ce mois</div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="text-[18px] font-bold text-[#1A1A1A]">{formatPrice(dashboard.totalRevenue)}</div>
+                  <div className="text-[18px] font-bold text-[#191919]">{formatPrice(dashboard.totalRevenue)}</div>
                   <div className="text-[10px] text-[#8A8A88]">Revenus</div>
                 </div>
                 <div>
-                  <div className="text-[18px] font-bold text-[#1A1A1A]">{dashboard.totalOrders}</div>
+                  <div className="text-[18px] font-bold text-[#191919]">{dashboard.totalOrders}</div>
                   <div className="text-[10px] text-[#8A8A88]">Commandes</div>
                 </div>
               </div>
@@ -263,7 +265,7 @@ export default function SiteWebDashboard() {
       {/* ─── RECENT ORDERS ─── */}
       <motion.div className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden mb-6" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.3 }}>
         <div className="px-5 py-3.5 border-b border-[#E6E6E4] flex items-center justify-between">
-          <h2 className="text-[14px] font-semibold text-[#1A1A1A]">Commandes récentes</h2>
+          <h2 className="text-[14px] font-semibold text-[#191919]">Commandes récentes</h2>
           <Link href="/commandes" className="text-[12px] font-medium text-[#4F46E5] hover:underline">Tout voir</Link>
         </div>
         <div className="overflow-x-auto">
@@ -278,9 +280,9 @@ export default function SiteWebDashboard() {
             <tbody>
               {recentOrders.map((o: any) => (
                 <tr key={o.id} className="border-b border-[#F8F8FA] last:border-b-0 hover:bg-[#FBFBFA] transition-colors">
-                  <td className="px-5 py-3 text-[13px] font-medium text-[#1A1A1A]">{o.clientName || "—"}</td>
+                  <td className="px-5 py-3 text-[13px] font-medium text-[#191919]">{o.clientName || "—"}</td>
                   <td className="px-5 py-3 text-[13px] text-[#5A5A58]">{o.productName || "—"}</td>
-                  <td className="px-5 py-3 text-[13px] font-medium text-[#1A1A1A]">{o.amount ? `${o.amount} €` : "—"}</td>
+                  <td className="px-5 py-3 text-[13px] font-medium text-[#191919]">{o.amount ? `${o.amount} €` : "—"}</td>
                   <td className="px-5 py-3"><BadgeStatus status={o.status || "new"} /></td>
                   <td className="px-5 py-3 text-[12px] text-[#8A8A88]">{o.created_at ? new Date(o.created_at).toLocaleDateString("fr-FR") : "—"}</td>
                 </tr>

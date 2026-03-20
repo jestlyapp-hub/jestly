@@ -25,7 +25,7 @@ function FooterSimplePremiumBlockPreviewInner({ content }: { content: FooterSimp
           {/* Brand */}
           <span
             className="text-lg font-bold"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.siteName || "Mon Site"}
           </span>

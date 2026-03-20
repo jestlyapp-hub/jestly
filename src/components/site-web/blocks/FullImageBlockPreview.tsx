@@ -6,7 +6,7 @@ function FullImageBlockPreviewInner({ content }: { content: FullImageBlockConten
     <div className="py-4">
       <div className="h-48 bg-gradient-to-br from-[var(--site-primary-light)] to-[var(--site-border,#E6E6E4)] rounded-lg flex items-center justify-center relative">
         {content.overlayText && (
-          <span className="text-[16px] font-bold" style={{ color: "var(--site-text, #1A1A1A)" }}>{content.overlayText}</span>
+          <span className="text-[16px] font-bold" style={{ color: "var(--site-text, #191919)" }}>{content.overlayText}</span>
         )}
         {!content.overlayText && (
           <div className="text-center">

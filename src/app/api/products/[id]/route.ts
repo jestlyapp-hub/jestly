@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { logger } from "@/lib/logger";
+import { apiError } from "@/lib/api-error";
 
 // GET /api/products/[id]
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -31,7 +33,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     "name", "description", "price_cents", "type", "status", "slug",
     "short_description", "long_description", "features", "delivery_time_days",
     "thumbnail_url", "is_featured", "category", "image_url", "form_schema_json",
-    "checkout_mode", "cover_image_url", "cta_label", "delivery_type",
+    "mode", "cover_image_url", "cta_label", "delivery_type",
     "delivery_file_path", "delivery_url",
   ];
   const updates: Record<string, unknown> = {};
@@ -47,7 +49,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(500, error.message, { route: "/api/products/[id]", userId: user.id, action: "update_product", entityId: id });
+  logger.info("product_updated", { userId: user.id, entity: "product", entityId: id, route: "/api/products/[id]" });
   return NextResponse.json(data);
 }
 
@@ -64,6 +67,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .eq("id", id)
     .eq("owner_id", user.id);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return apiError(500, error.message, { route: "/api/products/[id]", userId: user.id, action: "delete_product", entityId: id });
+  logger.info("product_deleted", { userId: user.id, entity: "product", entityId: id, route: "/api/products/[id]" });
   return NextResponse.json({ ok: true });
 }

@@ -33,11 +33,11 @@ export default function IconPicker({ value, onChange }: IconPickerProps) {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 px-3 py-2 w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg text-[13px] text-[#1A1A1A] hover:border-[#4F46E5]/30 transition-all cursor-pointer"
+        className="flex items-center gap-2 px-3 py-2 w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg text-[13px] text-[#191919] hover:border-[#4F46E5]/30 transition-all cursor-pointer"
       >
         <span className="text-[#4F46E5]">{getIcon(value)}</span>
         <span className="flex-1 text-left truncate">{value || "Choisir une icone"}</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#8A8A88" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="6 9 12 15 18 9" />
         </svg>
       </button>

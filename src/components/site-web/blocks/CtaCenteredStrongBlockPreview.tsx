@@ -9,7 +9,7 @@ function CtaCenteredStrongBlockPreview({ content }: { content: CtaCenteredStrong
         {content.title && (
           <h2
             className="text-4xl font-bold mb-4"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -36,7 +36,7 @@ function CtaCenteredStrongBlockPreview({ content }: { content: CtaCenteredStrong
               className="px-8 py-3.5 text-[15px] font-semibold transition-opacity hover:opacity-90"
               style={{
                 backgroundColor: "transparent",
-                color: "var(--site-text, #1A1A1A)",
+                color: "var(--site-text, #191919)",
                 borderRadius: "var(--site-btn-radius, 8px)",
                 border: "1px solid var(--site-border, #E6E6E4)",
               }}

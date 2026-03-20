@@ -109,7 +109,7 @@ export default function NotificationPanel() {
           >
             {/* Header */}
             <div className="px-4 py-3 border-b border-[#E6E6E4] flex items-center justify-between">
-              <h3 className="text-[14px] font-semibold text-[#1A1A1A]">Notifications</h3>
+              <h3 className="text-[14px] font-semibold text-[#191919]">Notifications</h3>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
@@ -151,7 +151,7 @@ export default function NotificationPanel() {
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[13px] leading-snug ${!notif.read ? "font-medium text-[#1A1A1A]" : "text-[#666]"}`}>
+                        <p className={`text-[13px] leading-snug ${!notif.read ? "font-medium text-[#191919]" : "text-[#666]"}`}>
                           {notif.message}
                         </p>
                         <p className="text-[11px] text-[#BBB] mt-0.5">{notif.time}</p>

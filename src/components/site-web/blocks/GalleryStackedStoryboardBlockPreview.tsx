@@ -30,7 +30,7 @@ function GalleryStackedStoryboardBlockPreviewInner({ content }: { content: Galle
         {content.title && (
           <h2
             className="text-3xl font-bold mb-12 text-center"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -58,7 +58,7 @@ function GalleryStackedStoryboardBlockPreviewInner({ content }: { content: Galle
               <div className="p-6">
                 <h3
                   className="text-xl font-semibold mb-2"
-                  style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+                  style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
                 >
                   {item.title}
                 </h3>

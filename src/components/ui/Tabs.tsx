@@ -16,7 +16,7 @@ export default function Tabs({ tabs, active, onChange }: TabsProps) {
           className={`px-4 py-2.5 text-[13px] font-medium transition-all border-b-2 -mb-px cursor-pointer ${
             active === tab
               ? "border-[#4F46E5] text-[#4F46E5]"
-              : "border-transparent text-[#999] hover:text-[#666]"
+              : "border-transparent text-[#8A8A88] hover:text-[#5A5A58]"
           }`}
         >
           {tab}

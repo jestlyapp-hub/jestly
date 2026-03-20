@@ -52,7 +52,7 @@ function LeadMagnetBlockPreviewInner({ content, leadCtx }: { content: LeadMagnet
               type="email"
               placeholder="Votre email"
               className="flex-1 border rounded-lg px-3 py-2 text-[13px] focus:outline-none"
-              style={{ background: "var(--site-surface, #F7F7F5)", borderColor: "var(--site-border, #E6E6E4)", color: "var(--site-text, #1A1A1A)" }}
+              style={{ background: "var(--site-surface, #F7F7F5)", borderColor: "var(--site-border, #E6E6E4)", color: "var(--site-text, #191919)" }}
               readOnly={!leadCtx}
             />
             <button

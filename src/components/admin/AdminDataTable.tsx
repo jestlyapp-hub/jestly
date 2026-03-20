@@ -52,7 +52,7 @@ export default function AdminDataTable<T extends Record<string, unknown>>({
   onSort,
   onSearch,
   loading = false,
-  emptyMessage = "Aucune donnee trouvee",
+  emptyMessage = "Aucune donnée trouvée",
   filters,
   activeFilters = [],
   onFilterToggle,

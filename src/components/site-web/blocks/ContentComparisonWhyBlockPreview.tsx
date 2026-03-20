@@ -12,7 +12,7 @@ function ContentComparisonWhyBlockPreviewInner({ content }: { content: ContentCo
         <div className="text-center mb-12">
           <h2
             className="text-2xl font-bold mb-2"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -80,7 +80,7 @@ function ContentComparisonWhyBlockPreviewInner({ content }: { content: ContentCo
                       <path d="M20 6L9 17l-5-5" />
                     </svg>
                   </span>
-                  <span className="text-sm" style={{ color: "var(--site-text, #1A1A1A)" }}>{item}</span>
+                  <span className="text-sm" style={{ color: "var(--site-text, #191919)" }}>{item}</span>
                 </li>
               ))}
             </ul>

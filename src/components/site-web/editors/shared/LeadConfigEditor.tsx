@@ -41,7 +41,7 @@ export default function LeadConfigEditor({
 
   return (
     <div className="space-y-3 border-t border-[#E6E6E4] pt-3 mt-3">
-      <label className="block text-[12px] font-semibold text-[#1A1A1A]">Capture de leads</label>
+      <label className="block text-[12px] font-semibold text-[#191919]">Capture de leads</label>
 
       {/* Save as lead toggle */}
       <div className="flex items-center justify-between">
@@ -70,7 +70,7 @@ export default function LeadConfigEditor({
               value={config.successMessage || ""}
               onChange={(e) => update({ successMessage: e.target.value })}
               placeholder="Merci ! Nous reviendrons vers vous rapidement."
-              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
             />
           </div>
 
@@ -82,7 +82,7 @@ export default function LeadConfigEditor({
               value={config.notifyEmail || ""}
               onChange={(e) => update({ notifyEmail: e.target.value })}
               placeholder="vous@domaine.fr"
-              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+              className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
             />
             <p className="text-[10px] text-[#8A8A88] mt-0.5">Recevez une notification à chaque soumission.</p>
           </div>
@@ -94,7 +94,7 @@ export default function LeadConfigEditor({
               <select
                 value={config.leadSource || defaultSource}
                 onChange={(e) => update({ leadSource: e.target.value as LeadSource })}
-                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all appearance-none"
+                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all appearance-none"
               >
                 {SOURCE_OPTIONS.map((opt) => (
                   <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -112,7 +112,7 @@ export default function LeadConfigEditor({
                 value={(config.leadTags || []).join(", ")}
                 onChange={(e) => update({ leadTags: e.target.value.split(",").map((t) => t.trim()).filter(Boolean) })}
                 placeholder="devis, premium, urgent"
-                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#1A1A1A] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+                className="w-full bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
               />
               <p className="text-[10px] text-[#8A8A88] mt-0.5">Séparez les tags par des virgules.</p>
             </div>

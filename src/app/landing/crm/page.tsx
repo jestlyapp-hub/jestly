@@ -10,6 +10,7 @@ const DATA: FeaturePageData = {
   subtitle:
     "Fini les contacts éparpillés entre DMs, mails et tableurs. Jestly regroupe vos prospects, clients actifs et historique dans un seul espace clair.",
   videoLabel: "Découvrir le CRM en action",
+  useCrmDemo: true,
   accentColor: "#EC4899",
 
   benefitsTitle: "Un CRM pensé pour",

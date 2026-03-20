@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeLabel, findExistingOption, fileToResourceItem, urlToResourceItem } from "@/lib/brief-column-compat";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+import { logger } from "@/lib/logger";
+import { apiError } from "@/lib/api-error";
 import type { ResourceItem } from "@/types";
 
 /**
@@ -31,8 +34,16 @@ function briefValueToResources(val: unknown): ResourceItem[] {
   return items;
 }
 
+const checkLimit = rateLimit("public-checkout", 5);
+
 // POST /api/public/checkout — public checkout via RPC
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  if (!checkLimit(ip)) {
+    logger.warn("checkout_rate_limited", { route: "/api/public/checkout", action: "rate_limit", ip } as Record<string, unknown>);
+    return apiError(429, "Rate limit exceeded", { route: "/api/public/checkout" });
+  }
+
   const body = await req.json();
   const {
     site_id, product_id, name, email, phone, message, form_data,
@@ -41,14 +52,11 @@ export async function POST(req: NextRequest) {
   } = body;
 
   if (!site_id || !product_id || !name || !email) {
-    return NextResponse.json(
-      { error: "site_id, product_id, name and email are required" },
-      { status: 400 }
-    );
+    return apiError(400, "site_id, product_id, name and email are required", { route: "/api/public/checkout" });
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+    return apiError(400, "Invalid email", { route: "/api/public/checkout" });
   }
 
   const supabase = await createClient();
@@ -65,8 +73,8 @@ export async function POST(req: NextRequest) {
   });
 
   if (error) {
-    console.error("Checkout error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    logger.error("checkout_failed", { route: "/api/public/checkout", action: "checkout", error: error.message, entity: "order" } as Record<string, unknown>);
+    return apiError(500, error.message, { route: "/api/public/checkout" });
   }
 
   // Store brief responses if provided
@@ -280,5 +288,6 @@ export async function POST(req: NextRequest) {
     amount: data?.amount ?? null,
   }).then(() => {/* fire & forget */}).catch(() => {/* non-blocking */});
 
+  logger.info("checkout_completed", { route: "/api/public/checkout", entity: "order", entityId: data?.order_id, action: "checkout" });
   return NextResponse.json(data, { status: 201 });
 }

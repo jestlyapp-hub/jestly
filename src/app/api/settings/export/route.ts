@@ -18,10 +18,10 @@ export async function GET(req: NextRequest) {
   // Fetch all user data in parallel
   const [profileRes, clientsRes, ordersRes, productsRes, tasksRes] = await Promise.all([
     (supabase.from("profiles") as any).select("*").eq("id", user.id).single(),
-    (supabase.from("clients") as any).select("*").eq("owner_id", user.id),
-    (supabase.from("orders") as any).select("*").eq("owner_id", user.id),
+    (supabase.from("clients") as any).select("*").eq("user_id", user.id),
+    (supabase.from("orders") as any).select("*").eq("user_id", user.id),
     (supabase.from("products") as any).select("*").eq("owner_id", user.id),
-    (supabase.from("tasks") as any).select("*").eq("owner_id", user.id),
+    (supabase.from("tasks") as any).select("*").eq("user_id", user.id),
   ]);
 
   const exportData = {

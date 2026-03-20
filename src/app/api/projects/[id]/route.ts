@@ -13,6 +13,7 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
   const { data, error } = await (supabase.from("projects") as any)
     .select("*, clients(id, name, email, company, phone), project_items!project_items_project_id_fkey(count), brief_templates:brief_template_id(id, name, schema)")
     .eq("id", id)
+    .eq("user_id", auth.user.id)
     .single();
 
   if (error) {
@@ -212,7 +213,8 @@ export async function PATCH(req: NextRequest, ctx: Ctx) {
 
   const { error } = await (supabase.from("projects") as any)
     .update(updates)
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", auth.user.id);
 
   if (error) {
     console.error("[projects] update error:", error);
@@ -231,7 +233,8 @@ export async function DELETE(_req: NextRequest, ctx: Ctx) {
 
   const { error } = await (supabase.from("projects") as any)
     .delete()
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", auth.user.id);
 
   if (error) {
     console.error("[projects] delete error:", error);

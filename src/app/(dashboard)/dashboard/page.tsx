@@ -1,10 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useTrack } from "@/lib/hooks/use-track";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi } from "@/lib/hooks/use-api";
 import { ProductEvents } from "@/lib/product-events";
 import BadgeStatus from "@/components/ui/BadgeStatus";
+import PipelineSummaryCards from "@/components/ui/PipelineSummaryCards";
+import { computeOrdersPipelineSummary } from "@/lib/business-metrics";
 import type { OrderStatus } from "@/types";
 import type {
   CalendarDaySummary,
@@ -44,6 +47,7 @@ import {
 // TYPES
 // ═══════════════════════════════════════
 interface DashboardData {
+  pipelineSummary: import("@/lib/business-metrics").PipelineSummary;
   totalRevenue: number;
   monthRevenue: number;
   todayRevenue: number;
@@ -171,7 +175,7 @@ function KpiCard({ label, value, sub, change, icon: Icon, sparkData, color, dela
         {sparkData && sparkData.length > 1 && <Sparkline data={sparkData} color={pos ? "#10B981" : "#EF4444"} />}
       </div>
       <div className="text-[11px] font-medium text-[#AAA] uppercase tracking-wider mb-0.5">{label}</div>
-      <div className="text-[20px] font-bold text-[#1A1A1A] leading-tight">{value}</div>
+      <div className="text-[20px] font-bold text-[#191919] leading-tight">{value}</div>
       <div className="flex items-center gap-2 mt-1">
         {change !== undefined && change !== 0 && (
           <span className={`flex items-center gap-0.5 text-[10px] font-semibold ${pos ? "text-emerald-600" : "text-red-500"}`}>
@@ -194,7 +198,7 @@ function Card({ title, action, children, delay = 0, className = "" }: {
   return (
     <motion.div className={`bg-white rounded-xl border border-[#E6E6E4] overflow-hidden flex flex-col ${className}`} {...fadeUp(delay)}>
       <div className="flex items-center justify-between px-5 py-3 border-b border-[#F0F0EE]">
-        <h2 className="text-[13px] font-semibold text-[#1A1A1A]">{title}</h2>
+        <h2 className="text-[13px] font-semibold text-[#191919]">{title}</h2>
         {action && (
           <a href={action.href} className="flex items-center gap-0.5 text-[11px] font-medium text-[#4F46E5] hover:underline">
             {action.label} <ChevronRight size={12} />
@@ -262,7 +266,7 @@ function MiniCalendar({ calendarData }: { calendarData: DashboardCalendarMonthDa
     <div>
       <div className="flex items-center justify-between mb-3 px-1">
         <button onClick={prev} className="p-1 hover:bg-[#F7F7F5] rounded-md cursor-pointer"><ChevronLeft size={14} className="text-[#999]" /></button>
-        <span className="text-[12px] font-semibold text-[#1A1A1A] capitalize">{monthLabel}</span>
+        <span className="text-[12px] font-semibold text-[#191919] capitalize">{monthLabel}</span>
         <button onClick={next} className="p-1 hover:bg-[#F7F7F5] rounded-md cursor-pointer"><ChevronRight size={14} className="text-[#999]" /></button>
       </div>
       <div className="grid grid-cols-7 mb-1">
@@ -314,7 +318,7 @@ function MiniCalendar({ calendarData }: { calendarData: DashboardCalendarMonthDa
                   : hasUrgent
                     ? "text-red-600 font-bold"
                     : hasAny
-                      ? "text-[#1A1A1A] font-semibold hover:bg-[#F0EEFF]"
+                      ? "text-[#191919] font-semibold hover:bg-[#F0EEFF]"
                       : "text-[#BBB] hover:text-[#999]"
               } ${isHeavy && !isToday ? "ring-1 ring-violet-200" : ""}`}>
                 {day}
@@ -332,7 +336,7 @@ function MiniCalendar({ calendarData }: { calendarData: DashboardCalendarMonthDa
               )}
               {/* Hover tooltip */}
               {hasAny && (
-                <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#1A1A1A] text-white text-[9px] px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg">
+                <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-[#191919] text-white text-[9px] px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg">
                   {tooltipParts.join(" · ")}
                   {hasUrgent && <span className="text-red-300 ml-1">⚡</span>}
                 </div>
@@ -385,7 +389,7 @@ function TodayItemRow({ item }: { item: TodayItem }) {
         <Icon size={12} className={item.isOverdue ? "text-red-500" : config.color} />
       </div>
       <div className="flex-1 min-w-0">
-        <span className="text-[12px] text-[#1A1A1A] block truncate">{item.title}</span>
+        <span className="text-[12px] text-[#191919] block truncate">{item.title}</span>
         <span className="text-[10px] text-[#BBB]">
           {item.clientName ? `${item.clientName} · ` : ""}
           {item.subtitle || config.label}
@@ -455,7 +459,7 @@ function RevenueChart({ revenueData }: { revenueData: DashboardRevenueData }) {
       {/* Summary line */}
       <div className="flex items-center justify-between mb-3">
         <div>
-          <span className="text-[18px] font-bold text-[#1A1A1A]">{fmtEur(revenueData.totalRevenue)}</span>
+          <span className="text-[18px] font-bold text-[#191919]">{fmtEur(revenueData.totalRevenue)}</span>
           <span className="text-[10px] text-[#BBB] ml-1.5">sur 6 mois</span>
         </div>
         {revenueData.changePercent !== 0 && (
@@ -473,7 +477,7 @@ function RevenueChart({ revenueData }: { revenueData: DashboardRevenueData }) {
           const isLast = i === revenueData.series.length - 1;
           return (
             <div key={m.monthKey} className="flex-1 flex flex-col items-center gap-0.5 group relative">
-              <span className="text-[9px] font-semibold text-[#1A1A1A]">{m.revenue > 0 ? fmtEur(m.revenue) : ""}</span>
+              <span className="text-[9px] font-semibold text-[#191919]">{m.revenue > 0 ? fmtEur(m.revenue) : ""}</span>
               <motion.div
                 className={`w-full rounded-t-md ${isLast ? "bg-[#4F46E5]" : "bg-[#EDEAFF]"} hover:opacity-80 transition-opacity`}
                 initial={{ height: 0 }}
@@ -483,7 +487,7 @@ function RevenueChart({ revenueData }: { revenueData: DashboardRevenueData }) {
               <span className="text-[9px] text-[#BBB]">{m.monthLabel}</span>
               {/* Tooltip */}
               {m.revenue > 0 && (
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#1A1A1A] text-white text-[9px] px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg">
+                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#191919] text-white text-[9px] px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg">
                   {fmtEur(m.revenue)} · {m.paidOrdersCount} payée{m.paidOrdersCount > 1 ? "s" : ""} / {m.ordersCount} cmd
                 </div>
               )}
@@ -507,8 +511,13 @@ function Sk({ className = "" }: { className?: string }) {
 // ═══════════════════════════════════════
 export default function DashboardPage() {
   const { data, loading, error, mutate } = useApi<DashboardData>("/api/dashboard/stats");
+  const track = useTrack();
 
-  useEffect(() => { ProductEvents.pageViewed("/dashboard"); }, []);
+  // Track page view au montage (double tracking: ProductEvents pour compat, useTrack pour le nouveau systeme)
+  useEffect(() => {
+    ProductEvents.pageViewed("/dashboard");
+    track("dashboard_page_viewed");
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Loading ──
   if (loading) {
@@ -536,7 +545,7 @@ export default function DashboardPage() {
     return (
       <div className="max-w-[1100px] mx-auto py-16 text-center">
         <AlertTriangle size={32} className="text-red-400 mx-auto mb-3" />
-        <p className="text-[14px] text-[#1A1A1A] font-medium mb-1">Erreur de chargement</p>
+        <p className="text-[14px] text-[#191919] font-medium mb-1">Erreur de chargement</p>
         <p className="text-[13px] text-[#999] mb-4">{error}</p>
         <button onClick={mutate} className="text-[13px] text-[#4F46E5] hover:underline cursor-pointer">Réessayer</button>
       </div>
@@ -554,7 +563,7 @@ export default function DashboardPage() {
       {/* ════════════════════════ HEADER ════════════════════════ */}
       <motion.div className="flex items-start justify-between mb-6" {...fadeUp(0)}>
         <div>
-          <h1 className="text-[22px] font-bold text-[#1A1A1A]">Dashboard</h1>
+          <h1 className="text-[22px] font-bold text-[#191919]">Dashboard</h1>
           <p className="text-[13px] text-[#999] mt-0.5">Aperçu de ton activité</p>
         </div>
         <CreateMenu />
@@ -569,12 +578,9 @@ export default function DashboardPage() {
         </motion.a>
       )}
 
-      {/* ════════════════════════ ROW 1 — KPIs ════════════════════════ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KpiCard label="Revenu ce mois" value={fmtEur(data.monthRevenue)} change={data.revenueChange} sub={data.todayRevenue > 0 ? `${fmtEur(data.todayRevenue)} aujourd'hui` : "vs mois dernier"} icon={DollarSign} sparkData={sparkRev} color="bg-emerald-50 text-emerald-600" delay={0.05} />
-        <KpiCard label="Commandes" value={String(data.activeOrdersCount)} sub={`${data.pendingOrders} en attente`} icon={ShoppingCart} sparkData={sparkOrd} color="bg-violet-50 text-violet-600" delay={0.1} />
-        <KpiCard label="Clients" value={String(data.clientsCount)} sub={data.newClientsThisMonth > 0 ? `+${data.newClientsThisMonth} ce mois` : "total"} icon={Users} color="bg-blue-50 text-blue-600" delay={0.15} />
-        <KpiCard label="En cours" value={`${data.inProgressOrders}`} sub={`${data.deliveredOrders} livrées · ${data.paidOrders} payées`} icon={TrendingUp} color="bg-amber-50 text-amber-600" delay={0.2} />
+      {/* ════════════════════════ ROW 1 — Pipeline Summary (source de vérité unique) ════════════════════════ */}
+      <div className="mb-6">
+        <PipelineSummaryCards summary={data.pipelineSummary} baseDelay={0.05} />
       </div>
 
       {/* ════════════════════════ WORKLOAD SNAPSHOT ════════════════════════ */}
@@ -606,7 +612,7 @@ export default function DashboardPage() {
         {/* Actions rapides — 4 col */}
         <div className="lg:col-span-4 flex">
           <motion.div className="bg-white rounded-xl border border-[#E6E6E4] p-4 flex flex-col w-full" {...fadeUp(0.3)}>
-            <h2 className="text-[13px] font-semibold text-[#1A1A1A] mb-3">Actions rapides</h2>
+            <h2 className="text-[13px] font-semibold text-[#191919] mb-3">Actions rapides</h2>
             <div className="grid grid-cols-2 gap-2 flex-1 content-start">
               {[
                 { label: "Commande", href: "/commandes", icon: ClipboardList, color: "bg-violet-50 text-violet-600" },
@@ -647,9 +653,9 @@ export default function DashboardPage() {
                   <tbody>
                     {data.recentOrders.slice(0, 6).map((o: { id: string; title: string; amount: number; status: string; created_at: string; clients?: { name: string } | null; products?: { name: string } | null }) => (
                       <tr key={o.id} className="border-b border-[#F8F8F6] last:border-b-0 hover:bg-[#FBFBFA] transition-colors">
-                        <td className="px-4 py-2.5 text-[12px] font-medium text-[#1A1A1A] max-w-[140px] truncate">{o.clients?.name ?? "\u2014"}</td>
+                        <td className="px-4 py-2.5 text-[12px] font-medium text-[#191919] max-w-[140px] truncate">{o.clients?.name ?? "\u2014"}</td>
                         <td className="px-4 py-2.5 text-[12px] text-[#888] max-w-[140px] truncate hidden md:table-cell">{o.products?.name || o.title || "\u2014"}</td>
-                        <td className="px-4 py-2.5 text-[12px] font-semibold text-[#1A1A1A] text-right">{Number(o.amount)} €</td>
+                        <td className="px-4 py-2.5 text-[12px] font-semibold text-[#191919] text-right">{Number(o.amount)} €</td>
                         <td className="px-4 py-2.5"><BadgeStatus status={o.status as OrderStatus} /></td>
                       </tr>
                     ))}
@@ -674,7 +680,7 @@ export default function DashboardPage() {
         <div className="lg:col-span-5 flex">
           <motion.div className="bg-white rounded-xl border border-[#E6E6E4] p-4 w-full" {...fadeUp(0.45)}>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-[13px] font-semibold text-[#1A1A1A]">Calendrier</h2>
+              <h2 className="text-[13px] font-semibold text-[#191919]">Calendrier</h2>
               <a href="/calendrier" className="flex items-center gap-0.5 text-[11px] font-medium text-[#4F46E5] hover:underline">
                 Ouvrir <ChevronRight size={12} />
               </a>
@@ -701,7 +707,7 @@ export default function DashboardPage() {
                         <Clock size={12} className={d.isOverdue ? "text-red-500" : d.isToday ? "text-amber-600" : "text-[#999]"} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <span className="text-[12px] font-medium text-[#1A1A1A] block truncate">{d.title}</span>
+                        <span className="text-[12px] font-medium text-[#191919] block truncate">{d.title}</span>
                         <span className="text-[10px] text-[#BBB]">
                           {d.clientName ? `${d.clientName} · ` : ""}{dayLabel}
                         </span>
@@ -720,15 +726,15 @@ export default function DashboardPage() {
       <motion.div className="mt-6 bg-white rounded-xl border border-[#E6E6E4] px-6 py-4" {...fadeUp(0.55)}>
         <div className="flex flex-wrap items-center justify-between gap-6">
           {[
-            { label: "Revenu total", value: fmtEur(data.totalRevenue), icon: DollarSign, color: "text-emerald-600" },
-            { label: "Commandes totales", value: String(data.ordersCount), icon: ShoppingCart, color: "text-violet-600" },
+            { label: "CA total", value: fmtEur(data.pipelineSummary.totalRevenue), icon: DollarSign, color: "text-emerald-600" },
+            { label: "Commandes totales", value: String(data.pipelineSummary.totalCount), icon: ShoppingCart, color: "text-violet-600" },
             { label: "Produits actifs", value: String(data.activeProductsCount), icon: Package, color: "text-blue-600" },
             { label: "Taux complétion", value: data.ordersCount > 0 ? `${Math.round((data.paidOrders / data.ordersCount) * 100)}%` : "\u2014", icon: CheckCircle2, color: "text-amber-600" },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2.5">
               <item.icon size={14} className={item.color} strokeWidth={1.8} />
               <span className="text-[11px] text-[#999]">{item.label}</span>
-              <span className="text-[13px] font-bold text-[#1A1A1A]">{item.value}</span>
+              <span className="text-[13px] font-bold text-[#191919]">{item.value}</span>
             </div>
           ))}
         </div>

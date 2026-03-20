@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { useConfirm } from "@/lib/hooks/use-confirm";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DndContext,
@@ -79,7 +81,7 @@ function KanbanColumn({
             className="w-2.5 h-2.5 rounded-full"
             style={{ background: cfg.color }}
           />
-          <span className="text-[13px] font-semibold text-[#1A1A1A]">
+          <span className="text-[13px] font-semibold text-[#191919]">
             {cfg.label}
           </span>
           <span className="text-[12px] text-[#BBB] bg-white rounded-full w-5 h-5 flex items-center justify-center">
@@ -95,7 +97,7 @@ function KanbanColumn({
           onChange={(e) => setQuickInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleQuickAdd()}
           placeholder="+ Ajouter..."
-          className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#1A1A1A] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+          className="w-full bg-white border border-[#E6E6E4] rounded-lg px-3 py-2 text-[12px] text-[#191919] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
         />
       </div>
 
@@ -169,7 +171,7 @@ function QuickCaptureBar({ onAdd }: { onAdd: (title: string) => void }) {
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           placeholder="Nouvelle tâche... (appuyer N)"
-          className="flex-1 py-3 px-2 text-[14px] text-[#1A1A1A] placeholder-[#CCC] border-none outline-none bg-transparent"
+          className="flex-1 py-3 px-2 text-[14px] text-[#191919] placeholder-[#CCC] border-none outline-none bg-transparent"
         />
         {value.trim() && (
           <button
@@ -230,7 +232,7 @@ function TemplatePicker({
         {/* Header */}
         <div className="px-5 py-4 border-b border-[#E6E6E4]">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[16px] font-bold text-[#1A1A1A]">Modèles de tâches</h3>
+            <h3 className="text-[16px] font-bold text-[#191919]">Modèles de tâches</h3>
             <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-[#F7F7F5] cursor-pointer">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
             </button>
@@ -243,7 +245,7 @@ function TemplatePicker({
               placeholder="Rechercher un modèle..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-[#F7F7F5] border border-transparent rounded-lg pl-9 pr-3 py-2 text-[13px] text-[#1A1A1A] placeholder-[#B0B0AE] focus:outline-none focus:bg-white focus:border-[#E6E6E4] transition-all"
+              className="w-full bg-[#F7F7F5] border border-transparent rounded-lg pl-9 pr-3 py-2 text-[13px] text-[#191919] placeholder-[#B0B0AE] focus:outline-none focus:bg-white focus:border-[#E6E6E4] transition-all"
             />
           </div>
           {/* Tabs */}
@@ -253,7 +255,7 @@ function TemplatePicker({
                 key={key}
                 onClick={() => setTab(key)}
                 className={`flex-1 px-3 py-1.5 rounded-md text-[12px] font-medium transition-all cursor-pointer ${
-                  tab === key ? "bg-white text-[#1A1A1A] shadow-sm" : "text-[#8A8A88] hover:text-[#5A5A58]"
+                  tab === key ? "bg-white text-[#191919] shadow-sm" : "text-[#8A8A88] hover:text-[#5A5A58]"
                 }`}
               >
                 {label}
@@ -276,7 +278,7 @@ function TemplatePicker({
                   <div key={tpl.id} className="group flex items-center gap-2 p-2.5 rounded-xl hover:bg-[#F7F7F5] transition-colors">
                     <button onClick={() => { onSelect(tpl); onClose(); }} className="flex-1 text-left cursor-pointer min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="text-[14px] font-medium text-[#1A1A1A] group-hover:text-[#4F46E5] transition-colors truncate">{tpl.name}</span>
+                        <span className="text-[14px] font-medium text-[#191919] group-hover:text-[#4F46E5] transition-colors truncate">{tpl.name}</span>
                         <span className="text-[10px] text-[#BBB] shrink-0">{tpl.subtasks.length} sous-tâches</span>
                       </div>
                       {tpl.description && <p className="text-[11px] text-[#8A8A88] mt-0.5 truncate">{tpl.description}</p>}
@@ -323,7 +325,7 @@ function TemplatePicker({
                     className="w-full text-left p-2.5 rounded-xl hover:bg-[#F7F7F5] transition-colors cursor-pointer group"
                   >
                     <div className="flex items-center gap-2">
-                      <span className="text-[14px] font-medium text-[#1A1A1A] group-hover:text-[#4F46E5] transition-colors">{tpl.name}</span>
+                      <span className="text-[14px] font-medium text-[#191919] group-hover:text-[#4F46E5] transition-colors">{tpl.name}</span>
                       <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-[#F0F0EE] text-[#8A8A88] font-medium">Système</span>
                       <span className="text-[10px] text-[#BBB] ml-auto">{tpl.subtasks.length} sous-tâches</span>
                     </div>
@@ -366,6 +368,7 @@ export default function TasksWorkspace() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const { confirm, dialogProps } = useConfirm();
 
   // User templates from DB
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -563,8 +566,9 @@ export default function TasksWorkspace() {
     }
   }
 
-  function handleDelete(id: string) {
-    if (!window.confirm("Supprimer cette tâche ? Cette action est irréversible.")) return;
+  async function handleDelete(id: string) {
+    const ok = await confirm({ title: "Supprimer la tâche", message: "Supprimer cette tâche ? Cette action est irréversible.", variant: "danger", confirmLabel: "Supprimer" });
+    if (!ok) return;
     setData((prev) => (prev || []).filter((t) => t.id !== id));
     setDrawerOpen(false);
     apiFetch("/api/tasks", { method: "DELETE", body: { id } }).catch((e) => console.error("Task delete error:", e));
@@ -712,7 +716,7 @@ export default function TasksWorkspace() {
               <line x1="12" y1="16" x2="12.01" y2="16" />
             </svg>
           </div>
-          <p className="text-[14px] font-medium text-[#1A1A1A]">Impossible de charger les tâches</p>
+          <p className="text-[14px] font-medium text-[#191919]">Impossible de charger les tâches</p>
           <p className="text-[12px] text-[#999]">{error}</p>
           <button onClick={mutate} className="mt-2 text-[13px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-lg px-4 py-2 transition-colors cursor-pointer">
             Reessayer
@@ -742,7 +746,7 @@ export default function TasksWorkspace() {
         transition={{ duration: 0.4 }}
       >
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-[#1A1A1A]">Taches</h1>
+          <h1 className="text-2xl font-bold text-[#191919]">Taches</h1>
           <Link
             href="/tâches/archive"
             className="text-[12px] text-[#999] hover:text-[#666] transition-colors ml-2"
@@ -766,7 +770,7 @@ export default function TasksWorkspace() {
                 onClick={() => setFilter(f.key)}
                 className={`text-[12px] font-medium px-3 py-1.5 rounded-md transition-all cursor-pointer ${
                   filter === f.key
-                    ? "bg-white text-[#1A1A1A] shadow-sm"
+                    ? "bg-white text-[#191919] shadow-sm"
                     : "text-[#999] hover:text-[#666]"
                 }`}
               >
@@ -792,7 +796,7 @@ export default function TasksWorkspace() {
               title="Vue Kanban"
               aria-label="Vue Kanban"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={view === "board" ? "#1A1A1A" : "#999"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={view === "board" ? "#191919" : "#999"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="18" rx="1" />
                 <rect x="14" y="3" width="7" height="10" rx="1" />
               </svg>
@@ -805,7 +809,7 @@ export default function TasksWorkspace() {
               title="Vue Liste"
               aria-label="Vue Liste"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={view === "list" ? "#1A1A1A" : "#999"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={view === "list" ? "#191919" : "#999"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="8" y1="6" x2="21" y2="6" />
                 <line x1="8" y1="12" x2="21" y2="12" />
                 <line x1="8" y1="18" x2="21" y2="18" />
@@ -905,6 +909,7 @@ export default function TasksWorkspace() {
           onDuplicateTemplate={handleDuplicateTemplate}
         />
       </AnimatePresence>
+      <ConfirmDialog {...dialogProps} />
     </div>
   );
 }

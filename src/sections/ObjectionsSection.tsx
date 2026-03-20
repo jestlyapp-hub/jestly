@@ -4,20 +4,18 @@ import { motion } from "framer-motion";
 
 /* ═══════════════════════════════════════════════════════════════════════
    SECTION 7 — "Fonctionnalités clés"
-   Feature grid (8 features)
+   Feature grid (6 features — 3 rows × 2 cols)
    ═══════════════════════════════════════════════════════════════════════ */
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const FEATURES = [
-  { icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", title: "CRM complet", desc: "Gérez vos clients, prospects et historique complet.", color: "#7C5CFF" },
-  { icon: "M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z", title: "Facturation auto", desc: "Devis, factures et suivi des paiements automatisés.", color: "#10B981" },
-  { icon: "M3 3h18v18H3zM3 9h18M9 21V9", title: "Site portfolio", desc: "Votre vitrine en ligne reliée à votre business.", color: "#3B82F6" },
+  { icon: "M3 3h18v18H3zM3 9h18M9 21V9", title: "Site web", desc: "Votre vitrine en ligne reliée à votre business.", color: "#3B82F6" },
+  { icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z", title: "CRM clients", desc: "Gérez vos clients, prospects et historique complet.", color: "#7C5CFF" },
+  { icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z", title: "Agenda", desc: "Planning, RDV et deadlines synchronisés.", color: "#F59E0B" },
+  { icon: "M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z", title: "Facturation", desc: "Devis, factures et suivi des paiements automatisés.", color: "#10B981" },
   { icon: "M18 20V10M12 20V4M6 20v-6", title: "Analytics", desc: "Revenus, tendances et KPIs en temps réel.", color: "#8B5CF6" },
-  { icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z", title: "Agenda intégré", desc: "Planning, RDV et deadlines synchronisés.", color: "#F59E0B" },
-  { icon: "M13 10V3L4 14h7v7l9-11h-7z", title: "Automations", desc: "Relances, notifications et workflows automatiques.", color: "#FF6B35" },
-  { icon: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5", title: "Multi-projets", desc: "Gérez plusieurs missions en parallèle.", color: "#EC4899" },
-  { icon: "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z", title: "Messagerie client", desc: "Échanges centralisés par projet et par client.", color: "#0EA5E9" },
+  { icon: "M9 5H2v7l6.29 6.29a1 1 0 0 0 1.42 0l5.58-5.58a1 1 0 0 0 0-1.42zM6 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2", title: "Commandes", desc: "Pipeline complet du brief à la livraison.", color: "#F59E0B" },
 ];
 
 export default function ObjectionsSection() {
@@ -25,7 +23,7 @@ export default function ObjectionsSection() {
     <section className="relative py-24 sm:py-32 lg:py-36 px-6 overflow-hidden" style={{ background: "#F7F7FB" }}>
       <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{ backgroundImage: "linear-gradient(rgba(124,92,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(124,92,255,1) 1px, transparent 1px)", backgroundSize: "60px 60px" }} />
 
-      <div className="relative z-10 max-w-5xl mx-auto">
+      <div className="relative z-10 max-w-4xl mx-auto">
         <div className="text-center mb-14">
           <motion.span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-semibold mb-5" style={{ background: "rgba(124,92,255,0.08)", color: "#7C5CFF", border: "1px solid rgba(124,92,255,0.12)" }} initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, ease }}>
             Fonctionnalités
@@ -36,7 +34,7 @@ export default function ObjectionsSection() {
           </motion.h2>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           {FEATURES.map((f, i) => (
             <motion.div
               key={f.title}

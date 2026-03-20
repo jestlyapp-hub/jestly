@@ -40,7 +40,7 @@ export default async function PublicOrderPage({
               <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
             </svg>
           </div>
-          <h1 className="text-2xl font-bold text-[#1A1A1A] mb-2">Site en maintenance</h1>
+          <h1 className="text-2xl font-bold text-[#191919] mb-2">Site en maintenance</h1>
           <p className="text-[#5A5A58]">Ce site est temporairement indisponible. Revenez bientôt !</p>
         </div>
       </div>

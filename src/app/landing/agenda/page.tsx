@@ -10,6 +10,7 @@ const DATA: FeaturePageData = {
   subtitle:
     "Un calendrier pensé pour les freelances. Vos rendez-vous, deadlines et tâches dans une vue unique — reliée à vos commandes et à vos clients.",
   videoLabel: "Voir l'agenda en action",
+  useAgendaDemo: true,
   accentColor: "#4C8DFF",
 
   benefitsTitle: "Votre temps mérite",

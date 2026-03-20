@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { Product } from "@/types";
 
 interface ProductPublicPageProps {
@@ -34,11 +35,13 @@ export default function ProductPublicPage({ product, siteSlug, siteName, basePat
 
       {/* Cover image */}
       {product.coverImageUrl && (
-        <div className="w-full max-h-[400px] overflow-hidden bg-[#F7F7F5]">
-          <img
+        <div className="relative w-full h-[400px] overflow-hidden bg-[#F7F7F5]">
+          <Image
             src={product.coverImageUrl}
             alt={product.name}
-            className="w-full h-full object-cover max-h-[400px]"
+            fill
+            className="object-cover"
+            unoptimized
           />
         </div>
       )}

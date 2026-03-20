@@ -13,7 +13,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   const { data: site } = await (supabase.from("sites") as any)
     .select("id")
     .eq("id", siteId)
-    .eq("user_id", user.id)
+    .eq("owner_id", user.id)
     .single();
 
   if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { data: site } = await (supabase.from("sites") as any)
     .select("id")
     .eq("id", siteId)
-    .eq("user_id", user.id)
+    .eq("owner_id", user.id)
     .single();
 
   if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });

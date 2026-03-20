@@ -63,7 +63,7 @@ export default function ArchiveClientDialog({ client, open, onClose, onArchived 
             </div>
 
             {/* Title */}
-            <h3 className="text-[15px] font-semibold text-[#1A1A1A] mb-2">
+            <h3 className="text-[15px] font-semibold text-[#191919] mb-2">
               Archiver {client.name} ?
             </h3>
 

@@ -10,7 +10,7 @@ function ResultsLogosQuotesBlockPreviewInner({ content }: { content: ResultsLogo
         {content.title && (
           <h2
             className="text-2xl font-bold text-center mb-10"
-            style={{ color: "var(--site-text, #1A1A1A)", fontFamily: "var(--site-heading-font, inherit)" }}
+            style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
           </h2>
@@ -56,11 +56,11 @@ function ResultsLogosQuotesBlockPreviewInner({ content }: { content: ResultsLogo
                 <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z" />
                 <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z" />
               </svg>
-              <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--site-text, #1A1A1A)" }}>
+              <p className="text-sm leading-relaxed mb-4" style={{ color: "var(--site-text, #191919)" }}>
                 &ldquo;{q.text}&rdquo;
               </p>
               <div>
-                <div className="text-sm font-semibold" style={{ color: "var(--site-text, #1A1A1A)" }}>
+                <div className="text-sm font-semibold" style={{ color: "var(--site-text, #191919)" }}>
                   {q.name}
                 </div>
                 <div className="text-xs" style={{ color: "var(--site-muted, #666)" }}>

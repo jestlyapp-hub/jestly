@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
+
+const checkLimit = rateLimit("public-analytics", 30);
 
 // POST /api/public/analytics — track an event (anonymous)
 export async function POST(req: NextRequest) {
+  const ip = getClientIp(req);
+  if (!checkLimit(ip)) {
+    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+  }
+
   const body = await req.json();
   const { site_id, type, page_slug, data, visitor_id } = body as {
     site_id?: string;
