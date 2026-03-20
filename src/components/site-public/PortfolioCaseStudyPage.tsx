@@ -237,8 +237,9 @@ function GalleryCard({ item, index, tag, featured, onClick }: {
           <Image
             src={item.url}
             alt={item.title || `Création ${index + 1}`}
-            fill
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            width={1280}
+            height={720}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
             unoptimized
           />
         )}
@@ -312,11 +313,11 @@ function Lightbox({ gallery, index, tags, onClose, onNavigate }: {
 
       {/* Image */}
       <div className="max-w-6xl w-full mx-4 sm:mx-8">
-        <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden">
+        <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden flex items-center justify-center bg-black/20">
           {item.type === "video" ? (
             <video src={item.url} controls className="w-full h-full object-contain" />
           ) : (
-            <Image src={item.url} alt={item.title || ""} fill className="object-contain" unoptimized />
+            <Image src={item.url} alt={item.title || ""} width={1920} height={1080} className="w-full h-full object-contain" unoptimized />
           )}
         </div>
 
