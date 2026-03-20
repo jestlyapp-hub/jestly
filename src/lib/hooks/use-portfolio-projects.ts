@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { PortfolioCard } from "@/types";
 
 interface PortfolioProject {
@@ -42,35 +42,14 @@ interface PortfolioProject {
 export function usePortfolioProjects() {
   const [projects, setProjects] = useState<PortfolioProject[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const fetchedRef = useRef(false);
 
   const fetchProjects = useCallback(async () => {
-    if (fetchedRef.current) return;
     setIsLoading(true);
     try {
       const res = await fetch("/api/projects/portfolio");
       if (res.ok) {
         const data = await res.json();
         setProjects(data);
-        fetchedRef.current = true;
-      }
-    } catch {
-      // silent
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  // Refetch on demand (after profile update)
-  const refetch = useCallback(async () => {
-    fetchedRef.current = false;
-    setIsLoading(true);
-    try {
-      const res = await fetch("/api/projects/portfolio");
-      if (res.ok) {
-        const data = await res.json();
-        setProjects(data);
-        fetchedRef.current = true;
       }
     } catch {
       // silent
@@ -118,5 +97,5 @@ export function usePortfolioProjects() {
     [projects]
   );
 
-  return { projects, isLoading, resolveCards, refetch };
+  return { projects, isLoading, resolveCards, refetch: fetchProjects };
 }

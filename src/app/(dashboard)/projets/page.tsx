@@ -181,7 +181,7 @@ function CreateProjectModal({
     description: "",
     projectType: "custom" as ProjectType,
     color: "#4F46E5",
-    status: "draft" as ProjectStatus,
+    status: "in_progress" as ProjectStatus,
     priority: "normal" as ProjectPriority,
     budget: "",
     clientId: "",
@@ -193,7 +193,7 @@ function CreateProjectModal({
   const [error, setError] = useState("");
 
   const resetForm = () => {
-    setForm({ name: "", description: "", projectType: "custom", color: "#4F46E5", status: "draft", priority: "normal", budget: "", clientId: "", tags: "", deadline: "", startDate: "" });
+    setForm({ name: "", description: "", projectType: "custom", color: "#4F46E5", status: "in_progress", priority: "normal", budget: "", clientId: "", tags: "", deadline: "", startDate: "" });
     setError("");
   };
 

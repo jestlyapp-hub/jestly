@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
     description: String(description || "").slice(0, 5000),
     project_type: ALLOWED_TYPES.includes(projectType) ? projectType : "custom",
     color: String(color || "#4F46E5").slice(0, 20),
-    status: ALLOWED_STATUSES.includes(status) ? status : "draft",
+    status: ALLOWED_STATUSES.includes(status) ? status : "in_progress",
     priority: ALLOWED_PRIORITIES.includes(priority) ? priority : "normal",
     budget: Math.max(0, Number(budget) || 0),
     currency: String(currency || "EUR").slice(0, 5),

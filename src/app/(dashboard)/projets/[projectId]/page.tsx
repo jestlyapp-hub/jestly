@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, useDroppable, type DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
@@ -371,10 +371,15 @@ function simpleMarkdown(text: string): string {
 }
 
 /* ─── Folder Card ────────────────────────────────────────── */
-function FolderCard({ folder, itemCount, onOpen, onRename, onDelete }: { folder: ProjectFolder; itemCount: number; onOpen: () => void; onRename: () => void; onDelete: () => void }) {
+function DroppableFolder({ folderId, children }: { folderId: string; children: React.ReactNode }) {
+  const { setNodeRef } = useDroppable({ id: folderId });
+  return <div ref={setNodeRef}>{children}</div>;
+}
+
+function FolderCard({ folder, itemCount, onOpen, onRename, onDelete, isDropTarget }: { folder: ProjectFolder; itemCount: number; onOpen: () => void; onRename: () => void; onDelete: () => void; isDropTarget?: boolean }) {
   return (
     <motion.div layout initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-      className="group bg-white rounded-xl border border-[#E6E6E4] hover:border-[#D0D0CE] hover:shadow-sm transition-all cursor-pointer p-4"
+      className={`group bg-white rounded-xl border transition-all cursor-pointer p-4 ${isDropTarget ? "border-[#4F46E5] border-2 bg-[#EEF2FF] shadow-md scale-[1.02]" : "border-[#E6E6E4] hover:border-[#D0D0CE] hover:shadow-sm"}`}
       onClick={onOpen}
     >
       <div className="flex items-start justify-between mb-3">
@@ -1280,16 +1285,43 @@ export default function ProjectDetailPage() {
     try { await apiFetch(`/api/projects/${projectId}`, { method: "DELETE" }); router.push("/projets"); } catch { showError("Erreur lors de la suppression du projet"); }
   };
 
-  // V3: DnD handler
+  // V3: DnD handler — supports reorder + move to folder
+  const [dragOverFolderId, setDragOverFolderId] = useState<string | null>(null);
+
+  const handleDragOver = useCallback((event: { over: { id: string | number } | null }) => {
+    if (!event.over) { setDragOverFolderId(null); return; }
+    const overId = String(event.over.id);
+    const isFolder = folders.some(f => f.id === overId);
+    setDragOverFolderId(isFolder ? overId : null);
+  }, [folders]);
+
   const handleDragEnd = useCallback(async (event: DragEndEvent) => {
     const { active, over } = event;
+    setDragOverFolderId(null);
     if (!over || active.id === over.id) return;
 
+    const overId = String(over.id);
+
+    // Check if dropped on a folder
+    const targetFolder = folders.find(f => f.id === overId);
+    if (targetFolder) {
+      // Move item to folder
+      const itemId = String(active.id);
+      try {
+        await apiFetch(`/api/projects/${projectId}/items/${itemId}`, {
+          method: "PATCH",
+          body: { folderId: targetFolder.id },
+        });
+        mutate();
+      } catch { showError("Erreur lors du déplacement vers le dossier"); }
+      return;
+    }
+
+    // Normal reorder within current view
     const activeIdx = visibleItems.findIndex(i => i.id === active.id);
     const overIdx = visibleItems.findIndex(i => i.id === over.id);
     if (activeIdx === -1 || overIdx === -1) return;
 
-    // Calculate new positions
     const reordered = [...visibleItems];
     const [moved] = reordered.splice(activeIdx, 1);
     reordered.splice(overIdx, 0, moved);
@@ -1300,7 +1332,7 @@ export default function ProjectDetailPage() {
       await apiFetch(`/api/projects/${projectId}/reorder`, { method: "PATCH", body: { items: updates } });
       mutate();
     } catch { showError("Erreur lors du réordonnement"); }
-  }, [visibleItems, projectId, mutate]);
+  }, [visibleItems, folders, projectId, mutate]);
 
   // V3: Selection handlers
   const toggleSelection = useCallback((id: string) => {
@@ -1712,7 +1744,9 @@ export default function ProjectDetailPage() {
             <h3 className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-3">Dossiers ({folders.length})</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
               {folders.map((f) => (
-                <FolderCard key={f.id} folder={f} itemCount={folderItemCounts[f.id] || 0} onOpen={() => setActiveFolder(f.id)} onRename={() => setRenamingFolder(f)} onDelete={() => handleDeleteFolder(f.id)} />
+                <DroppableFolder key={f.id} folderId={f.id}>
+                  <FolderCard folder={f} itemCount={folderItemCounts[f.id] || 0} onOpen={() => setActiveFolder(f.id)} onRename={() => setRenamingFolder(f)} onDelete={() => handleDeleteFolder(f.id)} isDropTarget={dragOverFolderId === f.id} />
+                </DroppableFolder>
               ))}
             </div>
           </div>
@@ -1772,7 +1806,7 @@ export default function ProjectDetailPage() {
                 + Images
               </button>
             </h3>
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
               <SortableContext items={visibleItems.map(i => i.id)} strategy={rectSortingStrategy}>
                 <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-3">
                   {visibleItems.map((item) => (
