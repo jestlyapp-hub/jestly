@@ -90,6 +90,8 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
       {/* Search + dropdown */}
       <div className="relative">
         <input
+          data-testid="products-search"
+          data-guide="products-search"
           type="text"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
@@ -102,6 +104,8 @@ export default function ProductMultiSelect({ selectedIds, onChange, filterType }
             {available.map((p) => (
               <button
                 key={p.id}
+                data-testid="product-option"
+                data-guide="product-option"
                 onClick={() => add(p.id)}
                 className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#F7F7F5] transition-colors text-left"
               >

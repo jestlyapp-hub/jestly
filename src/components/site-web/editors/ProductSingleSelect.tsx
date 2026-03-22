@@ -90,6 +90,8 @@ export default function ProductSingleSelect({ selectedId, onChange, filterType, 
                 {available.map((p) => (
                   <button
                     key={p.id}
+                    data-testid="product-option"
+                    data-guide="product-option"
                     onClick={() => select(p.id)}
                     className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#F7F7F5] transition-colors text-left"
                   >
@@ -117,6 +119,8 @@ export default function ProductSingleSelect({ selectedId, onChange, filterType, 
       {label && <label className="block text-[11px] font-medium text-[#999]">{label}</label>}
       <div className="relative">
         <input
+          data-guide="product-single-search"
+          data-testid="products-search"
           type="text"
           value={search}
           onChange={(e) => { setSearch(e.target.value); setOpen(true); }}
@@ -129,6 +133,8 @@ export default function ProductSingleSelect({ selectedId, onChange, filterType, 
             {available.map((p) => (
               <button
                 key={p.id}
+                data-testid="product-option"
+                data-guide="product-option"
                 onClick={() => select(p.id)}
                 className="w-full flex items-center justify-between px-3 py-2 hover:bg-[#F7F7F5] transition-colors text-left"
               >

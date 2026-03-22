@@ -238,6 +238,8 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
 
         <div className="relative">
           <button
+            data-guide="publish-btn"
+            data-testid="publish-site"
             onClick={handlePublish}
             disabled={publishStatus === "publishing"}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-[11px] font-semibold transition-colors shadow-sm ${

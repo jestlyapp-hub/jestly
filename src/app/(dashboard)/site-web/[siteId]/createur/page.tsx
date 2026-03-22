@@ -11,6 +11,7 @@ import BuilderCanvas from "@/components/site-web/builder/BuilderCanvas";
 import BuilderPropertyPanel from "@/components/site-web/builder/BuilderPropertyPanel";
 import ThemeEditorPanel from "@/components/site-web/builder/ThemeEditorPanel";
 import NavFooterEditorPanel from "@/components/site-web/builder/NavFooterEditorPanel";
+import GuideBridge from "@/features/onboarding-v3/missions/GuideBridge";
 
 type RightPanel = "inspector" | "theme" | "nav";
 
@@ -34,6 +35,7 @@ function BuilderLayout() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] -mx-6 -mb-6 border-t border-[#E6E6E4] rounded-t-xl overflow-hidden bg-white">
+      <GuideBridge />
       <BuilderToolbar activePanel={activePanel} onPanelChange={handlePanelChange} />
       <div className="flex flex-1 overflow-hidden">
         <BuilderPageList />

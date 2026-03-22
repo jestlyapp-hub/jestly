@@ -53,6 +53,13 @@ export const ProductEvents = {
   // Onboarding
   onboardingStarted: () => trackProductEvent("onboarding.started", "onboarding"),
   onboardingCompleted: () => trackProductEvent("onboarding.completed", "onboarding"),
+  onboardingWelcomeStep: (step: number) => trackProductEvent(`onboarding.welcome_step_${step}`, "onboarding"),
+  onboardingWelcomeCompleted: (activity: string | null) => trackProductEvent("onboarding.welcome_completed", "onboarding", { activity }),
+  onboardingChecklistStep: (stepId: string) => trackProductEvent(`onboarding.step.${stepId}`, "onboarding"),
+  onboardingChecklistDismissed: () => trackProductEvent("onboarding.checklist_dismissed", "onboarding"),
+  onboardingProductAddedToSite: () => trackProductEvent("onboarding.product_added_to_site", "onboarding"),
+  onboardingSitePublished: () => trackProductEvent("onboarding.site_published_from_guide", "onboarding"),
+  onboardingMissionCompleted: (mission: string) => trackProductEvent(`onboarding.mission.${mission}`, "onboarding"),
 
   // Sites
   siteCreated: (siteId: string) => trackProductEvent("site.created", "site", { site_id: siteId }),
