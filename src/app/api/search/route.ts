@@ -51,10 +51,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ results: mapped });
     }
 
-    // If RPC returned empty but no error, still return empty (not a fallback case)
-    if (!error && data) {
-      return NextResponse.json({ results: [] });
-    }
+    // V2 returned empty — fall through to legacy search
+    // (search_documents may not be synced yet)
   } catch {
     // fn_search_v2 not available — fall through to legacy
   }
@@ -64,7 +62,7 @@ export async function GET(req: NextRequest) {
   const cleanQ = q.replace(/#/g, "").trim();
   const results: SearchResult[] = [];
   if (cleanQ.length >= 2) {
-    await legacySearch(supabase, user.id, sanitizeIlike(cleanQ), entityType, results);
+    await legacySearch(supabase, user.id, cleanQ, entityType, results);
   }
 
   if (process.env.NODE_ENV === "development") {
@@ -142,7 +140,7 @@ function sanitizeIlike(q: string): string {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function legacySearch(supabase: any, userId: string, q: string, entityType: string | null, results: SearchResult[]) {
-  const pattern = `%${q}%`;
+  const pattern = `%${sanitizeIlike(q)}%`;
 
   const shouldSearch = (type: string) => !entityType || entityType === type;
 
