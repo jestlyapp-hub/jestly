@@ -88,13 +88,23 @@ export async function POST(req: NextRequest) {
   if (normalizedEmail) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: existing } = await (supabase.from("clients") as any)
-      .select("id")
+      .select("id, deleted_at")
       .eq("user_id", user.id)
       .ilike("email", normalizedEmail)
-      .is("deleted_at", null)
       .maybeSingle();
 
     if (existing) {
+      // If soft-deleted, restore it
+      if (existing.deleted_at) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (supabase.from("clients") as any)
+          .update({ deleted_at: null, status: "active" })
+          .eq("id", existing.id);
+        return NextResponse.json(
+          { id: existing.id, restored: true },
+          { status: 200 }
+        );
+      }
       return NextResponse.json(
         { error: "duplicate", existingClientId: existing.id },
         { status: 409 }
