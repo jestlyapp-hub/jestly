@@ -54,14 +54,21 @@ export default function TaskDetailDrawer({
   const titleRef = useRef<HTMLInputElement>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
 
+  const prevTaskIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (task) {
+      // Only reset panel state when opening a DIFFERENT task
+      const isNewTask = task.id !== prevTaskIdRef.current;
+      prevTaskIdRef.current = task.id;
+
       setLocal({ ...task });
       setShowDeleteConfirm(false);
-      setNewSubtaskText("");
-      setNewTag("");
-      setShowSchedule(false);
-      setSubtaskPanelOpen(false);
+      if (isNewTask) {
+        setNewSubtaskText("");
+        setNewTag("");
+        setShowSchedule(false);
+        setSubtaskPanelOpen(false);
+      }
     }
   }, [task]);
 
