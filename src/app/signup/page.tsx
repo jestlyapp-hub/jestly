@@ -41,6 +41,11 @@ export default function SignupPage() {
     if (pw !== pw2) { setError("Les mots de passe ne correspondent pas."); setLoading(false); return; }
     if (pw.length < 6) { setError("Le mot de passe doit contenir au moins 6 caractères."); setLoading(false); return; }
 
+    // Clear previous account data from localStorage (guide, preferences)
+    localStorage.removeItem("jestly_guide_v3");
+    localStorage.removeItem("jestly_guide_v3_launch_dismissed");
+    localStorage.removeItem("jestly_guide_v3_success_shown");
+
     const result = await signUp(fd);
 
     if (result?.error) {

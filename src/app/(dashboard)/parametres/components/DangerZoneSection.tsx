@@ -208,6 +208,9 @@ export function DangerZoneSection({ onResetPreferences }: {
           onConfirm={async () => {
             const res = await fetch("/api/account/delete", { method: "DELETE" });
             if (res.ok) {
+              // Clear all localStorage (guide state, preferences, etc.)
+              localStorage.clear();
+              sessionStorage.clear();
               window.location.href = "/login";
             } else {
               const body = await res.json().catch(() => ({}));
