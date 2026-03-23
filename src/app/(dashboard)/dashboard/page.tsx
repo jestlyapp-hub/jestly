@@ -18,6 +18,8 @@ import type {
   DashboardRevenueData,
 } from "@/lib/dashboard/types";
 import WorkloadSnapshot from "@/components/dashboard/WorkloadSnapshot";
+import { useGuide } from "@/features/onboarding-v3/engine/guide-engine";
+import { GraduationCap, ArrowRight, Sparkles } from "lucide-react";
 import {
   DollarSign,
   ShoppingCart,
@@ -509,6 +511,54 @@ function Sk({ className = "" }: { className?: string }) {
 // ═══════════════════════════════════════
 // MAIN DASHBOARD PAGE
 // ═══════════════════════════════════════
+/* ── Welcome Block — New user empty state ── */
+function WelcomeBlock() {
+  const { start, isDone } = useGuide();
+  const [dismissed, setDismissed] = useState(false);
+
+  if (dismissed || isDone) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="mb-6 bg-white rounded-2xl border border-[#E6E6E4] overflow-hidden"
+    >
+      <div className="px-7 py-8 flex items-start gap-6">
+        <div className="w-12 h-12 rounded-xl bg-[#EEF2FF] flex items-center justify-center flex-shrink-0 mt-0.5">
+          <Sparkles size={24} className="text-[#4F46E5]" strokeWidth={1.5} />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h2 className="text-[18px] font-bold text-[#191919] mb-1.5">
+            Bienvenue sur Jestly
+          </h2>
+          <p className="text-[14px] text-[#5A5A58] leading-relaxed mb-5">
+            On va t&apos;aider à configurer ton espace et à lancer tes premières actions.
+            Le guide interactif te montrera comment créer ton site, tes offres et gérer tes clients.
+          </p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => start()}
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#4F46E5] text-white text-[13px] font-semibold hover:bg-[#4338CA] active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <GraduationCap size={15} />
+              Commencer le guide
+              <ArrowRight size={14} />
+            </button>
+            <button
+              onClick={() => setDismissed(true)}
+              className="text-[13px] text-[#8A8A88] hover:text-[#5A5A58] transition-colors cursor-pointer"
+            >
+              Passer pour l&apos;instant
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export default function DashboardPage() {
   const { data, loading, error, mutate } = useApi<DashboardData>("/api/dashboard/stats");
   const track = useTrack();
@@ -583,6 +633,9 @@ export default function DashboardPage() {
   const sparkRev = safeData.revenueData.series?.map((m) => m.revenue) ?? [];
   const sparkOrd = safeData.revenueData.series?.map((m) => m.ordersCount) ?? [];
 
+  // Detect empty account (new user)
+  const isEmptyAccount = safeData.ordersCount === 0 && safeData.clientsCount === 0 && safeData.activeProductsCount === 0;
+
   return (
     <div className="max-w-[1100px] mx-auto pb-10">
 
@@ -590,10 +643,13 @@ export default function DashboardPage() {
       <motion.div className="flex items-start justify-between mb-6" {...fadeUp(0)}>
         <div>
           <h1 className="text-[22px] font-bold text-[#191919]">Dashboard</h1>
-          <p className="text-[13px] text-[#999] mt-0.5">Aperçu de ton activité</p>
+          <p className="text-[13px] text-[#999] mt-0.5">{isEmptyAccount ? "Configure ton espace pour démarrer" : "Aperçu de ton activité"}</p>
         </div>
         <CreateMenu />
       </motion.div>
+
+      {/* ════════════════════════ WELCOME BLOCK (new accounts) ════════════════════════ */}
+      {isEmptyAccount && <WelcomeBlock />}
 
       {/* ════════════════════════ ALERT BANNER ════════════════════════ */}
       {safeData.overdueOrders > 0 && (

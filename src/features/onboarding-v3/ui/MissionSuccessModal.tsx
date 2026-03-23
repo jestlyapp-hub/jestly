@@ -102,9 +102,10 @@ export default function MissionSuccessModal() {
               >
                 🎉
               </motion.div>
-              <h2 className="text-xl font-bold">Bravo !</h2>
-              <p className="text-white/80 text-sm mt-1">
-                Tu as terminé le guide. Ton espace est prêt.
+              <h2 className="text-xl font-bold">Bravo, ton espace Jestly est prêt</h2>
+              <p className="text-white/80 text-sm mt-1.5 leading-relaxed">
+                Tu as terminé la configuration de départ.<br />
+                Tu peux maintenant créer ton premier service, ajouter un client et commencer à utiliser Jestly.
               </p>
             </div>
 
@@ -140,12 +141,12 @@ export default function MissionSuccessModal() {
                 )}
                 <div className="flex gap-2">
                   <a
-                    href="/commandes"
+                    href="/produits"
                     onClick={dismiss}
                     className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-[#E6E6E4] text-[12px] font-medium text-[#5A5A58] hover:bg-[#F7F7F5] transition-colors"
                   >
                     <ShoppingCart size={13} />
-                    Créer commande
+                    Créer mon premier service
                   </a>
                   <a
                     href="/clients"
@@ -153,7 +154,7 @@ export default function MissionSuccessModal() {
                     className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-[#E6E6E4] text-[12px] font-medium text-[#5A5A58] hover:bg-[#F7F7F5] transition-colors"
                   >
                     <Users size={13} />
-                    Créer client
+                    Ajouter un client
                   </a>
                 </div>
               </div>
