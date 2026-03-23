@@ -554,8 +554,34 @@ export default function DashboardPage() {
 
   if (!data) return null;
 
-  const sparkRev = data.revenueData?.series?.map((m) => m.revenue) ?? [];
-  const sparkOrd = data.revenueData?.series?.map((m) => m.ordersCount) ?? [];
+  // Safe defaults — API may return partial data
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const raw = data as any;
+  const safeData = {
+    pipelineSummary: (raw.pipelineSummary ?? { totalRevenue: 0, totalCount: 0, inProgressRevenue: 0, inProgressCount: 0, readyRevenue: 0, readyCount: 0 }) as DashboardData["pipelineSummary"],
+    revenueData: (raw.revenueData ?? { series: [], totalRevenue: 0, totalOrders: 0, avgOrder: 0 }) as DashboardData["revenueData"],
+    calendarData: (raw.calendarData ?? { month: new Date().getMonth(), year: new Date().getFullYear(), days: {} }) as DashboardData["calendarData"],
+    todayData: (raw.todayData ?? { totalCount: 0, events: [] }) as DashboardData["todayData"],
+    recentOrders: (raw.recentOrders ?? []) as DashboardData["recentOrders"],
+    upcomingDeadlines: (raw.upcomingDeadlines ?? []) as DashboardData["upcomingDeadlines"],
+    pendingOrders: (raw.pendingOrders ?? 0) as number,
+    inProgressOrders: (raw.inProgressOrders ?? 0) as number,
+    overdueOrders: (raw.overdueOrders ?? 0) as number,
+    clientsCount: (raw.clientsCount ?? 0) as number,
+    totalRevenue: (raw.totalRevenue ?? 0) as number,
+    monthRevenue: (raw.monthRevenue ?? 0) as number,
+    todayRevenue: (raw.todayRevenue ?? 0) as number,
+    revenueChange: (raw.revenueChange ?? 0) as number,
+    ordersCount: (raw.ordersCount ?? 0) as number,
+    activeOrdersCount: (raw.activeOrdersCount ?? 0) as number,
+    deliveredOrders: (raw.deliveredOrders ?? 0) as number,
+    paidOrders: (raw.paidOrders ?? 0) as number,
+    newClientsThisMonth: (raw.newClientsThisMonth ?? 0) as number,
+    activeProductsCount: (raw.activeProductsCount ?? 0) as number,
+  };
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  const sparkRev = safeData.revenueData.series?.map((m) => m.revenue) ?? [];
+  const sparkOrd = safeData.revenueData.series?.map((m) => m.ordersCount) ?? [];
 
   return (
     <div className="max-w-[1100px] mx-auto pb-10">
@@ -570,28 +596,28 @@ export default function DashboardPage() {
       </motion.div>
 
       {/* ════════════════════════ ALERT BANNER ════════════════════════ */}
-      {data.overdueOrders > 0 && (
+      {safeData.overdueOrders > 0 && (
         <motion.a href="/commandes" className="flex items-center gap-2.5 mb-5 px-4 py-2.5 bg-red-50 border border-red-100 rounded-xl hover:bg-red-100/50 transition-all" {...fadeUp(0)}>
           <AlertTriangle size={14} className="text-red-500 flex-shrink-0" />
-          <span className="text-[12px] font-semibold text-red-700">{data.overdueOrders} commande{data.overdueOrders > 1 ? "s" : ""} en retard</span>
+          <span className="text-[12px] font-semibold text-red-700">{safeData.overdueOrders} commande{data.overdueOrders > 1 ? "s" : ""} en retard</span>
           <ChevronRight size={13} className="text-red-400 ml-auto" />
         </motion.a>
       )}
 
       {/* ════════════════════════ ROW 1 — Pipeline Summary (source de vérité unique) ════════════════════════ */}
       <div className="mb-6">
-        <PipelineSummaryCards summary={data.pipelineSummary} baseDelay={0.05} />
+        <PipelineSummaryCards summary={safeData.pipelineSummary} baseDelay={0.05} />
       </div>
 
       {/* ════════════════════════ WORKLOAD SNAPSHOT ════════════════════════ */}
       <div className="mb-6">
         <WorkloadSnapshot
-          pendingOrders={data.pendingOrders}
-          activeTasks={data.inProgressOrders}
-          pendingInvoices={data.pendingOrders}
-          clientsCount={data.clientsCount}
-          weekEvents={data.calendarData ? countWeekEvents(data.calendarData) : 0}
-          overdueItems={data.overdueOrders}
+          pendingOrders={safeData.pendingOrders}
+          activeTasks={safeData.inProgressOrders}
+          pendingInvoices={safeData.pendingOrders}
+          clientsCount={safeData.clientsCount}
+          weekEvents={safeData.calendarData ? countWeekEvents(safeData.calendarData) : 0}
+          overdueItems={safeData.overdueOrders}
         />
       </div>
 
@@ -600,12 +626,12 @@ export default function DashboardPage() {
         {/* Aujourd'hui — 8 col */}
         <div className="lg:col-span-8 flex">
           <Card
-            title={`Aujourd'hui${data.todayData.totalCount > 0 ? ` · ${data.todayData.totalCount} élément${data.todayData.totalCount > 1 ? "s" : ""}` : ""}`}
+            title={`Aujourd'hui${safeData.todayData.totalCount > 0 ? ` · ${safeData.todayData.totalCount} élément${safeData.todayData.totalCount > 1 ? "s" : ""}` : ""}`}
             action={{ label: "Calendrier", href: "/calendrier" }}
             delay={0.25}
             className="w-full"
           >
-            <TodayWidget todayData={data.todayData} />
+            <TodayWidget todayData={safeData.todayData} />
           </Card>
         </div>
 
@@ -637,7 +663,7 @@ export default function DashboardPage() {
         {/* Commandes récentes — 7 col */}
         <div className="lg:col-span-7 flex">
           <Card title="Commandes récentes" action={{ label: "Tout voir", href: "/commandes" }} delay={0.35} className="w-full">
-            {data.recentOrders.length === 0 ? (
+            {safeData.recentOrders.length === 0 ? (
               <Empty message="Aucune commande" icon={ShoppingCart} action={{ label: "Créer une commande", href: "/commandes" }} />
             ) : (
               <div className="overflow-x-auto">
@@ -651,7 +677,7 @@ export default function DashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {data.recentOrders.slice(0, 6).map((o: { id: string; title: string; amount: number; status: string; created_at: string; clients?: { name: string } | null; products?: { name: string } | null }) => (
+                    {safeData.recentOrders.slice(0, 6).map((o: { id: string; title: string; amount: number; status: string; created_at: string; clients?: { name: string } | null; products?: { name: string } | null }) => (
                       <tr key={o.id} className="border-b border-[#F8F8F6] last:border-b-0 hover:bg-[#FBFBFA] transition-colors">
                         <td className="px-4 py-2.5 text-[12px] font-medium text-[#191919] max-w-[140px] truncate">{o.clients?.name ?? "\u2014"}</td>
                         <td className="px-4 py-2.5 text-[12px] text-[#888] max-w-[140px] truncate hidden md:table-cell">{o.products?.name || o.title || "\u2014"}</td>
@@ -669,7 +695,7 @@ export default function DashboardPage() {
         {/* Revenue chart — 5 col */}
         <div className="lg:col-span-5 flex">
           <Card title="Revenus 6 mois" action={{ label: "Analytics", href: "/analytics" }} delay={0.4} className="w-full">
-            <RevenueChart revenueData={data.revenueData} />
+            <RevenueChart revenueData={safeData.revenueData} />
           </Card>
         </div>
       </div>
@@ -685,18 +711,18 @@ export default function DashboardPage() {
                 Ouvrir <ChevronRight size={12} />
               </a>
             </div>
-            {data.calendarData ? <MiniCalendar calendarData={data.calendarData} /> : <div className="text-center py-8 text-[12px] text-[#CCC]">Calendrier indisponible</div>}
+            {safeData.calendarData ? <MiniCalendar calendarData={safeData.calendarData} /> : <div className="text-center py-8 text-[12px] text-[#CCC]">Calendrier indisponible</div>}
           </motion.div>
         </div>
 
         {/* Échéances à venir — 7 col */}
         <div className="lg:col-span-7 flex">
           <Card title="Échéances à venir" action={{ label: "Commandes", href: "/commandes" }} delay={0.5} className="w-full">
-            {!data.upcomingDeadlines || data.upcomingDeadlines.length === 0 ? (
+            {!safeData.upcomingDeadlines || safeData.upcomingDeadlines.length === 0 ? (
               <Empty message="Aucune échéance prochaine" icon={Clock} />
             ) : (
               <div className="divide-y divide-[#F5F5F3]">
-                {(data.upcomingDeadlines || []).map((d) => {
+                {(safeData.upcomingDeadlines || []).map((d) => {
                   const dateObj = new Date(d.deadline + "T00:00:00");
                   const dayLabel = dateObj.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
                   return (
@@ -726,8 +752,8 @@ export default function DashboardPage() {
       <motion.div className="mt-6 bg-white rounded-xl border border-[#E6E6E4] px-6 py-4" {...fadeUp(0.55)}>
         <div className="flex flex-wrap items-center justify-between gap-6">
           {[
-            { label: "CA total", value: fmtEur(data.pipelineSummary.totalRevenue), icon: DollarSign, color: "text-emerald-600" },
-            { label: "Commandes totales", value: String(data.pipelineSummary.totalCount), icon: ShoppingCart, color: "text-violet-600" },
+            { label: "CA total", value: fmtEur(safeData.pipelineSummary.totalRevenue), icon: DollarSign, color: "text-emerald-600" },
+            { label: "Commandes totales", value: String(safeData.pipelineSummary.totalCount), icon: ShoppingCart, color: "text-violet-600" },
             { label: "Produits actifs", value: String(data.activeProductsCount), icon: Package, color: "text-blue-600" },
             { label: "Taux complétion", value: data.ordersCount > 0 ? `${Math.round((data.paidOrders / data.ordersCount) * 100)}%` : "\u2014", icon: CheckCircle2, color: "text-amber-600" },
           ].map((item) => (
