@@ -42,7 +42,12 @@ export async function GET() {
       .limit(200),
   ]);
 
-  const orders: { id: string; title: string; amount: number; status: string; priority: string; created_at: string; deadline: string | null; paid_at: string | null; client_id: string | null; clients: { name: string } | null }[] = ordersRes.data || [];
+  // Normalize deadline/paid_at to YYYY-MM-DD (DB returns ISO timestamps like "2026-03-15T00:00:00+00:00")
+  const orders: { id: string; title: string; amount: number; status: string; priority: string; created_at: string; deadline: string | null; paid_at: string | null; client_id: string | null; clients: { name: string } | null }[] = (ordersRes.data || []).map((o: Record<string, unknown>) => ({
+    ...o,
+    deadline: typeof o.deadline === "string" ? o.deadline.slice(0, 10) : null,
+    paid_at: typeof o.paid_at === "string" ? o.paid_at.slice(0, 10) : null,
+  }));
   const clients: { id: string; created_at: string }[] = clientsRes.data || [];
   const tasks: { id: string; title: string; status: string; priority: string; due_date: string | null; client_name: string | null }[] = tasksRes.data || [];
   const events: { id: string; title: string; date: string; category: string; priority: string }[] = eventsRes.data || [];

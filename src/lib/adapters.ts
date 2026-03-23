@@ -74,7 +74,7 @@ export function orderRecordToOrder(
     status: row.status as Order["status"],
     date: row.created_at.split("T")[0],
     priority: row.priority,
-    deadline: row.deadline ?? undefined,
+    deadline: row.deadline ? row.deadline.slice(0, 10) : undefined,
     paid: row.paid,
     tags: row.tags ?? [],
     checklist,
