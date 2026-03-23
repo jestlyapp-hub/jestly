@@ -1,4 +1,4 @@
-import type { Product, Order, Client, ClientDetail, ClientNote, ClientEvent } from "@/types";
+import type { Product, ProductStatus, ProductMode, Order, Client, ClientDetail, ClientNote, ClientEvent } from "@/types";
 import type { ProductRow, OrderRecord, ClientRecord } from "@/types/database";
 import { normalizeResources } from "@/lib/brief-column-compat";
 
@@ -7,37 +7,42 @@ import { normalizeResources } from "@/lib/brief-column-compat";
  */
 export function dbToProduct(row: ProductRow): Product {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const r = row as any; // Row may come from old "services" type or new "products" table
+  const r = row as any;
+
+  // Resilient: try new column names first, fall back to old ones
+  const name: string = r.name || r.title || "";
+  const priceCents: number =
+    r.price_cents != null
+      ? Number(r.price_cents) || 0
+      : Math.round(parseFloat(String(r.price ?? 0).replace(/[€\s]/g, "").replace(",", ".")) * 100) || 0;
+  const status: ProductStatus =
+    r.status != null
+      ? (r.status as ProductStatus)
+      : r.is_active ? "active" : "draft";
+  const mode: ProductMode = (r.mode ?? r.checkout_mode ?? "checkout") as ProductMode;
+
   return {
-    id: r.id,
-    // Post-migration 017: name (new) with title fallback (old)
-    name: r.name ?? r.title ?? "",
-    // Post-migration 017: price_cents (new) with price fallback (old, in euros)
-    priceCents: r.price_cents != null
-      ? Number(r.price_cents)
-      : Math.round(parseFloat(String(r.price ?? 0).replace(/[€\s]/g, "").replace(",", ".")) * 100) || 0,
-    // Post-migration 017: status enum (new) with is_active fallback (old)
-    status: r.status && r.status !== "true" && r.status !== "false"
-      ? r.status
-      : (r.is_active ? "active" : "draft"),
-    sales: r.sales_count ?? 0,
-    category: r.category ?? "",
-    type: r.type ?? "service",
-    slug: r.slug || r.id,
-    shortDescription: r.short_description || r.description || "",
-    longDescription: r.long_description ?? undefined,
-    features: r.features ?? undefined,
-    deliveryTimeDays: r.delivery_time_days ?? undefined,
-    thumbnailUrl: r.thumbnail_url ?? r.image_url ?? undefined,
-    coverImageUrl: r.cover_image_url ?? undefined,
-    featured: r.is_featured ?? false,
-    // Post-migration 017: mode (new) with checkout_mode fallback (old)
-    mode: r.mode ?? r.checkout_mode ?? "checkout",
-    deliveryType: r.delivery_type ?? "none",
-    deliveryFileUrl: r.delivery_file_path ?? undefined,
-    deliveryUrl: r.delivery_url ?? undefined,
-    ctaLabel: r.cta_label ?? "Acheter",
-    stripePriceId: r.stripe_price_id ?? undefined,
+    id: row.id,
+    name,
+    priceCents,
+    status,
+    sales: row.sales_count,
+    category: row.category,
+    type: row.type,
+    slug: row.slug || row.id,
+    shortDescription: row.short_description || row.description,
+    longDescription: row.long_description ?? undefined,
+    features: row.features ?? undefined,
+    deliveryTimeDays: row.delivery_time_days ?? undefined,
+    thumbnailUrl: row.thumbnail_url ?? row.image_url ?? undefined,
+    coverImageUrl: row.cover_image_url ?? undefined,
+    featured: row.is_featured,
+    mode,
+    deliveryType: row.delivery_type ?? "none",
+    deliveryFileUrl: row.delivery_file_path ?? undefined,
+    deliveryUrl: row.delivery_url ?? undefined,
+    ctaLabel: row.cta_label ?? "Acheter",
+    stripePriceId: row.stripe_price_id ?? undefined,
   };
 }
 
@@ -47,8 +52,9 @@ export function dbToProduct(row: ProductRow): Product {
 export function orderRecordToOrder(
   row: OrderRecord & {
     clients?: { name: string; email: string; phone?: string | null } | null;
-    products?: { name: string; price_cents?: number } | null;
-    services?: { title: string } | null; // Legacy fallback
+    products?: { name: string } | null;
+    /** @deprecated kept for resilience during migration */
+    services?: { title: string } | null;
   }
 ): Order {
   // Parse checklist safely
@@ -63,7 +69,7 @@ export function orderRecordToOrder(
     clientEmail: row.clients?.email ?? "",
     clientId: row.client_id,
     clientPhone: row.clients?.phone ?? undefined,
-    product: row.products?.name ?? row.services?.title ?? row.title,
+    product: row.title,
     price: Number(row.amount),
     status: row.status as Order["status"],
     date: row.created_at.split("T")[0],

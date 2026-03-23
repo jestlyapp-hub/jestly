@@ -28,19 +28,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     .order("created_at", { ascending: false })
     .limit(limit);
 
-  // Enrich orders with product names (separate query — PostgREST FK issue)
-  const { enrichOrdersWithProducts } = await import("@/lib/supabase-helpers");
-  const enrichedOrders = await enrichOrdersWithProducts(supabase, orders || [], user.id);
-
   // Build synthetic order_created events
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const syntheticEvents = enrichedOrders.map((o: any) => ({
+  const syntheticEvents = (orders || []).map((o: any) => ({
     id: `order-${o.id}`,
     client_id: id,
     type: "order_created",
     payload: {
       order_id: o.id,
-      title: o.products?.name || o.title,
+      title: o.title,
       amount: Number(o.amount),
       status: o.status,
     },

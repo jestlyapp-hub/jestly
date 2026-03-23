@@ -197,14 +197,14 @@ export async function GET() {
 
     if (ordersResult.error || !ordersResult.data) {
       ordersResult = await (supabase.from("orders") as any)
-        .select("id, title, deadline, status, amount, priority, notes, created_at")
+        .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email)")
         .eq("user_id", user.id);
     }
 
-    // Enrich with product names (separate query — PostgREST FK issue)
-    if (ordersResult.data) {
-      const { enrichOrdersWithProducts } = await import("@/lib/supabase-helpers");
-      ordersResult.data = await enrichOrdersWithProducts(supabase, ordersResult.data, user.id);
+    if (ordersResult.error || !ordersResult.data) {
+      ordersResult = await (supabase.from("orders") as any)
+        .select("id, title, deadline, status, amount, priority, notes, created_at")
+        .eq("user_id", user.id);
     }
 
     if (ordersResult.data) {
@@ -216,7 +216,7 @@ export async function GET() {
           ? rawDate.substring(0, 10)
           : new Date(rawDate).toISOString().substring(0, 10);
 
-        const productName = o.products?.name || o.title || "Commande";
+        const productName = o.title || "Commande";
         const clientName = o.clients?.name || "Client";
 
         return {
@@ -294,8 +294,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         error: isTableError
-          ? "Table calendar_events introuvable. La migration automatique a échoué. Exécutez la migration 023 manuellement dans Supabase SQL Editor."
-          : `Impossible de créer l'événement : ${result.error.message}`,
+          ? "Table calendar_events introuvable. La migration automatique a echoue. Executez la migration 023 manuellement dans Supabase SQL Editor."
+          : `Impossible de creer l'evenement: ${result.error.message}`,
         code: isTableError ? "TABLE_MISSING" : "INSERT_FAILED",
         detail: result.error.message,
       },
@@ -351,7 +351,7 @@ export async function PATCH(req: NextRequest) {
   if (error) {
     console.error("[calendar PATCH] Update failed:", error.code, error.message);
     return NextResponse.json(
-      { error: `Impossible de modifier l'événement : ${error.message}`, code: "UPDATE_FAILED" },
+      { error: `Impossible de modifier l'evenement: ${error.message}`, code: "UPDATE_FAILED" },
       { status: 500 }
     );
   }
@@ -379,7 +379,7 @@ export async function DELETE(req: NextRequest) {
   if (error) {
     console.error("[calendar DELETE] Delete failed:", error.code, error.message);
     return NextResponse.json(
-      { error: `Impossible de supprimer l'événement : ${error.message}`, code: "DELETE_FAILED" },
+      { error: `Impossible de supprimer l'evenement: ${error.message}`, code: "DELETE_FAILED" },
       { status: 500 }
     );
   }

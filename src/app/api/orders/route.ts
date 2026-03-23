@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
-import { enrichOrdersWithProducts } from "@/lib/supabase-helpers";
-import { logger } from "@/lib/logger";
-import { apiError, handleApiError } from "@/lib/api-error";
 
-// GET /api/orders — list user's orders with client join + product enrichment
-// NOTE: We do NOT use nested select `products(name)` because PostgREST
-// cannot resolve the FK after migration 017 renamed services→products.
-// Instead we fetch products separately via enrichOrdersWithProducts().
+// GET /api/orders — list user's orders with client+product join
 export async function GET(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
@@ -21,16 +15,15 @@ export async function GET(req: NextRequest) {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
+  // Filter by source (site orders only come from service_id not null)
   if (source === "site") {
-    query = query.not("product_id", "is", null);
+    query = query.not("service_id", "is", null);
   }
 
   const { data, error } = await query;
 
-  if (error) return apiError(500, error.message, { route: "/api/orders", userId: user.id });
-
-  const enriched = await enrichOrdersWithProducts(supabase, data || [], user.id);
-  return NextResponse.json(enriched);
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data);
 }
 
 // POST /api/orders — create one or many orders (bulk via quantity)
@@ -41,22 +34,23 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json();
   const {
-    client_id, product_id, title, description, amount, status, priority,
+    client_id, service_id, title, description, amount, status, priority,
     deadline, custom_fields, briefing, resources, category, external_ref,
     quantity,
   } = body;
 
   if (!client_id || !title || amount == null) {
-    return apiError(400, "client_id, title and amount are required", { route: "/api/orders", userId: user.id });
+    return NextResponse.json({ error: "client_id, title and amount are required" }, { status: 400 });
   }
 
   const qty = Math.max(1, Math.min(50, Math.floor(Number(quantity) || 1)));
 
+  // Build base row
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const base: Record<string, any> = {
     user_id: user.id,
     client_id,
-    product_id: product_id || null,
+    service_id: service_id || null,
     description: description || "",
     amount,
     status: status || "new",
@@ -69,6 +63,7 @@ export async function POST(req: NextRequest) {
   };
   if (custom_fields) base.custom_fields = custom_fields;
 
+  // Single order
   if (qty === 1) {
     base.title = title;
 
@@ -78,12 +73,11 @@ export async function POST(req: NextRequest) {
       .select("*, clients(name, email, phone)")
       .single();
 
-    if (error) return apiError(500, error.message, { route: "/api/orders", userId: user.id, action: "create_order" });
-    logger.info("order_created", { userId: user.id, entity: "order", entityId: data.id, route: "/api/orders" });
-    const [enriched] = await enrichOrdersWithProducts(supabase, [data], user.id);
-    return NextResponse.json(enriched, { status: 201 });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data, { status: 201 });
   }
 
+  // Bulk: N rows with group_id + title suffixes
   const groupId = crypto.randomUUID();
   const rows = Array.from({ length: qty }, (_, i) => ({
     ...base,
@@ -98,8 +92,6 @@ export async function POST(req: NextRequest) {
     .insert(rows)
     .select("*, clients(name, email, phone)");
 
-  if (error) return apiError(500, error.message, { route: "/api/orders", userId: user.id, action: "create_bulk_orders" });
-  logger.info("orders_bulk_created", { userId: user.id, entity: "order", route: "/api/orders", quantity: qty });
-  const enriched = await enrichOrdersWithProducts(supabase, data || [], user.id);
-  return NextResponse.json(enriched, { status: 201 });
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  return NextResponse.json(data, { status: 201 });
 }

@@ -12,12 +12,10 @@ export async function getPublicProductsByIds(ids: string[]): Promise<Product[]> 
 
   try {
     const supabase = await createClient();
-    // Include draft + active products — if a user referenced a product in a block,
-    // it should render publicly regardless of status. Only archived are excluded.
     const { data, error } = await (supabase.from("products") as any)
       .select("*")
       .in("id", ids)
-      .neq("status", "archived");
+      .eq("status", "active");
 
     if (error || !data) return [];
     return data.map((row: any) => dbToProduct(row));
@@ -35,7 +33,7 @@ export async function getPublicProductById(id: string): Promise<Product | null> 
     const { data, error } = await (supabase.from("products") as any)
       .select("*")
       .eq("id", id)
-      .neq("status", "archived")
+      .eq("status", "active")
       .single();
 
     if (error || !data) return null;
@@ -51,13 +49,11 @@ export async function getPublicProductById(id: string): Promise<Product | null> 
 export async function getPublicProductBySlug(slug: string, siteOwnerId: string): Promise<Product | null> {
   try {
     const supabase = await createClient();
-    // Include draft + active — if a product is referenced in a published block,
-    // it should be orderable. Only archived products are excluded.
     const { data, error } = await (supabase.from("products") as any)
       .select("*")
       .eq("slug", slug)
       .eq("owner_id", siteOwnerId)
-      .neq("status", "archived")
+      .eq("status", "active")
       .single();
 
     if (error || !data) return null;
@@ -85,7 +81,7 @@ export async function getPublicProductsBySiteId(siteId: string): Promise<Product
     const { data, error } = await (supabase.from("products") as any)
       .select("*")
       .eq("owner_id", site.owner_id)
-      .neq("status", "archived")
+      .eq("status", "active")
       .order("created_at", { ascending: false });
 
     if (error || !data) return [];

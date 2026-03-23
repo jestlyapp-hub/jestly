@@ -5,7 +5,6 @@ import { getAuthUser } from "@/lib/api-auth";
 const BILLING_DRAFT = "draft";
 
 // POST /api/billing/from-order — create billing item from an order
-// SCHEMA: JOIN products(name) not services(title) — migration 017
 export async function POST(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
@@ -14,7 +13,7 @@ export async function POST(req: NextRequest) {
   const { order_id } = await req.json();
   if (!order_id) return NextResponse.json({ error: "order_id required" }, { status: 400 });
 
-  // Fetch the order — NO nested products() select (PostgREST FK issue)
+  // Fetch the order
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: order, error: oErr } = await (supabase.from("orders") as any)
     .select("*, clients(name)")
@@ -26,22 +25,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
-  // Fetch product name separately if product_id exists
-  let productName: string | null = null;
-  if (order.product_id) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: prod } = await (supabase.from("products") as any)
-      .select("name")
-      .eq("id", order.product_id)
-      .maybeSingle();
-    productName = prod?.name ?? null;
-  }
-
   const item = {
     user_id: user.id,
     client_id: order.client_id,
     order_id: order.id,
-    title: order.title || productName || "Commande",
+    title: order.title || "Commande",
     description: order.description || "",
     category: order.category || "",
     quantity: 1,

@@ -187,7 +187,7 @@ async function legacySearch(supabase: any, userId: string, q: string, entityType
         const lq = q.toLowerCase();
         for (const o of enrichedOrders) {
           const clientName = o.clients?.name ?? "";
-          const productName = o.products?.name ?? "";
+          const productName = o.title ?? "";
           const orderTitle = o.title ?? "";
           if (
             clientName.toLowerCase().includes(lq) ||
@@ -229,7 +229,7 @@ async function legacySearch(supabase: any, userId: string, q: string, entityType
             title: p.name,
             subtitle: [p.category, p.short_description].filter(Boolean).join(" · ").slice(0, 100),
             amount: p.price_cents ? Number(p.price_cents) : undefined,
-            status: p.status ?? "inactive",
+            status: p.status ?? "active",
             href: "/produits",
           });
         }
