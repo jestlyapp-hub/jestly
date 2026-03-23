@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGuide } from "../engine/guide-engine";
 import { GraduationCap, ArrowRight, X } from "lucide-react";
@@ -8,22 +8,31 @@ import { GraduationCap, ArrowRight, X } from "lucide-react";
 const DISMISS_KEY = "jestly_guide_v3_launch_dismissed";
 
 /**
- * Modal affiché une fois pour proposer le guide.
- * + Bouton flottant pour relancer à tout moment.
+ * Modal affiché UNE SEULE FOIS à la création du compte.
+ * Ne se réaffiche JAMAIS après dismiss (persisté en localStorage).
  */
 export default function GuideLauncher() {
   const { start, isActive, isDone } = useGuide();
   const [showModal, setShowModal] = useState(false);
+  const hasChecked = useRef(false);
 
-  // Afficher le modal au premier chargement si jamais lancé
+  // Check ONE TIME on mount — never re-trigger on navigation
   useEffect(() => {
+    if (hasChecked.current) return;
+    hasChecked.current = true;
+
+    // Already active or completed — don't show
     if (isActive || isDone) return;
+
+    // Already dismissed — don't show
     const dismissed = localStorage.getItem(DISMISS_KEY);
-    if (!dismissed) {
-      const t = setTimeout(() => setShowModal(true), 1500);
-      return () => clearTimeout(t);
-    }
-  }, [isActive, isDone]);
+    if (dismissed) return;
+
+    // Show after short delay
+    const t = setTimeout(() => setShowModal(true), 1500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleStart = () => {
     setShowModal(false);
