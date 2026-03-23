@@ -151,7 +151,7 @@ export default function BuilderPropertyPanel() {
   };
 
   return (
-    <div className="w-[320px] flex-shrink-0 bg-white border-l border-[#E6E6E4] flex flex-col overflow-hidden">
+    <div data-guide="block-property-panel" className="w-[320px] flex-shrink-0 bg-white border-l border-[#E6E6E4] flex flex-col overflow-hidden">
       {/* Header — block info */}
       <div className="px-4 py-2.5 border-b border-[#E6E6E4] flex items-center justify-between">
         <div className="flex items-center gap-2 min-w-0">

@@ -5,14 +5,13 @@ import Topbar from "@/components/layout/Topbar";
 import Toaster from "@/components/ui/Toaster";
 import ProductEventTracker from "@/components/ProductEventTracker";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import GuideRoot from "@/features/onboarding-v3/ui/GuideRoot";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Fast auth check — middleware already validated the token via getUser().
-  // Here we only read the session from cookies (0 network calls).
   let user;
   try {
     const supabase = await createClient();
@@ -24,18 +23,20 @@ export default async function DashboardLayout({
   if (!user) redirect("/login");
 
   return (
-    <div className="flex h-screen bg-[#F7F7F5] overflow-hidden">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <Topbar />
-        <main className="flex-1 overflow-y-auto p-6">
-          <ErrorBoundary>
-            {children}
-          </ErrorBoundary>
-        </main>
-        <Toaster />
-        <ProductEventTracker />
+    <GuideRoot>
+      <div className="flex h-screen bg-[#F7F7F5] overflow-hidden">
+        <Sidebar />
+        <div className="flex-1 flex flex-col min-w-0">
+          <Topbar />
+          <main className="flex-1 overflow-y-auto p-6">
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
+          </main>
+          <Toaster />
+          <ProductEventTracker />
+        </div>
       </div>
-    </div>
+    </GuideRoot>
   );
 }

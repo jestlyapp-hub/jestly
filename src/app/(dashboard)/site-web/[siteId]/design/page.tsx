@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import { useSite } from "@/lib/hooks/use-site";
 import { useParams } from "next/navigation";
+import { toast } from "@/lib/hooks/use-toast";
 import type { SiteTheme } from "@/types";
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -86,15 +87,24 @@ export default function SiteDesignPage() {
   const { site, mutate } = useSite();
   const { siteId } = useParams<{ siteId: string }>();
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [errorMsg, setErrorMsg] = useState("");
 
   /* Theme state — initialized from DB */
   const [t, setT] = useState<SiteTheme>({ ...site.theme });
+  const initializedRef = useRef(false);
+  const [isDirty, setIsDirty] = useState(false);
 
-  useEffect(() => { setT({ ...site.theme }); }, [site]);
+  useEffect(() => { setT({ ...site.theme }); setIsDirty(false); initializedRef.current = true; }, [site]);
+
+  // Warn before leaving with unsaved changes
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => { if (isDirty) e.preventDefault(); };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [isDirty]);
 
   const update = <K extends keyof SiteTheme>(key: K, value: SiteTheme[K]) => {
     setT((prev) => ({ ...prev, [key]: value }));
+    if (initializedRef.current) setIsDirty(true);
   };
 
   /* Preset apply */
@@ -116,12 +126,13 @@ export default function SiteDesignPage() {
       density: p.density,
       cardRadius: p.cardRadius,
     }));
+    setIsDirty(true);
   };
 
   /* Save */
   const handleSave = useCallback(async () => {
+    if (saveState === "saving") return;
     setSaveState("saving");
-    setErrorMsg("");
     try {
       const res = await fetch(`/api/sites/${siteId}`, {
         method: "PATCH",
@@ -133,13 +144,16 @@ export default function SiteDesignPage() {
         throw new Error(data.error || "Erreur lors de la sauvegarde");
       }
       await mutate();
+      setIsDirty(false);
       setSaveState("saved");
+      toast.success("Design sauvegardé");
       setTimeout(() => setSaveState("idle"), 2000);
     } catch (e) {
       setSaveState("error");
-      setErrorMsg(e instanceof Error ? e.message : "Erreur inconnue");
+      const msg = e instanceof Error ? e.message : "Erreur inconnue";
+      toast.error(msg, { title: "Erreur de sauvegarde" });
     }
-  }, [siteId, t, mutate]);
+  }, [saveState, siteId, t, mutate]);
 
   /* Shorthand for current accent */
   const pc = t.primaryColor;
@@ -152,7 +166,7 @@ export default function SiteDesignPage() {
 
       {/* ═══ LIVE PREVIEW ═══ */}
       <Section title="Aperçu en direct" defaultOpen={true}>
-        <div className="rounded-xl border border-[#E6E6E4] overflow-hidden mt-3" style={{ fontFamily: t.fontFamily, backgroundColor: t.backgroundColor || "#fff", color: t.textColor || "#111" }}>
+        <div data-guide="live-preview" className="rounded-xl border border-[#E6E6E4] overflow-hidden mt-3" style={{ fontFamily: t.fontFamily, backgroundColor: t.backgroundColor || "#fff", color: t.textColor || "#111" }}>
           {/* Nav preview */}
           <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: t.borderColor || "#E5E7EB" }}>
             <div className="flex items-center gap-2.5">
@@ -203,7 +217,7 @@ export default function SiteDesignPage() {
 
       {/* ═══ PRESETS ═══ */}
       <Section title="Thèmes rapides">
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+        <div data-guide="theme-presets" className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
           {PRESETS.map((p) => (
             <button key={p.name} onClick={() => applyPreset(p)} className="rounded-xl border border-[#E6E6E4] hover:border-[#D0D0CE] transition-all text-left overflow-hidden group">
               {/* Mini preview */}
@@ -346,10 +360,13 @@ export default function SiteDesignPage() {
       </Section>
 
       {/* ═══ SAVE BAR ═══ */}
-      <div className="flex items-center justify-end gap-3 pt-2 pb-4">
+      <div className="sticky bottom-4 flex items-center justify-end gap-3 bg-white/80 backdrop-blur-sm rounded-xl border border-[#E6E6E4] px-5 py-3 shadow-sm">
+        {isDirty && saveState === "idle" && (
+          <span className="text-[12px] text-[#999]">Modifications non enregistrées</span>
+        )}
         {saveState === "saved" && <span className="text-[12px] font-medium text-emerald-600">Design sauvegardé</span>}
-        {saveState === "error" && <span className="text-[12px] font-medium text-red-500">{errorMsg || "Erreur"}</span>}
         <button
+          data-guide="save-theme"
           onClick={handleSave}
           disabled={saveState === "saving"}
           className="text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg transition-colors disabled:opacity-60 flex items-center gap-2"

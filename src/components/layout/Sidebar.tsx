@@ -7,6 +7,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { signOut } from "@/lib/auth/actions";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTrack } from "@/lib/hooks/use-track";
+import GuideSidebarWidget from "@/features/onboarding-v3/ui/GuideSidebarWidget";
 import {
   LayoutDashboard,
   Globe,
@@ -29,7 +30,6 @@ import {
   Headphones,
   ChevronsUpDown,
 } from "lucide-react";
-
 // ── Navigation config ─────────────────────────────────────────────
 type NavItem = {
   label: string;
@@ -418,6 +418,9 @@ export default function Sidebar() {
           </div>
         </div>
       </nav>
+
+      {/* ── Guide onboarding ── */}
+      <GuideSidebarWidget />
 
       {/* ── Upgrade CTA ── */}
       {(!user || user.plan !== "pro") && (

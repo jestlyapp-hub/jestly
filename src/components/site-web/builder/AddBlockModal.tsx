@@ -82,6 +82,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
               return (
                 <button
                   key={cat.id}
+                  data-guide={`block-cat-${cat.id}`}
                   onClick={() => setActiveCategory(cat.id)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-[12px] font-medium transition-all mb-0.5 ${
                     activeCategory === cat.id ? "bg-[#EEF2FF] text-[#4F46E5]" : "text-[#666] hover:bg-[#F7F7F5]"
@@ -144,7 +145,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
                 Aucun bloc trouvé
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-2.5">
+              <div data-guide="block-catalog" className="grid grid-cols-3 gap-2.5">
                 {filtered.map((entry) => (
                   <button
                     key={entry.type}

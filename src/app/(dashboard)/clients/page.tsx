@@ -360,6 +360,7 @@ export default function ClientsPage() {
 
           {/* Create button */}
           <button
+            data-guide="new-client-btn"
             onClick={() => setShowCreate(true)}
             className="bg-[#4F46E5] text-white rounded-md px-3.5 py-2 text-[13px] font-medium hover:bg-[#4338CA] transition-colors whitespace-nowrap cursor-pointer"
           >

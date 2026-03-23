@@ -34,6 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" suppressHydrationWarning>
+      <head suppressHydrationWarning />
       <body className="antialiased" suppressHydrationWarning>{children}</body>
     </html>
   );

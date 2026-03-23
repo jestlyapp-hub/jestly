@@ -282,6 +282,7 @@ export default function BuilderCanvas() {
           {/* Add block button */}
           {!isPreview && activePage.blocks.length > 0 && (
             <button
+              data-guide="add-block-btn"
               onClick={() => setShowAddModal(true)}
               className="w-full mt-3 py-3 border-2 border-dashed border-[#E6E6E4] rounded-xl text-[12px] font-medium text-[#999] hover:border-[#4F46E5] hover:text-[#4F46E5] transition-all flex items-center justify-center gap-1.5 bg-white"
             >

@@ -36,7 +36,8 @@ function transformDbSite(raw: any): Site {
       name: raw.name,
       description: raw.settings?.description || "",
       logoUrl: raw.settings?.logoUrl,
-      maintenanceMode: raw.settings?.maintenanceMode || false,
+      faviconUrl: raw.settings?.faviconUrl,
+      maintenanceMode: raw.settings?.maintenanceMode === true || raw.settings?.maintenanceMode === "true",
       socials: raw.settings?.socials || {},
       i18n: raw.settings?.i18n,
     },
@@ -103,7 +104,7 @@ export function SiteProvider({ siteId, children }: { siteId: string; children: R
     }
     setError(null);
     try {
-      const res = await fetch(`/api/sites/${siteId}`);
+      const res = await fetch(`/api/sites/${siteId}`, { cache: "no-store" });
       if (!res.ok) {
         if (res.status === 401) setError("Session expirée, reconnectez-vous.");
         else if (res.status === 404) setError("Site introuvable.");

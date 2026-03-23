@@ -9,7 +9,7 @@ export async function GET() {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("sites") as any)
-    .select("id, slug, name, status, custom_domain, is_private, created_at, updated_at")
+    .select("id, slug, name, status, theme, settings, custom_domain, is_private, created_at, updated_at")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 

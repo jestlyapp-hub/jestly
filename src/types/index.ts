@@ -1806,6 +1806,7 @@ export interface SiteSettings {
   name: string;
   description: string;
   logoUrl?: string;
+  faviconUrl?: string;
   maintenanceMode: boolean;
   socials: {
     instagram?: string;

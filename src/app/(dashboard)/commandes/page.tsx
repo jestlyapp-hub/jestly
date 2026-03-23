@@ -579,6 +579,7 @@ export default function CommandesPage() {
             </p>
           </div>
           <button
+            data-guide="new-order-btn"
             onClick={() => setCreateOpen(true)}
             className="flex items-center gap-2 bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] transition-all shadow-sm hover:shadow cursor-pointer"
           >

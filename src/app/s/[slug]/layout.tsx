@@ -16,9 +16,18 @@ export async function generateMetadata({
   const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || "jestly.fr";
   const canonicalUrl = `https://${slug}.${baseDomain}`;
 
+  // Dynamic favicon — always set icons to override root-level icon.png
+  const faviconUrl = site.settings.faviconUrl || "/icon.png";
+  const icons: Metadata["icons"] = {
+    icon: [{ url: faviconUrl }],
+    shortcut: [{ url: faviconUrl }],
+    apple: [{ url: site.settings.faviconUrl || "/apple-icon.png" }],
+  };
+
   return {
     title: site.seo.globalTitle || site.settings.name,
     description: site.seo.globalDescription || site.settings.description,
+    icons,
     alternates: {
       canonical: canonicalUrl,
     },

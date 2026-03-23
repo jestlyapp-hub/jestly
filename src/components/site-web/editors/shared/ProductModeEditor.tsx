@@ -50,6 +50,7 @@ export default function ProductModeEditor({
             {manualLabel}
           </button>
           <button
+            data-guide="product-mode-btn"
             onClick={() => onModeChange("product")}
             className={`flex-1 py-2 text-[12px] font-medium transition-all ${
               isProduct

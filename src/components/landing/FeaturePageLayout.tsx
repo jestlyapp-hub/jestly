@@ -11,6 +11,7 @@ import CommandesDemoPlayer from "./CommandesDemoPlayer";
 import AnalyticsDemoPlayer from "./AnalyticsDemoPlayer";
 import PortfolioDemoPlayer from "./PortfolioDemoPlayer";
 import PaiementsDemoPlayer from "./PaiementsDemoPlayer";
+import BriefsDemoPlayer from "./BriefsDemoPlayer";
 
 /* ═══════════════════════════════════════════════════════════════════════
    FeaturePageLayout — Premium high-contrast feature pages
@@ -51,6 +52,7 @@ export interface FeaturePageData {
   useAnalyticsDemo?: boolean;
   usePortfolioDemo?: boolean;
   usePaiementsDemo?: boolean;
+  useBriefsDemo?: boolean;
 }
 
 /* ── Section wrapper ── */
@@ -133,6 +135,8 @@ export default function FeaturePageLayout({ data: d }: { data: FeaturePageData }
             <PortfolioDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
           ) : d.usePaiementsDemo ? (
             <PaiementsDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
+          ) : d.useBriefsDemo ? (
+            <BriefsDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
           ) : (
             <VideoPlaceholder label={d.videoLabel} accentColor={d.accentColor} />
           )}

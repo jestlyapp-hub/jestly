@@ -11,6 +11,8 @@ interface ImageUploaderProps {
   hint?: string;
   /** Aspect ratio for preview thumbnail */
   previewAspect?: string;
+  /** Accept attribute for file input (default: "image/*") */
+  accept?: string;
 }
 
 export default function ImageUploader({
@@ -19,6 +21,7 @@ export default function ImageUploader({
   label,
   hint,
   previewAspect = "16 / 9",
+  accept = "image/*",
 }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +30,8 @@ export default function ImageUploader({
 
   const upload = useCallback(
     async (file: File) => {
-      if (!file.type.startsWith("image/")) {
+      const isImage = file.type.startsWith("image/") || file.type === "image/x-icon" || file.type === "image/vnd.microsoft.icon";
+      if (!isImage) {
         setError("Le fichier doit être une image");
         return;
       }
@@ -168,7 +172,7 @@ export default function ImageUploader({
       <input
         ref={fileRef}
         type="file"
-        accept="image/*"
+        accept={accept}
         className="hidden"
         onChange={handleFileChange}
       />

@@ -101,7 +101,7 @@ function CreationModal({ onClose, onCreated, briefTemplates }: {
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-[12px] font-medium text-[#5A5A58] mb-1.5">Nom <span className="text-red-400">*</span></label>
-            <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Logo Premium" className={INPUT_CLASS} autoFocus />
+            <input data-guide="product-name-input" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Logo Premium" className={INPUT_CLASS} autoFocus />
           </div>
           <div>
             <label className="block text-[12px] font-medium text-[#5A5A58] mb-1.5">Type</label>
@@ -121,7 +121,7 @@ function CreationModal({ onClose, onCreated, briefTemplates }: {
           </div>
           <div>
             <label className="block text-[12px] font-medium text-[#5A5A58] mb-1.5">Prix {mode === "contact" && !isLeadMagnet ? "(à partir de)" : ""}</label>
-            <input type="number" min={0} step={1} value={isLeadMagnet ? 0 : priceEuros} onChange={(e) => setPriceEuros(Number(e.target.value))} disabled={isLeadMagnet} placeholder="0"
+            <input data-guide="product-price-input" type="number" min={0} step={1} value={isLeadMagnet ? 0 : priceEuros} onChange={(e) => setPriceEuros(Number(e.target.value))} disabled={isLeadMagnet} placeholder="0"
               className={`${INPUT_CLASS} ${isLeadMagnet ? "opacity-50 cursor-not-allowed" : ""}`} />
             {isLeadMagnet && <p className="text-[11px] text-[#8A8A88] mt-1">Gratuit</p>}
           </div>
@@ -155,7 +155,7 @@ function CreationModal({ onClose, onCreated, briefTemplates }: {
         {briefTemplates.length > 0 && (
           <div className="mt-4">
             <label className="block text-[12px] font-medium text-[#5A5A58] mb-1.5">Brief associé</label>
-            <select value={selectedBriefId} onChange={(e) => setSelectedBriefId(e.target.value)} className={INPUT_CLASS}>
+            <select data-guide="product-brief-select" value={selectedBriefId} onChange={(e) => setSelectedBriefId(e.target.value)} className={INPUT_CLASS}>
               <option value="">Aucun brief</option>
               {briefTemplates.map((b) => (<option key={b.id} value={b.id}>{b.name} (v{b.version} — {(b.schema || []).length} champs)</option>))}
             </select>
@@ -165,7 +165,7 @@ function CreationModal({ onClose, onCreated, briefTemplates }: {
         {error && <p className="text-[12px] text-red-500 mt-3">{error}</p>}
         <div className="flex items-center justify-end gap-3 mt-5 pt-4 border-t border-[#E6E6E4]">
           <button onClick={onClose} className="text-[13px] text-[#5A5A58] hover:text-[#191919] px-4 py-2 transition-colors">Annuler</button>
-          <button onClick={handleCreate} disabled={!name.trim() || saving}
+          <button data-guide="product-create-submit" onClick={handleCreate} disabled={!name.trim() || saving}
             className="flex items-center gap-1.5 bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             {saving && <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>}
             Créer
@@ -223,7 +223,7 @@ function OfferCard({ product, index, onDuplicate, onArchive, onDelete }: {
         </div>
       </div>
       <div className="border-t border-[#E6E6E4] px-3 py-1.5 flex items-center">
-        <button onClick={() => router.push(`/produits/${product.id}`)} className="flex-1 flex items-center justify-center gap-1 text-[11px] font-medium text-[#5A5A58] hover:text-[#4F46E5] py-1.5 rounded-md hover:bg-[#F7F7F5] transition-all">
+        <button data-guide="product-edit-btn" onClick={() => router.push(`/produits/${product.id}`)} className="flex-1 flex items-center justify-center gap-1 text-[11px] font-medium text-[#5A5A58] hover:text-[#4F46E5] py-1.5 rounded-md hover:bg-[#F7F7F5] transition-all">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
           Éditer
         </button>
@@ -331,7 +331,7 @@ function BriefsSection({ templates, loading: briefsLoading, mutate: mutateBriefs
           <h3 className="text-[15px] font-semibold text-[#191919]">Briefs</h3>
           <p className="text-[12px] text-[#8A8A88] mt-0.5">{briefCount > 0 ? `${briefCount} questionnaire${briefCount !== 1 ? "s" : ""} — envoyés après achat` : "Questionnaires envoyés aux clients après achat"}</p>
         </div>
-        <button onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg border border-[#E6E6E4] text-[#5A5A58] hover:bg-[#F7F7F5] transition-colors whitespace-nowrap">
+        <button data-guide="new-brief-btn" onClick={() => setShowCreate(true)} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg border border-[#E6E6E4] text-[#5A5A58] hover:bg-[#F7F7F5] transition-colors whitespace-nowrap">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
           Créer un brief
         </button>
@@ -346,15 +346,15 @@ function BriefsSection({ templates, loading: briefsLoading, mutate: mutateBriefs
               <h2 className="text-[16px] font-semibold text-[#191919]">Nouveau brief</h2>
               <div>
                 <label className="block text-[12px] text-[#8A8A88] mb-1">Nom</label>
-                <input value={createName} onChange={(e) => setCreateName(e.target.value)} className={INPUT_CLASS} placeholder="Ex : Brief logo" autoFocus />
+                <input data-guide="brief-name-input" value={createName} onChange={(e) => setCreateName(e.target.value)} className={INPUT_CLASS} placeholder="Ex : Brief logo" autoFocus />
               </div>
               <div>
                 <label className="block text-[12px] text-[#8A8A88] mb-1">Description</label>
                 <textarea value={createDesc} onChange={(e) => setCreateDesc(e.target.value)} className={INPUT_CLASS + " resize-none"} rows={2} placeholder="Optionnel" />
               </div>
               <div className="flex gap-3">
-                <button onClick={() => handleCreate(false)} disabled={!createName.trim() || briefMutating} className="flex-1 py-2.5 text-[13px] font-semibold rounded-lg border border-[#E6E6E4] text-[#5A5A58] hover:bg-[#F7F7F5] transition-colors disabled:opacity-40">Vide</button>
-                <button onClick={() => handleCreate(true)} disabled={!createName.trim() || briefMutating} className="flex-1 py-2.5 text-[13px] font-semibold rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] transition-colors disabled:opacity-40">Template par défaut</button>
+                <button data-guide="brief-create-empty" onClick={() => handleCreate(false)} disabled={!createName.trim() || briefMutating} className="flex-1 py-2.5 text-[13px] font-semibold rounded-lg border border-[#E6E6E4] text-[#5A5A58] hover:bg-[#F7F7F5] transition-colors disabled:opacity-40">Vide</button>
+                <button data-guide="brief-create-default" onClick={() => handleCreate(true)} disabled={!createName.trim() || briefMutating} className="flex-1 py-2.5 text-[13px] font-semibold rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] transition-colors disabled:opacity-40">Template par défaut</button>
               </div>
               <button onClick={() => setShowCreate(false)} className="w-full text-[12px] text-[#8A8A88] hover:text-[#5A5A58] cursor-pointer">Annuler</button>
             </motion.div>
@@ -448,7 +448,7 @@ export default function OffresPage() {
             {products.length > 0 ? `${products.length} offre${products.length !== 1 ? "s" : ""} — services, packs et produits digitaux` : "Gérez les offres et services que vous proposez sur votre site"}
           </p>
         </div>
-        <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 bg-[#4F46E5] text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-[#4338CA] transition-colors whitespace-nowrap">
+        <button data-guide="new-product-btn" onClick={() => setShowModal(true)} className="flex items-center gap-1.5 bg-[#4F46E5] text-white text-[13px] font-semibold px-4 py-2 rounded-lg hover:bg-[#4338CA] transition-colors whitespace-nowrap">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>
           Nouvelle offre
         </button>
@@ -506,7 +506,7 @@ export default function OffresPage() {
       )}
 
       {/* Briefs section */}
-      <div className="border-t border-[#E6E6E4] pt-8 mt-4">
+      <div data-guide="briefs-section" className="border-t border-[#E6E6E4] pt-8 mt-4">
         <BriefsSection templates={briefTemplates} loading={briefsLoading} mutate={mutateBriefs} />
       </div>
     </div>
