@@ -1,35 +1,39 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGuide } from "../engine/guide-engine";
 import { ExternalLink, ShoppingCart, Users } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════════
-// Mission Success Modal — Shown after the guide is complete
-//
-// Displays:
-// - Confetti animation
-// - Site URL
-// - Action buttons (voir mon site, créer commande, créer client)
+// Mission Success Modal — Shown ONLY after completing the LAST chapter
+// in the current session. Never shown on page load / navigation.
 // ═══════════════════════════════════════════════════════════════════
+
+const SHOWN_KEY = "jestly_guide_v3_success_shown";
 
 export default function MissionSuccessModal() {
   const { isDone, account, close } = useGuide();
   const [visible, setVisible] = useState(false);
   const [confettiPieces, setConfettiPieces] = useState<ConfettiPiece[]>([]);
+  const wasDoneRef = useRef(isDone);
 
   useEffect(() => {
-    if (isDone) {
-      // Small delay before showing
-      const t = setTimeout(() => {
-        setVisible(true);
-        setConfettiPieces(generateConfetti(40));
-      }, 300);
-      return () => clearTimeout(t);
-    } else {
-      setVisible(false);
+    // Only show if isDone JUST became true during this session
+    // (wasDoneRef was false → isDone is now true)
+    if (isDone && !wasDoneRef.current) {
+      // Check if already shown before (prevent re-show on hot reload)
+      const alreadyShown = sessionStorage.getItem(SHOWN_KEY);
+      if (!alreadyShown) {
+        const t = setTimeout(() => {
+          setVisible(true);
+          setConfettiPieces(generateConfetti(40));
+          sessionStorage.setItem(SHOWN_KEY, "1");
+        }, 300);
+        return () => clearTimeout(t);
+      }
     }
+    wasDoneRef.current = isDone;
   }, [isDone]);
 
   const dismiss = useCallback(() => {
@@ -60,7 +64,7 @@ export default function MissionSuccessModal() {
               key={piece.id}
               initial={{ y: -20, x: piece.x, opacity: 1, rotate: 0 }}
               animate={{
-                y: window.innerHeight + 20,
+                y: typeof window !== "undefined" ? window.innerHeight + 20 : 800,
                 x: piece.x + piece.drift,
                 opacity: 0,
                 rotate: piece.rotation,
@@ -68,7 +72,7 @@ export default function MissionSuccessModal() {
               transition={{
                 duration: piece.duration,
                 delay: piece.delay,
-                ease: "easeIn",
+                ease: "easeIn" as const,
               }}
               className="fixed top-0 z-[91] pointer-events-none"
               style={{
@@ -100,7 +104,7 @@ export default function MissionSuccessModal() {
               </motion.div>
               <h2 className="text-xl font-bold">Bravo !</h2>
               <p className="text-white/80 text-sm mt-1">
-                Votre site est en ligne.
+                Tu as terminé le guide. Ton espace est prêt.
               </p>
             </div>
 
