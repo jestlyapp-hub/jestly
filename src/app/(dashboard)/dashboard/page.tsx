@@ -686,7 +686,7 @@ export default function DashboardPage() {
         <WorkloadSnapshot
           pendingOrders={safeData.pendingOrders}
           activeTasks={safeData.inProgressOrders}
-          pendingInvoices={safeData.pendingOrders}
+          pendingInvoices={safeData.deliveredOrders}
           clientsCount={safeData.clientsCount}
           weekEvents={safeData.calendarData ? countWeekEvents(safeData.calendarData) : 0}
           overdueItems={safeData.overdueOrders}

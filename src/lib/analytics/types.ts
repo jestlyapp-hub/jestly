@@ -1,11 +1,11 @@
 // ── Analytics Domain Types ──
 // Source de vérité pour toutes les définitions métier analytics
 
-/** Statuts de commande comptés comme "revenu réalisé" */
-export const REVENUE_STATUSES = ["paid", "delivered", "invoiced", "validated", "in_review", "in_progress"] as const;
+/** Statuts de commande comptés comme "revenu réalisé" (aligné sur business-metrics.ts) */
+export const REVENUE_STATUSES = ["paid", "invoiced", "delivered"] as const;
 
-/** Statuts exclus des analytics (ne génèrent pas de revenu) */
-export const EXCLUDED_STATUSES = ["cancelled", "dispute"] as const;
+/** Statuts exclus des analytics — ne génèrent pas de revenu (aligné sur business-metrics.ts) */
+export const EXCLUDED_STATUSES = ["cancelled", "refunded", "dispute"] as const;
 
 /** Statuts considérés comme "commande complétée" pour le taux de conversion */
 export const COMPLETED_STATUSES = ["paid", "delivered", "invoiced"] as const;
