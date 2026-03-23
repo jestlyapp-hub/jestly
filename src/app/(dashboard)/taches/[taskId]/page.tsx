@@ -30,6 +30,51 @@ function arrayMove<T>(arr: T[], from: number, to: number): T[] {
   return result;
 }
 
+/* ── SubtaskTextInline: 1 clic = ouvrir panel, 2 clics = éditer ── */
+function SubtaskTextInline({ text, done, onRename, onOpen }: {
+  text: string; done: boolean;
+  onRename: (text: string) => void;
+  onOpen: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(text);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => { setValue(text); }, [text]);
+  useEffect(() => { if (editing) inputRef.current?.focus(); }, [editing]);
+
+  if (editing) {
+    return (
+      <input
+        ref={inputRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onBlur={() => { setEditing(false); if (value.trim() && value !== text) onRename(value); }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { setEditing(false); if (value.trim() && value !== text) onRename(value); }
+          if (e.key === "Escape") { setEditing(false); setValue(text); }
+        }}
+        className={`flex-1 text-[14px] bg-white border border-[#4F46E5]/30 rounded px-1.5 py-0.5 outline-none ring-1 ring-[#4F46E5]/20 min-w-0 ${
+          done ? "text-[#BBB]" : "text-[#191919]"
+        }`}
+      />
+    );
+  }
+
+  return (
+    <span
+      onClick={onOpen}
+      onDoubleClick={(e) => { e.stopPropagation(); setEditing(true); }}
+      className={`flex-1 text-[14px] cursor-pointer hover:text-[#4F46E5] transition-colors select-none min-w-0 truncate ${
+        done ? "text-[#BBB] line-through" : "text-[#191919]"
+      }`}
+      title="Cliquer pour ouvrir · Double-cliquer pour renommer"
+    >
+      {text}
+    </span>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    SubtaskItem — Reorder with ↑↓ buttons (fiable, visible, persistant)
    ═══════════════════════════════════════════════════════════════════ */
@@ -93,34 +138,24 @@ function SubtaskItem({
         </AnimatePresence>
       </button>
 
-      {/* Text — editable inline */}
-      <input
-        value={sub.text}
-        onChange={(e) => onRename(sub.id, e.target.value)}
-        className={`flex-1 text-[14px] bg-transparent border-none outline-none min-w-0 ${
-          sub.done ? "text-[#BBB] line-through" : "text-[#191919]"
-        } focus:text-[#191919]`}
+      {/* Text — 1 clic ouvre panel, 2 clics édite le nom */}
+      <SubtaskTextInline
+        text={sub.text}
+        done={sub.done}
+        onRename={(text) => onRename(sub.id, text)}
+        onOpen={onClick}
       />
-      {/* Open detail panel */}
-      <button
-        onClick={onClick}
-        aria-label="Ouvrir le détail"
-        className="p-1 rounded hover:bg-[#EEF2FF] cursor-pointer transition-colors flex-shrink-0 opacity-40 hover:opacity-100"
-      >
-        {(sub.notes || sub.checklist?.length || (sub.priority && sub.priority !== "medium")) ? (
-          <span className="flex items-center gap-0.5">
-            {sub.priority && sub.priority !== "medium" && (
-              <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: PRIORITY_CONFIG[sub.priority].dot }} />
-            )}
-            {sub.checklist && sub.checklist.length > 0 && (
-              <span className="text-[10px] text-[#BBB]">{sub.checklist.filter((c) => c.done).length}/{sub.checklist.length}</span>
-            )}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-          </span>
-        ) : (
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
-        )}
-      </button>
+      {/* Indicators */}
+      {(sub.notes || sub.checklist?.length || (sub.priority && sub.priority !== "medium")) && (
+        <span className="flex items-center gap-0.5 flex-shrink-0">
+          {sub.priority && sub.priority !== "medium" && (
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: PRIORITY_CONFIG[sub.priority].dot }} />
+          )}
+          {sub.checklist && sub.checklist.length > 0 && (
+            <span className="text-[10px] text-[#BBB]">{sub.checklist.filter((c) => c.done).length}/{sub.checklist.length}</span>
+          )}
+        </span>
+      )}
 
       {/* ↑ Move up */}
       <button
