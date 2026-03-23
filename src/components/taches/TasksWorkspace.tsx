@@ -638,32 +638,43 @@ export default function TasksWorkspace() {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     setActiveId(null);
-    if (!over) return;
+    if (!over || active.id === over.id) return;
 
-    const activeTask = tasks.find((t) => t.id === active.id);
-    if (!activeTask) return;
+    // Use setData callback to get the latest state (not stale closure)
+    setData((prev) => {
+      if (!prev) return prev;
 
-    // Reorder within the same column
-    const overTask = tasks.find((t) => t.id === over.id);
-    if (overTask && active.id !== over.id) {
-      const oldIndex = tasks.findIndex((t) => t.id === active.id);
-      const newIndex = tasks.findIndex((t) => t.id === over.id);
-      if (oldIndex !== -1 && newIndex !== -1) {
-        setData((prev) => {
-          if (!prev) return prev;
-          const result = [...prev];
-          const [item] = result.splice(oldIndex, 1);
-          result.splice(newIndex, 0, item);
-          return result;
-        });
+      const activeIdx = prev.findIndex((t) => t.id === active.id);
+      const overIdx = prev.findIndex((t) => t.id === over.id);
+
+      // If dropping on a column (not a task), just persist status
+      if (activeIdx === -1) return prev;
+
+      const activeTask = prev[activeIdx];
+
+      if (overIdx !== -1) {
+        // Reorder: move active to over's position
+        const result = [...prev];
+        const [item] = result.splice(activeIdx, 1);
+        result.splice(overIdx, 0, item);
+
+        // Persist status change
+        apiFetch("/api/tasks", {
+          method: "PATCH",
+          body: { id: activeTask.id, status: activeTask.status },
+        }).catch((e) => console.error("Task sync error:", e));
+
+        return result;
       }
-    }
 
-    // Persist status change
-    apiFetch("/api/tasks", {
-      method: "PATCH",
-      body: { id: activeTask.id, status: activeTask.status },
-    }).catch((e) => console.error("Task sync error:", e));
+      // Persist status change (cross-column move without reorder)
+      apiFetch("/api/tasks", {
+        method: "PATCH",
+        body: { id: activeTask.id, status: activeTask.status },
+      }).catch((e) => console.error("Task sync error:", e));
+
+      return prev;
+    });
   }
 
   const activeTask = activeId ? tasks.find((t) => t.id === activeId) || null : null;
