@@ -33,6 +33,10 @@ export async function signUp(formData: FormData) {
     if (error.message.includes("already registered")) {
       return { error: "Cet email est déjà utilisé. Connectez-vous ou réinitialisez votre mot de passe." };
     }
+    const msg = error.message.toLowerCase();
+    if (msg.includes("rate") || msg.includes("limit") || msg.includes("exceeded") || msg.includes("too many")) {
+      return { error: "Trop de tentatives. Réessaie dans quelques minutes." };
+    }
     return { error: error.message };
   }
 
@@ -79,7 +83,8 @@ export async function signIn(formData: FormData) {
       return { error: "Email ou mot de passe incorrect." };
     }
     // Rate limited
-    if (error.message.includes("rate") || error.message.includes("too many")) {
+    const msg = error.message.toLowerCase();
+    if (msg.includes("rate") || msg.includes("limit") || msg.includes("exceeded") || msg.includes("too many")) {
       return { error: "Trop de tentatives. Réessaie dans quelques minutes." };
     }
     return { error: error.message };
@@ -107,8 +112,9 @@ export async function resendConfirmationEmail(email: string) {
   });
 
   if (error) {
-    if (error.message.includes("rate") || error.message.includes("60")) {
-      return { error: "Email déjà envoyé récemment. Attends quelques instants avant de réessayer." };
+    const msg = error.message.toLowerCase();
+    if (msg.includes("rate") || msg.includes("limit") || msg.includes("60") || msg.includes("exceeded") || msg.includes("too many")) {
+      return { error: "Tu as déjà demandé un email récemment. Attends quelques minutes avant de réessayer." };
     }
     return { error: error.message };
   }
