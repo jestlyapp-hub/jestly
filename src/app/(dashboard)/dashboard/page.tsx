@@ -590,7 +590,7 @@ export default function DashboardPage() {
           activeTasks={data.inProgressOrders}
           pendingInvoices={data.pendingOrders}
           clientsCount={data.clientsCount}
-          weekEvents={countWeekEvents(data.calendarData)}
+          weekEvents={data.calendarData ? countWeekEvents(data.calendarData) : 0}
           overdueItems={data.overdueOrders}
         />
       </div>
@@ -685,7 +685,7 @@ export default function DashboardPage() {
                 Ouvrir <ChevronRight size={12} />
               </a>
             </div>
-            <MiniCalendar calendarData={data.calendarData} />
+            {data.calendarData ? <MiniCalendar calendarData={data.calendarData} /> : <div className="text-center py-8 text-[12px] text-[#CCC]">Calendrier indisponible</div>}
           </motion.div>
         </div>
 
