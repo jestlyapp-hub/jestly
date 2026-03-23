@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { computeOrdersPipelineSummary, isExcludedOrder } from "@/lib/business-metrics";
+import { isOrderOverdue, isActiveProductionStatus } from "@/lib/notion-colors";
 
 // GET /api/dashboard/stats — complete dashboard data
 export async function GET() {
@@ -59,11 +60,9 @@ export async function GET() {
   const inProgressOrders = orders.filter((o) => ["brief_received", "in_progress", "in_review", "validated"].includes(o.status)).length;
   const deliveredOrders = orders.filter((o) => o.status === "delivered").length;
   const paidOrders = orders.filter((o) => o.status === "paid").length;
-  const overdueOrders = orders.filter((o) => {
-    if (isExcludedOrder(o.status) || o.status === "paid") return false;
-    if (!o.deadline) return false;
-    return o.deadline < todayStr;
-  }).length;
+  // Overdue = même logique que la page Commandes (isOrderOverdue from notion-colors.ts)
+  // Exclut : delivered, invoiced, paid, cancelled, refunded, dispute
+  const overdueOrders = orders.filter((o) => isOrderOverdue(o.deadline, o.status)).length;
 
   // ── Revenue data (6 months) ──
   const series: { monthKey: string; monthLabel: string; revenue: number; ordersCount: number; paidOrdersCount: number }[] = [];
@@ -104,7 +103,7 @@ export async function GET() {
   }
   // Today's deadlines
   for (const o of orders) {
-    if (o.deadline === todayStr && !isExcludedOrder(o.status) && o.status !== "paid") {
+    if (o.deadline === todayStr && isActiveProductionStatus(o.status)) {
       todayItems.push({ id: `dl-${o.id}`, type: "deadline", title: o.title || "Échéance", clientName: o.clients?.name, date: o.deadline, status: o.status, isOverdue: false });
     }
   }
@@ -122,7 +121,7 @@ export async function GET() {
   }
 
   const overdueItems = orders
-    .filter((o) => o.deadline && o.deadline < todayStr && !isExcludedOrder(o.status) && o.status !== "paid")
+    .filter((o) => isOrderOverdue(o.deadline, o.status))
     .map((o) => ({ id: o.id, type: "deadline" as const, title: o.title || "Commande en retard", clientName: o.clients?.name, date: o.deadline!, status: o.status, isOverdue: true }));
 
   const todayData = {
@@ -158,8 +157,9 @@ export async function GET() {
   const calendarData = { month: now.getMonth(), year: now.getFullYear(), days: calendarDays };
 
   // ── Upcoming deadlines ──
+  // Upcoming deadlines = only active production orders (same logic as Commandes page)
   const upcomingDeadlines = orders
-    .filter((o) => o.deadline && o.deadline >= todayStr && !isExcludedOrder(o.status) && o.status !== "paid")
+    .filter((o) => o.deadline && o.deadline >= todayStr && isActiveProductionStatus(o.status))
     .sort((a, b) => (a.deadline! > b.deadline! ? 1 : -1))
     .slice(0, 10)
     .map((o) => ({
