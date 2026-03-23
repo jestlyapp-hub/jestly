@@ -25,7 +25,6 @@ import {
   STATUS_CONFIG,
   COLUMNS_ORDER,
   filterTasks,
-  sortByPriority,
   createEmptyTask,
   getOverdueCount,
   duplicateTask,
@@ -384,10 +383,9 @@ export default function TasksWorkspace() {
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  // Filtered + sorted tasks
+  // Filtered tasks — order preserved from state (user reorder via D&D)
   const visibleTasks = useMemo(() => {
-    const filtered = filterTasks(tasks.filter((t) => !t.archived), filter);
-    return sortByPriority(filtered);
+    return filterTasks(tasks.filter((t) => !t.archived), filter);
   }, [tasks, filter]);
 
   // Group by status for kanban
@@ -638,16 +636,34 @@ export default function TasksWorkspace() {
   }
 
   function handleDragEnd(event: DragEndEvent) {
-    const { active } = event;
+    const { active, over } = event;
     setActiveId(null);
+    if (!over) return;
 
-    const task = tasks.find((t) => t.id === active.id);
-    if (task) {
-      apiFetch("/api/tasks", {
-        method: "PATCH",
-        body: { id: task.id, status: task.status },
-      }).catch((e) => console.error("Task sync error:", e));
+    const activeTask = tasks.find((t) => t.id === active.id);
+    if (!activeTask) return;
+
+    // Reorder within the same column
+    const overTask = tasks.find((t) => t.id === over.id);
+    if (overTask && active.id !== over.id) {
+      const oldIndex = tasks.findIndex((t) => t.id === active.id);
+      const newIndex = tasks.findIndex((t) => t.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        setData((prev) => {
+          if (!prev) return prev;
+          const result = [...prev];
+          const [item] = result.splice(oldIndex, 1);
+          result.splice(newIndex, 0, item);
+          return result;
+        });
+      }
     }
+
+    // Persist status change
+    apiFetch("/api/tasks", {
+      method: "PATCH",
+      body: { id: activeTask.id, status: activeTask.status },
+    }).catch((e) => console.error("Task sync error:", e));
   }
 
   const activeTask = activeId ? tasks.find((t) => t.id === activeId) || null : null;
