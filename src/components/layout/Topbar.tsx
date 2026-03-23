@@ -22,7 +22,13 @@ const pageLabels: Record<string, string> = {
 
 export default function Topbar() {
   const pathname = usePathname();
-  const pageLabel = pageLabels[pathname] ?? (pathname.startsWith("/site-web") ? "Site web" : "Dashboard");
+  const pageLabel = pageLabels[pathname]
+    ?? (pathname.startsWith("/site-web") ? "Site web" : null)
+    ?? (pathname.startsWith("/clients/") ? "Fiche client" : null)
+    ?? (pathname.startsWith("/projets/") ? "Projet" : null)
+    ?? (pathname.startsWith("/taches/") ? "Tâche" : null)
+    ?? (pathname.startsWith("/produits/") ? "Offre" : null)
+    ?? "Dashboard";
 
   return (
     <header className="h-14 bg-white border-b border-[#E6E6E4] flex items-center justify-between px-4 sm:px-6 flex-shrink-0">

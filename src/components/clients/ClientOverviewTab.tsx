@@ -12,9 +12,11 @@ interface Props {
 
 interface RevenueData {
   months: ClientRevenueMonth[];
+  totalRevenue: number;
   totalPaid: number;
   totalUnpaid: number;
   averageOrderValue: number;
+  ordersCount: number;
 }
 
 interface OrderRow {
@@ -51,8 +53,8 @@ export default function ClientOverviewTab({ client }: Props) {
     <div className="space-y-6">
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Revenu total" value={`${client.totalRevenue}€`} />
-        <StatCard label="Commandes" value={String(client.ordersCount)} />
+        <StatCard label="CA total" value={revenue ? `${Math.round(revenue.totalRevenue)}€` : `${client.totalRevenue}€`} />
+        <StatCard label="Commandes" value={revenue ? String(revenue.ordersCount) : String(client.ordersCount)} />
         <StatCard
           label="Panier moyen"
           value={revenue ? `${Math.round(revenue.averageOrderValue)}€` : "—"}

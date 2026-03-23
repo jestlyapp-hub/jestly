@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { apiFetch } from "@/lib/hooks/use-api";
+import { toast } from "@/lib/hooks/use-toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import type { ClientDetail, ClientStatus } from "@/types";
 
@@ -74,6 +75,7 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
         method: "PATCH",
         body: { status: newStatus },
       });
+      toast.success(newStatus === "archived" ? "Client archivé" : "Client réactivé");
       onUpdate();
     } catch (err) {
       console.error("[ClientSettings] Archive failed:", err);

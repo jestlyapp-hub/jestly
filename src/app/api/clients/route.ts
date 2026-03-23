@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from("clients") as any)
-    .select("*, orders(count)")
+    .select("*, orders(count, amount, status)")
     .eq("user_id", user.id)
     .is("deleted_at", null);
 
@@ -50,11 +50,18 @@ export async function GET(req: NextRequest) {
 
   if (error) return apiError(500, error.message, { route: "/api/clients", userId: user.id });
 
+  // Compute real revenue from orders (not from stale total_revenue column)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mapped = (data || []).map((c: any) => ({
-    ...c,
-    orders_count: c.orders?.[0]?.count ?? 0,
-  }));
+  const mapped = (data || []).map((c: any) => {
+    const orderRows: { amount: number; status: string }[] = Array.isArray(c.orders) ? c.orders : [];
+    const activeOrders = orderRows.filter((o) => o.status !== "cancelled" && o.status !== "refunded" && o.status !== "dispute");
+    const computedRevenue = activeOrders.reduce((sum, o) => sum + Number(o.amount || 0), 0);
+    return {
+      ...c,
+      orders_count: activeOrders.length,
+      total_revenue: computedRevenue,
+    };
+  });
 
   return NextResponse.json(mapped);
 }
