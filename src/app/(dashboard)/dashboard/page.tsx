@@ -554,8 +554,8 @@ export default function DashboardPage() {
 
   if (!data) return null;
 
-  const sparkRev = data.revenueData.series.map((m) => m.revenue);
-  const sparkOrd = data.revenueData.series.map((m) => m.ordersCount);
+  const sparkRev = data.revenueData?.series?.map((m) => m.revenue) ?? [];
+  const sparkOrd = data.revenueData?.series?.map((m) => m.ordersCount) ?? [];
 
   return (
     <div className="max-w-[1100px] mx-auto pb-10">
