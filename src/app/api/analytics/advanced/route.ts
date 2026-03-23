@@ -183,6 +183,7 @@ export async function GET(req: NextRequest) {
     const totalOrderCount = paidOrders.length;
     const prevOrderCount = prevPaidOrders.length;
     const ordersChange = prevOrderCount > 0 ? ((totalOrderCount - prevOrderCount) / prevOrderCount) * 100 : 0;
+    const hasPreviousPeriod = prevRevenue > 0 || prevOrderCount > 0;
 
     // AOV = revenue / paid orders
     const avgOrderValue = totalOrderCount > 0 ? Math.round(totalRevenue / totalOrderCount) : 0;
@@ -399,10 +400,10 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    // Best / worst months
+    // Best / worst months — only meaningful with 2+ months of data
     const validMonths = monthlyGrowth.filter((m) => m.revenue > 0);
-    const bestMonth = validMonths.length > 0 ? validMonths.reduce((best, m) => (m.revenue > best.revenue ? m : best)) : null;
-    const worstMonth = validMonths.length > 0 ? validMonths.reduce((worst, m) => (m.revenue < worst.revenue ? m : worst)) : null;
+    const bestMonth = validMonths.length >= 2 ? validMonths.reduce((best, m) => (m.revenue > best.revenue ? m : best)) : (validMonths[0] ?? null);
+    const worstMonth = validMonths.length >= 2 ? validMonths.reduce((worst, m) => (m.revenue < worst.revenue ? m : worst)) : null;
 
     // ── Forecast ──
     const recent = monthlyGrowth.slice(-6);
@@ -429,17 +430,42 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // ── Insights ──
+    // ── Insights (only when data is sufficient and truthful) ──
     const insights: string[] = [];
-    if (revenueChange > 5) insights.push(`Tu as gagné ${Math.round(revenueChange)}% de plus que la période précédente`);
-    if (revenueChange < -5) insights.push(`Ton revenu a baissé de ${Math.abs(Math.round(revenueChange))}% par rapport à la période précédente`);
-    if (productPerformance.length > 0 && productPerformance[0].revenueShare > 0) {
+
+    // Revenue trend — only if previous period had data
+    if (prevRevenue > 0 && revenueChange > 5) {
+      insights.push(`Tu as gagné ${Math.round(revenueChange)}% de plus que la période précédente`);
+    } else if (prevRevenue > 0 && revenueChange < -5) {
+      insights.push(`Ton revenu a baissé de ${Math.abs(Math.round(revenueChange))}% par rapport à la période précédente`);
+    }
+
+    // Top product — only if multiple products exist (otherwise 100% is obvious)
+    if (productPerformance.length >= 2 && productPerformance[0].revenueShare > 0) {
       insights.push(`${productPerformance[0].name} est ton produit le plus performant (${productPerformance[0].revenueShare}% du CA)`);
     }
-    const bestDay = revenueByDay.reduce((best, d) => (d.revenue > best.revenue ? d : best), revenueByDay[0]);
-    if (bestDay?.orders > 0) insights.push(`Ton meilleur jour de vente est le ${bestDay.name}`);
-    if (avgOrderValue > 0) insights.push(`Ton panier moyen est de ${avgOrderValue} €`);
-    if (returningRate > 30) insights.push(`${returningRate}% de tes clients reviennent — excellente rétention !`);
+
+    // Best selling day — only if multiple days have data
+    const daysWithOrders = revenueByDay.filter((d) => d.orders > 0);
+    if (daysWithOrders.length >= 2) {
+      const bestDay = daysWithOrders.reduce((best, d) => (d.revenue > best.revenue ? d : best));
+      insights.push(`Ton meilleur jour de vente est le ${bestDay.name}`);
+    }
+
+    // Average order value
+    if (avgOrderValue > 0 && totalOrderCount >= 2) {
+      insights.push(`Ton panier moyen est de ${avgOrderValue} €`);
+    }
+
+    // Retention
+    if (returningRate > 30 && activeClients >= 3) {
+      insights.push(`${returningRate}% de tes clients reviennent — excellente rétention !`);
+    }
+
+    // No insights fallback
+    if (insights.length === 0 && totalOrderCount > 0) {
+      insights.push("Continue à vendre pour débloquer des insights personnalisés");
+    }
 
     // ── Recent Events ──
     const recentEvents = orders
@@ -506,6 +532,10 @@ export async function GET(req: NextRequest) {
       },
       recentEvents,
       funnel: funnelData,
+      // Data sufficiency flags
+      hasPreviousPeriod,
+      hasEnoughMonths: validMonths.length >= 2,
+      hasEnoughForForecast: monthlyGrowth.filter((m) => m.revenue > 0).length >= 2,
     };
 
     // ── Debug ──

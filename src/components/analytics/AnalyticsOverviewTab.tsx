@@ -53,7 +53,7 @@ export default function AnalyticsOverviewTab({ data, sparkData, orderSparkData, 
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KPICard label="CA total" value={fmtEur(data.pipelineSummary.totalRevenue)} change={0} icon={DollarSign} sparkData={sparkData} index={0} tooltip="CA total — toutes commandes actives (source de vérité unique)" />
+        <KPICard label="Revenu période" value={fmtEur(kpis.totalRevenue)} change={kpis.revenueChange} icon={DollarSign} sparkData={sparkData} index={0} tooltip="Revenu payé/livré/facturé sur la période sélectionnée" />
         <KPICard label="Revenu net" value={fmtEur(kpis.netProfit)} change={kpis.profitChange} icon={Wallet} sparkData={sparkData} index={1} tooltip="Revenu payé - remboursements sur la période" />
         <KPICard label="Commandes payées" value={fmt(kpis.totalOrders)} change={kpis.ordersChange} icon={ShoppingCart} sparkData={orderSparkData} index={2} tooltip="Commandes payées/livrées/facturées sur la période" />
         <KPICard label="Taux de conversion" value={`${kpis.conversionRate}%`} change={kpis.conversionChange} icon={Target} index={3} tooltip="Commandes payées / total commandes sur la période" />
