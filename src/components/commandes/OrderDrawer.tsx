@@ -58,6 +58,7 @@ interface OrderDrawerProps {
   onAddOption?: (fieldId: string, label: string) => Promise<FieldOption>;
   briefData?: BriefData | null;
   onClientDeleted?: () => void;
+  onOrderDeleted?: (id: string) => void;
   /** When opened from billing context — shows billing actions */
   billingStatus?: string;
   billingActions?: BillingAction[];
@@ -452,6 +453,94 @@ function DeleteClientFromDrawer({
   );
 }
 
+/* ─── Delete Order Dialog ─── */
+function DeleteOrderFromDrawer({
+  orderId,
+  orderTitle,
+  onDeleted,
+}: {
+  orderId: string;
+  orderTitle: string;
+  onDeleted: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      await apiFetch(`/api/orders/${orderId}`, { method: "DELETE" });
+      toast.success("Commande supprimée");
+      setOpen(false);
+      onDeleted();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Erreur lors de la suppression");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        className="flex items-center gap-2 w-full px-3.5 py-2.5 text-[12px] text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="3 6 5 6 21 6" />
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        </svg>
+        Supprimer la commande
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            className="fixed inset-0 z-[60] flex items-center justify-center"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          >
+            <div className="absolute inset-0 bg-black/40" onClick={() => setOpen(false)} />
+            <motion.div
+              className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6"
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+            >
+              <h3 className="text-[15px] font-semibold text-[#191919] mb-2">
+                Supprimer cette commande ?
+              </h3>
+              <p className="text-[13px] text-[#5A5A58] leading-relaxed mb-4">
+                La commande &laquo;&nbsp;{orderTitle}&nbsp;&raquo; sera définitivement supprimée. Cette action est irréversible.
+              </p>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setOpen(false)}
+                  disabled={loading}
+                  className="flex-1 px-4 py-2.5 text-[13px] font-medium text-[#5A5A58] bg-white border border-[#E6E6E4] rounded-lg hover:bg-[#FBFBFA] transition-colors cursor-pointer"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={loading}
+                  className="flex-1 px-4 py-2.5 text-[13px] font-medium text-white bg-red-500 rounded-lg hover:bg-red-600 disabled:opacity-40 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                >
+                  {loading && (
+                    <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                  )}
+                  Supprimer la commande
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
 /* ═══════════════════════════════════════ */
 /* ─── MAIN DRAWER ─── */
 /* ═══════════════════════════════════════ */
@@ -465,6 +554,7 @@ export default function OrderDrawer({
   onAddOption,
   briefData: briefDataProp,
   onClientDeleted,
+  onOrderDeleted,
   billingStatus,
   billingActions,
   onBillingStatusChange,
@@ -931,11 +1021,11 @@ export default function OrderDrawer({
                       </span>
                     </div>
                     <div className="rounded-lg border border-red-100 bg-red-50/30 p-1">
-                      <DeleteClientFromDrawer
-                        clientId={order.clientId}
-                        clientName={order.client}
+                      <DeleteOrderFromDrawer
+                        orderId={order.id}
+                        orderTitle={order.product || "cette commande"}
                         onDeleted={() => {
-                          onClientDeleted?.();
+                          onOrderDeleted?.(order.id);
                           onClose();
                         }}
                       />
