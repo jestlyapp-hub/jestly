@@ -18,7 +18,6 @@ import type {
   DashboardRevenueData,
 } from "@/lib/dashboard/types";
 import WorkloadSnapshot from "@/components/dashboard/WorkloadSnapshot";
-import { useGuide } from "@/features/onboarding-v3/engine/guide-engine";
 import { GraduationCap, ArrowRight, Sparkles } from "lucide-react";
 import {
   DollarSign,
@@ -513,10 +512,27 @@ function Sk({ className = "" }: { className?: string }) {
 // ═══════════════════════════════════════
 /* ── Welcome Block — New user empty state ── */
 function WelcomeBlock() {
-  const { start, isDone } = useGuide();
   const [dismissed, setDismissed] = useState(false);
+  const [guideCompleted, setGuideCompleted] = useState(false);
 
-  if (dismissed || isDone) return null;
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("jestly_guide_v3");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.completedChapters?.length > 0) setGuideCompleted(true);
+      }
+    } catch {}
+  }, []);
+
+  if (dismissed || guideCompleted) return null;
+
+  const handleStartGuide = () => {
+    // Reset guide state and dismiss key so GuideLauncher picks it up
+    localStorage.removeItem("jestly_guide_v3");
+    localStorage.removeItem("jestly_guide_v3_launch_dismissed");
+    window.location.reload();
+  };
 
   return (
     <motion.div
@@ -539,7 +555,7 @@ function WelcomeBlock() {
           </p>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => start()}
+              onClick={handleStartGuide}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#4F46E5] text-white text-[13px] font-semibold hover:bg-[#4338CA] active:scale-[0.98] transition-all cursor-pointer"
             >
               <GraduationCap size={15} />
