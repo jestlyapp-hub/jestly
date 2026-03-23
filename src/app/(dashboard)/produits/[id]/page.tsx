@@ -301,6 +301,7 @@ export default function EditProductPage({
         </div>
 
         <button
+          data-guide="product-save-btn"
           onClick={handleSave}
           disabled={saving}
           className={`flex items-center gap-1.5 text-[13px] font-semibold px-4 py-2 rounded-lg transition-all ${
@@ -331,6 +332,7 @@ export default function EditProductPage({
         {TABS.map((t) => (
           <button
             key={t.key}
+            data-guide={`product-tab-${t.key}`}
             onClick={() => setTab(t.key)}
             className={`px-4 py-2.5 text-[13px] font-medium transition-colors relative ${
               tab === t.key ? "text-[#4F46E5] border-b-2 border-[#4F46E5]" : "text-[#8A8A88] hover:text-[#5A5A58]"
@@ -526,11 +528,11 @@ export default function EditProductPage({
                 {linkedBriefs.map((link) => {
                   const tpl = briefTemplates.find((t) => t.id === link.brief_template_id);
                   return (
-                    <div key={link.brief_template_id} className={`flex items-center justify-between p-3 rounded-lg border ${link.is_default ? "border-[#4F46E5]/30 bg-[#EEF2FF]" : "border-[#E6E6E4] bg-white"}`}>
+                    <div key={link.brief_template_id} data-guide="linked-brief-item" data-brief-id={link.brief_template_id} className={`flex items-center justify-between p-3 rounded-lg border ${link.is_default ? "border-[#4F46E5]/30 bg-[#EEF2FF]" : "border-[#E6E6E4] bg-white"}`}>
                       <div className="flex items-center gap-2">
                         <span className="text-[13px] font-medium text-[#191919]">{tpl?.name || "..."}</span>
                         {tpl && <span className="text-[10px] text-[#8A8A88]">v{tpl.version} · {(tpl.schema || []).length} champs</span>}
-                        {link.is_default && <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#4F46E5] text-white font-medium">Par défaut</span>}
+                        {link.is_default && <span data-guide="product-brief-badge" className="text-[10px] px-1.5 py-0.5 rounded bg-[#4F46E5] text-white font-medium">Par défaut</span>}
                       </div>
                       <div className="flex items-center gap-1">
                         {!link.is_default && (
@@ -554,6 +556,7 @@ export default function EditProductPage({
             <div>
               <label className={labelClass}>Ajouter un brief</label>
               <select
+                data-guide="product-add-brief-select"
                 value=""
                 onChange={(e) => { if (e.target.value) addBriefLink(e.target.value); }}
                 className={inputClass}
@@ -595,6 +598,7 @@ export default function EditProductPage({
 
             {/* Save */}
             <button
+              data-guide="product-save-brief"
               onClick={saveBriefSettings}
               className="px-4 py-2 text-[13px] font-semibold rounded-lg bg-[#4F46E5] text-white hover:bg-[#4338CA] transition-colors"
             >

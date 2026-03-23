@@ -5,12 +5,38 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 // ── Sign Up ──
-// CLOSED: Registrations are disabled until official launch.
-// Only the admin account (jestlyapp@gmail.com) exists.
-export async function signUp(_formData: FormData) {
-  return {
-    error: "Les inscriptions sont actuellement fermées. Rejoignez la waitlist sur jestly.fr pour être informé de l'ouverture.",
-  };
+export async function signUp(formData: FormData) {
+  const supabase = await createClient();
+  const headerStore = await headers();
+  const origin = headerStore.get("origin") || "http://localhost:3000";
+
+  const email = (formData.get("email") as string)?.trim().toLowerCase();
+  const password = formData.get("password") as string;
+
+  if (!email || !password) {
+    return { error: "Email et mot de passe requis." };
+  }
+
+  if (password.length < 6) {
+    return { error: "Le mot de passe doit contenir au moins 6 caractères." };
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${origin}/auth/callback?next=/dashboard`,
+    },
+  });
+
+  if (error) {
+    if (error.message.includes("already registered")) {
+      return { error: "Cet email est déjà utilisé. Connectez-vous ou réinitialisez votre mot de passe." };
+    }
+    return { error: error.message };
+  }
+
+  redirect("/dashboard");
 }
 
 // ── Sign In ──
@@ -37,11 +63,27 @@ export async function signIn(formData: FormData) {
 }
 
 // ── Sign In with Google ──
-// CLOSED: OAuth signup disabled until official launch.
 export async function signInWithGoogle() {
-  return {
-    error: "Les inscriptions sont actuellement fermées. Seule la connexion par email est disponible.",
-  };
+  const supabase = await createClient();
+  const headerStore = await headers();
+  const origin = headerStore.get("origin") || "http://localhost:3000";
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${origin}/auth/callback?next=/dashboard`,
+    },
+  });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  if (data?.url) {
+    redirect(data.url);
+  }
+
+  return { error: "Impossible de lancer l'authentification Google." };
 }
 
 // ── Forgot Password ──
@@ -74,7 +116,24 @@ export async function signOut() {
 }
 
 // ── Check Slug Availability ──
-// CLOSED: Disabled until registrations reopen.
-export async function checkSlugAvailable(_slug: string) {
-  return { available: false, slug: "", suggestion: null };
+export async function checkSlugAvailable(slug: string) {
+  if (!slug || slug.length < 3) {
+    return { available: false, slug, suggestion: null };
+  }
+
+  const supabase = await createClient();
+  const normalized = slug.toLowerCase().replace(/[^a-z0-9-]/g, "");
+
+  const { data } = await (supabase.from("sites") as any)
+    .select("slug")
+    .eq("slug", normalized)
+    .maybeSingle();
+
+  if (!data) {
+    return { available: true, slug: normalized, suggestion: null };
+  }
+
+  // Slug pris — proposer une alternative
+  const suggestion = `${normalized}-${Math.floor(Math.random() * 900) + 100}`;
+  return { available: false, slug: normalized, suggestion };
 }

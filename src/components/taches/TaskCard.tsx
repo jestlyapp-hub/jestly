@@ -47,13 +47,16 @@ export default function TaskCard({ task, onClick, overlay }: TaskCardProps) {
   return (
     <div
       ref={overlay ? undefined : setNodeRef}
-      style={overlay ? undefined : style}
       {...(overlay ? {} : attributes)}
       {...(overlay ? {} : listeners)}
       onClick={onClick}
-      className={`bg-white border border-[#E6E6E4] rounded-lg p-3 cursor-pointer hover:border-[#D0D0CE] hover:shadow-sm transition-all group ${
+      className={`bg-white border border-[#E6E6E4] border-l-[3px] rounded-lg p-3 cursor-pointer hover:border-[#D0D0CE] hover:shadow-sm transition-all group ${
         overlay ? "shadow-lg rotate-[2deg]" : ""
       }`}
+      style={{
+        ...(overlay ? {} : style),
+        borderLeftColor: pCfg.dot,
+      }}
     >
       {/* Title */}
       <p className="text-[13px] font-semibold text-[#191919] leading-snug mb-2 line-clamp-2">

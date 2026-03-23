@@ -99,7 +99,7 @@ export default function AuthPanel() {
         <span className="text-[#4F46E5]">Vends. Livre. Encaisse.</span>
       </h1>
       <p className="text-[14px] text-[#6B7280] mb-8">
-        Connexion réservée aux utilisateurs existants.
+        Connectez-vous pour accéder à votre espace.
       </p>
 
       {/* Error / Success */}
@@ -136,15 +136,13 @@ export default function AuthPanel() {
         </button>
       </div>
 
-      {/* Info inscriptions fermées */}
-      <div className="mt-8 bg-[#F7F7F5] border border-[#E6E6E4] rounded-[10px] px-4 py-3 text-center">
-        <p className="text-[13px] text-[#6B7280]">
-          Les inscriptions sont actuellement fermées.
-        </p>
-        <p className="text-[12px] text-[#999] mt-1">
-          Rejoignez la <a href="/" className="text-[#4F46E5] hover:underline">waitlist</a> pour être informé de l&apos;ouverture.
-        </p>
-      </div>
+      {/* Lien inscription */}
+      <p className="mt-8 text-center text-[13px] text-[#6B7280]">
+        Pas encore de compte ?{" "}
+        <a href="/signup" className="font-semibold text-[#4F46E5] hover:underline">
+          Créer un compte
+        </a>
+      </p>
     </div>
   );
 }

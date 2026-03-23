@@ -88,6 +88,22 @@ export default function TaskDetailDrawer({
     update({ subtasks: local!.subtasks.filter((s) => s.id !== subId) });
   }
 
+  function moveSubtaskUp(subId: string) {
+    const subs = [...local!.subtasks];
+    const idx = subs.findIndex((s) => s.id === subId);
+    if (idx <= 0) return;
+    [subs[idx], subs[idx - 1]] = [subs[idx - 1], subs[idx]];
+    update({ subtasks: subs });
+  }
+
+  function moveSubtaskDown(subId: string) {
+    const subs = [...local!.subtasks];
+    const idx = subs.findIndex((s) => s.id === subId);
+    if (idx === -1 || idx >= subs.length - 1) return;
+    [subs[idx], subs[idx + 1]] = [subs[idx + 1], subs[idx]];
+    update({ subtasks: subs });
+  }
+
   function addSubtask() {
     if (!newSubtaskText.trim()) return;
     const sub: Subtask = { id: createId(), text: newSubtaskText.trim(), done: false };
@@ -132,8 +148,9 @@ export default function TaskDetailDrawer({
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="Detail de la tâche"
-            className="fixed top-0 right-0 bottom-0 w-full max-w-xl bg-white border-l border-[#E6E6E4] z-50 flex flex-col shadow-xl"
+            aria-label="Détail de la tâche"
+            className="fixed top-0 right-0 bottom-0 w-full max-w-xl bg-white border-l border-[#E6E6E4] z-50 flex flex-col shadow-xl border-l-[3px]"
+            style={{ borderLeftColor: PRIORITY_CONFIG[local.priority].dot }}
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
@@ -143,7 +160,7 @@ export default function TaskDetailDrawer({
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#E6E6E4]">
               <div className="flex items-center gap-3">
                 <span className="text-[11px] text-[#999] uppercase tracking-wider font-semibold">
-                  Detail de la tâche
+                  Détail de la tâche
                 </span>
                 <a
                   href={`/tâches/${local.id}`}
@@ -213,7 +230,7 @@ export default function TaskDetailDrawer({
                 {/* Priority */}
                 <div>
                   <label className="text-[11px] text-[#999] font-medium block mb-1">
-                    Priorite
+                    Priorité
                   </label>
                   <div className="flex gap-1">
                     {(Object.keys(PRIORITY_CONFIG) as TaskPriority[]).map((pr) => {
@@ -244,7 +261,7 @@ export default function TaskDetailDrawer({
                 {/* Due date */}
                 <div>
                   <label className="text-[11px] text-[#999] font-medium block mb-1">
-                    Date d&apos;echeance
+                    Échéance
                   </label>
                   <input
                     type="date"
@@ -337,7 +354,7 @@ export default function TaskDetailDrawer({
                 {/* Order link */}
                 <div>
                   <label className="text-[11px] text-[#999] font-medium block mb-1">
-                    Commande liee
+                    Commande liée
                   </label>
                   <input
                     value={local.orderTitle || ""}
@@ -394,12 +411,21 @@ export default function TaskDetailDrawer({
                     </div>
                   )}
 
-                  <div className="space-y-1 mb-2">
-                    {local.subtasks.map((sub) => (
+                  {local.subtasks.length === 0 && (
+                    <div className="text-center py-4 text-[12px] text-[#CCC] border border-dashed border-[#E6E6E4] rounded-lg mb-2">
+                      Aucune sous-tâche
+                    </div>
+                  )}
+
+                  <div className="space-y-0.5 mb-2">
+                    {local.subtasks.map((sub, i) => (
                       <div
                         key={sub.id}
-                        className="flex items-center gap-2 group px-2 py-1.5 rounded-lg hover:bg-[#FBFBFA] transition-colors"
+                        className="flex items-center gap-1.5 group px-2 py-1.5 rounded-lg hover:bg-[#FBFBFA] transition-colors"
                       >
+                        <span className="text-[10px] text-[#CCC] font-mono w-3 text-right flex-shrink-0 select-none">
+                          {i + 1}
+                        </span>
                         <button
                           onClick={() => toggleSubtask(sub.id)}
                           aria-label={sub.done ? "Marquer comme non fait" : "Marquer comme fait"}
@@ -423,9 +449,29 @@ export default function TaskDetailDrawer({
                           {sub.text}
                         </span>
                         <button
+                          onClick={() => moveSubtaskUp(sub.id)}
+                          disabled={i === 0}
+                          aria-label="Monter"
+                          className="p-0.5 rounded hover:bg-[#EEF2FF] transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-default"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="18 15 12 9 6 15" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => moveSubtaskDown(sub.id)}
+                          disabled={i === local.subtasks.length - 1}
+                          aria-label="Descendre"
+                          className="p-0.5 rounded hover:bg-[#EEF2FF] transition-colors cursor-pointer disabled:opacity-20 disabled:cursor-default"
+                        >
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                        <button
                           onClick={() => deleteSubtask(sub.id)}
-                          aria-label="Supprimer la sous-tâche"
-                          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-[#FEF2F2] transition-all cursor-pointer"
+                          aria-label="Supprimer"
+                          className="p-0.5 rounded hover:bg-[#FEF2F2] transition-colors cursor-pointer opacity-30 hover:opacity-100"
                         >
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#EF4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18" />
@@ -460,9 +506,9 @@ export default function TaskDetailDrawer({
                     Tags
                   </label>
                   <div className="flex items-center gap-1.5 flex-wrap mb-2">
-                    {local.tags.map((tag) => (
+                    {local.tags.map((tag, i) => (
                       <span
-                        key={tag}
+                        key={`${tag}-${i}`}
                         className="flex items-center gap-1 text-[11px] text-[#666] bg-[#F7F7F5] px-2 py-1 rounded-md"
                       >
                         {tag}
@@ -503,8 +549,8 @@ export default function TaskDetailDrawer({
             <div className="border-t border-[#E6E6E4] px-6 py-4">
               <div className="flex items-center justify-between mb-3">
                 <div className="text-[11px] text-[#BBB] space-x-3">
-                  <span>Cree le {formatDate(local.createdAt)}</span>
-                  <span>Modifie le {formatDate(local.updatedAt)}</span>
+                  <span>Créé le {formatDate(local.createdAt)}</span>
+                  <span>Modifié le {formatDate(local.updatedAt)}</span>
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-wrap">

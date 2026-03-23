@@ -239,68 +239,69 @@ function validateBlockSelectedInBuilder(): ValidatorResult {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// BRIEF LINKED — Auto-complete if brief already associated
+// BRIEF TAB OR LINKED — For the "open brief tab" step
 // ═══════════════════════════════════════════════════════════════════
 
 /**
- * Checks if a brief is already linked to the current product.
- * True when: linked brief badges/indicators exist in the DOM,
- * OR the brief tab shows linked briefs,
- * OR the user just clicked the brief tab (progressing).
+ * Step: "Open the Brief tab"
+ * ✓ if the Brief tab is currently active (user clicked on it)
+ * ✓ if a brief is already linked (auto-skip)
  */
-function validateBriefLinkedToProduct(): ValidatorResult {
-  // Check for brief badges in the product page (e.g., "Par défaut" badge)
-  const briefBadges = document.querySelectorAll(
-    '[data-guide="product-brief-badge"], [data-guide="product-linked-brief"]',
-  );
-  if (briefBadges.length > 0) {
-    log(`brief_linked_to_product: ${briefBadges.length} brief badge(s) found — auto-complete`);
+function validateBriefTabOrLinked(): ValidatorResult {
+  // First check if brief already linked (auto-skip all brief steps)
+  if (hasBriefLinked()) {
+    log("brief_tab_or_linked: brief already linked — auto-complete");
     return { valid: true, message: "Brief déjà lié au produit" };
   }
 
-  // Check for any brief item in the brief tab content
-  // Look for brief cards/items that indicate a linked brief
-  const briefItems = document.querySelectorAll(
-    '.brief-item, [data-brief-id], [data-guide="linked-brief-item"]',
-  );
-  if (briefItems.length > 0) {
-    log(`brief_linked_to_product: ${briefItems.length} brief item(s) in DOM — auto-complete`);
-    return { valid: true, message: "Brief lié" };
-  }
-
-  // Check if the brief tab is already open and shows content
-  // (the tab being open with content = brief is linked)
+  // Check if the Brief tab is active (user clicked on it)
   const briefTab = document.querySelector<HTMLElement>('[data-guide="product-tab-brief"]');
   if (briefTab) {
+    // Detect active state: border-b-2 + text color indicates active in this UI
     const isActive = briefTab.getAttribute("aria-selected") === "true" ||
                      briefTab.classList.contains("active") ||
-                     briefTab.dataset?.state === "active";
+                     briefTab.dataset?.state === "active" ||
+                     briefTab.classList.contains("border-b-2") ||
+                     briefTab.className.includes("text-[#4F46E5]");
     if (isActive) {
-      // Tab is active — check if there's brief content visible
-      const briefContent = document.querySelector(
-        '[data-guide="product-brief-content"], [data-guide="product-add-brief-select"]',
-      );
-      if (briefContent) {
-        // The select exists — check if it shows a selected brief
-        const selectValue = briefContent.querySelector('[data-guide="selected-brief"]');
-        if (selectValue) {
-          log("brief_linked_to_product: selected brief found in select — auto-complete");
-          return { valid: true, message: "Brief sélectionné" };
-        }
-      }
+      log("brief_tab_or_linked: brief tab is active — complete");
+      return { valid: true, message: "Onglet Brief ouvert" };
     }
   }
 
-  // Fallback: check if the save button for brief exists and the form has data
-  const saveBtn = document.querySelector('[data-guide="product-save-brief"]');
-  if (saveBtn) {
-    // The save button exists in the DOM — brief tab is open
-    // If we also see a selected brief, it's linked
-    // For now, just being at the save step with the button visible
-    // means progress — the user clicked through
-    log("brief_linked_to_product: save button visible, user is in brief tab");
-    // DON'T auto-complete here — wait for the user to actually save
-    // This is the correct non-auto-complete path
+  // Fallback: if the brief select or save button is visible, the tab is open
+  const briefSelect = document.querySelector('[data-guide="product-add-brief-select"]');
+  if (briefSelect) {
+    log("brief_tab_or_linked: brief select visible — tab is open");
+    return { valid: true, message: "Onglet Brief ouvert" };
+  }
+
+  log("brief_tab_or_linked: brief tab not active");
+  return { valid: false };
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// BRIEF LINKED — Auto-complete if brief already associated
+// ═══════════════════════════════════════════════════════════════════
+
+/** Shared helper: checks DOM for linked brief indicators */
+function hasBriefLinked(): boolean {
+  // Strategy 1: linked-brief-item elements (with data-brief-id)
+  const briefItems = document.querySelectorAll(
+    '[data-guide="linked-brief-item"], [data-brief-id], [data-guide="product-brief-badge"]',
+  );
+  if (briefItems.length > 0) return true;
+  return false;
+}
+
+/**
+ * Checks if a brief is linked to the current product.
+ * True when: linked brief items exist in the DOM (badges, brief cards).
+ */
+function validateBriefLinkedToProduct(): ValidatorResult {
+  if (hasBriefLinked()) {
+    log("brief_linked_to_product: linked brief(s) found in DOM — auto-complete");
+    return { valid: true, message: "Brief lié au produit" };
   }
 
   log("brief_linked_to_product: no linked brief detected");
@@ -317,6 +318,7 @@ export const missionValidators: Record<string, Validator> = {
   product_displayed: validateProductDisplayed,
   site_published: validateSitePublished,
   block_selected_in_builder: validateBlockSelectedInBuilder,
+  brief_tab_or_linked: validateBriefTabOrLinked,
   brief_linked_to_product: validateBriefLinkedToProduct,
 };
 

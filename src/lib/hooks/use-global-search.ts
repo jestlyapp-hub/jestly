@@ -78,6 +78,9 @@ export function useGlobalSearch(
         if (parsed.entityFilter) {
           url += `&type=${parsed.entityFilter}`;
         }
+        if (parsed.tagFilters?.length) {
+          url += `&tags=${encodeURIComponent(parsed.tagFilters.join(","))}`;
+        }
 
         const res = await fetch(url, { signal: controller.signal });
 

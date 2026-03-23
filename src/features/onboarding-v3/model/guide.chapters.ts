@@ -267,8 +267,8 @@ export const CHAPTERS: GuideChapter[] = [
         body: "C'est ici que vous associez le brief à votre produit.",
         target: { selector: '[data-guide="product-tab-brief"]', placement: "bottom" },
         preActions: [{ type: "waitFor", selector: '[data-guide="product-tab-brief"]', timeout: 8000 }],
-        // ADAPTATIF : auto-complete si brief déjà lié au produit
-        completeWhen: { type: "custom", key: "brief_linked_to_product", pollMs: 500, timeoutMs: 60000 },
+        // Valide dès le clic sur l'onglet OU auto-complete si brief déjà lié
+        completeWhen: { type: "custom", key: "brief_tab_or_linked", pollMs: 500, timeoutMs: 60000 },
       },
       {
         id: "product_select_brief", chapterId: "product", kind: "show",

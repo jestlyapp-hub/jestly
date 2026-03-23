@@ -603,7 +603,7 @@ export default function GlobalSearch() {
                 {error && (
                   <div className="px-4 py-6 text-center">
                     <p className="text-[13px] text-red-500">{error}</p>
-                    <p className="text-[11px] text-[#CCC] mt-1">Reessayez dans un instant</p>
+                    <p className="text-[11px] text-[#CCC] mt-1">Réessayez dans un instant</p>
                   </div>
                 )}
 
@@ -615,7 +615,7 @@ export default function GlobalSearch() {
                       <div>
                         <div className="px-4 pt-3 pb-1.5">
                           <span className="text-[11px] font-semibold text-[#999] uppercase tracking-wider">
-                            Recherches recentes
+                            Recherches récentes
                           </span>
                         </div>
                         {recentSearches.slice(0, 5).map((s) => (
@@ -639,7 +639,7 @@ export default function GlobalSearch() {
                       <div>
                         <div className="px-4 pt-3 pb-1.5">
                           <span className="text-[11px] font-semibold text-[#999] uppercase tracking-wider">
-                            Acces rapide
+                            Accès rapide
                           </span>
                         </div>
                         {recentItems.slice(0, 6).map((item, i) => (
@@ -683,7 +683,7 @@ export default function GlobalSearch() {
                   <div>
                     <div className="px-4 pt-3 pb-1">
                       <span className="text-[11px] font-semibold text-[#4F46E5] uppercase tracking-wider">
-                        Meilleur resultat
+                        Meilleur résultat
                       </span>
                     </div>
                     <SearchResultItem
@@ -736,12 +736,12 @@ export default function GlobalSearch() {
                       <line x1="21" y1="21" x2="16.65" y2="16.65" />
                     </svg>
                     <p className="text-[13px] text-[#888]">
-                      Aucun resultat pour &laquo;{" "}
+                      Aucun résultat pour &laquo;{" "}
                       <span className="font-medium text-[#555]">{query}</span>
                       {" "}&raquo;
                     </p>
                     <p className="text-[11px] text-[#BBB] mt-1.5 max-w-[360px] mx-auto">
-                      Essayez un autre mot-cle ou recherchez par client, projet, commande, produit, facture ou brief.
+                      Essayez un autre mot-clé ou recherchez par client, projet, commande, produit, facture ou brief.
                     </p>
                     <div className="flex items-center justify-center gap-2 mt-3">
                       <code className="text-[10px] text-[#999] bg-[#F7F7F5] px-1.5 py-0.5 rounded border border-[#EFEFEF]">type:client</code>
@@ -772,7 +772,7 @@ export default function GlobalSearch() {
                 <div className="flex items-center gap-2">
                   {resultCount > 0 && (
                     <span className="text-[10px] text-[#CCC]">
-                      {resultCount} resultat{resultCount > 1 ? "s" : ""}
+                      {resultCount} résultat{resultCount > 1 ? "s" : ""}
                     </span>
                   )}
                 </div>

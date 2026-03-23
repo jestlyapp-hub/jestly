@@ -10,9 +10,15 @@ export async function GET(req: NextRequest) {
     50
   );
   const entityType = req.nextUrl.searchParams.get("type") || null;
+  const tagsParam = req.nextUrl.searchParams.get("tags") || null;
+  const tagFilters = tagsParam ? tagsParam.split(",").map(t => t.trim()).filter(Boolean) : [];
 
   if (!q || q.length < 2) {
     return NextResponse.json({ results: [] });
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("GLOBAL_SEARCH_QUERY", { q, entityType, tagFilters });
   }
 
   const auth = await getAuthUser();
@@ -30,7 +36,19 @@ export async function GET(req: NextRequest) {
     });
 
     if (!error && data && data.length > 0) {
-      return NextResponse.json({ results: data.map(mapV2Row) });
+      let mapped = data.map(mapV2Row);
+
+      // Filter by tags if requested (tags stored in metadata JSONB)
+      if (tagFilters.length > 0) {
+        mapped = mapped.filter((r: SearchResult) => {
+          const itemTags: string[] = r.tags || [];
+          const metaTags: string[] = r.meta?.tags ? String(r.meta.tags).split(",").map(t => t.trim()) : [];
+          const allTags = [...itemTags, ...metaTags].map(t => t.toLowerCase());
+          return tagFilters.every(tf => allTags.includes(tf.toLowerCase()));
+        });
+      }
+
+      return NextResponse.json({ results: mapped });
     }
 
     // If RPC returned empty but no error, still return empty (not a fallback case)
@@ -42,8 +60,17 @@ export async function GET(req: NextRequest) {
   }
 
   // 2) Legacy fallback: direct table queries (works without migration 033)
+  // Strip # from query for ILIKE (tags don't contain # in DB)
+  const cleanQ = q.replace(/#/g, "").trim();
   const results: SearchResult[] = [];
-  await legacySearch(supabase, user.id, q, entityType, results);
+  if (cleanQ.length >= 2) {
+    await legacySearch(supabase, user.id, sanitizeIlike(cleanQ), entityType, results);
+  }
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("GLOBAL_SEARCH_RESULTS", { count: results.length, types: [...new Set(results.map((r) => r.type))] });
+  }
+
   return NextResponse.json({ results });
 }
 
@@ -82,6 +109,11 @@ function mapV2Row(row: V2Row): SearchResult {
     subtitleParts.push(...crumbs.filter((c) => !subtitleParts.includes(c)));
   }
 
+  // Extract tags from metadata
+  const metaTags: string[] = row.metadata?.tags
+    ? (Array.isArray(row.metadata.tags) ? row.metadata.tags : String(row.metadata.tags).split(",").map(t => t.trim()))
+    : [];
+
   return {
     id: row.entity_id || row.id,
     type,
@@ -95,9 +127,15 @@ function mapV2Row(row: V2Row): SearchResult {
     date: row.item_date?.slice(0, 10) ?? undefined,
     href: row.href,
     archived: row.is_archived || undefined,
+    tags: metaTags.length > 0 ? metaTags : undefined,
     score: row.rank_score,
     meta: row.metadata || undefined,
   };
+}
+
+/* ─── Sanitize ILIKE special chars ─── */
+function sanitizeIlike(q: string): string {
+  return q.replace(/[%_,\\]/g, (c) => `\\${c}`);
 }
 
 /* ─── Legacy fallback (no V2 migration) ─── */
@@ -199,29 +237,63 @@ async function legacySearch(supabase: any, userId: string, q: string, entityType
     } catch { /* table may not exist */ }
   }
 
-  // Tasks
+  // Tasks — search title, client_name, tags, subtasks
   if (shouldSearch("task")) {
     try {
+      // Fetch tasks matching title or client_name via ILIKE
       const { data: tasks } = await (supabase.from("tasks") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .select("id, title, status, priority, due_date, client_name, archived_at")
+        .select("id, title, status, priority, due_date, client_name, archived_at, tags, subtasks")
         .eq("user_id", userId)
         .or(`title.ilike.${pattern},client_name.ilike.${pattern}`)
-        .limit(5);
+        .limit(10);
 
-      if (tasks) {
-        for (const t of tasks) {
-          results.push({
-            id: t.id,
-            type: "task",
-            title: t.title,
-            subtitle: t.client_name ?? "",
-            status: t.status,
-            priority: t.priority,
-            date: t.due_date,
-            archived: !!t.archived_at,
-            href: `/taches/${t.id}`,
-          });
+      // Also fetch tasks where JSONB tags or subtasks might match
+      // (ILIKE doesn't work on JSONB, so fetch recent tasks and filter in memory)
+      const { data: allTasks } = await (supabase.from("tasks") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+        .select("id, title, status, priority, due_date, client_name, archived_at, tags, subtasks")
+        .eq("user_id", userId)
+        .order("updated_at", { ascending: false })
+        .limit(100);
+
+      // Merge and deduplicate
+      const taskMap = new Map<string, typeof tasks[0]>();
+      for (const t of (tasks || [])) taskMap.set(t.id, t);
+
+      const lq = q.toLowerCase();
+      for (const t of (allTasks || [])) {
+        if (taskMap.has(t.id)) continue; // already matched by ILIKE
+
+        // Check tags (JSONB array)
+        const tags: string[] = Array.isArray(t.tags) ? t.tags : [];
+        const tagMatch = tags.some((tag: string) => tag.toLowerCase().includes(lq));
+
+        // Check subtasks text (JSONB array of {id, text, done})
+        const subs: { text?: string }[] = Array.isArray(t.subtasks) ? t.subtasks : [];
+        const subMatch = subs.some((s) => s.text?.toLowerCase().includes(lq));
+
+        if (tagMatch || subMatch) {
+          taskMap.set(t.id, t);
         }
+      }
+
+      for (const t of taskMap.values()) {
+        const tags: string[] = Array.isArray(t.tags) ? t.tags : [];
+        const subs: { text?: string }[] = Array.isArray(t.subtasks) ? t.subtasks : [];
+        const subTexts = subs.map((s) => s.text).filter(Boolean);
+
+        results.push({
+          id: t.id,
+          type: "task",
+          title: t.title,
+          subtitle: [t.client_name, tags.length > 0 ? tags.map((tg: string) => `#${tg}`).join(" ") : ""].filter(Boolean).join(" · "),
+          description: subTexts.length > 0 ? `Sous-tâches: ${subTexts.join(", ")}` : undefined,
+          status: t.status,
+          priority: t.priority,
+          date: t.due_date,
+          archived: !!t.archived_at,
+          tags: tags.length > 0 ? tags : undefined,
+          href: `/taches/${t.id}`,
+        });
       }
     } catch { /* table may not exist */ }
   }

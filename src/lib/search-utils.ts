@@ -205,6 +205,7 @@ export interface ParsedQuery {
   statusKeys: string[];
   priorityKeys: string[];
   entityFilter?: EntityType;
+  tagFilters?: string[];
   textQuery: string;
   isRelativeDate: boolean;
 }
@@ -221,6 +222,13 @@ export function parseSearchQuery(raw: string): ParsedQuery {
   };
 
   let text = normalized;
+
+  // Extract hashtag filters (#urgent, #client, #design)
+  const tagMatches = text.match(/#(\w+)/g);
+  if (tagMatches) {
+    result.tagFilters = tagMatches.map(t => t.slice(1)); // Remove # prefix
+    text = tagMatches.reduce((t, tag) => t.replace(tag, ""), text).trim();
+  }
 
   // Extract entity type filter (type:client, type:task, etc.)
   const typeMatch = text.match(/\btype:(\w+)/);

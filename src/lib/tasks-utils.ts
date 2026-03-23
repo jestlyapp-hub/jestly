@@ -3,10 +3,29 @@
 export type TaskStatus = "todo" | "in_progress" | "done" | "completed";
 export type TaskPriority = "low" | "medium" | "high" | "urgent";
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+export interface SubtaskComment {
+  id: string;
+  content: string;
+  createdAt: string;
+}
+
 export interface Subtask {
   id: string;
   text: string;
   done: boolean;
+  priority?: TaskPriority;
+  dueDate?: string;
+  notes?: string;
+  checklist?: ChecklistItem[];
+  tags?: string[];
+  comments?: SubtaskComment[];
+  timeSpent?: number; // total seconds tracked
 }
 
 export interface Task {
