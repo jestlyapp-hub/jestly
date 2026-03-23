@@ -695,7 +695,7 @@ export default function TasksWorkspace() {
   const filters: { key: FilterType; label: string; badge?: number }[] = [
     { key: "all", label: "Toutes" },
     { key: "today", label: "Aujourd'hui", badge: todayCount },
-    { key: "upcoming", label: "A venir" },
+    { key: "upcoming", label: "À venir" },
     { key: "overdue", label: "En retard", badge: overdueCount },
     { key: "urgent", label: "Urgentes" },
   ];
@@ -746,7 +746,7 @@ export default function TasksWorkspace() {
           <p className="text-[14px] font-medium text-[#191919]">Impossible de charger les tâches</p>
           <p className="text-[12px] text-[#999]">{error}</p>
           <button onClick={mutate} className="mt-2 text-[13px] font-medium text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-lg px-4 py-2 transition-colors cursor-pointer">
-            Reessayer
+            Réessayer
           </button>
         </div>
       </div>
@@ -773,7 +773,7 @@ export default function TasksWorkspace() {
         transition={{ duration: 0.4 }}
       >
         <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-bold text-[#191919]">Taches</h1>
+          <h1 className="text-2xl font-bold text-[#191919]">Tâches</h1>
           <Link
             href="/tâches/archive"
             className="text-[12px] text-[#999] hover:text-[#666] transition-colors ml-2"

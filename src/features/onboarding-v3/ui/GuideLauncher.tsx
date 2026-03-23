@@ -45,6 +45,14 @@ export default function GuideLauncher() {
     localStorage.setItem(DISMISS_KEY, "1");
   };
 
+  // Escape to close
+  useEffect(() => {
+    if (!showModal) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") handleDismiss(); };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [showModal]);
+
   return (
     <AnimatePresence>
       {showModal && (

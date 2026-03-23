@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useTrack } from "@/lib/hooks/use-track";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
@@ -85,7 +86,16 @@ function fmtEur(n: number): string {
 
 export default function CommandesPage() {
   const track = useTrack();
-  const [activeTab, setActiveTab] = useState<TabKey>("todo");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabFromUrl = searchParams.get("tab") as TabKey | null;
+  const [activeTab, setActiveTabLocal] = useState<TabKey>(tabFromUrl && ["todo", "in_progress", "delivered", "paid", "all"].includes(tabFromUrl) ? tabFromUrl : "todo");
+  const setActiveTab = (tab: TabKey) => {
+    setActiveTabLocal(tab);
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", tab);
+    router.replace(url.pathname + url.search, { scroll: false });
+  };
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -547,7 +557,7 @@ export default function CommandesPage() {
         );
       }
       case "date":
-        return <span className="text-[12px] text-[#8A8A88]">{order.date}</span>;
+        return <span className="text-[12px] text-[#8A8A88]">{formatDateFR(order.date)}</span>;
       default:
         return (
           <CustomCell
@@ -735,7 +745,8 @@ export default function CommandesPage() {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.15 }}
-                        className={`group border-b border-[#F5F5F3] last:border-b-0 transition-colors ${
+                        onClick={() => setSelectedId(order.id)}
+                        className={`group border-b border-[#F5F5F3] last:border-b-0 transition-colors cursor-pointer ${
                           isSelected
                             ? "bg-[#EEF2FF] hover:bg-[#E8EDFF]"
                             : "hover:bg-[#FAFAF9]"

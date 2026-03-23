@@ -441,7 +441,7 @@ export default function AdminUserDetailPage() {
     { label: "Produits", value: stats.product_count, icon: <Package size={18} /> },
     { label: "Sites", value: stats.site_count, icon: <Globe size={18} /> },
     { label: "Projets", value: stats.project_count, icon: <FolderKanban size={18} /> },
-    { label: "Taches", value: stats.task_count, icon: <ListTodo size={18} /> },
+    { label: "Tâches", value: stats.task_count, icon: <ListTodo size={18} /> },
     { label: "Leads", value: stats.lead_count, icon: <UserPlus size={18} /> },
     ...(data.health
       ? [{

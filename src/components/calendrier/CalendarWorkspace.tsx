@@ -252,7 +252,7 @@ export default function CalendarWorkspace() {
         </div>
         <p className="text-[13px] text-[#666]">Impossible de charger le calendrier</p>
         <button onClick={mutate} className="text-[12px] font-medium text-[#4F46E5] hover:text-[#4338CA] transition-colors cursor-pointer">
-          Reessayer
+          Réessayer
         </button>
       </div>
     );

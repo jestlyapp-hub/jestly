@@ -82,12 +82,12 @@ export default function EditableCell({
 
   return (
     <span
-      onClick={(e) => {
+      onDoubleClick={(e) => {
         e.stopPropagation();
         setEditing(true);
       }}
-      className={`cursor-text hover:bg-[#F7F7F5] rounded px-1 -mx-1 py-0.5 transition-colors ${className} ${isEmpty && placeholder ? "text-[#8A8A88]" : ""}`}
-      title="Cliquer pour modifier"
+      className={`hover:bg-[#F7F7F5] rounded px-1 -mx-1 py-0.5 transition-colors ${className} ${isEmpty && placeholder ? "text-[#8A8A88]" : ""}`}
+      title="Double-cliquer pour modifier"
     >
       {display}
     </span>
