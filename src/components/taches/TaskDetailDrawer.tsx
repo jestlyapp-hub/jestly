@@ -445,25 +445,34 @@ export default function TaskDetailDrawer({
                             </svg>
                           )}
                         </button>
+                        <input
+                          value={sub.text}
+                          onChange={(e) => {
+                            const subs = local.subtasks.map((s) => s.id === sub.id ? { ...s, text: e.target.value } : s);
+                            update({ subtasks: subs });
+                          }}
+                          className={`flex-1 text-[13px] bg-transparent border-none outline-none min-w-0 ${
+                            sub.done ? "text-[#BBB] line-through" : "text-[#191919]"
+                          } focus:text-[#191919] focus:no-underline`}
+                        />
+                        {/* Indicators + open panel */}
                         <button
                           onClick={() => { setSelectedSubIdx(i); setSubtaskPanelOpen(true); }}
-                          className={`flex-1 text-left text-[13px] cursor-pointer hover:text-[#4F46E5] transition-colors ${
-                            sub.done ? "text-[#BBB] line-through" : "text-[#191919]"
-                          }`}
+                          aria-label="Ouvrir le détail"
+                          className="p-0.5 rounded hover:bg-[#EEF2FF] cursor-pointer transition-colors flex-shrink-0 opacity-40 hover:opacity-100"
                         >
-                          {sub.text}
-                          {(sub.notes || sub.checklist?.length || (sub.priority && sub.priority !== "medium")) && (
-                            <span className="ml-1.5 inline-flex items-center gap-1">
+                          {(sub.notes || sub.checklist?.length || (sub.priority && sub.priority !== "medium")) ? (
+                            <span className="flex items-center gap-0.5">
                               {sub.priority && sub.priority !== "medium" && (
                                 <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: PRIORITY_CONFIG[sub.priority].dot }} />
                               )}
                               {sub.checklist && sub.checklist.length > 0 && (
                                 <span className="text-[9px] text-[#BBB]">{sub.checklist.filter((c) => c.done).length}/{sub.checklist.length}</span>
                               )}
-                              {sub.notes && (
-                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#CCC" strokeWidth="2" className="inline"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
-                              )}
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
                             </span>
+                          ) : (
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
                           )}
                         </button>
                         <button

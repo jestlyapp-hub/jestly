@@ -42,6 +42,7 @@ function SubtaskItem({
   onMoveUp,
   onMoveDown,
   onClick,
+  onRename,
 }: {
   sub: Subtask;
   index: number;
@@ -51,6 +52,7 @@ function SubtaskItem({
   onMoveUp: (id: string) => void;
   onMoveDown: (id: string) => void;
   onClick: () => void;
+  onRename: (id: string, text: string) => void;
 }) {
   const isFirst = index === 0;
   const isLast = index === total - 1;
@@ -91,32 +93,32 @@ function SubtaskItem({
         </AnimatePresence>
       </button>
 
-      {/* Text — clickable to open detail panel */}
+      {/* Text — editable inline */}
+      <input
+        value={sub.text}
+        onChange={(e) => onRename(sub.id, e.target.value)}
+        className={`flex-1 text-[14px] bg-transparent border-none outline-none min-w-0 ${
+          sub.done ? "text-[#BBB] line-through" : "text-[#191919]"
+        } focus:text-[#191919]`}
+      />
+      {/* Open detail panel */}
       <button
         onClick={onClick}
-        className={`flex-1 text-left text-[14px] transition-colors duration-200 cursor-pointer hover:text-[#4F46E5] ${
-          sub.done ? "text-[#BBB] line-through" : "text-[#191919]"
-        }`}
+        aria-label="Ouvrir le détail"
+        className="p-1 rounded hover:bg-[#EEF2FF] cursor-pointer transition-colors flex-shrink-0 opacity-40 hover:opacity-100"
       >
-        {sub.text}
-        {/* Indicators for enriched subtask */}
-        {(sub.notes || sub.checklist?.length || sub.priority) && (
-          <span className="ml-2 inline-flex items-center gap-1">
+        {(sub.notes || sub.checklist?.length || (sub.priority && sub.priority !== "medium")) ? (
+          <span className="flex items-center gap-0.5">
             {sub.priority && sub.priority !== "medium" && (
               <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: PRIORITY_CONFIG[sub.priority].dot }} />
             )}
             {sub.checklist && sub.checklist.length > 0 && (
-              <span className="text-[10px] text-[#BBB]">
-                {sub.checklist.filter((c) => c.done).length}/{sub.checklist.length}
-              </span>
+              <span className="text-[10px] text-[#BBB]">{sub.checklist.filter((c) => c.done).length}/{sub.checklist.length}</span>
             )}
-            {sub.notes && (
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#CCC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-              </svg>
-            )}
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
           </span>
+        ) : (
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
         )}
       </button>
 
@@ -425,6 +427,12 @@ export default function TaskDetailPage() {
     update({ subtasks: reordered });
   }
 
+  function renameSubtask(subId: string, text: string) {
+    if (!task) return;
+    const subs = task.subtasks.map((s) => (s.id === subId ? { ...s, text } : s));
+    update({ subtasks: subs });
+  }
+
   function openSubtask(index: number) {
     setSelectedSubtaskIndex(index);
     setSubtaskPanelOpen(true);
@@ -718,6 +726,7 @@ export default function TaskDetailPage() {
                   onMoveUp={moveSubtaskUp}
                   onMoveDown={moveSubtaskDown}
                   onClick={() => openSubtask(i)}
+                  onRename={renameSubtask}
                 />
               ))}
             </div>
