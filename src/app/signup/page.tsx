@@ -4,13 +4,9 @@ import { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { signUp, signInWithGoogle } from "@/lib/auth/actions";
+import { signUp, signInWithGoogle, resendConfirmationEmail } from "@/lib/auth/actions";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { useTrack } from "@/lib/hooks/use-track";
-
-/* ═══════════════════════════════════════════════════════════════════════
-   SIGNUP — White left panel + purple right visual
-   ═══════════════════════════════════════════════════════════════════════ */
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -30,6 +26,10 @@ const SIGNUP_CARDS = [
 export default function SignupPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [confirmationSent, setConfirmationSent] = useState(false);
+  const [confirmedEmail, setConfirmedEmail] = useState("");
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const track = useTrack();
 
@@ -40,11 +40,116 @@ export default function SignupPage() {
     const pw2 = fd.get("confirm-password") as string;
     if (pw !== pw2) { setError("Les mots de passe ne correspondent pas."); setLoading(false); return; }
     if (pw.length < 6) { setError("Le mot de passe doit contenir au moins 6 caractères."); setLoading(false); return; }
+
     const result = await signUp(fd);
-    if (result?.error) { setError(result.error); setLoading(false); }
-    else { track("signup_completed"); }
+
+    if (result?.error) {
+      setError(result.error);
+      setLoading(false);
+    } else if (result?.needsConfirmation) {
+      // Email confirmation required — show success state
+      setConfirmationSent(true);
+      setConfirmedEmail(result.email || "");
+      track("signup_completed");
+      setLoading(false);
+    } else {
+      // Direct login (no confirmation needed) — redirect handled by server action
+      track("signup_completed");
+    }
   };
 
+  const handleResend = async () => {
+    if (resending) return;
+    setResending(true);
+    setError("");
+    setResendSuccess(false);
+
+    const result = await resendConfirmationEmail(confirmedEmail);
+    if (result?.error) {
+      setError(result.error);
+    } else {
+      setResendSuccess(true);
+    }
+    setResending(false);
+  };
+
+  // ── Confirmation sent state ──
+  if (confirmationSent) {
+    return (
+      <AuthLayout headline="Construis ton système freelance." floatCards={SIGNUP_CARDS}>
+        <div className="flex items-center justify-between mb-10">
+          <Link href="/landing" className="flex items-center gap-2.5">
+            <Image src="/logo-color.png" alt="Jestly" width={32} height={32} className="w-8 h-8" priority />
+            <span className="text-[17px] font-bold text-[#111118] tracking-tight">Jestly</span>
+          </Link>
+        </div>
+
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          {/* Success icon */}
+          <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-5">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10B981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <path d="M22 6l-10 7L2 6" />
+            </svg>
+          </div>
+
+          <h1 className="text-[22px] font-bold text-[#111118] text-center mb-2">
+            Vérifie ta boîte mail
+          </h1>
+          <p className="text-[14px] text-[#66697A] text-center mb-2 leading-relaxed">
+            Ton compte a bien été créé. On a envoyé un email de confirmation à :
+          </p>
+          <p className="text-[14px] font-semibold text-[#111118] text-center mb-6">
+            {confirmedEmail}
+          </p>
+
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-6">
+            <p className="text-[12px] text-amber-800 leading-relaxed">
+              Clique sur le lien dans l&apos;email pour activer ton compte.
+              Si tu ne le trouves pas, vérifie tes <strong>spams</strong> ou <strong>courrier indésirable</strong>.
+            </p>
+          </div>
+
+          {/* Resend button */}
+          {resendSuccess ? (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 mb-4">
+              <p className="text-[12px] text-emerald-700 font-medium text-center">
+                Email renvoyé avec succès. Vérifie ta boîte mail.
+              </p>
+            </div>
+          ) : (
+            <button
+              onClick={handleResend}
+              disabled={resending}
+              className="w-full h-[44px] rounded-xl text-[13px] font-semibold border border-[#E6E6E4] text-[#666] bg-white hover:bg-[#F7F7F5] transition-colors cursor-pointer disabled:opacity-50 mb-4"
+            >
+              {resending ? "Envoi en cours..." : "Renvoyer l'email de confirmation"}
+            </button>
+          )}
+
+          {error && (
+            <div className="rounded-xl px-4 py-3 text-[12px] text-red-600 bg-red-50 border border-red-200 mb-4">
+              {error}
+            </div>
+          )}
+
+          <div className="flex flex-col items-center gap-2 mt-2">
+            <Link href="/login" className="text-[13px] font-semibold text-[#4F46E5] hover:underline">
+              J&apos;ai déjà confirmé mon email → Se connecter
+            </Link>
+            <button
+              onClick={() => { setConfirmationSent(false); setError(""); }}
+              className="text-[12px] text-[#999] hover:text-[#666] cursor-pointer"
+            >
+              Modifier mon adresse email
+            </button>
+          </div>
+        </motion.div>
+      </AuthLayout>
+    );
+  }
+
+  // ── Signup form ──
   return (
     <AuthLayout headline="Construis ton système freelance." floatCards={SIGNUP_CARDS}>
 
