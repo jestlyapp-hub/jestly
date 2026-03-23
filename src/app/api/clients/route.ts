@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query = (supabase.from("clients") as any)
-    .select("*, orders(count, amount, status)")
+    .select("*, orders(amount, status)")
     .eq("user_id", user.id)
     .is("deleted_at", null);
 
