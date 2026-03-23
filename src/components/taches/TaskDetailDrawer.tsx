@@ -16,6 +16,7 @@ import {
 } from "@/lib/tasks-utils";
 import RelationBadge from "@/components/ui/RelationBadge";
 import ClientAutocomplete from "./ClientAutocomplete";
+import SubtaskDetailPanel from "./SubtaskDetailPanel";
 
 interface TaskDetailDrawerProps {
   task: Task | null;
@@ -48,6 +49,8 @@ export default function TaskDetailDrawer({
   const [showSchedule, setShowSchedule] = useState(false);
   const [scheduleDate, setScheduleDate] = useState("");
   const [scheduleTime, setScheduleTime] = useState("");
+  const [subtaskPanelOpen, setSubtaskPanelOpen] = useState(false);
+  const [selectedSubIdx, setSelectedSubIdx] = useState(0);
   const titleRef = useRef<HTMLInputElement>(null);
   const descRef = useRef<HTMLTextAreaElement>(null);
 
@@ -58,6 +61,7 @@ export default function TaskDetailDrawer({
       setNewSubtaskText("");
       setNewTag("");
       setShowSchedule(false);
+      setSubtaskPanelOpen(false);
     }
   }, [task]);
 
@@ -441,13 +445,27 @@ export default function TaskDetailDrawer({
                             </svg>
                           )}
                         </button>
-                        <span
-                          className={`flex-1 text-[13px] ${
+                        <button
+                          onClick={() => { setSelectedSubIdx(i); setSubtaskPanelOpen(true); }}
+                          className={`flex-1 text-left text-[13px] cursor-pointer hover:text-[#4F46E5] transition-colors ${
                             sub.done ? "text-[#BBB] line-through" : "text-[#191919]"
                           }`}
                         >
                           {sub.text}
-                        </span>
+                          {(sub.notes || sub.checklist?.length || (sub.priority && sub.priority !== "medium")) && (
+                            <span className="ml-1.5 inline-flex items-center gap-1">
+                              {sub.priority && sub.priority !== "medium" && (
+                                <span className="w-1.5 h-1.5 rounded-full inline-block" style={{ background: PRIORITY_CONFIG[sub.priority].dot }} />
+                              )}
+                              {sub.checklist && sub.checklist.length > 0 && (
+                                <span className="text-[9px] text-[#BBB]">{sub.checklist.filter((c) => c.done).length}/{sub.checklist.length}</span>
+                              )}
+                              {sub.notes && (
+                                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#CCC" strokeWidth="2" className="inline"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                              )}
+                            </span>
+                          )}
+                        </button>
                         <button
                           onClick={() => moveSubtaskUp(sub.id)}
                           disabled={i === 0}
@@ -644,6 +662,27 @@ export default function TaskDetailDrawer({
               </div>
             </div>
           </motion.div>
+
+          {/* Subtask Detail Panel */}
+          <SubtaskDetailPanel
+            subtask={local.subtasks[selectedSubIdx] || null}
+            index={selectedSubIdx}
+            total={local.subtasks.length}
+            open={subtaskPanelOpen}
+            onClose={() => setSubtaskPanelOpen(false)}
+            onUpdate={(updated) => {
+              const subs = local.subtasks.map((s) => (s.id === updated.id ? updated : s));
+              update({ subtasks: subs });
+            }}
+            onDelete={(id) => {
+              update({ subtasks: local.subtasks.filter((s) => s.id !== id) });
+              setSubtaskPanelOpen(false);
+            }}
+            onNavigate={(dir) => {
+              const next = dir === "prev" ? selectedSubIdx - 1 : selectedSubIdx + 1;
+              if (next >= 0 && next < local.subtasks.length) setSelectedSubIdx(next);
+            }}
+          />
         </>
       )}
     </AnimatePresence>
