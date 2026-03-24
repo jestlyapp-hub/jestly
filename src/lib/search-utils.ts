@@ -67,13 +67,13 @@ export const entityConfig: Record<EntityType, EntityTypeConfig> = {
 /* ─── Status labels FR ─── */
 
 export const statusLabels: Record<string, string> = {
-  // Orders
-  new: "Nouveau",
+  // Orders (aligné avec kanban-config.ts / Dashboard / Commandes)
+  new: "À faire",
   brief_received: "Brief reçu",
   in_progress: "En cours",
   in_review: "En révision",
   validated: "Validé",
-  delivered: "Livré",
+  delivered: "Prête",
   invoiced: "Facturé",
   paid: "Payé",
   cancelled: "Annulé",

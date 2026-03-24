@@ -27,7 +27,7 @@ interface OrdersResponse {
 
 const statusFilters = [
   { value: "", label: "Tous" },
-  { value: "new", label: "Nouveau" },
+  { value: "new", label: "À faire" },
   { value: "in_progress", label: "En cours" },
   { value: "delivered", label: "Livré" },
   { value: "cancelled", label: "Annulé" },

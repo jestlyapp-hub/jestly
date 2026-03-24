@@ -10,10 +10,10 @@ import type { Order, OrderStatus } from "@/types";
 
 const statusFilters: { label: string; value: OrderStatus | "all" }[] = [
   { label: "Toutes", value: "all" },
-  { label: "Nouveau", value: "new" },
+  { label: "À faire", value: "new" },
   { label: "En cours", value: "in_progress" },
-  { label: "Valide", value: "validated" },
-  { label: "Annule", value: "cancelled" },
+  { label: "Validée", value: "validated" },
+  { label: "Annulée", value: "cancelled" },
 ];
 
 export default function SiteCommandesPage() {
