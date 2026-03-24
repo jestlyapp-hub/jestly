@@ -114,10 +114,16 @@ export function resolveLink(
 /**
  * Resolve a NavLink to a full href, supporting blockId scroll-to targets.
  * If blockId is set, appends #block-{blockId} to the page URL.
+ *
+ * Fallback: if no blockId but a label exists, attempts to match a section
+ * by label (e.g. nav link "Services" → block titled "Services").
+ * This handles templates that define nav links without explicit blockIds.
  */
 export function resolveNavLinkHref(
-  link: { pageId?: string; url?: string; blockId?: string },
-  site: Site
+  link: { label?: string; pageId?: string; url?: string; blockId?: string },
+  site: Site,
+  /** Optional: blocks of the current page, used for label-based fallback */
+  currentPageBlocks?: Block[],
 ): string {
   // External URL takes precedence if no pageId
   if (!link.pageId && link.url) return link.url;
@@ -135,6 +141,41 @@ export function resolveNavLinkHref(
 
   // Block anchor on current page (no pageId, just blockId)
   if (link.blockId) return `#block-${link.blockId}`;
+
+  // ── Fallback: match by label ──
+  // Templates define nav links like { label: "Services" } without blockId.
+  // Try to find a matching section by scanning block titles/types.
+  if (link.label && currentPageBlocks && currentPageBlocks.length > 0) {
+    const label = link.label.toLowerCase().trim();
+
+    // "Accueil" always points to top
+    if (label === "accueil" || label === "home") return "#top";
+
+    const match = currentPageBlocks.find((b) => {
+      if (!b.visible) return false;
+      // Match by block title content
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const title = (((b.content as any)?.title as string) || "").toLowerCase();
+      if (title && title.includes(label)) return true;
+      // Match by block type containing the label keyword
+      const typeLower = b.type.toLowerCase();
+      if (typeLower.includes(label)) return true;
+      // Match label against common type keywords
+      if (label === "contact" && (typeLower.includes("contact") || typeLower.includes("cta"))) return true;
+      if (label === "tarifs" && typeLower.includes("pricing")) return true;
+      if (label === "services" && (typeLower.includes("service") || typeLower.includes("feature"))) return true;
+      if (label === "portfolio" && (typeLower.includes("portfolio") || typeLower.includes("gallery"))) return true;
+      if (label === "témoignages" && typeLower.includes("testimonial")) return true;
+      if (label === "faq" && typeLower.includes("faq")) return true;
+      if (label === "showreel" && (typeLower.includes("showreel") || typeLower.includes("video"))) return true;
+      if (label === "projets" && (typeLower.includes("portfolio") || typeLower.includes("project"))) return true;
+      if (label === "prestations" && (typeLower.includes("service") || typeLower.includes("pricing"))) return true;
+      if (label === "stack" && typeLower.includes("stack")) return true;
+      return false;
+    });
+
+    if (match) return `#block-${match.id}`;
+  }
 
   return "#";
 }

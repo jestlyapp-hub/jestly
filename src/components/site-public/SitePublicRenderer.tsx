@@ -343,7 +343,7 @@ function usePublicNavScroll(behavior: string, threshold: number) {
   return { scrolled, hidden };
 }
 
-function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string }) {
+function SitePublicNav({ site, currentSlug, pageBlocks }: { site: Site; currentSlug: string; pageBlocks?: Block[] }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const nav = site.nav;
   if (!nav) return null;
@@ -432,7 +432,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-6">
             {nav.links.map((link, i) => {
-              const href = resolveNavLinkHref(link, site);
+              const href = resolveNavLinkHref(link, site, pageBlocks);
               const isActive = href === currentSlug;
               return (
                 <a
@@ -509,7 +509,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
           <div className="md:hidden border-t" style={{ borderColor: "var(--site-border)", backgroundColor: "var(--site-bg, #fff)" }}>
             <div className="px-6 py-4 space-y-3">
               {nav.links.map((link, i) => {
-                const href = resolveNavLinkHref(link, site);
+                const href = resolveNavLinkHref(link, site, pageBlocks);
                 return (
                   <a
                     key={i}
@@ -562,7 +562,7 @@ function SitePublicNav({ site, currentSlug }: { site: Site; currentSlug: string 
 // Site Footer
 // ═══════════════════════════════════════════════
 
-function SitePublicFooter({ site }: { site: Site }) {
+function SitePublicFooter({ site, pageBlocks }: { site: Site; pageBlocks?: Block[] }) {
   const footer = site.footer;
   if (!footer) return null;
 
@@ -573,7 +573,7 @@ function SitePublicFooter({ site }: { site: Site }) {
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-6">
             {footer.links.map((link, i) => {
-              const href = resolveNavLinkHref(link, site);
+              const href = resolveNavLinkHref(link, site, pageBlocks);
               const isExternal = link.url && !link.pageId && !link.blockId;
               return (
                 <a
@@ -845,9 +845,9 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
                   siteName={resolvedSite.settings.name}
                   logoUrl={resolvedSite.settings.logoUrl}
                   currentSlug={page.slug}
-                  resolveHref={(link: NavLink) => resolveNavLinkHref(link, resolvedSite)}
+                  resolveHref={(link: NavLink) => resolveNavLinkHref(link, resolvedSite, page.blocks)}
                 />
-              : <SitePublicNav site={resolvedSite} currentSlug={page.slug} />
+              : <SitePublicNav site={resolvedSite} currentSlug={page.slug} pageBlocks={page.blocks} />
           )}
 
           <main className="flex-1 relative z-[1] flex flex-col" style={{ gap: `var(--site-section-gap, 0px)` }}>
@@ -856,7 +856,7 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
             ))}
           </main>
 
-          <SitePublicFooter site={resolvedSite} />
+          <SitePublicFooter site={resolvedSite} pageBlocks={page.blocks} />
         </div>
       </LinkProvider>
     </ProductProvider>

@@ -331,11 +331,32 @@ function resolveCtaHref(nav: NavConfig, isPrimary: boolean, resolveHref: (link: 
   const pageId = isPrimary ? nav.ctaPageId : nav.secondaryCtaPageId;
   const blockId = isPrimary ? nav.ctaBlockId : nav.secondaryCtaBlockId;
   const url = isPrimary ? nav.ctaUrl : nav.secondaryCtaUrl;
+  const label = isPrimary ? (nav.ctaLabel || "") : (nav.secondaryCtaLabel || "");
 
-  if (!destType) return "#";
+  // If destination is explicitly configured, use it
+  if (destType && (blockId || pageId || url)) {
+    return resolveHref({ label, destinationType: destType, pageId, blockId, url });
+  }
 
-  // Build a NavLink-compatible object and reuse the same resolver
-  return resolveHref({ label: "", destinationType: destType, pageId, blockId, url });
+  // Fallback: let resolveHref try label-based matching (e.g. "Commander" → contact section)
+  // The label helps resolveNavLinkHref find a matching section
+  const fallbackLabel = label.toLowerCase();
+  const contactLabels = ["commander", "contact", "commencer", "réserver", "prendre rendez-vous", "discuter", "devis", "me contacter", "let's go", "go", "collaborer", "démarrer", "envoyer"];
+  const isContactCta = contactLabels.some(cl => fallbackLabel.includes(cl));
+
+  if (isContactCta) {
+    // Try to resolve via label matching — pass a synthetic "Contact" label
+    const resolved = resolveHref({ label: "Contact", destinationType: "section" });
+    if (resolved !== "#") return resolved;
+  }
+
+  // Ultimate fallback: try with the actual CTA label
+  if (label) {
+    const resolved = resolveHref({ label, destinationType: "section" });
+    if (resolved !== "#") return resolved;
+  }
+
+  return "#";
 }
 
 // ─── CTA Button (reads nav config for custom styles + destination) ───
