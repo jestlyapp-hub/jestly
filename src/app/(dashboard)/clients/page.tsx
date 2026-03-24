@@ -151,7 +151,7 @@ export default function ClientsPage() {
     return `/api/clients?${params.toString()}`;
   }, [tab, search, sortKey, sortOrder]);
 
-  const { data: clients, loading, error, mutate } = useApi<ClientRow[]>(apiUrl);
+  const { data: clients, loading, validating, error, mutate } = useApi<ClientRow[]>(apiUrl);
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -504,8 +504,8 @@ export default function ClientsPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.1 }}
       >
-        {rows.length === 0 ? (
-          // Empty states
+        {rows.length === 0 && !validating ? (
+          // Empty states — seulement quand le fetch est terminé (pas pendant revalidation)
           search.trim() ? (
             <EmptyState
               title={`Aucun résultat pour "${search}"`}
@@ -524,6 +524,18 @@ export default function ClientsPage() {
               onAction={() => setShowCreate(true)}
             />
           )
+        ) : rows.length === 0 && validating ? (
+          // Skeleton inline pendant revalidation (changement de tab/recherche)
+          <div className="divide-y divide-[#F8F8FA]">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-4 px-5 py-3.5">
+                <div className="w-5 h-5 bg-[#F7F7F5] rounded animate-pulse" />
+                <div className="w-8 h-8 bg-[#F7F7F5] rounded-full animate-pulse" />
+                <div className="flex-1"><div className="h-3.5 w-32 bg-[#F7F7F5] rounded animate-pulse" /></div>
+                <div className="h-3.5 w-24 bg-[#F7F7F5] rounded animate-pulse" />
+              </div>
+            ))}
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">

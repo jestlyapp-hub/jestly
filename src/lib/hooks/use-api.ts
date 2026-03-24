@@ -6,6 +6,8 @@ import { useCallback, useRef, type Dispatch, type SetStateAction } from "react";
 interface UseApiResult<T> {
   data: T | null;
   loading: boolean;
+  /** true when a fetch is in progress (initial or revalidation) */
+  validating: boolean;
   error: string | null;
   /** Refetch from server (silent — keeps existing data visible, no loading flash) */
   mutate: () => Promise<void>;
@@ -51,6 +53,7 @@ export function useApi<T>(url: string | null, fallback?: T): UseApiResult<T> {
     data: swrData,
     error: swrError,
     isLoading,
+    isValidating,
     mutate: swrMutate,
   } = useSWR<T>(
     url, // null key → SWR won't fetch (same as previous url guard)
@@ -108,7 +111,7 @@ export function useApi<T>(url: string | null, fallback?: T): UseApiResult<T> {
     [swrMutate],
   );
 
-  return { data, loading, error, mutate, setData };
+  return { data, loading, validating: isValidating, error, mutate, setData };
 }
 
 /**
