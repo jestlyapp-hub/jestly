@@ -89,14 +89,33 @@ export default function CommandesPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabFromUrl = searchParams.get("tab") as TabKey | null;
+  const searchFromUrl = searchParams.get("q");
   const [activeTab, setActiveTabLocal] = useState<TabKey>(tabFromUrl && ["todo", "in_progress", "delivered", "paid", "all"].includes(tabFromUrl) ? tabFromUrl : "todo");
+
+  const updateUrl = useCallback((updates: Record<string, string | null>) => {
+    const url = new URL(window.location.href);
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null || value === "") url.searchParams.delete(key);
+      else url.searchParams.set(key, value);
+    }
+    router.replace(url.pathname + url.search, { scroll: false });
+  }, [router]);
+
   const setActiveTab = (tab: TabKey) => {
     setActiveTabLocal(tab);
-    const url = new URL(window.location.href);
-    url.searchParams.set("tab", tab);
-    router.replace(url.pathname + url.search, { scroll: false });
+    updateUrl({ tab: tab === "todo" ? null : tab });
   };
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchFromUrl ?? "");
+
+  // Persister la recherche dans l'URL (debounce)
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => {
+    clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      updateUrl({ q: search.trim() || null });
+    }, 400);
+    return () => clearTimeout(searchTimerRef.current);
+  }, [search, updateUrl]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
