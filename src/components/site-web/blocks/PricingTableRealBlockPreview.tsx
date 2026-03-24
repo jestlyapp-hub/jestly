@@ -26,7 +26,7 @@ function PricingTableRealBlockPreviewInner({ content }: { content: PricingTableR
     );
   }
 
-  const cols = content.columns === 2 ? "grid-cols-2" : "grid-cols-3";
+  const cols = content.columns === 2 ? "grid-cols-1 sm:grid-cols-2" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
 
   return (
     <div className="py-6">

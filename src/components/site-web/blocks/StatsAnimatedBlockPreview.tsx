@@ -39,7 +39,7 @@ function StatsAnimatedBlockPreviewInner({ content }: { content: StatsAnimatedBlo
 
   return (
     <div ref={ref} className="py-8">
-      <div className={`grid gap-6 ${content.stats.length === 2 ? "grid-cols-2" : content.stats.length === 4 ? "grid-cols-4" : "grid-cols-3"}`}>
+      <div className={`grid gap-6 ${content.stats.length === 2 ? "grid-cols-2" : content.stats.length === 4 ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2 sm:grid-cols-3"}`}>
         {content.stats.map((s, i) => (
           <div key={i} className="text-center">
             <div className="text-3xl font-bold text-[var(--site-primary)]">

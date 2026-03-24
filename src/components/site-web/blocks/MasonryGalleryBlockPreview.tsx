@@ -33,7 +33,7 @@ function MasonryGalleryBlockPreviewInner({ content }: { content: MasonryGalleryB
 
   return (
     <div className="py-6">
-      <div className={`grid gap-3 ${cols === 2 ? "grid-cols-2" : cols === 4 ? "grid-cols-4" : "grid-cols-3"}`}>
+      <div className={`grid gap-3 ${cols === 2 ? "grid-cols-1 sm:grid-cols-2" : cols === 4 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"}`}>
         {columns.map((col, ci) => (
           <div key={ci} className="space-y-3">
             {col.map((item, i) => {

@@ -38,7 +38,7 @@ function FooterMultiColumnBlockPreviewInner({ content }: { content: FooterMultiC
           </div>
 
           {/* Link columns */}
-          <div className="md:col-span-8 grid grid-cols-3 gap-6">
+          <div className="md:col-span-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {columns.map((col, i) => (
               <div key={i}>
                 <h4

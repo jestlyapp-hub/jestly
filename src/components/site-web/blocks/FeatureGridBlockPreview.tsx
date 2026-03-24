@@ -3,7 +3,7 @@ import type { FeatureGridBlockContent } from "@/types";
 import { getIcon } from "@/lib/icons";
 
 function FeatureGridBlockPreviewInner({ content }: { content: FeatureGridBlockContent }) {
-  const cols = content.columns === 2 ? "grid-cols-2" : content.columns === 4 ? "grid-cols-4" : "grid-cols-3";
+  const cols = content.columns === 2 ? "grid-cols-1 sm:grid-cols-2" : content.columns === 4 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
 
   return (
     <div className="py-6">

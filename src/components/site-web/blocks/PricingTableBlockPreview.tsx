@@ -5,7 +5,7 @@ import { useProductsByIds } from "@/lib/product-context";
 import { formatPrice } from "@/lib/productTypes";
 
 function PricingTableBlockPreviewInner({ content }: { content: PricingTableBlockContent }) {
-  const cols = content.columns === 2 ? "grid-cols-2" : content.columns === 4 ? "grid-cols-4" : "grid-cols-3";
+  const cols = content.columns === 2 ? "grid-cols-1 sm:grid-cols-2" : content.columns === 4 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
   const resolvedProducts = useProductsByIds(content.productIds || []);
   const displayPlans = content.mode === "product" && resolvedProducts.length > 0
     ? resolvedProducts.map(p => ({

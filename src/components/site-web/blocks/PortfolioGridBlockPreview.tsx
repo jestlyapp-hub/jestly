@@ -65,7 +65,7 @@ function PortfolioGridBlockPreviewInner({ content, siteSlug }: { content: Portfo
       : null;
 
   const items = linkedItems ?? liveProjects ?? content.items;
-  const cols = content.columns === 2 ? "grid-cols-2" : content.columns === 4 ? "grid-cols-4" : "grid-cols-3";
+  const cols = content.columns === 2 ? "grid-cols-1 sm:grid-cols-2" : content.columns === 4 ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3";
 
   const sorted = [...items].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
   const afterCategoryFilter = activeFilter ? sorted.filter((item) => item.category === activeFilter) : sorted;

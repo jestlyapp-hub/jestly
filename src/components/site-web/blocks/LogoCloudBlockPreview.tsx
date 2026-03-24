@@ -2,7 +2,7 @@ import { memo } from "react";
 import type { LogoCloudBlockContent } from "@/types";
 
 function LogoCloudBlockPreviewInner({ content }: { content: LogoCloudBlockContent }) {
-  const cols = content.columns === 3 ? "grid-cols-3" : content.columns === 5 ? "grid-cols-5" : content.columns === 6 ? "grid-cols-6" : "grid-cols-4";
+  const cols = content.columns === 3 ? "grid-cols-2 sm:grid-cols-3" : content.columns === 5 ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-5" : content.columns === 6 ? "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4";
 
   return (
     <div className="py-6">

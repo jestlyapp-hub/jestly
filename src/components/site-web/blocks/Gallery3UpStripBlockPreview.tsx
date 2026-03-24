@@ -36,7 +36,7 @@ function Gallery3UpStripBlockPreviewInner({ content }: { content: Gallery3UpStri
             {content.title}
           </h2>
         )}
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           {items.slice(0, 3).map((item, i) => (
             <div key={i}>
               {item.imageUrl ? (
