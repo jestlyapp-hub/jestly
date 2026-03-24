@@ -34,6 +34,7 @@ import {
   Archive,
   FileText,
   FileDown,
+  ClipboardList,
 } from "lucide-react";
 
 // ── Extracted components ──
@@ -101,17 +102,24 @@ export default function FacturationPage() {
   }, [rawPipeline, pipelineError, items]);
 
   /* ── Pipeline stats (computed client-side from pipeline data) ── */
+  /* Utilise orderStatus pour séparer "À faire" (new) de "En cours"
+     — aligné avec business-metrics.ts (Dashboard/Commandes/Analytics) */
   const pipelineStats = useMemo(() => {
-    const s = { total: 0, inProgress: 0, inProgressCount: 0, ready: 0, readyCount: 0, invoiced: 0, invoicedCount: 0, paid: 0, paidCount: 0, clientIds: new Set<string>(), count: 0 };
+    const s = { total: 0, todo: 0, todoCount: 0, inProgress: 0, inProgressCount: 0, ready: 0, readyCount: 0, invoiced: 0, invoicedCount: 0, paid: 0, paidCount: 0, clientIds: new Set<string>(), count: 0 };
     for (const item of items) {
       s.count++;
       s.total += item.amount;
       if (item.clientId) s.clientIds.add(item.clientId);
-      switch (item.billingStatus) {
-        case "in_progress": s.inProgress += item.amount; s.inProgressCount++; break;
-        case "ready": s.ready += item.amount; s.readyCount++; break;
-        case "invoiced": s.invoiced += item.amount; s.invoicedCount++; break;
-        case "paid": s.paid += item.amount; s.paidCount++; break;
+      // Pour les commandes : séparer "À faire" (new) de "En cours" via orderStatus
+      if (item.orderStatus === "new") {
+        s.todo += item.amount; s.todoCount++;
+      } else {
+        switch (item.billingStatus) {
+          case "in_progress": s.inProgress += item.amount; s.inProgressCount++; break;
+          case "ready": s.ready += item.amount; s.readyCount++; break;
+          case "invoiced": s.invoiced += item.amount; s.invoicedCount++; break;
+          case "paid": s.paid += item.amount; s.paidCount++; break;
+        }
       }
     }
     return { ...s, activeClients: s.clientIds.size };
@@ -592,9 +600,9 @@ export default function FacturationPage() {
       </motion.div>
 
       {/* ══════════════════════ KPI CARDS ══════════════════════ */}
-      <motion.div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 mb-6" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
+      <motion.div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3 mb-6" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
         {loading ? (
-          Array.from({ length: 6 }).map((_, i) => (
+          Array.from({ length: 7 }).map((_, i) => (
             <div key={i} className="rounded-xl border border-[#E6E6E4] bg-white p-4 animate-pulse">
               <div className="h-2.5 bg-[#F0F0EE] rounded w-16 mb-3" />
               <div className="h-6 bg-[#F0F0EE] rounded w-20" />
@@ -603,6 +611,7 @@ export default function FacturationPage() {
         ) : (
           <>
             <KpiCard icon={<TrendingUp size={14} />} label="CA total" value={formatEur(pipelineStats.total)} sub={`${pipelineStats.count} commande${pipelineStats.count > 1 ? "s" : ""}`} />
+            <KpiCard icon={<ClipboardList size={14} />} label="À faire" value={formatEur(pipelineStats.todo)} sub={`${pipelineStats.todoCount} en attente`} />
             <KpiCard icon={<AlertCircle size={14} />} label="En cours" value={formatEur(pipelineStats.inProgress)} sub={`${pipelineStats.inProgressCount} en production`} warn={pipelineStats.inProgressCount > 0} />
             <KpiCard icon={<Sparkles size={14} />} label="Prêtes" value={formatEur(pipelineStats.ready)} sub={`${pipelineStats.readyCount} à facturer`} accent />
             <KpiCard icon={<Receipt size={14} />} label="Facturées" value={formatEur(pipelineStats.invoiced)} sub={`${pipelineStats.invoicedCount} en attente`} />
