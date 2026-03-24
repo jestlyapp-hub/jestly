@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
@@ -12,6 +13,7 @@ interface Props {
 }
 
 export default function ClientSettingsTab({ client, onUpdate }: Props) {
+  const router = useRouter();
   const [form, setForm] = useState({
     name: client.name,
     email: client.email,
@@ -76,6 +78,10 @@ export default function ClientSettingsTab({ client, onUpdate }: Props) {
         body: { status: newStatus },
       });
       toast.success(newStatus === "archived" ? "Client archivé" : "Client réactivé");
+      if (newStatus === "archived") {
+        router.push("/clients");
+        return;
+      }
       onUpdate();
     } catch (err) {
       console.error("[ClientSettings] Archive failed:", err);
