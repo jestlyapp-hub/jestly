@@ -60,11 +60,11 @@ const CATEGORIES: Category[] = [
         steps: [
           "Le dashboard affiche un r\u00e9sum\u00e9 de votre activit\u00e9 : revenus, commandes, clients.",
           "Utilisez le menu lat\u00e9ral gauche pour naviguer entre les sections.",
-          "La barre de recherche (Cmd+K) permet de trouver rapidement n\u2019importe quoi.",
+          "La barre de recherche (\u2318K / Ctrl+K) permet de trouver rapidement n\u2019importe quoi.",
           "Les notifications vous alertent des nouvelles commandes et messages.",
         ],
         tips: [
-          "Le raccourci Cmd+K (ou Ctrl+K) ouvre la recherche globale depuis n\u2019importe quelle page.",
+          "Le raccourci \u2318K / Ctrl+K ouvre la recherche globale depuis n\u2019importe quelle page.",
         ],
       },
       {
@@ -668,7 +668,7 @@ export default function GuidePage() {
     },
     {
       title: "Barre de recherche",
-      description: "Utilisez Cmd+K pour trouver rapidement n\u2019importe quoi dans Jestly.",
+      description: "Utilisez \u2318K / Ctrl+K pour trouver rapidement n\u2019importe quoi dans Jestly.",
       targetX: 50,
       targetY: 8,
     },

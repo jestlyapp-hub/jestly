@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGlobalSearch } from "@/lib/hooks/use-global-search";
+import { useIsMac } from "@/lib/hooks/use-platform";
 import {
   getRecentItems,
   saveRecentItem,
@@ -361,9 +362,7 @@ function SearchSection({
    ═══════════════════════════════════════════════════════════ */
 
 export function SearchTrigger({ onClick }: { onClick: () => void }) {
-  const isMac =
-    typeof navigator !== "undefined" &&
-    /Mac|iPod|iPhone|iPad/.test(navigator.platform ?? "");
+  const isMac = useIsMac();
 
   return (
     <button

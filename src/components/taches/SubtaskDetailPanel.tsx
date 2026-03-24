@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useModKey } from "@/lib/hooks/use-platform";
 import {
   PRIORITY_CONFIG,
   createId,
@@ -54,6 +55,7 @@ export default function SubtaskDetailPanel({
   onDelete,
   onNavigate,
 }: SubtaskDetailPanelProps) {
+  const modKey = useModKey();
   const [local, setLocal] = useState<Subtask | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [newCheckItem, setNewCheckItem] = useState("");
@@ -425,7 +427,7 @@ export default function SubtaskDetailPanel({
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                     {local.done ? "Terminée" : "Terminer"}
                   </button>
-                  <kbd className="text-[9px] text-[#CCC] bg-[#F7F7F5] px-1 py-0.5 rounded border border-[#EFEFEF] hidden sm:inline">Ctrl+Enter</kbd>
+                  <kbd className="text-[9px] text-[#CCC] bg-[#F7F7F5] px-1 py-0.5 rounded border border-[#EFEFEF] hidden sm:inline">{modKey}+Enter</kbd>
                 </div>
 
                 {!showDeleteConfirm ? (
