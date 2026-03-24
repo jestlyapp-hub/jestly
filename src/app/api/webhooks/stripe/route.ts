@@ -130,7 +130,7 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     console.error("[stripe webhook] Processing error:", err);
-    return NextResponse.json({ error: "Processing failed" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur lors du traitement" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });

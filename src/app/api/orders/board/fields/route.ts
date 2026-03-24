@@ -20,12 +20,12 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { label, field_type, options, is_required, is_visible_on_card } = body;
 
-  if (!label) return NextResponse.json({ error: "label is required" }, { status: 400 });
+  if (!label) return NextResponse.json({ error: "Le libellé est requis" }, { status: 400 });
 
   // Block reserved labels (base column names)
   const BASE_LABELS = new Set(["Titre", "Client", "Prix", "Statut", "Deadline", "Date"]);
   if (BASE_LABELS.has(label.trim())) {
-    return NextResponse.json({ error: "Ce nom est reserve (colonne de base)" }, { status: 400 });
+    return NextResponse.json({ error: "Ce nom est réservé (colonne de base)" }, { status: 400 });
   }
 
   // Get max position

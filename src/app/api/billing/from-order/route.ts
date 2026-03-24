@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
   const { user, supabase } = auth;
 
   const { order_id } = await req.json();
-  if (!order_id) return NextResponse.json({ error: "order_id required" }, { status: 400 });
+  if (!order_id) return NextResponse.json({ error: "order_id est requis" }, { status: 400 });
 
   // Fetch the order
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (oErr || !order) {
-    return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    return NextResponse.json({ error: "Commande introuvable" }, { status: 404 });
   }
 
   const item = {

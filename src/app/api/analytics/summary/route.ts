@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
         .single();
 
       if (!site) {
-        return NextResponse.json({ error: "Site not found" }, { status: 404 });
+        return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
       }
 
       // Get product IDs linked to this site
@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
     });
   } catch (err) {
     console.error("Analytics summary error:", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
   }
 }
 

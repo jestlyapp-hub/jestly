@@ -27,12 +27,12 @@ export async function POST(req: NextRequest) {
   const { slug, name, theme, settings, seo } = body;
 
   if (!slug || !name) {
-    return NextResponse.json({ error: "slug and name are required" }, { status: 400 });
+    return NextResponse.json({ error: "Le slug et le nom sont requis" }, { status: 400 });
   }
 
   // Validate slug format
   if (!/^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(slug)) {
-    return NextResponse.json({ error: "Invalid slug format" }, { status: 400 });
+    return NextResponse.json({ error: "Format de slug invalide" }, { status: 400 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     if (error.code === "23505") {
-      return NextResponse.json({ error: "Slug already taken" }, { status: 409 });
+      return NextResponse.json({ error: "Cette adresse est déjà utilisée. Choisissez un autre slug." }, { status: 409 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

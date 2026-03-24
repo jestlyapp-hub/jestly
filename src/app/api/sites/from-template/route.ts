@@ -160,31 +160,92 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 4. Update nav links with real page IDs
-  const navLinks = template!.nav.links.map((link) => {
-    const pageIndex = template!.pages.findIndex((p) => p.title === link.label);
-    return pageIndex >= 0 ? { ...link, pageId: insertedPages[pageIndex].id } : link;
-  });
-  const footerLinks = template!.footer.links.map((link) => {
-    const pageIndex = template!.pages.findIndex((p) => p.title === link.label);
-    return pageIndex >= 0 ? { ...link, pageId: insertedPages[pageIndex].id } : link;
+  // 4. Fetch inserted blocks for the home page (to auto-link nav → sections)
+  const homePageIndex = template!.pages.findIndex((p) => p.is_home);
+  const homePageId = homePageIndex >= 0 ? insertedPages[homePageIndex].id : insertedPages[0].id;
+
+  const { data: homePageBlocks } = await (supabase.from("site_blocks") as any)
+    .select("id, type, sort_order")
+    .eq("page_id", homePageId)
+    .order("sort_order", { ascending: true });
+
+  // Auto-link nav items to blocks by matching label → block type
+  const autoLinkedNavLinks = template!.nav.links.map((link) => {
+    const label = (link.label || "").toLowerCase();
+
+    // "Accueil" / "Home" → scroll to top
+    if (label === "accueil" || label === "home") {
+      return { ...link, blockId: "__top", destinationType: "section" };
+    }
+
+    // Find matching block by type
+    const match = (homePageBlocks || []).find((b: any) => {
+      const type = (b.type || "").toLowerCase();
+      if (label === "services" && (type.includes("service") || type.includes("feature"))) return true;
+      if (label === "tarifs" && type.includes("pricing")) return true;
+      if (label === "contact" && (type.includes("contact") || type.includes("cta"))) return true;
+      if (label === "portfolio" && (type.includes("portfolio") || type.includes("gallery"))) return true;
+      if (label === "showreel" && (type.includes("showreel") || type.includes("video"))) return true;
+      if (label === "stack" && type.includes("stack")) return true;
+      if (label === "projets" && (type.includes("portfolio") || type.includes("project"))) return true;
+      if (label === "prestations" && (type.includes("service") || type.includes("pricing"))) return true;
+      if ((label === "témoignages" || label === "temoignages") && type.includes("testimonial")) return true;
+      if (label === "faq" && type.includes("faq")) return true;
+      return false;
+    });
+
+    if (match) {
+      return { ...link, blockId: match.id, destinationType: "section" };
+    }
+    return link;
   });
 
-  // Find Commander page for CTA link
-  const commanderIndex = template!.pages.findIndex((p) => p.slug === "/commander");
-  const contactIndex = template!.pages.findIndex((p) => p.slug === "/contact");
-  const ctaPageIndex = commanderIndex >= 0 ? commanderIndex : contactIndex;
+  // Auto-link footer links the same way
+  const autoLinkedFooterLinks = template!.footer.links.map((link) => {
+    const label = (link.label || "").toLowerCase();
+
+    if (label === "accueil" || label === "home") {
+      return { ...link, blockId: "__top", destinationType: "section" };
+    }
+
+    const match = (homePageBlocks || []).find((b: any) => {
+      const type = (b.type || "").toLowerCase();
+      if (label === "services" && (type.includes("service") || type.includes("feature"))) return true;
+      if (label === "tarifs" && type.includes("pricing")) return true;
+      if (label === "contact" && (type.includes("contact") || type.includes("cta"))) return true;
+      if (label === "portfolio" && (type.includes("portfolio") || type.includes("gallery"))) return true;
+      if (label === "showreel" && (type.includes("showreel") || type.includes("video"))) return true;
+      if (label === "stack" && type.includes("stack")) return true;
+      if (label === "projets" && (type.includes("portfolio") || type.includes("project"))) return true;
+      if (label === "prestations" && (type.includes("service") || type.includes("pricing"))) return true;
+      if ((label === "témoignages" || label === "temoignages") && type.includes("testimonial")) return true;
+      if (label === "faq" && type.includes("faq")) return true;
+      return false;
+    });
+
+    if (match) {
+      return { ...link, blockId: match.id, destinationType: "section" };
+    }
+    return link;
+  });
+
+  // Auto-link CTA to contact/CTA section
+  const ctaBlock = (homePageBlocks || []).find((b: any) => {
+    const type = (b.type || "").toLowerCase();
+    return type.includes("contact") || (type.includes("cta") && !type.includes("banner"));
+  });
+  const ctaConfig: Record<string, unknown> = ctaBlock
+    ? { ctaDestinationType: "section", ctaBlockId: ctaBlock.id }
+    : {};
 
   await (supabase.from("sites") as any)
     .update({
       nav: {
         ...template!.nav,
-        links: navLinks,
-        ctaLink: ctaPageIndex >= 0
-          ? { type: "internal_page", value: insertedPages[ctaPageIndex].id }
-          : template!.nav.ctaLink,
+        links: autoLinkedNavLinks,
+        ...ctaConfig,
       },
-      footer: { ...template!.footer, links: footerLinks },
+      footer: { ...template!.footer, links: autoLinkedFooterLinks },
     })
     .eq("id", siteId);
 

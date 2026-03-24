@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
   if (isRateLimited(ip)) {
     return NextResponse.json(
-      { error: "Rate limit exceeded" },
+      { error: "Trop de requêtes, veuillez réessayer plus tard" },
       { status: 429 }
     );
   }
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
   // Validate required fields
   if (!anonymous_id) {
     return NextResponse.json(
-      { error: "anonymous_id is required" },
+      { error: "anonymous_id est requis" },
       { status: 400 }
     );
   }

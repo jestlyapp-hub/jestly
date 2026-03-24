@@ -9,7 +9,7 @@ export async function GET(
   const { id: siteId, pageId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
   // Ownership check
   const { data: site } = await (supabase.from("sites") as any)
@@ -17,7 +17,7 @@ export async function GET(
     .eq("id", siteId)
     .eq("owner_id", user.id)
     .maybeSingle();
-  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+  if (!site) return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("site_blocks") as any)
@@ -37,7 +37,7 @@ export async function POST(
   const { id: siteId, pageId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
   // Ownership check
   const { data: site } = await (supabase.from("sites") as any)
@@ -45,12 +45,12 @@ export async function POST(
     .eq("id", siteId)
     .eq("owner_id", user.id)
     .maybeSingle();
-  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+  if (!site) return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
 
   const { blocks } = await req.json();
 
   if (!Array.isArray(blocks)) {
-    return NextResponse.json({ error: "blocks array required" }, { status: 400 });
+    return NextResponse.json({ error: "Le tableau blocks est requis" }, { status: 400 });
   }
 
   // Delete existing blocks and re-insert (simpler than individual upserts for ordering)

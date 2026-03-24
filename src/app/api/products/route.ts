@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const { name, description, price_cents, type, slug, short_description, long_description, features, delivery_time_days, thumbnail_url, is_featured, category, form_schema_json } = body;
 
   if (!name || price_cents == null || !type) {
-    return NextResponse.json({ error: "name, price_cents and type are required" }, { status: 400 });
+    return NextResponse.json({ error: "Le nom, le prix et le type sont requis" }, { status: 400 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   if (error) {
     if (error.code === "23505") {
-      return NextResponse.json({ error: "Slug already taken" }, { status: 409 });
+      return NextResponse.json({ error: "Ce slug est déjà utilisé. Choisissez un autre nom." }, { status: 409 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

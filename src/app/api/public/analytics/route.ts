@@ -8,7 +8,7 @@ const checkLimit = rateLimit("public-analytics", 30);
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
   if (!checkLimit(ip)) {
-    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+    return NextResponse.json({ error: "Trop de requêtes, veuillez réessayer plus tard" }, { status: 429 });
   }
 
   const body = await req.json();
@@ -21,12 +21,12 @@ export async function POST(req: NextRequest) {
   };
 
   if (!site_id || !type) {
-    return NextResponse.json({ error: "site_id and type are required" }, { status: 400 });
+    return NextResponse.json({ error: "site_id et type sont requis" }, { status: 400 });
   }
 
   const validTypes = ["page_view", "click_cta", "form_submit", "order_start", "order_complete"];
   if (!validTypes.includes(type)) {
-    return NextResponse.json({ error: "Invalid event type" }, { status: 400 });
+    return NextResponse.json({ error: "Type d'événement invalide" }, { status: 400 });
   }
 
   const supabase = await createClient();

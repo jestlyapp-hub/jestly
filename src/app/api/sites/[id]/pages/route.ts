@@ -9,7 +9,7 @@ export async function GET(
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
   // Ownership check
   const { data: site } = await (supabase.from("sites") as any)
@@ -17,7 +17,7 @@ export async function GET(
     .eq("id", id)
     .eq("owner_id", user.id)
     .maybeSingle();
-  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+  if (!site) return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("site_pages") as any)
@@ -37,7 +37,7 @@ export async function POST(
   const { id } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
   // Ownership check
   const { data: site } = await (supabase.from("sites") as any)
@@ -45,13 +45,13 @@ export async function POST(
     .eq("id", id)
     .eq("owner_id", user.id)
     .maybeSingle();
-  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+  if (!site) return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
 
   const body = await req.json();
   const { slug, title, is_home, sort_order } = body;
 
   if (!slug || !title) {
-    return NextResponse.json({ error: "slug and title are required" }, { status: 400 });
+    return NextResponse.json({ error: "Le slug et le titre sont requis" }, { status: 400 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,7 +68,7 @@ export async function POST(
 
   if (error) {
     if (error.code === "23505") {
-      return NextResponse.json({ error: "Page slug already exists for this site" }, { status: 409 });
+      return NextResponse.json({ error: "Ce slug de page existe déjà pour ce site" }, { status: 409 });
     }
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

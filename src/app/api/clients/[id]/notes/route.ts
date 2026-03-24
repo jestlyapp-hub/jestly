@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { user, supabase } = auth;
 
   const { content } = await req.json();
-  if (!content?.trim()) return NextResponse.json({ error: "Content required" }, { status: 400 });
+  if (!content?.trim()) return NextResponse.json({ error: "Le contenu est requis" }, { status: 400 });
 
   // Create the note
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

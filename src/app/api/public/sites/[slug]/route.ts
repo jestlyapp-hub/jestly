@@ -18,7 +18,7 @@ export async function GET(
     .single();
 
   if (error || !site) {
-    return NextResponse.json({ error: "Site not found" }, { status: 404 });
+    return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
   }
 
   // Get published pages with blocks

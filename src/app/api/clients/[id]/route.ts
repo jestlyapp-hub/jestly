@@ -45,7 +45,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   if (Object.keys(updates).length === 0) {
-    return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+    return NextResponse.json({ error: "Aucun champ valide à mettre à jour" }, { status: 400 });
   }
 
   // Handle status transitions for archived_at
@@ -104,7 +104,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .single();
 
   if (fetchError || !client) {
-    return NextResponse.json({ error: "Client not found" }, { status: 404 });
+    return NextResponse.json({ error: "Client introuvable" }, { status: 404 });
   }
 
   // Count dependencies

@@ -28,10 +28,10 @@ export async function GET(
       .single();
 
     if (siteErr || !site) {
-      return NextResponse.json({ error: "Site not found" }, { status: 404 });
+      return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
     }
     if (site.owner_id !== user.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Accès interdit" }, { status: 403 });
     }
 
     // ── Period calculation ──
@@ -274,6 +274,6 @@ export async function GET(
     });
   } catch (err) {
     console.error("[SITE-DASHBOARD] Fatal error:", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
   }
 }

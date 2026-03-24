@@ -19,7 +19,7 @@ export async function GET(
     .maybeSingle();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!data) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
   return NextResponse.json(data);
 }
 
@@ -45,7 +45,7 @@ export async function PUT(
     const fieldsList = Array.isArray(body.fields) ? body.fields : [];
     for (const f of fieldsList) {
       if (!f.key || !f.label || !f.type) {
-        return NextResponse.json({ error: "Each field must have key, label, type" }, { status: 400 });
+        return NextResponse.json({ error: "Chaque champ doit avoir key, label et type" }, { status: 400 });
       }
     }
     updates.schema = fieldsList;
@@ -60,7 +60,7 @@ export async function PUT(
   }
 
   if (Object.keys(updates).length === 0) {
-    return NextResponse.json({ error: "No fields to update" }, { status: 400 });
+    return NextResponse.json({ error: "Aucun champ à mettre à jour" }, { status: 400 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

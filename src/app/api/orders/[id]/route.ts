@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     if (!data) {
-      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+      return NextResponse.json({ error: "Commande introuvable" }, { status: 404 });
     }
 
     const [enriched] = await enrichOrdersWithProducts(supabase, [data], user.id);
@@ -53,7 +53,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     }
 
     if (Object.keys(updates).length === 0) {
-      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+      return NextResponse.json({ error: "Aucun champ valide à mettre à jour" }, { status: 400 });
     }
 
     // Update + select WITHOUT products join (PostgREST FK issue)
@@ -82,7 +82,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
     if (error) {
       if (error.code === "PGRST116") {
-        return NextResponse.json({ error: "Order not found" }, { status: 404 });
+        return NextResponse.json({ error: "Commande introuvable" }, { status: 404 });
       }
       if (error.code === "23514" || error.message?.includes("check constraint")) {
         return NextResponse.json(

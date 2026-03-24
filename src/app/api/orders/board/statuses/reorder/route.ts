@@ -8,7 +8,7 @@ export async function PUT(req: NextRequest) {
   const { user, supabase } = auth;
 
   const { ids } = await req.json();
-  if (!Array.isArray(ids)) return NextResponse.json({ error: "ids array required" }, { status: 400 });
+  if (!Array.isArray(ids)) return NextResponse.json({ error: "Le tableau ids est requis" }, { status: 400 });
 
   // Find user's default board to verify ownership
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,7 +19,7 @@ export async function PUT(req: NextRequest) {
     .limit(1);
 
   const boardId = boards?.[0]?.id;
-  if (!boardId) return NextResponse.json({ error: "no board found" }, { status: 404 });
+  if (!boardId) return NextResponse.json({ error: "Aucun tableau trouvé" }, { status: 404 });
 
   // Update each status position (only those belonging to this board)
   for (let i = 0; i < ids.length; i++) {

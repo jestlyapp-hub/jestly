@@ -49,7 +49,7 @@ async function ensureLeadsColumns(): Promise<boolean> {
 export async function POST(req: NextRequest) {
   const ip = getClientIp(req);
   if (!checkLimit(ip)) {
-    return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 });
+    return NextResponse.json({ error: "Trop de requêtes, veuillez réessayer plus tard" }, { status: 429 });
   }
 
   const body = await req.json();
@@ -88,11 +88,11 @@ export async function POST(req: NextRequest) {
   };
 
   if (!site_id || !email) {
-    return NextResponse.json({ error: "site_id and email are required" }, { status: 400 });
+    return NextResponse.json({ error: "site_id et email sont requis" }, { status: 400 });
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return NextResponse.json({ error: "Invalid email" }, { status: 400 });
+    return NextResponse.json({ error: "Adresse e-mail invalide" }, { status: 400 });
   }
 
   const supabase = await createClient();

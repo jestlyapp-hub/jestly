@@ -20,7 +20,7 @@ export async function GET(
     .single();
 
   if (error || !data) {
-    return NextResponse.json({ error: "Site not found" }, { status: 404 });
+    return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
   }
 
   // No-cache headers to prevent stale reads after PATCH

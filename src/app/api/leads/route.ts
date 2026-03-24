@@ -75,7 +75,7 @@ export async function PATCH(req: NextRequest) {
   const { id, status, notes } = body as { id?: string; status?: string; notes?: string };
 
   if (!id) {
-    return NextResponse.json({ error: "id is required" }, { status: 400 });
+    return NextResponse.json({ error: "id est requis" }, { status: 400 });
   }
 
   // Verify ownership: lead must belong to user's site
@@ -84,7 +84,7 @@ export async function PATCH(req: NextRequest) {
     .eq("owner_id", user.id);
 
   if (!sites || sites.length === 0) {
-    return NextResponse.json({ error: "No sites found" }, { status: 403 });
+    return NextResponse.json({ error: "Aucun site trouvé" }, { status: 403 });
   }
 
   const siteIds = sites.map((s: { id: string }) => s.id);
@@ -94,7 +94,7 @@ export async function PATCH(req: NextRequest) {
   if (notes !== undefined) updates.notes = notes;
 
   if (Object.keys(updates).length === 0) {
-    return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+    return NextResponse.json({ error: "Rien à mettre à jour" }, { status: 400 });
   }
 
   // First verify the lead exists and belongs to user's sites

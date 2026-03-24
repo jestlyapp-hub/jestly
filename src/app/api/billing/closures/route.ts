@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   const { year, month, notes } = await req.json();
   if (!year || !month) {
-    return NextResponse.json({ error: "year and month required" }, { status: 400 });
+    return NextResponse.json({ error: "L'année et le mois sont requis" }, { status: 400 });
   }
 
   // Build period boundaries

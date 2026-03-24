@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   const explicitTemplateId = req.nextUrl.searchParams.get("brief_template_id");
 
   if (!productId) {
-    return NextResponse.json({ error: "product_id is required" }, { status: 400 });
+    return NextResponse.json({ error: "product_id est requis" }, { status: 400 });
   }
 
   const supabase = await createClient();

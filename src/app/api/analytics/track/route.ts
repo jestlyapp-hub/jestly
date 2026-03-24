@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
     const { event, properties, page } = await req.json();
     if (!event || typeof event !== "string") {
-      return NextResponse.json({ error: "event required" }, { status: 400 });
+      return NextResponse.json({ error: "event est requis" }, { status: 400 });
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -16,7 +16,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
     .eq("owner_id", user.id)
     .single();
 
-  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+  if (!site) return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
 
   // Get linked product IDs
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -67,7 +67,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { productId, action } = body;
 
   if (!productId || !action) {
-    return NextResponse.json({ error: "productId and action required" }, { status: 400 });
+    return NextResponse.json({ error: "productId et action sont requis" }, { status: 400 });
   }
 
   // Verify site ownership
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     .eq("owner_id", user.id)
     .single();
 
-  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+  if (!site) return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
 
   if (action === "attach") {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -100,5 +100,5 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     return NextResponse.json({ ok: true });
   }
 
-  return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  return NextResponse.json({ error: "Action invalide" }, { status: 400 });
 }

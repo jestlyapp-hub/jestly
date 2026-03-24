@@ -580,6 +580,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json(response);
   } catch (err) {
     console.error("[ANALYTICS] ❌ Fatal error:", err);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    return NextResponse.json({ error: "Erreur interne" }, { status: 500 });
   }
 }

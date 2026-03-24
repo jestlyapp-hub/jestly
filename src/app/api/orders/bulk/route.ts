@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     };
 
     if (!action || !ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ error: "action and ids[] required" }, { status: 400 });
+      return NextResponse.json({ error: "action et ids[] sont requis" }, { status: 400 });
     }
 
     switch (action) {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: fetchErr.message }, { status: 500 });
         }
         if (!originals || originals.length === 0) {
-          return NextResponse.json({ error: "No orders found" }, { status: 404 });
+          return NextResponse.json({ error: "Aucune commande trouvée" }, { status: 404 });
         }
 
         // 2. Build clean copies — whitelist fields, handle nulls, reset state
@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
 
       case "move": {
         if (!status) {
-          return NextResponse.json({ error: "status required for move action" }, { status: 400 });
+          return NextResponse.json({ error: "Le statut est requis pour l'action déplacer" }, { status: 400 });
         }
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { error } = await (supabase.from("orders") as any)
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
       }
 
       default:
-        return NextResponse.json({ error: `Unknown action: ${action}` }, { status: 400 });
+        return NextResponse.json({ error: `Action inconnue : ${action}` }, { status: 400 });
     }
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

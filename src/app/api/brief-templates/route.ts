@@ -76,24 +76,24 @@ export async function POST(req: NextRequest) {
   const { name, description, fields } = body;
 
   if (!name) {
-    return NextResponse.json({ error: "name is required" }, { status: 400 });
+    return NextResponse.json({ error: "Le nom est requis" }, { status: 400 });
   }
 
   // Validate fields schema
   const fieldsList = Array.isArray(fields) ? fields : [];
   for (const f of fieldsList) {
     if (!f.key || !f.label || !f.type) {
-      return NextResponse.json({ error: "Each field must have key, label, type" }, { status: 400 });
+      return NextResponse.json({ error: "Chaque champ doit avoir key, label et type" }, { status: 400 });
     }
     if ((f.type === "select" || f.type === "radio") && (!f.options || f.options.length === 0)) {
-      return NextResponse.json({ error: `Field "${f.key}" (${f.type}) requires options` }, { status: 400 });
+      return NextResponse.json({ error: `Le champ "${f.key}" (${f.type}) nécessite des options` }, { status: 400 });
     }
   }
 
   // Check unique keys
   const keys = fieldsList.map((f: { key: string }) => f.key);
   if (new Set(keys).size !== keys.length) {
-    return NextResponse.json({ error: "Duplicate field keys" }, { status: 400 });
+    return NextResponse.json({ error: "Clés de champs en doublon" }, { status: 400 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

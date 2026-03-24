@@ -9,7 +9,7 @@ export async function PATCH(
   const { id: siteId, pageId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
   // Ownership check
   const { data: site } = await (supabase.from("sites") as any)
@@ -17,7 +17,7 @@ export async function PATCH(
     .eq("id", siteId)
     .eq("owner_id", user.id)
     .maybeSingle();
-  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+  if (!site) return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
 
   const body = await req.json();
   const allowed = ["slug", "title", "is_home", "sort_order", "status", "seo_title", "seo_description", "og_image_url"];
@@ -50,7 +50,7 @@ export async function DELETE(
   const { id: siteId, pageId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
   // Ownership check
   const { data: site } = await (supabase.from("sites") as any)
@@ -58,7 +58,7 @@ export async function DELETE(
     .eq("id", siteId)
     .eq("owner_id", user.id)
     .maybeSingle();
-  if (!site) return NextResponse.json({ error: "Site not found" }, { status: 404 });
+  if (!site) return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase.from("site_pages") as any)

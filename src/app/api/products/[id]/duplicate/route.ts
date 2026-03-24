@@ -17,7 +17,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     .single();
 
   if (fetchErr || !original) {
-    return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
   }
 
   // Build copy

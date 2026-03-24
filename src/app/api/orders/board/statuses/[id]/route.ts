@@ -34,7 +34,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { user, supabase } = auth;
 
   const ownership = await verifyOwnership(supabase, id, user.id);
-  if (!ownership) return NextResponse.json({ error: "not found" }, { status: 404 });
+  if (!ownership) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
   const body = await req.json();
   const allowed = ["name", "color", "view", "is_archived", "position"];
@@ -62,7 +62,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const { user, supabase } = auth;
 
   const ownership = await verifyOwnership(supabase, id, user.id);
-  if (!ownership) return NextResponse.json({ error: "not found" }, { status: 404 });
+  if (!ownership) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase.from("order_statuses") as any)

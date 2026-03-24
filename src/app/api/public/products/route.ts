@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(req: NextRequest) {
   const siteId = req.nextUrl.searchParams.get("site_id");
   if (!siteId) {
-    return NextResponse.json({ error: "site_id is required" }, { status: 400 });
+    return NextResponse.json({ error: "site_id est requis" }, { status: 400 });
   }
 
   const supabase = await createClient();
@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     .single();
 
   if (!site) {
-    return NextResponse.json({ error: "Site not found" }, { status: 404 });
+    return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

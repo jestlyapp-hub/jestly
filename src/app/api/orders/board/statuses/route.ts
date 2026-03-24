@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const { name, color, view, board_id } = body;
 
-  if (!name) return NextResponse.json({ error: "name is required" }, { status: 400 });
+  if (!name) return NextResponse.json({ error: "Le nom est requis" }, { status: 400 });
   const statusView = view === "cash" ? "cash" : "production";
 
   // Resolve board_id
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       .eq("is_default", true)
       .limit(1);
     boardId = boards?.[0]?.id;
-    if (!boardId) return NextResponse.json({ error: "no board found" }, { status: 404 });
+    if (!boardId) return NextResponse.json({ error: "Aucun tableau trouvé" }, { status: 404 });
   }
 
   // Get max position for this view
