@@ -282,7 +282,7 @@ function PublicBlockSection({ block, site, pagePath }: { block: Block; site: Sit
       id={block.settings?.anchorId || `block-${block.id}`}
       data-block={block.id}
       style={mergedStyle}
-      className="w-full relative overflow-hidden"
+      className="w-full max-w-full relative overflow-hidden break-words"
     >
       <style dangerouslySetInnerHTML={{ __html: hoverCSS + cardHoverCSS }} />
       {blockBg.overlayStyle && <div className="absolute inset-0 pointer-events-none z-0" style={blockBg.overlayStyle} />}
@@ -807,6 +807,22 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
     };
   }, [scrollToHash]);
 
+  // ── Dev: detect horizontal overflow in blocks ──
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development") return;
+    const timer = setTimeout(() => {
+      const sections = document.querySelectorAll<HTMLElement>("section[data-block]");
+      sections.forEach((section) => {
+        if (section.scrollWidth > section.clientWidth + 1) {
+          const blockId = section.getAttribute("data-block");
+          const overflow = section.scrollWidth - section.clientWidth;
+          console.warn(`[responsive-overflow] block=${blockId} viewport=${window.innerWidth} overflow=${overflow}px`);
+        }
+      });
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Background config
   const siteBgConfig = resolveBackgroundConfig(site.design);
   const { containerStyle: siteBgContainerStyle, overlayStyle: siteBgOverlayStyle } = renderBackgroundConfig(siteBgConfig);
@@ -833,6 +849,11 @@ export default function SitePublicRenderer({ site, page, products = [] }: SitePu
               color: var(--site-primary, #4F46E5) !important;
               font-weight: 600;
             }
+            /* Defensive responsive: prevent inline content from breaking layout */
+            section[data-block] img:not([class*="object-"]) { max-width: 100%; height: auto; }
+            section[data-block] iframe { max-width: 100%; }
+            section[data-block] pre, section[data-block] code { overflow-x: auto; max-width: 100%; }
+            section[data-block] table { max-width: 100%; overflow-x: auto; display: block; }
           ` }} />
           {siteBgOverlayStyle && <div className="fixed inset-0 pointer-events-none z-0" style={siteBgOverlayStyle} />}
           <SiteAnalyticsTracker siteId={site.id} pageSlug={page.slug} />

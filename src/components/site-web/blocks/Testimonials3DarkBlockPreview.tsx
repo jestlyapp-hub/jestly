@@ -8,7 +8,7 @@ function Testimonials3DarkBlockPreviewInner({ content }: { content: Testimonials
     <section className="py-16 px-6">
       <div className="max-w-6xl mx-auto">
         <h2
-          className="text-2xl font-bold text-center mb-10"
+          className="text-xl sm:text-2xl font-bold text-center mb-10"
           style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
         >
           {content.title}
