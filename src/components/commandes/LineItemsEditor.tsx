@@ -18,6 +18,7 @@ interface Props {
   onDiscountChange: (v: number) => void;
   deposit: number;
   onDepositChange: (v: number) => void;
+  hideFinancials?: boolean;
 }
 
 let _nextId = 0;
@@ -26,7 +27,7 @@ const genId = () => `li_${++_nextId}_${Date.now()}`;
 const fmtEur = (n: number) =>
   n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
 
-export default function LineItemsEditor({ items, onChange, discount, onDiscountChange, deposit, onDepositChange }: Props) {
+export default function LineItemsEditor({ items, onChange, discount, onDiscountChange, deposit, onDepositChange, hideFinancials }: Props) {
   const addItem = useCallback(() => {
     onChange([...items, { id: genId(), label: "", description: "", quantity: 1, unitPrice: 0 }]);
   }, [items, onChange]);
@@ -163,50 +164,69 @@ export default function LineItemsEditor({ items, onChange, discount, onDiscountC
       {/* Totals */}
       {items.length > 0 && (
         <div className="border-t border-[#EFEFEF] pt-3 space-y-2">
-          {/* Subtotal */}
-          <div className="flex items-center justify-between text-[12px]">
-            <span className="text-[#8A8A88]">Sous-total</span>
-            <span className="font-medium text-[#191919] tabular-nums">{fmtEur(subtotal)}</span>
-          </div>
+          {hideFinancials ? (
+            <>
+              {/* Mode séparé — récapitulatif des commandes */}
+              {(() => {
+                const totalOrders = items.reduce((s, it) => s + it.quantity, 0);
+                return (
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[13px] font-semibold text-[#191919]">
+                      {totalOrders} commande{totalOrders > 1 ? "s" : ""} à créer
+                    </span>
+                    <span className="text-[15px] font-bold text-[#191919] tabular-nums">{fmtEur(subtotal)}</span>
+                  </div>
+                );
+              })()}
+              <p className="text-[10px] text-[#BBB]">
+                Chaque prestation × quantité crée une commande distincte.
+              </p>
+            </>
+          ) : (
+            <>
+              {/* Mode groupé — sous-total, remise, acompte, total */}
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="text-[#8A8A88]">Sous-total</span>
+                <span className="font-medium text-[#191919] tabular-nums">{fmtEur(subtotal)}</span>
+              </div>
 
-          {/* Discount */}
-          <div className="flex items-center justify-between text-[12px]">
-            <span className="text-[#8A8A88]">Remise</span>
-            <div className="flex items-center gap-1">
-              <span className="text-[#BBB]">-</span>
-              <input
-                type="number"
-                value={discount || ""}
-                onChange={(e) => onDiscountChange(Math.max(0, Number(e.target.value) || 0))}
-                placeholder="0"
-                min={0}
-                className="w-20 text-[12px] text-right bg-[#F7F7F5] border border-[#E6E6E4] rounded px-2 py-1 text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="text-[11px] text-[#BBB]">€</span>
-            </div>
-          </div>
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="text-[#8A8A88]">Remise</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-[#BBB]">-</span>
+                  <input
+                    type="number"
+                    value={discount || ""}
+                    onChange={(e) => onDiscountChange(Math.max(0, Number(e.target.value) || 0))}
+                    placeholder="0"
+                    min={0}
+                    className="w-20 text-[12px] text-right bg-[#F7F7F5] border border-[#E6E6E4] rounded px-2 py-1 text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <span className="text-[11px] text-[#BBB]">€</span>
+                </div>
+              </div>
 
-          {/* Deposit */}
-          <div className="flex items-center justify-between text-[12px]">
-            <span className="text-[#8A8A88]">Acompte demandé</span>
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                value={deposit || ""}
-                onChange={(e) => onDepositChange(Math.max(0, Number(e.target.value) || 0))}
-                placeholder="0"
-                min={0}
-                className="w-20 text-[12px] text-right bg-[#F7F7F5] border border-[#E6E6E4] rounded px-2 py-1 text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-              />
-              <span className="text-[11px] text-[#BBB]">€</span>
-            </div>
-          </div>
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="text-[#8A8A88]">Acompte demandé</span>
+                <div className="flex items-center gap-1">
+                  <input
+                    type="number"
+                    value={deposit || ""}
+                    onChange={(e) => onDepositChange(Math.max(0, Number(e.target.value) || 0))}
+                    placeholder="0"
+                    min={0}
+                    className="w-20 text-[12px] text-right bg-[#F7F7F5] border border-[#E6E6E4] rounded px-2 py-1 text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <span className="text-[11px] text-[#BBB]">€</span>
+                </div>
+              </div>
 
-          {/* Total */}
-          <div className="flex items-center justify-between pt-2 border-t border-[#E6E6E4]">
-            <span className="text-[13px] font-semibold text-[#191919]">Total</span>
-            <span className="text-[15px] font-bold text-[#191919] tabular-nums">{fmtEur(total)}</span>
-          </div>
+              <div className="flex items-center justify-between pt-2 border-t border-[#E6E6E4]">
+                <span className="text-[13px] font-semibold text-[#191919]">Total</span>
+                <span className="text-[15px] font-bold text-[#191919] tabular-nums">{fmtEur(total)}</span>
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

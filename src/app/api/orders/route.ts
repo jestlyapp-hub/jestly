@@ -60,17 +60,74 @@ export async function POST(req: NextRequest) {
     quantity,
   } = body;
 
-  // Parse line items
+  // Parse line items (grouped mode)
   const items: BodyLineItem[] | undefined = Array.isArray(body.items) && body.items.length > 0
     ? body.items : undefined;
+
+  // Parse split items (split mode — each item × qty becomes a separate order)
+  const splitItems: BodyLineItem[] | undefined = Array.isArray(body.split_items) && body.split_items.length > 0
+    ? body.split_items : undefined;
 
   // Validation
   if (!client_id || !title) {
     return NextResponse.json({ error: "client_id et title sont requis" }, { status: 400 });
   }
-  if (!items && amount == null) {
-    return NextResponse.json({ error: "amount ou items requis" }, { status: 400 });
+  if (!items && !splitItems && amount == null) {
+    return NextResponse.json({ error: "amount, items ou split_items requis" }, { status: 400 });
   }
+
+  // ══════════════════════════════════════════════════════════
+  // SPLIT MODE — each line item × quantity = separate order
+  // ══════════════════════════════════════════════════════════
+  if (splitItems) {
+    // Build one order per item × quantity
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rows: Record<string, any>[] = [];
+    const groupId = crypto.randomUUID();
+
+    for (const item of splitItems) {
+      const itemQty = Math.max(1, Math.min(50, Number(item.quantity) || 1));
+      const itemPrice = Math.round((Number(item.unitPrice) || 0) * 100) / 100;
+      const itemTitle = item.label || title;
+
+      for (let i = 0; i < itemQty; i++) {
+        rows.push({
+          user_id: user.id,
+          client_id,
+          product_id: product_id || null,
+          title: itemQty > 1 ? `${itemTitle} (${i + 1}/${itemQty})` : itemTitle,
+          description: item.description || description || "",
+          amount: itemPrice,
+          status: status || "new",
+          priority: priority || "normal",
+          deadline: deadline || null,
+          briefing: briefing || null,
+          resources: Array.isArray(resources) ? resources : [],
+          category: category || null,
+          external_ref: external_ref || null,
+          group_id: groupId,
+          group_index: rows.length + 1,
+          group_total: 0, // Updated after loop
+          ...(custom_fields ? { custom_fields } : {}),
+        });
+      }
+    }
+
+    // Set correct group_total on all rows
+    for (const row of rows) row.group_total = rows.length;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await (supabase.from("orders") as any)
+      .insert(rows)
+      .select(ORDER_SELECT_LEGACY);
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(data, { status: 201 });
+  }
+
+  // ══════════════════════════════════════════════════════════
+  // SIMPLE / GROUPED MODE
+  // ══════════════════════════════════════════════════════════
 
   // Calculate amount from line items if provided
   const computedAmount = items

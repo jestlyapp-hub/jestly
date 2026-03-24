@@ -61,6 +61,7 @@ export default function CreateOrderDrawer({
   // ── Advanced pricing ──
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [lineItems, setLineItems] = useState<LineItemDraft[]>([]);
+  const [splitMode, setSplitMode] = useState<"grouped" | "split">("grouped");
   const [discount, setDiscount] = useState(0);
   const [deposit, setDeposit] = useState(0);
   const [priority, setPriority] = useState("normal");
@@ -109,6 +110,7 @@ export default function CreateOrderDrawer({
     setQuantity(1);
     setCategory("");
     setShowAdvanced(false);
+    setSplitMode("grouped");
     setLineItems([]);
     setDiscount(0);
     setDeposit(0);
@@ -226,15 +228,30 @@ export default function CreateOrderDrawer({
         external_ref: externalRef || undefined,
       };
 
-      if (hasLineItems) {
-        // Advanced mode — send items, backend calculates amount
+      if (hasLineItems && splitMode === "split") {
+        // ── Mode séparé : une commande par ligne × quantité ──
+        payload.split_items = lineItems.map((it) => ({
+          label: it.label,
+          description: it.description || undefined,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+        }));
+        if (internalNotes || source) {
+          payload.custom_fields = {
+            ...(internalNotes && { internal_notes: internalNotes }),
+            ...(source && { source }),
+          };
+        }
+        // Amount placeholder (overridden per item by backend)
+        payload.amount = 0;
+      } else if (hasLineItems) {
+        // ── Mode groupé : une commande avec détail des prestations ──
         payload.items = lineItems.map((it) => ({
           label: it.label,
           description: it.description || undefined,
           quantity: it.quantity,
           unitPrice: it.unitPrice,
         }));
-        // Store discount/deposit/notes/source in custom_fields
         payload.custom_fields = {
           ...(discount > 0 && { discount }),
           ...(deposit > 0 && { deposit }),
@@ -242,12 +259,11 @@ export default function CreateOrderDrawer({
           ...(source && { source }),
           pricing_mode: "advanced",
         };
-        // Amount with discount applied
         payload.amount = computedTotal;
       } else {
-        // Simple mode
+        // ── Mode simple ──
         payload.amount = Number(amount);
-        if (internalNotes || source || priority !== "normal") {
+        if (internalNotes || source) {
           payload.custom_fields = {
             ...(internalNotes && { internal_notes: internalNotes }),
             ...(source && { source }),
@@ -454,6 +470,40 @@ export default function CreateOrderDrawer({
                       className="overflow-hidden"
                     >
                       <div className="px-4 pb-4 pt-1 space-y-4 border-t border-[#EFEFEF]">
+                        {/* Mode selector — groupé vs séparé */}
+                        {lineItems.length > 0 && (
+                          <div>
+                            <label className={LABEL}>Mode de création</label>
+                            <div className="flex rounded-lg border border-[#E6E6E4] overflow-hidden">
+                              <button
+                                onClick={() => setSplitMode("grouped")}
+                                className={`flex-1 text-[12px] py-2 px-3 transition-colors cursor-pointer ${
+                                  splitMode === "grouped"
+                                    ? "bg-[#4F46E5] text-white font-medium"
+                                    : "bg-white text-[#5A5A58] hover:bg-[#FBFBFA]"
+                                }`}
+                              >
+                                Commande groupée
+                              </button>
+                              <button
+                                onClick={() => setSplitMode("split")}
+                                className={`flex-1 text-[12px] py-2 px-3 border-l border-[#E6E6E4] transition-colors cursor-pointer ${
+                                  splitMode === "split"
+                                    ? "bg-[#4F46E5] text-white font-medium"
+                                    : "bg-white text-[#5A5A58] hover:bg-[#FBFBFA]"
+                                }`}
+                              >
+                                Commandes séparées
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-[#BBB] mt-1.5 leading-relaxed">
+                              {splitMode === "grouped"
+                                ? "Crée une seule commande avec le détail des prestations."
+                                : "Crée une commande distincte pour chaque prestation × quantité."}
+                            </p>
+                          </div>
+                        )}
+
                         {/* Aide contextuelle */}
                         {lineItems.length === 0 && (
                           <p className="text-[11px] text-[#BBB] leading-relaxed">
@@ -465,10 +515,11 @@ export default function CreateOrderDrawer({
                         <LineItemsEditor
                           items={lineItems}
                           onChange={setLineItems}
-                          discount={discount}
-                          onDiscountChange={setDiscount}
-                          deposit={deposit}
-                          onDepositChange={setDeposit}
+                          discount={splitMode === "split" ? 0 : discount}
+                          onDiscountChange={splitMode === "split" ? () => {} : setDiscount}
+                          deposit={splitMode === "split" ? 0 : deposit}
+                          onDepositChange={splitMode === "split" ? () => {} : setDeposit}
+                          hideFinancials={splitMode === "split"}
                         />
 
                         <div className="h-px bg-[#EFEFEF]" />
@@ -601,12 +652,15 @@ export default function CreateOrderDrawer({
                 disabled={saving}
                 className="w-full bg-[#4F46E5] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors disabled:opacity-50 cursor-pointer"
               >
-                {saving
-                  ? "Création..."
-                  : quantity > 1
-                    ? `Créer ${quantity} commandes`
-                    : "Créer la commande"
-                }
+                {(() => {
+                  if (saving) return "Création...";
+                  if (hasLineItems && splitMode === "split") {
+                    const total = lineItems.reduce((s, it) => s + it.quantity, 0);
+                    return `Créer ${total} commande${total > 1 ? "s" : ""} séparée${total > 1 ? "s" : ""}`;
+                  }
+                  if (quantity > 1) return `Créer ${quantity} commandes`;
+                  return "Créer la commande";
+                })()}
               </button>
             </div>
           </motion.div>
