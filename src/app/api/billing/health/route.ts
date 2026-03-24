@@ -412,10 +412,19 @@ export async function GET() {
   score -= warningCount * 4;
   score -= infoCount * 1;
   score -= suggestions.length * 3;
+
+  // Pénalité ratio paiement : commandes livrées/facturées non payées
+  // allOrders contient delivered + invoiced + paid
+  const totalFinalized = allOrders.length;
+  const totalPaid = allOrders.filter((o: { status: string }) => o.status === "paid").length;
+  const unpaidRatio = totalFinalized > 0 ? (totalFinalized - totalPaid) / totalFinalized : 0;
+  // Pénalité proportionnelle : 30 pts max si 100% impayé
+  score -= Math.round(unpaidRatio * 30);
+
   score = Math.max(0, Math.min(100, score));
 
-  // If no items at all, neutral score
-  if (allItems.length === 0) score = 100;
+  // If no items AND no finalized orders, neutral score
+  if (allItems.length === 0 && totalFinalized === 0) score = 100;
 
   return NextResponse.json({
     score,
@@ -437,6 +446,12 @@ export async function GET() {
       warnings: warningCount,
       infos: infoCount,
       suggestions: suggestions.length,
+    },
+    payments: {
+      totalFinalized: totalFinalized,
+      totalPaid,
+      unpaidCount: totalFinalized - totalPaid,
+      paidRatio: totalFinalized > 0 ? Math.round((totalPaid / totalFinalized) * 100) : 100,
     },
   });
 }
