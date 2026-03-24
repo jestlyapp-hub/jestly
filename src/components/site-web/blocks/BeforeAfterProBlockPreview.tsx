@@ -41,7 +41,7 @@ function BeforeAfterProBlockPreviewInner({ content }: { content: BeforeAfterProB
                     border: "1px solid var(--site-border)",
                   }}
                 >
-                  <div className="grid grid-cols-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2">
                     {/* Before */}
                     <div className="relative" style={{ borderRight: "1px solid var(--site-border)" }}>
                       <div className="aspect-[4/3] relative overflow-hidden">

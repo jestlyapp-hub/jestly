@@ -104,8 +104,8 @@ function ProductCardsGridBlockPreviewInner({ content }: { content: ProductCardsG
               {product.category}
             </span>
 
-            <div className="text-[13px] font-semibold mb-1" style={{ color: "var(--site-text, #191919)" }}>{product.name}</div>
-            <p className="text-[11px] mb-3 flex-1" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</p>
+            <div className="text-[13px] font-semibold mb-1 line-clamp-2" style={{ color: "var(--site-text, #191919)" }}>{product.name}</div>
+            <p className="text-[11px] mb-3 flex-1 line-clamp-2" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</p>
 
             <div className="text-lg font-bold mb-3" style={{ color: "var(--site-text, #191919)" }}>{formatPrice(product.priceCents)}</div>
 

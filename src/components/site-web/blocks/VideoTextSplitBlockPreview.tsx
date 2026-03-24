@@ -37,7 +37,7 @@ function VideoTextSplitBlockPreviewInner({ content }: { content: VideoTextSplitB
   );
 
   return (
-    <div className="py-6 grid grid-cols-2 gap-6 items-center">
+    <div className="py-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
       {isLeft ? <>{videoEl}{textEl}</> : <>{textEl}{videoEl}</>}
     </div>
   );
