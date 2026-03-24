@@ -69,19 +69,21 @@ export async function GET() {
   // Exclut : delivered, invoiced, paid, cancelled, refunded, dispute
   const overdueOrders = orders.filter((o) => isOrderOverdue(o.deadline, o.status)).length;
 
-  // ── Revenue data (6 months) ──
+  // ── Revenue data (6 months) — uniquement commandes payées (encaissées) ──
+  const paidOrdersList = orders.filter((o) => o.status === "paid");
   const series: { monthKey: string; monthLabel: string; revenue: number; ordersCount: number; paidOrdersCount: number }[] = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
     const monthLabel = d.toLocaleDateString("fr-FR", { month: "short" });
-    const monthOrders = activeOrders.filter((o) => o.created_at.startsWith(monthKey));
+    const monthPaid = paidOrdersList.filter((o) => (o.paid_at || o.created_at).startsWith(monthKey));
+    const monthAllActive = activeOrders.filter((o) => o.created_at.startsWith(monthKey));
     series.push({
       monthKey,
       monthLabel,
-      revenue: monthOrders.reduce((s, o) => s + Number(o.amount || 0), 0),
-      ordersCount: monthOrders.length,
-      paidOrdersCount: monthOrders.filter((o) => o.status === "paid").length,
+      revenue: monthPaid.reduce((s, o) => s + Number(o.amount || 0), 0),
+      ordersCount: monthAllActive.length,
+      paidOrdersCount: monthPaid.length,
     });
   }
 
@@ -89,9 +91,12 @@ export async function GET() {
   const prevMonthRev = series[series.length - 2]?.revenue ?? 0;
   const changePercent = prevMonthRev > 0 ? Math.round(((currentMonthRev - prevMonthRev) / prevMonthRev) * 100) : 0;
 
+  // Revenu total encaissé (toutes périodes)
+  const totalPaidRevenue = paidOrdersList.reduce((s, o) => s + Number(o.amount || 0), 0);
+
   const revenueData = {
     series,
-    totalRevenue: pipelineSummary.totalRevenue,
+    totalRevenue: Math.round(totalPaidRevenue * 100) / 100,
     currentMonthRevenue: currentMonthRev,
     previousMonthRevenue: prevMonthRev,
     changePercent,

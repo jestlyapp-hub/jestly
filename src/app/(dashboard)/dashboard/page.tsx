@@ -766,7 +766,7 @@ export default function DashboardPage() {
 
         {/* Revenue chart — 5 col */}
         <div className="lg:col-span-5 flex">
-          <Card title="Revenus 6 mois" action={{ label: "Analytics", href: "/analytics" }} delay={0.4} className="w-full">
+          <Card title="Revenus encaissés" action={{ label: "Analytics", href: "/analytics" }} delay={0.4} className="w-full">
             <RevenueChart revenueData={safeData.revenueData} />
           </Card>
         </div>
