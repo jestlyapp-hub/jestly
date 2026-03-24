@@ -97,6 +97,18 @@ export function orderRecordToOrder(
     statusId: (row as any).status_id ?? undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     customFields: (row as any).custom_fields ?? {},
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    items: Array.isArray((row as any).order_items)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? (row as any).order_items.map((it: any) => ({
+          id: it.id,
+          label: it.label || "",
+          description: it.description ?? undefined,
+          quantity: Number(it.quantity) || 1,
+          unitPrice: Number(it.unit_price) || 0,
+          productId: it.product_id ?? undefined,
+        }))
+      : undefined,
   };
 }
 

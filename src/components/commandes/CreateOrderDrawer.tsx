@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
+import LineItemsEditor, { type LineItemDraft } from "./LineItemsEditor";
 
 interface ClientOption {
   id: string;
@@ -21,6 +22,16 @@ const CATEGORIES = [
   { value: "autre", label: "Autre" },
 ];
 
+const PRIORITIES = [
+  { value: "low", label: "Basse" },
+  { value: "normal", label: "Normale" },
+  { value: "high", label: "Haute" },
+  { value: "urgent", label: "Urgente" },
+];
+
+const INPUT = "w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30";
+const LABEL = "text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block";
+
 export default function CreateOrderDrawer({
   open,
   onClose,
@@ -36,7 +47,7 @@ export default function CreateOrderDrawer({
     id: c.id, name: c.name, email: c.email,
   }));
 
-  // Core fields
+  // ── Core fields ──
   const [mode, setMode] = useState<"existing" | "new">("existing");
   const [clientId, setClientId] = useState("");
   const [newClientName, setNewClientName] = useState("");
@@ -45,18 +56,27 @@ export default function CreateOrderDrawer({
   const [amount, setAmount] = useState("");
   const [deadline, setDeadline] = useState("");
   const [quantity, setQuantity] = useState(1);
-
-  // Freelance fields
   const [category, setCategory] = useState("");
+
+  // ── Advanced pricing ──
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [lineItems, setLineItems] = useState<LineItemDraft[]>([]);
+  const [discount, setDiscount] = useState(0);
+  const [deposit, setDeposit] = useState(0);
+  const [priority, setPriority] = useState("normal");
+  const [internalNotes, setInternalNotes] = useState("");
+  const [source, setSource] = useState("");
+
+  // ── Existing "Plus d'options" ──
+  const [showMore, setShowMore] = useState(false);
   const [briefing, setBriefing] = useState("");
   const [resourceLinks, setResourceLinks] = useState<string[]>([]);
   const [newLink, setNewLink] = useState("");
   const [externalRef, setExternalRef] = useState("");
 
-  // UI
+  // ── UI state ──
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [showMore, setShowMore] = useState(false);
   const briefingRef = useRef<HTMLTextAreaElement>(null);
 
   // Auto-resize briefing textarea
@@ -66,6 +86,17 @@ export default function CreateOrderDrawer({
       briefingRef.current.style.height = briefingRef.current.scrollHeight + "px";
     }
   }, [briefing]);
+
+  // ── Computed totals ──
+  const hasLineItems = lineItems.length > 0;
+  const computedTotal = useMemo(() => {
+    if (!hasLineItems) return null;
+    const subtotal = lineItems.reduce((s, it) => s + it.quantity * it.unitPrice, 0);
+    return Math.max(0, subtotal - discount);
+  }, [lineItems, discount, hasLineItems]);
+
+  // When line items are used, override the amount display
+  const displayAmount = hasLineItems ? (computedTotal ?? 0).toFixed(2) : amount;
 
   const reset = () => {
     setMode("existing");
@@ -77,12 +108,19 @@ export default function CreateOrderDrawer({
     setDeadline("");
     setQuantity(1);
     setCategory("");
+    setShowAdvanced(false);
+    setLineItems([]);
+    setDiscount(0);
+    setDeposit(0);
+    setPriority("normal");
+    setInternalNotes("");
+    setSource("");
+    setShowMore(false);
     setBriefing("");
     setResourceLinks([]);
     setNewLink("");
     setExternalRef("");
     setError("");
-    setShowMore(false);
   };
 
   const addLink = () => {
@@ -100,14 +138,26 @@ export default function CreateOrderDrawer({
     try { new URL(s); return true; } catch { return false; }
   };
 
+  // ── Submit ──
   const handleSubmit = async () => {
-    if (!title || !amount) {
-      setError("Titre et montant requis");
+    // Validation
+    if (!title) {
+      setError("Titre requis");
       return;
     }
-
-    if (Number(amount) < 0) {
-      setError("Le montant doit être positif");
+    if (hasLineItems) {
+      const emptyLabel = lineItems.some((it) => !it.label.trim());
+      if (emptyLabel) {
+        setError("Chaque prestation doit avoir un nom");
+        return;
+      }
+      const zeroPrice = lineItems.some((it) => it.unitPrice <= 0);
+      if (zeroPrice) {
+        setError("Chaque prestation doit avoir un prix");
+        return;
+      }
+    } else if (!amount || Number(amount) < 0) {
+      setError("Montant requis");
       return;
     }
 
@@ -130,7 +180,6 @@ export default function CreateOrderDrawer({
           });
           finalClientId = newClient.id;
         } catch (clientErr) {
-          // If 409 duplicate email → reuse the existing client
           const msg = clientErr instanceof Error ? clientErr.message : "";
           if (msg.includes("duplicate")) {
             try {
@@ -162,13 +211,13 @@ export default function CreateOrderDrawer({
         return;
       }
 
+      // Build payload
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const payload: Record<string, any> = {
         client_id: finalClientId,
         title,
-        amount: Number(amount),
         status: "new",
-        priority: "normal",
+        priority,
         deadline: deadline || undefined,
         quantity,
         category: category || undefined,
@@ -176,6 +225,35 @@ export default function CreateOrderDrawer({
         resources: resourceLinks.length > 0 ? resourceLinks : undefined,
         external_ref: externalRef || undefined,
       };
+
+      if (hasLineItems) {
+        // Advanced mode — send items, backend calculates amount
+        payload.items = lineItems.map((it) => ({
+          label: it.label,
+          description: it.description || undefined,
+          quantity: it.quantity,
+          unitPrice: it.unitPrice,
+        }));
+        // Store discount/deposit/notes/source in custom_fields
+        payload.custom_fields = {
+          ...(discount > 0 && { discount }),
+          ...(deposit > 0 && { deposit }),
+          ...(internalNotes && { internal_notes: internalNotes }),
+          ...(source && { source }),
+          pricing_mode: "advanced",
+        };
+        // Amount with discount applied
+        payload.amount = computedTotal;
+      } else {
+        // Simple mode
+        payload.amount = Number(amount);
+        if (internalNotes || source || priority !== "normal") {
+          payload.custom_fields = {
+            ...(internalNotes && { internal_notes: internalNotes }),
+            ...(source && { source }),
+          };
+        }
+      }
 
       const result = await apiFetch<unknown>("/api/orders", {
         method: "POST",
@@ -213,7 +291,7 @@ export default function CreateOrderDrawer({
             transition={{ type: "spring", damping: 30, stiffness: 300 }}
             className="fixed right-0 top-0 h-full w-full max-w-lg bg-white border-l border-[#E6E6E4] z-50 flex flex-col"
           >
-            {/* Header — sticky */}
+            {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-[#E6E6E4] flex-shrink-0">
               <h2 className="text-[16px] font-semibold text-[#191919]">Nouvelle commande</h2>
               <button onClick={onClose} className="p-1.5 rounded-md hover:bg-[#F7F7F5] transition-colors cursor-pointer">
@@ -226,9 +304,9 @@ export default function CreateOrderDrawer({
 
             {/* Content — scrollable */}
             <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-              {/* Client section */}
+              {/* ── Client section ── */}
               <div>
-                <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">Client</div>
+                <div className={LABEL} style={{ marginBottom: "8px" }}>Client</div>
                 <div className="flex items-center gap-2 mb-2">
                   <button
                     onClick={() => setMode("existing")}
@@ -248,7 +326,7 @@ export default function CreateOrderDrawer({
                   <select
                     value={clientId}
                     onChange={(e) => setClientId(e.target.value)}
-                    className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 cursor-pointer"
+                    className={`${INPUT} cursor-pointer`}
                   >
                     <option value="">Sélectionner un client...</option>
                     {clients.map((c) => (
@@ -257,33 +335,44 @@ export default function CreateOrderDrawer({
                   </select>
                 ) : (
                   <div className="space-y-2">
-                    <input type="text" placeholder="Nom du client" value={newClientName} onChange={(e) => setNewClientName(e.target.value)}
-                      className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30" />
-                    <input type="email" placeholder="Email du client" value={newClientEmail} onChange={(e) => setNewClientEmail(e.target.value)}
-                      className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30" />
+                    <input type="text" placeholder="Nom du client" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} className={INPUT} />
+                    <input type="email" placeholder="Email du client" value={newClientEmail} onChange={(e) => setNewClientEmail(e.target.value)} className={INPUT} />
                   </div>
                 )}
               </div>
 
               <div className="h-px bg-[#E6E6E4]" />
 
-              {/* Title */}
+              {/* ── Title ── */}
               <div>
-                <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Titre</label>
+                <label className={LABEL}>Titre</label>
                 <input type="text" placeholder="Ex: Logo redesign, Montage video..."
-                  value={title} onChange={(e) => setTitle(e.target.value)}
-                  className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30" />
+                  value={title} onChange={(e) => setTitle(e.target.value)} className={INPUT} />
               </div>
 
-              {/* Amount + Quantity row */}
+              {/* ── Amount + Quantity ── */}
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Montant (EUR)</label>
-                  <input type="number" placeholder="0" value={amount} onChange={(e) => setAmount(e.target.value)} min={0}
-                    className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30" />
+                  <label className={LABEL}>
+                    Montant (EUR)
+                    {hasLineItems && (
+                      <span className="ml-1.5 text-[9px] font-medium text-[#4F46E5] bg-[#EEF2FF] px-1.5 py-0.5 rounded-full normal-case tracking-normal">
+                        calculé
+                      </span>
+                    )}
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={displayAmount}
+                    onChange={(e) => !hasLineItems && setAmount(e.target.value)}
+                    readOnly={hasLineItems}
+                    min={0}
+                    className={`${INPUT} tabular-nums ${hasLineItems ? "bg-[#EFEFEF] text-[#5A5A58] cursor-default" : ""}`}
+                  />
                 </div>
                 <div className="w-[140px]">
-                  <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Quantité</label>
+                  <label className={LABEL}>Quantité</label>
                   <div className="flex items-center bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg overflow-hidden">
                     <button
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
@@ -312,17 +401,17 @@ export default function CreateOrderDrawer({
                 </p>
               )}
 
-              {/* Deadline + Category row */}
+              {/* ── Deadline + Category ── */}
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Deadline</label>
+                  <label className={LABEL}>Deadline</label>
                   <input type="date" value={deadline} onChange={(e) => setDeadline(e.target.value)}
-                    className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 cursor-pointer" />
+                    className={`${INPUT} cursor-pointer`} />
                 </div>
                 <div className="flex-1">
-                  <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Catégorie</label>
+                  <label className={LABEL}>Catégorie</label>
                   <select value={category} onChange={(e) => setCategory(e.target.value)}
-                    className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] focus:outline-none focus:border-[#4F46E5]/30 cursor-pointer">
+                    className={`${INPUT} cursor-pointer`}>
                     {CATEGORIES.map((c) => (
                       <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
@@ -330,7 +419,110 @@ export default function CreateOrderDrawer({
                 </div>
               </div>
 
-              {/* Toggle more options */}
+              {/* ═══════════════════════════════════════════
+                  SECTION AVANCÉE — Détail des prestations
+                  ═══════════════════════════════════════════ */}
+              <div className="border border-[#E6E6E4] rounded-lg overflow-hidden">
+                <button
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-[#FBFBFA] transition-colors cursor-pointer"
+                >
+                  <div className="flex items-center gap-2">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={showAdvanced ? "#4F46E5" : "#8A8A88"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                      className={`transition-transform ${showAdvanced ? "rotate-90" : ""}`}>
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                    <span className={`text-[13px] font-medium ${showAdvanced ? "text-[#4F46E5]" : "text-[#5A5A58]"}`}>
+                      Détail des prestations
+                    </span>
+                    {hasLineItems && (
+                      <span className="text-[9px] font-bold text-[#4F46E5] bg-[#EEF2FF] px-1.5 py-0.5 rounded-full">
+                        {lineItems.length} ligne{lineItems.length > 1 ? "s" : ""}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-[#BBB]">Lignes de prix, remise, acompte</span>
+                </button>
+
+                <AnimatePresence>
+                  {showAdvanced && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 pb-4 pt-1 space-y-4 border-t border-[#EFEFEF]">
+                        {/* Aide contextuelle */}
+                        {lineItems.length === 0 && (
+                          <p className="text-[11px] text-[#BBB] leading-relaxed">
+                            Ajoutez des lignes pour détailler vos prestations. Le montant total sera calculé automatiquement.
+                          </p>
+                        )}
+
+                        {/* Line items editor */}
+                        <LineItemsEditor
+                          items={lineItems}
+                          onChange={setLineItems}
+                          discount={discount}
+                          onDiscountChange={setDiscount}
+                          deposit={deposit}
+                          onDepositChange={setDeposit}
+                        />
+
+                        <div className="h-px bg-[#EFEFEF]" />
+
+                        {/* Priority */}
+                        <div>
+                          <label className={LABEL}>Priorité</label>
+                          <div className="flex gap-1.5">
+                            {PRIORITIES.map((p) => (
+                              <button
+                                key={p.value}
+                                onClick={() => setPriority(p.value)}
+                                className={`flex-1 text-[11px] py-1.5 rounded-md border transition-colors cursor-pointer ${
+                                  priority === p.value
+                                    ? "bg-[#EEF2FF] border-[#4F46E5]/30 text-[#4F46E5] font-medium"
+                                    : "bg-white border-[#E6E6E4] text-[#8A8A88] hover:border-[#D5D5D3]"
+                                }`}
+                              >
+                                {p.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Notes internes */}
+                        <div>
+                          <label className={LABEL}>Notes internes</label>
+                          <textarea
+                            value={internalNotes}
+                            onChange={(e) => setInternalNotes(e.target.value)}
+                            placeholder="Notes visibles uniquement par vous..."
+                            rows={2}
+                            className={`${INPUT} resize-none`}
+                          />
+                        </div>
+
+                        {/* Source */}
+                        <div>
+                          <label className={LABEL}>Source / Canal</label>
+                          <input
+                            type="text"
+                            value={source}
+                            onChange={(e) => setSource(e.target.value)}
+                            placeholder="Instagram, bouche-à-oreille, site web..."
+                            className={INPUT}
+                          />
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* ── Plus d'options (existing: briefing, resources, ref) ── */}
               <button
                 onClick={() => setShowMore(!showMore)}
                 className="flex items-center gap-1.5 text-[12px] text-[#8A8A88] hover:text-[#5A5A58] transition-colors cursor-pointer"
@@ -344,22 +536,20 @@ export default function CreateOrderDrawer({
 
               {showMore && (
                 <div className="space-y-5">
-                  {/* Briefing */}
                   <div>
-                    <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Briefing</label>
+                    <label className={LABEL}>Briefing</label>
                     <textarea
                       ref={briefingRef}
                       value={briefing}
                       onChange={(e) => setBriefing(e.target.value)}
-                      placeholder="Exigences, style, consignes, inspirations...&#10;Ex: Style minimaliste, couleurs chaudes, format 1920x1080"
+                      placeholder={"Exigences, style, consignes, inspirations...\nEx: Style minimaliste, couleurs chaudes, format 1920x1080"}
                       rows={3}
-                      className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30 resize-none transition-all"
+                      className={`${INPUT} resize-none transition-all`}
                     />
                   </div>
 
-                  {/* Resource links */}
                   <div>
-                    <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Ressources (liens)</label>
+                    <label className={LABEL}>Ressources (liens)</label>
                     {resourceLinks.length > 0 && (
                       <div className="space-y-1.5 mb-2">
                         {resourceLinks.map((link, i) => (
@@ -391,12 +581,11 @@ export default function CreateOrderDrawer({
                     </div>
                   </div>
 
-                  {/* External ref */}
                   <div>
-                    <label className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1.5 block">Référence externe</label>
+                    <label className={LABEL}>Référence externe</label>
                     <input type="text" value={externalRef} onChange={(e) => setExternalRef(e.target.value)}
                       placeholder="ID Notion, Trello, ref client..."
-                      className="w-full text-[13px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-3 py-2 text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:border-[#4F46E5]/30" />
+                      className={INPUT} />
                   </div>
                 </div>
               )}

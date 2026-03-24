@@ -69,6 +69,15 @@ export interface ClientRevenueMonth {
   orders: number;
 }
 
+export interface LineItem {
+  id?: string;
+  label: string;
+  description?: string;
+  quantity: number;
+  unitPrice: number;
+  productId?: string;
+}
+
 export interface Order {
   id: string;
   client: string;
@@ -94,6 +103,7 @@ export interface Order {
   groupIndex?: number;
   groupTotal?: number;
   customFields?: Record<string, unknown>;
+  items?: LineItem[];
 }
 
 /* ─── Board Config Types (dynamic workflow) ─── */
