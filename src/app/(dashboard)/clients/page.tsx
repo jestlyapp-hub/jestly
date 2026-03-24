@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTrack } from "@/lib/hooks/use-track";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
@@ -87,18 +87,60 @@ const SORT_LABELS: Record<SortKey, string> = {
 // ---------------------------------------------------------------------------
 // Page Component
 // ---------------------------------------------------------------------------
+const VALID_TABS: Tab[] = ["active", "archived", "all"];
+const VALID_SORTS: SortKey[] = ["name", "created_at", "last_order_at", "total_revenue"];
+
 export default function ClientsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const track = useTrack();
 
   // Track page view au montage
   useEffect(() => { track("clients_page_viewed"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Data
-  const [tab, setTab] = useState<Tab>("active");
-  const [search, setSearch] = useState("");
-  const [sortKey, setSortKey] = useState<SortKey>("created_at");
-  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  // Lire les filtres depuis l'URL (persistance au retour page)
+  const tabFromUrl = searchParams.get("tab") as Tab | null;
+  const sortFromUrl = searchParams.get("sort") as SortKey | null;
+  const orderFromUrl = searchParams.get("order") as SortOrder | null;
+  const searchFromUrl = searchParams.get("q");
+
+  const [tab, setTabLocal] = useState<Tab>(tabFromUrl && VALID_TABS.includes(tabFromUrl) ? tabFromUrl : "active");
+  const [search, setSearch] = useState(searchFromUrl ?? "");
+  const [sortKey, setSortKeyLocal] = useState<SortKey>(sortFromUrl && VALID_SORTS.includes(sortFromUrl) ? sortFromUrl : "created_at");
+  const [sortOrder, setSortOrderLocal] = useState<SortOrder>(orderFromUrl === "asc" ? "asc" : "desc");
+
+  // Écrire les filtres dans l'URL (sans scroll, sans navigation)
+  const updateUrl = useCallback((updates: Record<string, string | null>) => {
+    const url = new URL(window.location.href);
+    for (const [key, value] of Object.entries(updates)) {
+      if (value === null || value === "") url.searchParams.delete(key);
+      else url.searchParams.set(key, value);
+    }
+    router.replace(url.pathname + url.search, { scroll: false });
+  }, [router]);
+
+  const setTab = (t: Tab) => {
+    setTabLocal(t);
+    updateUrl({ tab: t === "active" ? null : t });
+  };
+  const setSortKey = (k: SortKey) => {
+    setSortKeyLocal(k);
+    updateUrl({ sort: k === "created_at" ? null : k });
+  };
+  const setSortOrder = (o: SortOrder) => {
+    setSortOrderLocal(o);
+    updateUrl({ order: o === "desc" ? null : o });
+  };
+
+  // Persister la recherche dans l'URL (debounce pour ne pas spammer)
+  const searchTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  useEffect(() => {
+    clearTimeout(searchTimerRef.current);
+    searchTimerRef.current = setTimeout(() => {
+      updateUrl({ q: search.trim() || null });
+    }, 400);
+    return () => clearTimeout(searchTimerRef.current);
+  }, [search, updateUrl]);
 
   const apiUrl = useMemo(() => {
     const params = new URLSearchParams();
@@ -109,7 +151,7 @@ export default function ClientsPage() {
     return `/api/clients?${params.toString()}`;
   }, [tab, search, sortKey, sortOrder]);
 
-  const { data: clients, loading, error, mutate } = useApi<ClientRow[]>(apiUrl, []);
+  const { data: clients, loading, error, mutate } = useApi<ClientRow[]>(apiUrl);
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -212,7 +254,8 @@ export default function ClientsPage() {
   // Sort click on column header
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
-      setSortOrder((o) => (o === "asc" ? "desc" : "asc"));
+      const newOrder = sortOrder === "asc" ? "desc" : "asc";
+      setSortOrder(newOrder);
     } else {
       setSortKey(key);
       setSortOrder(key === "name" ? "asc" : "desc");

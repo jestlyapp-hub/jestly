@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
@@ -32,11 +33,11 @@ export default function ArchiveClientDialog({ client, open, onClose, onArchived 
     }
   };
 
-  return (
+  const dialog = (
     <AnimatePresence>
       {open && client && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -77,14 +78,14 @@ export default function ArchiveClientDialog({ client, open, onClose, onArchived 
               <button
                 onClick={onClose}
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 text-[13px] font-medium text-[#5A5A58] bg-white border border-[#E6E6E4] rounded-md hover:bg-[#FBFBFA] transition-colors cursor-pointer"
+                className="flex-1 px-4 py-2.5 text-[13px] font-medium text-[#5A5A58] bg-white border border-[#E6E6E4] rounded-md hover:bg-[#FBFBFA] transition-colors cursor-pointer disabled:cursor-not-allowed"
               >
                 Annuler
               </button>
               <button
                 onClick={handleArchive}
                 disabled={loading}
-                className="flex-1 px-4 py-2.5 text-[13px] font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600 disabled:opacity-40 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                className="flex-1 px-4 py-2.5 text-[13px] font-medium text-white bg-amber-500 rounded-md hover:bg-amber-600 disabled:opacity-40 transition-colors cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {loading && (
                   <svg className="animate-spin h-3.5 w-3.5" viewBox="0 0 24 24" fill="none">
@@ -100,4 +101,11 @@ export default function ArchiveClientDialog({ client, open, onClose, onArchived 
       )}
     </AnimatePresence>
   );
+
+  // Portal vers document.body pour éviter que les transforms CSS
+  // (ex: Framer Motion) ne cassent le positionnement fixed
+  if (typeof document !== "undefined") {
+    return createPortal(dialog, document.body);
+  }
+  return dialog;
 }

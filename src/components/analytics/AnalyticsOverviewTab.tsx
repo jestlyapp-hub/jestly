@@ -24,7 +24,8 @@ interface OverviewTabProps {
 }
 
 export default function AnalyticsOverviewTab({ data, sparkData, orderSparkData, range }: OverviewTabProps) {
-  const { kpis } = data;
+  const { kpis, hasPreviousPeriod } = data;
+  const ch = (v: number) => hasPreviousPeriod ? v : null;
   const [chartType, setChartType] = useState<"area" | "bar" | "line">("area");
   const [chartMetric, setChartMetric] = useState("revenue");
   const [showComparison, setShowComparison] = useState(false);
@@ -53,14 +54,14 @@ export default function AnalyticsOverviewTab({ data, sparkData, orderSparkData, 
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KPICard label="Revenu période" value={fmtEur(kpis.totalRevenue)} change={kpis.revenueChange} icon={DollarSign} sparkData={sparkData} index={0} tooltip="Revenu payé/livré/facturé sur la période sélectionnée" />
-        <KPICard label="Revenu net" value={fmtEur(kpis.netProfit)} change={kpis.profitChange} icon={Wallet} sparkData={sparkData} index={1} tooltip="Revenu payé - remboursements sur la période" />
-        <KPICard label="Commandes payées" value={fmt(kpis.totalOrders)} change={kpis.ordersChange} icon={ShoppingCart} sparkData={orderSparkData} index={2} tooltip="Commandes payées/livrées/facturées sur la période" />
-        <KPICard label="Taux de conversion" value={`${kpis.conversionRate}%`} change={kpis.conversionChange} icon={Target} index={3} tooltip="Commandes payées / total commandes sur la période" />
-        <KPICard label="Panier moyen" value={fmtEur(kpis.avgOrderValue)} change={kpis.aovChange} icon={ShoppingBag} index={4} tooltip="Montant moyen par commande" />
-        <KPICard label="Clients récurrents" value={`${kpis.returningRate}%`} change={0} icon={Repeat} index={5} tooltip="% de clients avec plus d'une commande" />
-        <KPICard label="Taux de remboursement" value={`${kpis.refundRate}%`} change={0} icon={RefreshCw} index={6} tooltip="% de commandes remboursées" />
-        <KPICard label="Clients actifs" value={fmt(kpis.activeClients)} change={kpis.clientsChange} icon={Users} index={7} tooltip="Clients ayant commandé sur la période" />
+        <KPICard label="Revenu période" value={fmtEur(kpis.totalRevenue)} change={ch(kpis.revenueChange)} icon={DollarSign} sparkData={sparkData} index={0} tooltip="Revenu payé/livré/facturé sur la période sélectionnée" />
+        <KPICard label="Revenu net" value={fmtEur(kpis.netProfit)} change={ch(kpis.profitChange)} icon={Wallet} sparkData={sparkData} index={1} tooltip="Revenu payé - remboursements sur la période" />
+        <KPICard label="Commandes finalisées" value={fmt(kpis.totalOrders)} change={ch(kpis.ordersChange)} icon={ShoppingCart} sparkData={orderSparkData} index={2} tooltip="Commandes livrées, facturées ou payées sur la période" />
+        <KPICard label="Taux de conversion" value={`${kpis.conversionRate}%`} change={ch(kpis.conversionChange)} icon={Target} index={3} tooltip="Commandes finalisées / total commandes sur la période" />
+        <KPICard label="Panier moyen" value={fmtEur(kpis.avgOrderValue)} change={ch(kpis.aovChange)} icon={ShoppingBag} index={4} tooltip="Montant moyen par commande" />
+        <KPICard label="Clients récurrents" value={`${kpis.returningRate}%`} change={null} icon={Repeat} index={5} tooltip="% de clients avec plus d'une commande" />
+        <KPICard label="Taux de remboursement" value={`${kpis.refundRate}%`} change={null} icon={RefreshCw} index={6} tooltip="% de commandes remboursées" />
+        <KPICard label="Clients actifs" value={fmt(kpis.activeClients)} change={ch(kpis.clientsChange)} icon={Users} index={7} tooltip="Clients ayant commandé sur la période" />
       </div>
 
       {/* MAIN REVENUE CHART */}
@@ -172,16 +173,23 @@ export default function AnalyticsOverviewTab({ data, sparkData, orderSparkData, 
             </AnimatePresence>
           </Section>
 
-          <Section title="Prévision" icon={Sparkles} delay={0.4} badge={`${data.forecast.confidence}% confiance`}>
-            <div className="text-center">
-              <div className="text-[11px] text-[#999] uppercase tracking-wider mb-1">Revenu estimé prochain mois</div>
-              <div className="text-[28px] font-bold text-[#1A1A1A]">{fmtEur(data.forecast.nextMonth)}</div>
-              <div className={`flex items-center justify-center gap-1 mt-1 text-[12px] font-semibold ${data.forecast.trend === "up" ? "text-emerald-600" : data.forecast.trend === "down" ? "text-red-500" : "text-[#999]"}`}>
-                {data.forecast.trend === "up" ? <TrendingUp size={13} /> : data.forecast.trend === "down" ? <TrendingDown size={13} /> : <Activity size={13} />}
-                Tendance {data.forecast.trend === "up" ? "haussière" : data.forecast.trend === "down" ? "baissière" : "stable"}
-                {data.forecast.avgGrowthRate !== undefined && ` (${data.forecast.avgGrowthRate > 0 ? "+" : ""}${data.forecast.avgGrowthRate}%)`}
+          <Section title="Prévision" icon={Sparkles} delay={0.4} badge={data.forecast.confidence > 0 ? `${data.forecast.confidence}% confiance` : undefined}>
+            {data.forecast.confidence === 0 ? (
+              <div className="text-center py-4">
+                <div className="text-[13px] text-[#8A8A88]">Pas assez de données pour générer une prévision.</div>
+                <div className="text-[11px] text-[#BBB] mt-1">Au moins 2 mois d'historique sont nécessaires.</div>
               </div>
-            </div>
+            ) : (
+              <div className="text-center">
+                <div className="text-[11px] text-[#999] uppercase tracking-wider mb-1">Revenu estimé prochain mois</div>
+                <div className="text-[28px] font-bold text-[#1A1A1A]">{fmtEur(data.forecast.nextMonth)}</div>
+                <div className={`flex items-center justify-center gap-1 mt-1 text-[12px] font-semibold ${data.forecast.trend === "up" ? "text-emerald-600" : data.forecast.trend === "down" ? "text-red-500" : "text-[#999]"}`}>
+                  {data.forecast.trend === "up" ? <TrendingUp size={13} /> : data.forecast.trend === "down" ? <TrendingDown size={13} /> : <Activity size={13} />}
+                  Tendance {data.forecast.trend === "up" ? "haussière" : data.forecast.trend === "down" ? "baissière" : "stable"}
+                  {data.forecast.avgGrowthRate !== undefined && ` (${data.forecast.avgGrowthRate > 0 ? "+" : ""}${data.forecast.avgGrowthRate}%)`}
+                </div>
+              </div>
+            )}
           </Section>
         </div>
       </div>
@@ -189,8 +197,8 @@ export default function AnalyticsOverviewTab({ data, sparkData, orderSparkData, 
       {/* SALES INSIGHTS ROW */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <Section title="Revenu par jour" icon={Calendar} delay={0.45}>
-          {(data.revenueByDay || []).every((d) => d.revenue === 0) ? (
-            <EmptyState message="Aucune donnée" />
+          {(data.revenueByDay || []).filter((d) => d.revenue > 0).length < 2 ? (
+            <EmptyState message="Données insuffisantes pour comparer les jours." />
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={data.revenueByDay || []}>
@@ -210,8 +218,8 @@ export default function AnalyticsOverviewTab({ data, sparkData, orderSparkData, 
         </Section>
 
         <Section title="Revenu par heure" icon={Clock} delay={0.5}>
-          {(data.revenueByHour || []).every((h) => h.revenue === 0) ? (
-            <EmptyState message="Aucune donnée" />
+          {(data.revenueByHour || []).filter((h) => h.revenue > 0).length < 2 ? (
+            <EmptyState message="Données insuffisantes pour comparer les heures." />
           ) : (
             <ResponsiveContainer width="100%" height={200}>
               <AreaChart data={data.revenueByHour || []}>

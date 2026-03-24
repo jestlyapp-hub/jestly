@@ -1,14 +1,14 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { DollarSign, Loader, CheckCircle2 } from "lucide-react";
+import { DollarSign, Loader, CheckCircle2, ClipboardList } from "lucide-react";
 import type { PipelineSummary } from "@/lib/business-metrics";
 import { fmtEurPipeline } from "@/lib/business-metrics";
 
 // ═══════════════════════════════════════════════════════════
 // PipelineSummaryCards — 3 cartes business cohérentes
 //
-// CA total | En cours | Prêtes
+// CA total | À faire | En cours | Prêtes
 //
 // Réutilisé sur : Dashboard, Commandes, Analytics
 // ═══════════════════════════════════════════════════════════
@@ -63,7 +63,7 @@ function PipelineCard({
 
 export default function PipelineSummaryCards({ summary, baseDelay = 0 }: Props) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <PipelineCard
         label="CA total"
         amount={fmtEurPipeline(summary.totalRevenue)}
@@ -73,12 +73,20 @@ export default function PipelineSummaryCards({ summary, baseDelay = 0 }: Props) 
         delay={baseDelay}
       />
       <PipelineCard
+        label="À faire"
+        amount={fmtEurPipeline(summary.todoRevenue)}
+        sub={`${summary.todoCount} en attente`}
+        icon={ClipboardList}
+        color="bg-slate-50 text-slate-600"
+        delay={baseDelay + 0.05}
+      />
+      <PipelineCard
         label="En cours"
         amount={fmtEurPipeline(summary.inProgressRevenue)}
         sub={`${summary.inProgressCount} en production`}
         icon={Loader}
         color="bg-amber-50 text-amber-600"
-        delay={baseDelay + 0.05}
+        delay={baseDelay + 0.1}
       />
       <PipelineCard
         label="Prêtes"
@@ -86,7 +94,7 @@ export default function PipelineSummaryCards({ summary, baseDelay = 0 }: Props) 
         sub={`${summary.readyCount} à facturer`}
         icon={CheckCircle2}
         color="bg-blue-50 text-blue-600"
-        delay={baseDelay + 0.1}
+        delay={baseDelay + 0.15}
       />
     </div>
   );

@@ -26,10 +26,11 @@ export function Sparkline({ data, color = CHART_COLORS.primary, height = 32 }: {
 
 // ── KPI Card ──
 export function KPICard({ label, value, change, icon: Icon, sparkData, index, tooltip }: {
-  label: string; value: string; change: number; icon: React.ElementType; sparkData?: number[]; index: number; tooltip?: string;
+  label: string; value: string; change: number | null; icon: React.ElementType; sparkData?: number[]; index: number; tooltip?: string;
 }) {
   const [showTooltip, setShowTooltip] = useState(false);
-  const isPositive = change >= 0;
+  const hasChange = change !== null && change !== 0;
+  const isPositive = (change ?? 0) >= 0;
   return (
     <motion.div
       className="relative bg-white rounded-xl border border-[#E6E6E4] p-5 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-default group"
@@ -44,7 +45,7 @@ export function KPICard({ label, value, change, icon: Icon, sparkData, index, to
         <div className="flex-1 min-w-0">
           <div className="text-[12px] font-medium text-[#999] uppercase tracking-wider mb-1.5">{label}</div>
           <div className="text-[22px] font-bold text-[#1A1A1A] leading-tight">{value}</div>
-          {change !== 0 && (
+          {hasChange && (
             <div className={`flex items-center gap-1 mt-1.5 text-[12px] font-semibold ${isPositive ? "text-emerald-600" : "text-red-500"}`}>
               {isPositive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
               {fmtPct(change)} vs période préc.

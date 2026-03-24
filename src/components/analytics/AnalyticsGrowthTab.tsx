@@ -44,9 +44,9 @@ export default function AnalyticsGrowthTab({ data }: GrowthTabProps) {
             <span className="text-[11px] font-semibold uppercase tracking-wider text-[#4F46E5]">Croissance</span>
           </div>
           <div className="text-[20px] font-bold text-[#1A1A1A]">
-            {data.forecast.avgGrowthRate !== undefined ? fmtPct(data.forecast.avgGrowthRate) : "—"}
+            {data.forecast.confidence > 0 ? fmtPct(data.forecast.avgGrowthRate ?? 0) : "—"}
           </div>
-          <div className="text-[12px] text-[#999] mt-0.5">Taux moyen</div>
+          <div className="text-[12px] text-[#999] mt-0.5">{data.forecast.confidence > 0 ? "Taux moyen" : "Données insuffisantes"}</div>
         </motion.div>
       </div>
 

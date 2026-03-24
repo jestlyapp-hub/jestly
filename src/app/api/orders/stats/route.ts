@@ -29,8 +29,8 @@ export async function GET() {
       caMonth += amount;
     }
 
-    // En production = new, brief_received, in_progress, in_review
-    if (["new", "brief_received", "in_progress", "in_review"].includes(o.status)) {
+    // En production = brief_received, in_progress, in_review (PAS "new" qui est "à faire")
+    if (["brief_received", "in_progress", "in_review"].includes(o.status)) {
       enProduction += amount;
     }
 

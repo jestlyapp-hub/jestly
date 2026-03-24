@@ -14,15 +14,16 @@ interface ClientsTabProps {
 }
 
 export default function AnalyticsClientsTab({ data }: ClientsTabProps) {
-  const { kpis } = data;
+  const { kpis, hasPreviousPeriod } = data;
+  const ch = (v: number) => hasPreviousPeriod ? v : null;
 
   return (
     <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KPICard label="Nouveaux clients" value={fmt(data.customerAnalytics?.newCustomers ?? 0)} change={data.customerAnalytics?.newCustomersChange ?? 0} icon={UserPlus} index={0} />
-        <KPICard label="Clients récurrents" value={fmt(data.customerAnalytics?.returningCustomers ?? 0)} change={0} icon={UserCheck} index={1} />
-        <KPICard label="Taux de récurrence" value={`${kpis.returningRate}%`} change={0} icon={Repeat} index={2} />
-        <KPICard label="Clients actifs" value={fmt(kpis.activeClients)} change={kpis.clientsChange} icon={Users} index={3} />
+        <KPICard label="Nouveaux clients" value={fmt(data.customerAnalytics?.newCustomers ?? 0)} change={ch(data.customerAnalytics?.newCustomersChange ?? 0)} icon={UserPlus} index={0} />
+        <KPICard label="Clients récurrents" value={fmt(data.customerAnalytics?.returningCustomers ?? 0)} change={null} icon={UserCheck} index={1} />
+        <KPICard label="Taux de récurrence" value={`${kpis.returningRate}%`} change={null} icon={Repeat} index={2} />
+        <KPICard label="Clients actifs" value={fmt(kpis.activeClients)} change={ch(kpis.clientsChange)} icon={Users} index={3} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">

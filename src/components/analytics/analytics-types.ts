@@ -41,6 +41,7 @@ export interface AnalyticsData {
   recentEvents: RecentEvent[];
   insights: string[];
   funnel: { pageViews: number; productViews: number; checkoutsStarted: number; ordersCompleted: number; hasRealData: boolean };
+  hasPreviousPeriod: boolean;
 }
 export interface TimePoint { label: string; revenue: number; orders: number; profit: number }
 export interface ProductPerf { name: string; revenue: number; orders: number; refunds: number; avgPrice: number; refundRate: number; conversionRate: number; revenueShare: number }

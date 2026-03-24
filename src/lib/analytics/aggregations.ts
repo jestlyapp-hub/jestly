@@ -16,6 +16,7 @@ import type {
 } from "./types";
 import { COMPLETED_STATUSES } from "./types";
 import { getGranularity, type DateRange } from "./date-range";
+import { getActiveClientsCount } from "@/lib/business-metrics";
 
 // ── DB Row types (what Supabase actually returns) ──
 export interface OrderRow {
@@ -106,11 +107,10 @@ export function computeKPIs(
   const prevNetProfit = prevRevenue - prevRefundAmount;
   const profitChange = prevNetProfit > 0 ? ((netProfit - prevNetProfit) / prevNetProfit) * 100 : 0;
 
-  // Active clients
-  const uniqueClients = new Set(active.map((o) => o.client_id).filter(Boolean));
-  const activeClients = uniqueClients.size;
-  const prevUniqueClients = new Set(prevActive.map((o) => o.client_id).filter(Boolean));
-  const clientsChange = prevUniqueClients.size > 0 ? ((activeClients - prevUniqueClients.size) / prevUniqueClients.size) * 100 : 0;
+  // Active clients — source de vérité unique (business-metrics.ts)
+  const activeClients = getActiveClientsCount(orders);
+  const prevActiveClients = getActiveClientsCount(prevOrders);
+  const clientsChange = prevActiveClients > 0 ? ((activeClients - prevActiveClients) / prevActiveClients) * 100 : 0;
 
   // Returning customers
   const clientOrderCount = new Map<string, number>();
@@ -232,20 +232,23 @@ export function computeProductPerformance(
   const productMap = new Map(products.map((p) => [p.id, p]));
   const byProduct = new Map<string, { name: string; revenue: number; orders: number; refunds: number }>();
 
-  // Also use order.title as fallback product name when product_id is null
+  // Groupement par product_id quand il existe, sinon par titre normalisé
+  // (les commandes manuelles n'ont pas de product_id)
   active.forEach((o) => {
-    const pid = o.product_id || "no_product";
-    const prod = productMap.get(pid);
+    const prod = o.product_id ? productMap.get(o.product_id) : undefined;
     const name = prod?.name || o.title || "Autre";
-    const entry = byProduct.get(pid) || { name, revenue: 0, orders: 0, refunds: 0 };
+    const key = o.product_id || `title_${name}`;
+    const entry = byProduct.get(key) || { name, revenue: 0, orders: 0, refunds: 0 };
     entry.revenue += num(o.amount);
     entry.orders += 1;
-    byProduct.set(pid, entry);
+    byProduct.set(key, entry);
   });
 
   refunded.forEach((o) => {
-    const pid = o.product_id || "no_product";
-    const entry = byProduct.get(pid);
+    const prod = o.product_id ? productMap.get(o.product_id) : undefined;
+    const name = prod?.name || o.title || "Autre";
+    const key = o.product_id || `title_${name}`;
+    const entry = byProduct.get(key);
     if (entry) entry.refunds += 1;
   });
 
@@ -426,13 +429,15 @@ export function generateInsights(
     insights.push(`${productPerf[0].name} est ton produit le plus performant (${productPerf[0].revenueShare}% du CA)`);
   }
 
-  const bestDay = revenueByDay.reduce((best, d) => (d.revenue > best.revenue ? d : best), revenueByDay[0]);
-  if (bestDay && bestDay.orders > 0) {
+  const daysWithOrders = revenueByDay.filter((d) => d.orders > 0);
+  if (daysWithOrders.length >= 2) {
+    const bestDay = daysWithOrders.reduce((best, d) => (d.revenue > best.revenue ? d : best));
     insights.push(`Ton meilleur jour de vente est le ${bestDay.name}`);
   }
 
-  const bestHour = revenueByHour.reduce((best, h) => (h.revenue > best.revenue ? h : best), revenueByHour[0]);
-  if (bestHour && bestHour.orders > 0) {
+  const hoursWithOrders = revenueByHour.filter((h) => h.orders > 0);
+  if (hoursWithOrders.length >= 2) {
+    const bestHour = hoursWithOrders.reduce((best, h) => (h.revenue > best.revenue ? h : best));
     insights.push(`Tes ventes sont concentrées autour de ${bestHour.hour}`);
   }
 

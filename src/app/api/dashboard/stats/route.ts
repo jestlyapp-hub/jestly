@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
-import { computeOrdersPipelineSummary, isExcludedOrder } from "@/lib/business-metrics";
+import { computeOrdersPipelineSummary, isExcludedOrder, getActiveClientsCount } from "@/lib/business-metrics";
 import { isOrderOverdue, isActiveProductionStatus } from "@/lib/notion-colors";
 
 // GET /api/dashboard/stats — complete dashboard data
@@ -204,7 +204,7 @@ export async function GET() {
     inProgressOrders,
     deliveredOrders,
     paidOrders,
-    clientsCount: clientsRes.count ?? clients.length,
+    clientsCount: getActiveClientsCount(orders),
     newClientsThisMonth,
     activeProductsCount: productsRes.count ?? 0,
     revenueData,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
@@ -46,11 +47,11 @@ export default function DeleteClientDialog({ client, open, onClose, onDeleted }:
     }
   };
 
-  return (
+  const dialog = (
     <AnimatePresence>
       {open && client && (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-[9999] flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -138,4 +139,9 @@ export default function DeleteClientDialog({ client, open, onClose, onDeleted }:
       )}
     </AnimatePresence>
   );
+
+  if (typeof document !== "undefined") {
+    return createPortal(dialog, document.body);
+  }
+  return dialog;
 }

@@ -127,7 +127,7 @@ const AnalyticsExportReport = forwardRef<HTMLDivElement, { data: ExportData }>((
           ════════════════════════════════════ */}
       <div style={{ display: "flex", gap: 10, marginBottom: 10 }}>
         <KpiMini label="Revenu net" value={fmtEur(kpis.netProfit)} change={kpis.profitChange} />
-        <KpiMini label="Commandes payées" value={String(kpis.totalOrders)} change={kpis.ordersChange} />
+        <KpiMini label="Commandes finalisées" value={String(kpis.totalOrders)} change={kpis.ordersChange} />
         <KpiMini label="Taux de conversion" value={pct(kpis.conversionRate)} change={kpis.conversionChange} changeSuffix="pts" />
       </div>
       <div style={{ display: "flex", gap: 10, marginBottom: 24 }}>
@@ -171,7 +171,7 @@ const AnalyticsExportReport = forwardRef<HTMLDivElement, { data: ExportData }>((
       {/* ════════════════════════════════════
           2-COL: Revenue by day + Forecast
           ════════════════════════════════════ */}
-      {(revenueByDay?.some(d => d.revenue > 0) || forecast.nextMonth > 0 || bestMonth) && (
+      {(revenueByDay?.some(d => d.revenue > 0) || (forecast.confidence > 0 && forecast.nextMonth > 0) || bestMonth) && (
         <div style={{ display: "flex", gap: 14, marginBottom: 24 }}>
           {/* Revenue by day */}
           {revenueByDay && revenueByDay.some(d => d.revenue > 0) && (
@@ -191,7 +191,7 @@ const AnalyticsExportReport = forwardRef<HTMLDivElement, { data: ExportData }>((
           )}
           {/* Forecast + Best/Worst */}
           <div style={{ flex: "1 1 0", display: "flex", flexDirection: "column" as const, gap: 10 }}>
-            {forecast.nextMonth > 0 && (
+            {forecast.confidence > 0 && forecast.nextMonth > 0 && (
               <div style={{ padding: "14px 18px", background: "#F9F8FD", border: "1px solid #E8E5F0", borderRadius: 12, flex: 1 }}>
                 <div style={{ fontSize: 10, fontWeight: 600, color: "#888", textTransform: "uppercase" as const, marginBottom: 4 }}>Prévision</div>
                 <div style={{ fontSize: 22, fontWeight: 700, color: "#111" }}>{fmtEur(forecast.nextMonth)}</div>

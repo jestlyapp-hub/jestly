@@ -54,7 +54,7 @@ describe("Business Metrics", () => {
     expect(summary.totalCount).toBe(2);
   });
 
-  it("computeOrdersPipelineSummary separates in_progress and ready", () => {
+  it("computeOrdersPipelineSummary sépare à faire, en cours et prêtes", () => {
     const orders = [
       { status: "new", amount: 100 },
       { status: "in_progress", amount: 200 },
@@ -62,12 +62,31 @@ describe("Business Metrics", () => {
       { status: "paid", amount: 400 },
     ];
     const summary = computeOrdersPipelineSummary(orders);
-    expect(summary.inProgressRevenue).toBe(300); // new + in_progress
-    expect(summary.inProgressCount).toBe(2);
-    expect(summary.readyRevenue).toBe(300); // delivered
+    // "new" = à faire, PAS en cours
+    expect(summary.todoRevenue).toBe(100);
+    expect(summary.todoCount).toBe(1);
+    // "in_progress" = en cours (sans "new")
+    expect(summary.inProgressRevenue).toBe(200);
+    expect(summary.inProgressCount).toBe(1);
+    // "delivered" = prêtes
+    expect(summary.readyRevenue).toBe(300);
     expect(summary.readyCount).toBe(1);
     expect(summary.totalRevenue).toBe(1000);
     expect(summary.totalCount).toBe(4);
+  });
+
+  it("ne compte JAMAIS 'new' dans 'en cours'", () => {
+    const orders = [
+      { status: "new", amount: 500 },
+      { status: "new", amount: 300 },
+      { status: "brief_received", amount: 100 },
+      { status: "in_progress", amount: 200 },
+    ];
+    const summary = computeOrdersPipelineSummary(orders);
+    expect(summary.todoRevenue).toBe(800);
+    expect(summary.todoCount).toBe(2);
+    expect(summary.inProgressRevenue).toBe(300);
+    expect(summary.inProgressCount).toBe(2);
   });
 
   it("fmtEurPipeline formats correctly in FR", () => {

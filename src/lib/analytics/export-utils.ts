@@ -79,7 +79,7 @@ export function downloadCsv(d: ExportData): void {
   L.push("Indicateurs clés");
   L.push(`Métrique${s}Valeur${s}Évolution`);
   L.push(`Revenu net${s}${fmtEur(d.kpis.netProfit)}${s}${d.kpis.profitChange > 0 ? "+" : ""}${Math.round(d.kpis.profitChange)}%`);
-  L.push(`Commandes payées${s}${d.kpis.totalOrders}${s}${d.kpis.ordersChange > 0 ? "+" : ""}${Math.round(d.kpis.ordersChange)}%`);
+  L.push(`Commandes finalisées${s}${d.kpis.totalOrders}${s}${d.kpis.ordersChange > 0 ? "+" : ""}${Math.round(d.kpis.ordersChange)}%`);
   L.push(`Taux de conversion${s}${fmtPct(d.kpis.conversionRate)}${s}${d.kpis.conversionChange > 0 ? "+" : ""}${d.kpis.conversionChange}pts`);
   L.push(`Panier moyen${s}${fmtEur(d.kpis.avgOrderValue)}${s}${d.kpis.aovChange > 0 ? "+" : ""}${Math.round(d.kpis.aovChange)}%`);
   L.push(`Clients récurrents${s}${fmtPct(d.kpis.returningRate)}${s}`);
@@ -123,7 +123,7 @@ export function downloadCsv(d: ExportData): void {
     for (const m of d.monthlyGrowth) L.push(`${m.month}${s}${fmtEur(m.revenue)}${s}${m.orders}${s}${m.revenueGrowth > 0 ? "+" : ""}${m.revenueGrowth}%`);
     L.push("");
   }
-  if (d.forecast.nextMonth > 0) {
+  if (d.forecast.confidence > 0 && d.forecast.nextMonth > 0) {
     L.push("Prévision");
     L.push(`Revenu estimé prochain mois${s}${fmtEur(d.forecast.nextMonth)}`);
     L.push(`Confiance${s}${d.forecast.confidence}%`);

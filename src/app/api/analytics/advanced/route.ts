@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { enrichOrdersWithProducts } from "@/lib/supabase-helpers";
-import { computeOrdersPipelineSummary, isRevenueOrder, getOrderDate } from "@/lib/business-metrics";
+import { computeOrdersPipelineSummary, isRevenueOrder, getOrderDate, getActiveClientsCount } from "@/lib/business-metrics";
 
 // ═══════════════════════════════════════════════════════════
 // GET /api/analytics/advanced
@@ -201,13 +201,10 @@ export async function GET(req: NextRequest) {
       ? Math.round((refundedOrders.length / (activeOrders.length + refundedOrders.length)) * 100 * 10) / 10
       : 0;
 
-    // Active clients
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const uniqueClientIds = new Set(activeOrders.map((o: any) => o.client_id).filter(Boolean));
-    const activeClients = uniqueClientIds.size;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const prevUniqueClients = new Set(prevActiveOrders.map((o: any) => o.client_id).filter(Boolean));
-    const clientsChange = prevUniqueClients.size > 0 ? ((activeClients - prevUniqueClients.size) / prevUniqueClients.size) * 100 : 0;
+    // Active clients — source de vérité unique (business-metrics.ts)
+    const activeClients = getActiveClientsCount(orders);
+    const prevActiveClients = getActiveClientsCount(prevOrders);
+    const clientsChange = prevActiveClients > 0 ? ((activeClients - prevActiveClients) / prevActiveClients) * 100 : 0;
 
     // Returning customers
     const clientOrderCount = new Map<string, number>();
@@ -288,12 +285,14 @@ export async function GET(req: NextRequest) {
     revenueByHour.forEach((h) => { h.revenue = Math.round(h.revenue * 100) / 100; });
 
     // ── Product Performance (basée sur paidOrders = REVENUE_STATUSES) ──
+    // Groupement par product_id quand il existe, sinon par titre normalisé
+    // (les commandes manuelles n'ont pas de product_id)
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const byProduct = new Map<string, { name: string; revenue: number; orders: number; refunds: number }>();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     paidOrders.forEach((o: any) => {
-      const key = o.product_id || "no_product";
       const name = o.products?.name || o.title || "Sans produit";
+      const key = o.product_id || `title_${name}`;
       const entry = byProduct.get(key) || { name, revenue: 0, orders: 0, refunds: 0 };
       entry.revenue += num(o.amount);
       entry.orders += 1;
@@ -301,7 +300,8 @@ export async function GET(req: NextRequest) {
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     refundedOrders.forEach((o: any) => {
-      const key = o.product_id || "no_product";
+      const name = o.products?.name || o.title || "Sans produit";
+      const key = o.product_id || `title_${name}`;
       const entry = byProduct.get(key);
       if (entry) entry.refunds += 1;
     });

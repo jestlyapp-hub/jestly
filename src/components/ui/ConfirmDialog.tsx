@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -46,7 +47,7 @@ export default function ConfirmDialog({
 
   const isDanger = variant === "danger";
 
-  return (
+  const dialog = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center">
       {/* Overlay */}
       <div
@@ -68,7 +69,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={loading}
-            className="px-4 py-2 text-[13px] font-medium text-[#5A5A58] bg-white border border-[#E6E6E4] rounded-md hover:bg-[#F7F7F5] transition-colors disabled:opacity-50"
+            className="px-4 py-2 text-[13px] font-medium text-[#5A5A58] bg-white border border-[#E6E6E4] rounded-md hover:bg-[#F7F7F5] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {cancelLabel}
           </button>
@@ -77,7 +78,7 @@ export default function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={loading}
-            className={`px-4 py-2 text-[13px] font-medium text-white rounded-md transition-colors disabled:opacity-60 ${
+            className={`px-4 py-2 text-[13px] font-medium text-white rounded-md transition-colors cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed ${
               isDanger
                 ? "bg-red-600 hover:bg-red-700"
                 : "bg-[#4F46E5] hover:bg-[#4338CA]"
@@ -111,4 +112,11 @@ export default function ConfirmDialog({
       </div>
     </div>
   );
+
+  // Portal vers document.body pour éviter que les transforms CSS
+  // (ex: Framer Motion) ne cassent le positionnement fixed
+  if (typeof document !== "undefined") {
+    return createPortal(dialog, document.body);
+  }
+  return dialog;
 }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { getActiveClientsCount } from "@/lib/business-metrics";
 
 // GET /api/billing/stats — KPIs for the billing cockpit
 export async function GET() {
@@ -8,12 +9,19 @@ export async function GET() {
   const { user, supabase } = auth;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: items, error } = await (supabase.from("billing_items") as any)
-    .select("status, total, total_ttc, client_id, performed_at")
-    .eq("user_id", user.id)
-    .neq("status", "cancelled");
+  const [itemsRes, ordersRes] = await Promise.all([
+    (supabase.from("billing_items") as any)
+      .select("status, total, total_ttc, client_id, performed_at")
+      .eq("user_id", user.id)
+      .neq("status", "cancelled"),
+    // Commandes pour le calcul unifié des clients actifs
+    (supabase.from("orders") as any)
+      .select("client_id, status")
+      .eq("user_id", user.id),
+  ]);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (itemsRes.error) return NextResponse.json({ error: itemsRes.error.message }, { status: 500 });
+  const items = itemsRes.data;
 
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
@@ -26,7 +34,6 @@ export async function GET() {
   let exportedHt = 0;
   let invoicedHt = 0;
   let monthHt = 0;
-  const clientIds = new Set<string>();
   let itemCount = 0;
   let draftCount = 0;
   let readyCount = 0;
@@ -38,8 +45,6 @@ export async function GET() {
     totalHt += ht;
     totalTtc += ttc;
     itemCount++;
-
-    if (item.client_id) clientIds.add(item.client_id);
 
     // Month filter
     const perf = item.performed_at;
@@ -75,7 +80,7 @@ export async function GET() {
     exportedHt,
     invoicedHt,
     monthHt,
-    activeClients: clientIds.size,
+    activeClients: getActiveClientsCount(ordersRes.data || []),
     itemCount,
     draftCount,
     readyCount,

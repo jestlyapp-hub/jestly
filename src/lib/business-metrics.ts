@@ -18,7 +18,11 @@ export interface PipelineSummary {
   totalRevenue: number;
   /** Nombre total de commandes actives */
   totalCount: number;
-  /** Montant des commandes en cours de production (new, brief_received, in_progress, in_review, validated) */
+  /** Montant des commandes à faire (new) */
+  todoRevenue: number;
+  /** Nombre de commandes à faire */
+  todoCount: number;
+  /** Montant des commandes en cours de production (brief_received, in_progress, in_review, validated) */
   inProgressRevenue: number;
   /** Nombre de commandes en production */
   inProgressCount: number;
@@ -54,13 +58,17 @@ export const getOrderDate = (order: { paid_at?: string | null; created_at: strin
   order.paid_at || order.created_at;
 
 // ── Statuts métier pipeline (basés sur billing-utils.ts) ──
-// "in_progress" pipeline = new, brief_received, in_progress, in_review, validated
+// "todo" pipeline        = new (commandes à faire, PAS en cours)
+// "in_progress" pipeline = brief_received, in_progress, in_review, validated
 // "ready" pipeline       = delivered
-// "invoiced"/"paid"      = déjà facturées — incluses dans CA total mais pas dans "en cours" ni "prêtes"
+// "invoiced"/"paid"      = déjà facturées — incluses dans CA total mais pas dans "à faire" ni "en cours" ni "prêtes"
 // "cancelled"/"refunded"/"dispute" = exclues
 
-const IN_PROGRESS_STATUSES: Set<OrderStatus> = new Set([
+const TODO_STATUSES: Set<OrderStatus> = new Set([
   "new",
+]);
+
+const IN_PROGRESS_STATUSES: Set<OrderStatus> = new Set([
   "brief_received",
   "in_progress",
   "in_review",
@@ -86,6 +94,8 @@ export function computeOrdersPipelineSummary(
 ): PipelineSummary {
   let totalRevenue = 0;
   let totalCount = 0;
+  let todoRevenue = 0;
+  let todoCount = 0;
   let inProgressRevenue = 0;
   let inProgressCount = 0;
   let readyRevenue = 0;
@@ -101,24 +111,54 @@ export function computeOrdersPipelineSummary(
     totalCount += 1;
 
     const st = o.status as OrderStatus;
-    if (IN_PROGRESS_STATUSES.has(st)) {
+    if (TODO_STATUSES.has(st)) {
+      todoRevenue += amt;
+      todoCount += 1;
+    } else if (IN_PROGRESS_STATUSES.has(st)) {
       inProgressRevenue += amt;
       inProgressCount += 1;
     } else if (READY_STATUSES.has(st)) {
       readyRevenue += amt;
       readyCount += 1;
     }
-    // invoiced + paid = comptés dans CA total mais ni en cours ni prêtes
+    // invoiced + paid = comptés dans CA total mais ni à faire ni en cours ni prêtes
   }
 
   return {
     totalRevenue: Math.round(totalRevenue * 100) / 100,
     totalCount,
+    todoRevenue: Math.round(todoRevenue * 100) / 100,
+    todoCount,
     inProgressRevenue: Math.round(inProgressRevenue * 100) / 100,
     inProgressCount,
     readyRevenue: Math.round(readyRevenue * 100) / 100,
     readyCount,
   };
+}
+
+// ═══════════════════════════════════════════════════════════
+// CLIENTS ACTIFS — Source de vérité unique
+//
+// Client actif = client avec au moins 1 commande active
+// (non annulée/remboursée/litige)
+// Utilisé par : Dashboard, Analytics, Facturation
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * Compte les clients actifs à partir d'un tableau de commandes.
+ * Client actif = client_id unique ayant au moins 1 commande
+ * dont le statut n'est PAS cancelled/refunded/dispute.
+ */
+export function getActiveClientsCount(
+  orders: { client_id?: string | null; status: string }[],
+): number {
+  const activeClientIds = new Set<string>();
+  for (const o of orders) {
+    if (o.client_id && !isExcludedOrder(o.status)) {
+      activeClientIds.add(o.client_id);
+    }
+  }
+  return activeClientIds.size;
 }
 
 // ── Format helpers ──
