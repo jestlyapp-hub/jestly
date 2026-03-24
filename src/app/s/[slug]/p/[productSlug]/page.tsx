@@ -1,6 +1,6 @@
 import { headers } from "next/headers";
 import { getSiteBySlug } from "@/lib/site-resolver";
-import { getPublicProductBySlug } from "@/lib/product-resolver";
+import { getPublicProductBySlug, getProductStatusBySlug } from "@/lib/product-resolver";
 import { createClient } from "@/lib/supabase/server";
 import type { Metadata } from "next";
 import ProductPublicPage from "@/components/site-public/ProductPublicPage";
@@ -9,7 +9,7 @@ export const revalidate = 60;
 
 async function resolveProduct(slug: string, productSlug: string) {
   const site = await getSiteBySlug(slug);
-  if (!site) return { site: null, product: null };
+  if (!site) return { site: null, product: null, existsButNotActive: false };
 
   try {
     const supabase = await createClient();
@@ -19,12 +19,22 @@ async function resolveProduct(slug: string, productSlug: string) {
       .eq("slug", slug)
       .single();
 
-    if (!dbSite) return { site, product: null };
+    if (!dbSite) return { site, product: null, existsButNotActive: false };
 
     const product = await getPublicProductBySlug(productSlug, dbSite.owner_id);
-    return { site, product };
+    if (product) return { site, product, existsButNotActive: false };
+
+    // Product not active — check if it exists with another status
+    const status = await getProductStatusBySlug(productSlug, dbSite.owner_id);
+    if (status && status !== "active") {
+      console.log(`[product-public] slug=${productSlug} status=${status} reason=not_active`);
+      return { site, product: null, existsButNotActive: true };
+    }
+
+    console.log(`[product-public] slug=${productSlug} reason=not_found`);
+    return { site, product: null, existsButNotActive: false };
   } catch {
-    return { site, product: null };
+    return { site, product: null, existsButNotActive: false };
   }
 }
 
@@ -60,7 +70,7 @@ export default async function PublicProductPage({
   const hdrs = await headers();
   const isSubdomain = hdrs.get("x-subdomain-mode") === "1";
   const backHref = isSubdomain ? "/" : `/s/${slug}`;
-  const { site, product } = await resolveProduct(slug, productSlug);
+  const { site, product, existsButNotActive } = await resolveProduct(slug, productSlug);
 
   if (!site) {
     return (
@@ -89,10 +99,39 @@ export default async function PublicProductPage({
     );
   }
 
+  // ── Offre non disponible (existe en draft/archived) ──
+  if (!product && existsButNotActive) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAF9]">
+        <div className="text-center max-w-md px-6">
+          <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-amber-50 flex items-center justify-center">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          </div>
+          <h1 className="text-xl font-semibold text-[#191919] mb-2">Offre non disponible</h1>
+          <p className="text-sm text-[#5A5A58] leading-relaxed mb-6">
+            Cette offre existe mais n&apos;est pas encore disponible publiquement.
+            <br />
+            Elle sera accessible dès sa publication par le créateur.
+          </p>
+          <div className="flex items-center justify-center gap-3">
+            <a href={backHref} className="inline-flex items-center gap-1.5 text-sm font-medium text-[#4F46E5] hover:underline">
+              &larr; Retour au site
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Offre introuvable (slug invalide / supprimée) ──
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
+        <div className="text-center max-w-md px-6">
           <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#F7F7F5] flex items-center justify-center">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8A8A88" strokeWidth="1.5">
               <circle cx="12" cy="12" r="10" />
@@ -101,8 +140,12 @@ export default async function PublicProductPage({
             </svg>
           </div>
           <h1 className="text-xl font-semibold text-[#191919] mb-2">Offre introuvable</h1>
-          <p className="text-sm text-[#8A8A88]">Cette offre n&apos;existe pas ou n&apos;est plus disponible.</p>
-          <a href={backHref} className="inline-block mt-6 text-sm font-medium text-[#4F46E5] hover:underline">&larr; Retour au site</a>
+          <p className="text-sm text-[#8A8A88] mb-6">
+            Cette offre n&apos;existe pas ou a été supprimée.
+          </p>
+          <a href={backHref} className="inline-flex items-center gap-1.5 text-sm font-medium text-[#4F46E5] hover:underline">
+            &larr; Retour au site
+          </a>
         </div>
       </div>
     );

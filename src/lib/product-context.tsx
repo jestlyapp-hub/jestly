@@ -9,7 +9,7 @@ interface ProductContextValue {
   siteId?: string;
 }
 
-const ProductContext = createContext<ProductContextValue>({
+export const ProductContext = createContext<ProductContextValue>({
   products: new Map(),
   isPublic: false,
 });

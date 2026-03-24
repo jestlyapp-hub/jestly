@@ -91,4 +91,25 @@ export async function getPublicProductsBySiteId(siteId: string): Promise<Product
   }
 }
 
+/**
+ * Check if a product exists by slug (any status) — used to distinguish
+ * "not found" (wrong slug) from "not available" (draft/archived).
+ * Returns the status if found, null if truly nonexistent.
+ */
+export async function getProductStatusBySlug(slug: string, siteOwnerId: string): Promise<string | null> {
+  try {
+    const supabase = await createClient();
+    const { data } = await (supabase.from("products") as any)
+      .select("status")
+      .eq("slug", slug)
+      .eq("owner_id", siteOwnerId)
+      .single();
+
+    if (!data) return null;
+    return data.status;
+  } catch {
+    return null;
+  }
+}
+
 /* eslint-enable @typescript-eslint/no-explicit-any */

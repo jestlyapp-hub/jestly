@@ -1,7 +1,7 @@
 "use client";
 
-import { memo, useState } from "react";
-import { useProductsByIds } from "@/lib/product-context";
+import { memo, useState, useContext } from "react";
+import { useProductsByIds, ProductContext } from "@/lib/product-context";
 import { formatPrice } from "@/lib/productTypes";
 import SmartLinkButton from "@/components/site-public/SmartLinkButton";
 
@@ -15,13 +15,37 @@ interface ProductCardsGridBlockContent {
 
 function ProductCardsGridBlockPreviewInner({ content }: { content: ProductCardsGridBlockContent }) {
   const products = useProductsByIds(content.productIds);
+  const { isPublic } = useContext(ProductContext);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   if (products.length === 0) {
+    // Public site: friendly "coming soon" message
+    if (isPublic) {
+      return (
+        <div className="py-12 text-center">
+          <div className="text-[15px] font-medium" style={{ color: "var(--site-text, #191919)" }}>Offres bientôt disponibles</div>
+          <div className="text-[13px] mt-1.5" style={{ color: "var(--site-muted, #999)" }}>Nous préparons actuellement nos offres. Revenez bientôt.</div>
+        </div>
+      );
+    }
+    // Builder: warning with guidance
+    const hasDraftIds = content.productIds.length > 0;
     return (
       <div className="py-8 text-center">
-        <div className="text-[13px]" style={{ color: "var(--site-muted, #999)" }}>Aucun produit sélectionné</div>
-        <div className="text-[11px] mt-1" style={{ color: "var(--site-muted, #ccc)" }}>Ajoutez des produits depuis l&apos;onglet Contenu</div>
+        {hasDraftIds ? (
+          <>
+            <div className="inline-flex items-center gap-1.5 text-[13px] font-medium text-amber-700 bg-amber-50 px-3 py-1.5 rounded-lg mb-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+              Aucune offre publiée dans ce bloc
+            </div>
+            <div className="text-[11px]" style={{ color: "var(--site-muted, #999)" }}>Les produits en brouillon ne sont pas visibles sur votre site public.</div>
+          </>
+        ) : (
+          <>
+            <div className="text-[13px]" style={{ color: "var(--site-muted, #999)" }}>Aucun produit sélectionné</div>
+            <div className="text-[11px] mt-1" style={{ color: "var(--site-muted, #ccc)" }}>Ajoutez des produits depuis l&apos;onglet Contenu</div>
+          </>
+        )}
       </div>
     );
   }
