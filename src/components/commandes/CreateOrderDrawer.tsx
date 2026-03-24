@@ -367,51 +367,46 @@ export default function CreateOrderDrawer({
               </div>
 
               {/* ── Amount + Quantity ── */}
-              <div className="flex gap-3">
-                <div className="flex-1">
-                  <label className={LABEL}>
-                    Montant (EUR)
-                    {hasLineItems && (
-                      <span className="ml-1.5 text-[9px] font-medium text-[#4F46E5] bg-[#EEF2FF] px-1.5 py-0.5 rounded-full normal-case tracking-normal">
-                        calculé
-                      </span>
-                    )}
-                  </label>
-                  <input
-                    type="number"
-                    placeholder="0"
-                    value={displayAmount}
-                    onChange={(e) => !hasLineItems && setAmount(e.target.value)}
-                    readOnly={hasLineItems}
-                    min={0}
-                    className={`${INPUT} tabular-nums ${hasLineItems ? "bg-[#EFEFEF] text-[#5A5A58] cursor-default" : ""}`}
-                  />
-                </div>
-                <div className="w-[140px]">
-                  <label className={LABEL}>Quantité</label>
-                  <div className="flex items-center bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg overflow-hidden">
-                    <button
-                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      className="px-2.5 py-2 text-[#5A5A58] hover:bg-[#EFEFEF] transition-colors cursor-pointer text-[15px] font-medium"
-                    >
-                      -
-                    </button>
+              {/* Masqué en mode avancé : le montant est calculé, la quantité est par ligne */}
+              {!hasLineItems && (
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <label className={LABEL}>Montant (EUR)</label>
                     <input
-                      type="number" min={1} max={50} value={quantity}
-                      onChange={(e) => setQuantity(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
-                      className="w-full text-center text-[13px] bg-transparent border-0 py-2 text-[#191919] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      type="number"
+                      placeholder="0"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      min={0}
+                      className={`${INPUT} tabular-nums`}
                     />
-                    <button
-                      onClick={() => setQuantity((q) => Math.min(50, q + 1))}
-                      className="px-2.5 py-2 text-[#5A5A58] hover:bg-[#EFEFEF] transition-colors cursor-pointer text-[15px] font-medium"
-                    >
-                      +
-                    </button>
+                  </div>
+                  <div className="w-[140px]">
+                    <label className={LABEL}>Quantité</label>
+                    <div className="flex items-center bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg overflow-hidden">
+                      <button
+                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                        className="px-2.5 py-2 text-[#5A5A58] hover:bg-[#EFEFEF] transition-colors cursor-pointer text-[15px] font-medium"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number" min={1} max={50} value={quantity}
+                        onChange={(e) => setQuantity(Math.max(1, Math.min(50, parseInt(e.target.value) || 1)))}
+                        className="w-full text-center text-[13px] bg-transparent border-0 py-2 text-[#191919] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <button
+                        onClick={() => setQuantity((q) => Math.min(50, q + 1))}
+                        className="px-2.5 py-2 text-[#5A5A58] hover:bg-[#EFEFEF] transition-colors cursor-pointer text-[15px] font-medium"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
-              {quantity > 1 && (
+              {!hasLineItems && quantity > 1 && (
                 <p className="text-[11px] text-[#8A8A88] -mt-2">
                   {quantity} commandes seront créées : &ldquo;{title || "..."} (1/{quantity})&rdquo; à &ldquo;({quantity}/{quantity})&rdquo;
                 </p>
@@ -471,38 +466,36 @@ export default function CreateOrderDrawer({
                     >
                       <div className="px-4 pb-4 pt-1 space-y-4 border-t border-[#EFEFEF]">
                         {/* Mode selector — groupé vs séparé */}
-                        {lineItems.length > 0 && (
-                          <div>
-                            <label className={LABEL}>Mode de création</label>
-                            <div className="flex rounded-lg border border-[#E6E6E4] overflow-hidden">
-                              <button
-                                onClick={() => setSplitMode("grouped")}
-                                className={`flex-1 text-[12px] py-2 px-3 transition-colors cursor-pointer ${
-                                  splitMode === "grouped"
-                                    ? "bg-[#4F46E5] text-white font-medium"
-                                    : "bg-white text-[#5A5A58] hover:bg-[#FBFBFA]"
-                                }`}
-                              >
-                                Commande groupée
-                              </button>
-                              <button
-                                onClick={() => setSplitMode("split")}
-                                className={`flex-1 text-[12px] py-2 px-3 border-l border-[#E6E6E4] transition-colors cursor-pointer ${
-                                  splitMode === "split"
-                                    ? "bg-[#4F46E5] text-white font-medium"
-                                    : "bg-white text-[#5A5A58] hover:bg-[#FBFBFA]"
-                                }`}
-                              >
-                                Commandes séparées
-                              </button>
-                            </div>
-                            <p className="text-[10px] text-[#BBB] mt-1.5 leading-relaxed">
-                              {splitMode === "grouped"
-                                ? "Crée une seule commande avec le détail des prestations."
-                                : "Crée une commande distincte pour chaque prestation × quantité."}
-                            </p>
+                        <div>
+                          <label className={LABEL}>Mode de création</label>
+                          <div className="flex rounded-lg border border-[#E6E6E4] overflow-hidden">
+                            <button
+                              onClick={() => setSplitMode("grouped")}
+                              className={`flex-1 text-[12px] py-2.5 px-3 transition-colors cursor-pointer font-medium ${
+                                splitMode === "grouped"
+                                  ? "bg-[#4F46E5] text-white"
+                                  : "bg-white text-[#5A5A58] hover:bg-[#FBFBFA]"
+                              }`}
+                            >
+                              Une commande groupée
+                            </button>
+                            <button
+                              onClick={() => setSplitMode("split")}
+                              className={`flex-1 text-[12px] py-2.5 px-3 border-l border-[#E6E6E4] transition-colors cursor-pointer font-medium ${
+                                splitMode === "split"
+                                  ? "bg-[#4F46E5] text-white"
+                                  : "bg-white text-[#5A5A58] hover:bg-[#FBFBFA]"
+                              }`}
+                            >
+                              Commandes séparées
+                            </button>
                           </div>
-                        )}
+                          <p className="text-[10px] text-[#BBB] mt-1.5 leading-relaxed">
+                            {splitMode === "grouped"
+                              ? "Crée une seule commande. Les prestations sont conservées comme détail interne."
+                              : "Chaque prestation × quantité crée sa propre commande dans votre liste."}
+                          </p>
+                        </div>
 
                         {/* Aide contextuelle */}
                         {lineItems.length === 0 && (
