@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import { toast } from "@/lib/hooks/use-toast";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useConfirm } from "@/lib/hooks/use-confirm";
 import { dbToProduct } from "@/lib/adapters";
@@ -183,17 +184,24 @@ function Spinner() {
   return <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>;
 }
 
-function OfferCard({ product, index, onDuplicate, onArchive, onDelete }: {
+function OfferCard({ product, index, onDuplicate, onArchive, onDelete, onTogglePublish }: {
   product: Product; index: number;
   onDuplicate: (id: string) => void; onArchive: (id: string) => void; onDelete: (id: string) => void;
+  onTogglePublish: (id: string, newStatus: "active" | "draft") => void;
 }) {
   const router = useRouter();
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const handleDuplicate = async () => { setActionLoading("duplicate"); try { await onDuplicate(product.id); } finally { setActionLoading(null); } };
   const handleArchive = async () => { setActionLoading("archive"); try { await onArchive(product.id); } finally { setActionLoading(null); } };
   const handleDelete = async () => { setShowDeleteConfirm(false); setActionLoading("delete"); try { await onDelete(product.id); } finally { setActionLoading(null); } };
+  const handleTogglePublish = async () => {
+    const newStatus = product.status === "active" ? "draft" : "active";
+    setActionLoading("publish");
+    try { await onTogglePublish(product.id, newStatus); } finally { setActionLoading(null); }
+  };
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const badge = STATUS_BADGES[product.status] || STATUS_BADGES.draft;
+  const isDraft = product.status === "draft";
 
   return (
     <motion.div className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden hover:shadow-sm hover:border-[#D0D0CE] transition-all group" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: index * 0.03, ease: "easeOut" as const }}>
@@ -222,16 +230,36 @@ function OfferCard({ product, index, onDuplicate, onArchive, onDelete }: {
           </div>
         </div>
       </div>
+      {/* Draft banner */}
+      {isDraft && (
+        <div className="bg-amber-50 border-t border-amber-200 px-3 py-2 flex items-center justify-between gap-2">
+          <span className="text-[11px] text-amber-700">Non visible sur votre site public.</span>
+          <button
+            onClick={handleTogglePublish}
+            disabled={actionLoading === "publish"}
+            className="text-[11px] font-semibold text-white bg-emerald-500 hover:bg-emerald-600 px-3 py-1 rounded-md transition-colors disabled:opacity-50 cursor-pointer whitespace-nowrap"
+          >
+            {actionLoading === "publish" ? "..." : "Publier"}
+          </button>
+        </div>
+      )}
       <div className="border-t border-[#E6E6E4] px-3 py-1.5 flex items-center">
         <button data-guide="product-edit-btn" onClick={() => router.push(`/produits/${product.id}`)} className="flex-1 flex items-center justify-center gap-1 text-[11px] font-medium text-[#5A5A58] hover:text-[#4F46E5] py-1.5 rounded-md hover:bg-[#F7F7F5] transition-all">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
           Éditer
         </button>
         <div className="w-px h-3.5 bg-[#E6E6E4]" />
-        <button onClick={handleDuplicate} disabled={actionLoading === "duplicate"} className="flex-1 flex items-center justify-center gap-1 text-[11px] font-medium text-[#5A5A58] hover:text-[#4F46E5] py-1.5 rounded-md hover:bg-[#F7F7F5] transition-all disabled:opacity-50">
-          {actionLoading === "duplicate" ? <Spinner /> : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>}
-          Dupliquer
-        </button>
+        {product.status === "active" ? (
+          <button onClick={handleTogglePublish} disabled={actionLoading === "publish"} className="flex-1 flex items-center justify-center gap-1 text-[11px] font-medium text-[#5A5A58] hover:text-amber-600 py-1.5 rounded-md hover:bg-amber-50/50 transition-all disabled:opacity-50">
+            {actionLoading === "publish" ? <Spinner /> : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" /><line x1="1" y1="1" x2="23" y2="23" /></svg>}
+            Dépublier
+          </button>
+        ) : (
+          <button onClick={handleDuplicate} disabled={actionLoading === "duplicate"} className="flex-1 flex items-center justify-center gap-1 text-[11px] font-medium text-[#5A5A58] hover:text-[#4F46E5] py-1.5 rounded-md hover:bg-[#F7F7F5] transition-all disabled:opacity-50">
+            {actionLoading === "duplicate" ? <Spinner /> : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" /></svg>}
+            Dupliquer
+          </button>
+        )}
         <div className="w-px h-3.5 bg-[#E6E6E4]" />
         <button onClick={handleArchive} disabled={actionLoading === "archive"} className="flex-1 flex items-center justify-center gap-1 text-[11px] font-medium text-[#5A5A58] hover:text-amber-600 py-1.5 rounded-md hover:bg-amber-50/50 transition-all disabled:opacity-50">
           {actionLoading === "archive" ? <Spinner /> : <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="21 8 21 21 3 21 3 8" /><rect x="1" y="3" width="22" height="5" /><line x1="10" y1="12" x2="14" y2="12" /></svg>}
@@ -437,6 +465,11 @@ export default function OffresPage() {
   const handleDuplicate = async (id: string) => { await apiFetch(`/api/products/${id}/duplicate`, { method: "POST" }); mutateProducts(); };
   const handleArchive = async (id: string) => { await apiFetch(`/api/products/${id}/archive`, { method: "POST" }); mutateProducts(); };
   const handleDelete = async (id: string) => { await apiFetch(`/api/products/${id}`, { method: "DELETE" }); mutateProducts(); };
+  const handleTogglePublish = async (id: string, newStatus: "active" | "draft") => {
+    await apiFetch(`/api/products/${id}`, { method: "PATCH", body: { status: newStatus } });
+    toast.success(newStatus === "active" ? "Offre publiée — visible sur votre site" : "Offre dépubliée — masquée du site public");
+    mutateProducts();
+  };
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -496,11 +529,30 @@ export default function OffresPage() {
         </motion.div>
       )}
 
+      {/* Warning: all products are draft */}
+      {!productsLoading && products.length > 0 && products.every(p => p.status !== "active") && (
+        <motion.div
+          className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4 flex items-start gap-3"
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 flex-shrink-0">
+            <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+          </svg>
+          <div>
+            <p className="text-[13px] font-semibold text-amber-800">Aucune offre publiée</p>
+            <p className="text-[11px] text-amber-700 mt-0.5">
+              Toutes vos offres sont en brouillon. Elles ne sont pas visibles sur votre site public.
+              Publiez au moins une offre pour qu'elle apparaisse à vos visiteurs.
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       {/* Offers grid */}
       {!productsLoading && !productsError && products.length > 0 && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
           {products.map((p, i) => (
-            <OfferCard key={p.id} product={p} index={i} onDuplicate={handleDuplicate} onArchive={handleArchive} onDelete={handleDelete} />
+            <OfferCard key={p.id} product={p} index={i} onDuplicate={handleDuplicate} onArchive={handleArchive} onDelete={handleDelete} onTogglePublish={handleTogglePublish} />
           ))}
         </div>
       )}
