@@ -14,7 +14,7 @@ function FaqAccordionFullBlockPreview({ content }: { content: FaqAccordionFullBl
       <div className="max-w-3xl mx-auto">
         {content.title && (
           <h2
-            className="text-3xl font-bold text-center mb-3"
+            className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-3"
             style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}

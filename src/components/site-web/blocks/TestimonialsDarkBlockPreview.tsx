@@ -26,7 +26,7 @@ function TestimonialsDarkBlockPreviewInner({ content }: { content: TestimonialsD
       {/* Title */}
       {content.title && (
         <h2
-          className="text-3xl font-bold tracking-tight text-center mb-12"
+          className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight text-center mb-12"
           style={{ color: "var(--site-text)", fontFamily: "var(--site-heading-font)" }}
         >
           {content.title}

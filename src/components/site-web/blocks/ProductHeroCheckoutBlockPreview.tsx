@@ -69,7 +69,7 @@ function ProductHeroCheckoutBlockPreviewInner({ content }: { content: ProductHer
 
   // Layout: left — text on left, image placeholder on right
   return (
-    <div className="py-8 flex gap-8 items-center">
+    <div className="py-8 flex flex-col md:flex-row gap-4 sm:gap-8 items-center">
       <div className="flex-1">
         <h2 className="text-2xl font-bold mb-2" style={{ color: "var(--site-text, #191919)" }}>{product.name}</h2>
         <p className="text-[13px] mb-3" style={{ color: "var(--site-muted, #999)" }}>{product.shortDescription}</p>

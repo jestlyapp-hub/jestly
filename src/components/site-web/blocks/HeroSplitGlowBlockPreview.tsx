@@ -9,7 +9,7 @@ function HeroSplitGlowBlockPreviewInner({ content }: { content: HeroSplitGlowBlo
 
   return (
     <section
-      className="relative overflow-hidden py-20 px-8"
+      className="relative overflow-hidden py-12 sm:py-20 px-4 sm:px-8"
     >
       {/* Radial glow background */}
       <div
@@ -19,11 +19,11 @@ function HeroSplitGlowBlockPreviewInner({ content }: { content: HeroSplitGlowBlo
         }}
       />
       <div
-        className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none blur-[120px] opacity-30"
+        className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[250px] h-[250px] sm:w-[500px] sm:h-[500px] rounded-full pointer-events-none blur-[120px] opacity-30"
         style={{ background: glow }}
       />
 
-      <div className="relative z-10 max-w-6xl mx-auto flex items-center gap-16">
+      <div className="relative z-10 max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-8 sm:gap-16">
         {/* Left — Text */}
         <div className="flex-1 min-w-0">
           {content.badge && (

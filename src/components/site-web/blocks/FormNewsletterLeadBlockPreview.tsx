@@ -51,19 +51,19 @@ function FormNewsletterLeadBlockPreview({ content, leadCtx }: { content: FormNew
           <p className="text-[15px] mb-8" style={{ color: "var(--site-muted, #666)" }}>{content.subtitle}</p>
         )}
 
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row items-center gap-2">
           <input
             ref={inputRef}
             type="email"
             placeholder={content.placeholder || "votre@email.com"}
             required
-            className="flex-1 rounded-lg px-4 py-3 text-[14px] outline-none transition-colors"
+            className="flex-1 w-full sm:w-auto rounded-lg px-4 py-3 text-[14px] outline-none transition-colors"
             style={{ backgroundColor: "var(--site-surface, #F7F7F5)", border: "1px solid var(--site-border, #E6E6E4)", color: "var(--site-text, #191919)" }}
           />
           <button
             type="submit"
             disabled={loading}
-            className="px-6 py-3 text-[14px] font-semibold flex-shrink-0 transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="w-full sm:w-auto px-6 py-3 text-[14px] font-semibold flex-shrink-0 transition-opacity hover:opacity-90 disabled:opacity-50"
             style={{ backgroundColor: "var(--btn-bg, var(--site-primary, #4F46E5))", color: "var(--btn-text, #fff)", borderRadius: "var(--site-btn-radius, 8px)" }}
           >
             {loading ? "..." : content.ctaLabel}

@@ -138,14 +138,14 @@ function ContactPremiumBlockPreviewInner({ content, leadCtx }: { content: Contac
           {(content.title || content.subtitle) && (
             <div className="text-center mb-10">
               {content.title && (
-                <h2 className="text-3xl font-bold tracking-tight mb-3" style={{ color: "var(--site-text)", fontFamily: "var(--site-heading-font)" }}>{content.title}</h2>
+                <h2 className="text-xl sm:text-3xl font-bold tracking-tight mb-3" style={{ color: "var(--site-text)", fontFamily: "var(--site-heading-font)" }}>{content.title}</h2>
               )}
               {content.subtitle && (
                 <p className="text-base max-w-lg mx-auto" style={{ color: "var(--site-muted)" }}>{content.subtitle}</p>
               )}
             </div>
           )}
-          <div className="rounded-2xl p-8" style={{ backgroundColor: "var(--site-surface)", border: "1px solid var(--site-border)", boxShadow: "0 4px 32px -8px rgba(0,0,0,0.12)" }}>
+          <div className="rounded-2xl p-4 sm:p-8" style={{ backgroundColor: "var(--site-surface)", border: "1px solid var(--site-border)", boxShadow: "0 4px 32px -8px rgba(0,0,0,0.12)" }}>
             <div className="space-y-5">
               {fields.map((field, index) => {
                 const labelEl = (
@@ -237,14 +237,14 @@ function ContactPremiumBlockPreviewInner({ content, leadCtx }: { content: Contac
         {(content.title || content.subtitle) && (
           <div className="text-center mb-10">
             {content.title && (
-              <h2 className="text-3xl font-bold tracking-tight mb-3" style={{ color: "var(--site-text)", fontFamily: "var(--site-heading-font)" }}>{content.title}</h2>
+              <h2 className="text-xl sm:text-3xl font-bold tracking-tight mb-3" style={{ color: "var(--site-text)", fontFamily: "var(--site-heading-font)" }}>{content.title}</h2>
             )}
             {content.subtitle && (
               <p className="text-base max-w-lg mx-auto" style={{ color: "var(--site-muted)" }}>{content.subtitle}</p>
             )}
           </div>
         )}
-        <div className="rounded-2xl p-8" style={{ backgroundColor: "var(--site-surface)", border: "1px solid var(--site-border)", boxShadow: "0 4px 32px -8px rgba(0,0,0,0.12)" }}>
+        <div className="rounded-2xl p-4 sm:p-8" style={{ backgroundColor: "var(--site-surface)", border: "1px solid var(--site-border)", boxShadow: "0 4px 32px -8px rgba(0,0,0,0.12)" }}>
           <div className="space-y-5">
             {fields.map((field, index) => (
               <div key={index}>

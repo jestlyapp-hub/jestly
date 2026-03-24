@@ -8,7 +8,7 @@ function CtaCenteredStrongBlockPreview({ content }: { content: CtaCenteredStrong
       <div className="max-w-3xl mx-auto text-center">
         {content.title && (
           <h2
-            className="text-4xl font-bold mb-4"
+            className="text-2xl sm:text-4xl font-bold mb-4"
             style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}

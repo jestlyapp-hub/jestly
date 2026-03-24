@@ -7,7 +7,7 @@ function CtaDarkGlowBlockPreview({ content }: { content: CtaDarkGlowBlockContent
     <section className="py-16 px-6">
       <div className="max-w-4xl mx-auto">
         <div
-          className="relative overflow-hidden rounded-2xl px-10 py-16 text-center"
+          className="relative overflow-hidden rounded-2xl px-6 sm:px-10 py-12 sm:py-16 text-center"
           style={{
             backgroundColor: "var(--site-surface, #F7F7F5)",
             border: "1px solid var(--site-border, #E6E6E4)",
@@ -24,7 +24,7 @@ function CtaDarkGlowBlockPreview({ content }: { content: CtaDarkGlowBlockContent
 
           <div className="relative z-10">
             <h2
-              className="text-3xl font-bold mb-3"
+              className="text-2xl sm:text-3xl font-bold mb-3"
               style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
             >
               {content.title}

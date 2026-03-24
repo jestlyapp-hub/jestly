@@ -8,7 +8,7 @@ function Faq2ColumnBlockPreview({ content }: { content: Faq2ColumnBlockContent }
       <div className="max-w-6xl mx-auto">
         {content.title && (
           <h2
-            className="text-3xl font-bold text-center mb-3"
+            className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-3"
             style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}
@@ -20,7 +20,7 @@ function Faq2ColumnBlockPreview({ content }: { content: Faq2ColumnBlockContent }
           </p>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 sm:gap-x-12 gap-y-8">
           {content.items.map((item, i) => (
             <div key={i}>
               <h3

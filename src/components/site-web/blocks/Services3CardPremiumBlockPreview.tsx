@@ -45,7 +45,7 @@ function Services3CardPremiumBlockPreviewInner({ content }: { content: Services3
         </div>
 
         {/* 3 Service Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6">
           {displayServices.map((service, i) => (
             <div
               key={i}

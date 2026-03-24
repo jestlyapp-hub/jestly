@@ -8,7 +8,7 @@ function HeroSplitPortfolioBlockPreviewInner({ content }: { content: HeroSplitPo
     <section
       className="py-16 px-6"
     >
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-6 sm:gap-12">
         {/* Left — Text */}
         <div className="flex-1 min-w-0">
           {content.badge && (
@@ -24,7 +24,7 @@ function HeroSplitPortfolioBlockPreviewInner({ content }: { content: HeroSplitPo
           )}
 
           <h1
-            className="text-4xl sm:text-5xl font-bold leading-[1.1] mb-4"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.1] mb-4"
             style={{
               color: "var(--site-text, #191919)",
               fontFamily: "var(--site-heading-font, inherit)",
@@ -69,7 +69,7 @@ function HeroSplitPortfolioBlockPreviewInner({ content }: { content: HeroSplitPo
 
           {/* Stats row */}
           {content.stats && content.stats.length > 0 && (
-            <div className="flex items-center gap-8 mt-8 pt-6" style={{ borderTop: "1px solid var(--site-border, #E6E6E4)" }}>
+            <div className="flex items-center gap-4 sm:gap-8 mt-8 pt-6" style={{ borderTop: "1px solid var(--site-border, #E6E6E4)" }}>
               {content.stats.map((stat, i) => (
                 <div key={i}>
                   <div

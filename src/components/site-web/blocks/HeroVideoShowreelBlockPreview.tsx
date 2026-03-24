@@ -10,7 +10,7 @@ function HeroVideoShowreelBlockPreviewInner({ content }: { content: HeroVideoSho
     >
       <div className="max-w-6xl mx-auto flex flex-col items-center text-center">
         <h1
-          className="text-4xl sm:text-5xl font-bold leading-[1.1] mb-4 max-w-3xl"
+          className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.1] mb-4 max-w-3xl"
           style={{
             color: "var(--site-text, #191919)",
             fontFamily: "var(--site-heading-font, inherit)",

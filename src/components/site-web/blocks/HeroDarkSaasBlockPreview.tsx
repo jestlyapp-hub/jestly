@@ -8,11 +8,11 @@ function HeroDarkSaasBlockPreviewInner({ content }: { content: HeroDarkSaasBlock
     <section
       className="py-16 px-6"
     >
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-6 sm:gap-12">
         {/* Left — Text */}
         <div className="flex-1 min-w-0">
           <h1
-            className="text-4xl sm:text-5xl font-bold leading-[1.1] mb-5"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.1] mb-5"
             style={{
               color: "var(--site-text, #191919)",
               fontFamily: "var(--site-heading-font, inherit)",
@@ -57,7 +57,7 @@ function HeroDarkSaasBlockPreviewInner({ content }: { content: HeroDarkSaasBlock
 
           {/* Floating feature cards */}
           {content.features && content.features.length > 0 && (
-            <div className="grid grid-cols-2 gap-3 mt-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-10">
               {content.features.map((feat, i) => (
                 <div
                   key={i}

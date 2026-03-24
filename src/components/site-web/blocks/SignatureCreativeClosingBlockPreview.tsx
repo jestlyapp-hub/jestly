@@ -4,10 +4,10 @@ import type { SignatureCreativeClosingBlockContent } from "@/types";
 
 function SignatureCreativeClosingBlockPreviewInner({ content }: { content: SignatureCreativeClosingBlockContent }) {
   return (
-    <section className="py-24 px-6">
+    <section className="py-12 sm:py-24 px-6">
       <div className="max-w-6xl mx-auto text-center">
         <h2
-          className="text-4xl md:text-5xl font-extrabold mb-4 leading-tight"
+          className="text-2xl sm:text-4xl md:text-5xl font-extrabold mb-4 leading-tight"
           style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
         >
           {content.title}

@@ -5,11 +5,11 @@ import type { CtaSplitTextBlockContent } from "@/types";
 function CtaSplitTextBlockPreview({ content }: { content: CtaSplitTextBlockContent }) {
   return (
     <section className="py-16 px-6">
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-6 sm:gap-12">
         {/* Left: text */}
         <div className="flex-1">
           <h2
-            className="text-3xl font-bold mb-4"
+            className="text-2xl sm:text-3xl font-bold mb-4"
             style={{ color: "var(--site-text, #191919)", fontFamily: "var(--site-heading-font, inherit)" }}
           >
             {content.title}

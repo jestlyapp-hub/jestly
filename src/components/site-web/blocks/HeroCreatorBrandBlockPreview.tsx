@@ -8,19 +8,19 @@ function HeroCreatorBrandBlockPreviewInner({ content }: { content: HeroCreatorBr
     <section
       className="py-16 px-6"
     >
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-12">
+      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center gap-6 sm:gap-12">
         {/* Left — Portrait / image placeholder */}
         <div className="flex-1 min-w-0 flex justify-center">
           {content.imageUrl ? (
             <img
               src={content.imageUrl}
               alt={content.title}
-              className="w-72 h-72 rounded-2xl object-cover"
+              className="w-48 h-48 sm:w-72 sm:h-72 rounded-2xl object-cover"
               style={{ border: "1px solid var(--site-border, #E6E6E4)" }}
             />
           ) : (
             <div
-              className="w-72 h-72 rounded-2xl flex flex-col items-center justify-center gap-3"
+              className="w-48 h-48 sm:w-72 sm:h-72 rounded-2xl flex flex-col items-center justify-center gap-3"
               style={{
                 backgroundColor: "var(--site-surface, #F7F7F5)",
                 border: "1px solid var(--site-border, #E6E6E4)",
@@ -50,7 +50,7 @@ function HeroCreatorBrandBlockPreviewInner({ content }: { content: HeroCreatorBr
         {/* Right — Content */}
         <div className="flex-1 min-w-0">
           <h1
-            className="text-4xl sm:text-5xl font-bold leading-[1.1] mb-3"
+            className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-[1.1] mb-3"
             style={{
               color: "var(--site-text, #191919)",
               fontFamily: "var(--site-heading-font, inherit)",
@@ -114,7 +114,7 @@ function HeroCreatorBrandBlockPreviewInner({ content }: { content: HeroCreatorBr
 
           {/* Social proof numbers */}
           {content.socialProof && content.socialProof.length > 0 && (
-            <div className="flex items-center gap-8 mt-8 pt-6" style={{ borderTop: "1px solid var(--site-border, #E6E6E4)" }}>
+            <div className="flex items-center gap-4 sm:gap-8 mt-8 pt-6" style={{ borderTop: "1px solid var(--site-border, #E6E6E4)" }}>
               {content.socialProof.map((sp, i) => (
                 <div key={i}>
                   <div
