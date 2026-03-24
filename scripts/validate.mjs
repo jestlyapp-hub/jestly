@@ -362,6 +362,52 @@ function checkBuild() {
   }
 }
 
+/* ─── Check 8: order_items schema consistency ─── */
+
+function checkOrderItemsSchema() {
+  console.log("\n\x1b[1m[8] order_items schema — select/type consistency\x1b[0m");
+
+  // Canonical columns for order_items (after migration 055)
+  const CANONICAL_COLS = ["id", "order_id", "product_id", "label", "description", "quantity", "unit_price", "created_at"];
+
+  // Check all .select() calls referencing order_items in src/app/api
+  const apiDir = path.join(ROOT, "src", "app", "api");
+  const apiFiles = findFiles(apiDir, [".ts"]);
+
+  let checked = 0;
+  for (const file of apiFiles) {
+    const content = fs.readFileSync(file, "utf-8");
+    // Match patterns like order_items(col1, col2, ...)
+    const regex = /order_items\(([^)]+)\)/g;
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      checked++;
+      const cols = match[1].split(",").map((c) => c.trim());
+      for (const col of cols) {
+        if (!CANONICAL_COLS.includes(col)) {
+          warn(`Unknown column "${col}" in order_items select`, path.relative(ROOT, file));
+        }
+      }
+    }
+  }
+
+  // Check database.ts matches
+  const dbTypes = readFile("src/types/database.ts");
+  if (dbTypes) {
+    if (!dbTypes.includes("label: string")) {
+      warn("database.ts order_items Row is missing 'label' column", "src/types/database.ts");
+    }
+    if (!dbTypes.includes("description: string | null")) {
+      warn("database.ts order_items Row is missing 'description' column", "src/types/database.ts");
+    }
+    if (dbTypes.match(/order_items[\s\S]*?Row[\s\S]*?product_id:\s*string;/) && !dbTypes.match(/order_items[\s\S]*?Row[\s\S]*?product_id:\s*string\s*\|\s*null/)) {
+      warn("database.ts order_items Row has product_id as non-nullable (should be string | null)", "src/types/database.ts");
+    }
+  }
+
+  if (checked > 0) ok(`Scanned ${checked} order_items select fragments, schema aligned`);
+}
+
 /* ─── Main ─── */
 
 console.log("\x1b[1m\x1b[35m━━━ Jestly Validation ━━━\x1b[0m");
@@ -376,6 +422,8 @@ checkFieldTypes();
 checkApiStatusValues();
 checkNoStatusIdWrites();
 checkComponentStatusUsage();
+
+checkOrderItemsSchema();
 
 const doBuild = process.argv.includes("--build");
 if (doBuild) {

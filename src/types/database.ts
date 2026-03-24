@@ -370,7 +370,9 @@ export interface Database {
         Row: {
           id: string;
           order_id: string;
-          product_id: string;
+          product_id: string | null;
+          label: string;
+          description: string | null;
           quantity: number;
           unit_price: number;
           created_at: string;
@@ -378,14 +380,18 @@ export interface Database {
         Insert: {
           id?: string;
           order_id: string;
-          product_id: string;
+          product_id?: string | null;
+          label?: string;
+          description?: string | null;
           quantity?: number;
           unit_price: number;
           created_at?: string;
         };
         Update: {
           order_id?: string;
-          product_id?: string;
+          product_id?: string | null;
+          label?: string;
+          description?: string | null;
           quantity?: number;
           unit_price?: number;
         };

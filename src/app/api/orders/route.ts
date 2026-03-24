@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 
+// ── Shared select fragments ──
+// Migration 055 adds label/description to order_items. Fallback if not applied yet.
+const ORDER_SELECT_FULL = "*, clients(name, email, phone), order_brief_responses(order_id), order_items(id, label, description, quantity, unit_price, product_id)";
+const ORDER_SELECT_LEGACY = "*, clients(name, email, phone), order_brief_responses(order_id), order_items(id, quantity, unit_price, product_id)";
+
 // GET /api/orders — list user's orders with client+product+items join
 export async function GET(req: NextRequest) {
   const auth = await getAuthUser();
@@ -10,17 +15,24 @@ export async function GET(req: NextRequest) {
   const source = req.nextUrl.searchParams.get("source");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query = (supabase.from("orders") as any)
-    .select("*, clients(name, email, phone), order_brief_responses(order_id), order_items(id, label, description, quantity, unit_price, product_id)")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+  const buildQuery = (select: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let q = (supabase.from("orders") as any)
+      .select(select)
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+    if (source === "site") q = q.not("product_id", "is", null);
+    return q;
+  };
 
-  // Filter by source (site orders only come from product_id not null)
-  if (source === "site") {
-    query = query.not("product_id", "is", null);
+  // Try full select (with label/description from migration 055)
+  let { data, error } = await buildQuery(ORDER_SELECT_FULL);
+
+  // Fallback: if label column doesn't exist yet, retry without it
+  if (error && error.message?.includes("label")) {
+    console.warn("[GET /api/orders] label column missing — using legacy select. Run migration 055.");
+    ({ data, error } = await buildQuery(ORDER_SELECT_LEGACY));
   }
-
-  const { data, error } = await query;
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   return NextResponse.json(data);
@@ -86,6 +98,7 @@ export async function POST(req: NextRequest) {
   if (custom_fields) base.custom_fields = custom_fields;
 
   // Helper: insert line items for an order
+  // Uses label/description if migration 055 is applied, otherwise inserts basic columns
   const insertItems = async (orderId: string) => {
     if (!items || items.length === 0) return;
     const rows = items.map((it) => ({
@@ -97,7 +110,19 @@ export async function POST(req: NextRequest) {
       product_id: it.productId || null,
     }));
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("order_items") as any).insert(rows);
+    const { error: insertErr } = await (supabase.from("order_items") as any).insert(rows);
+    if (insertErr && insertErr.message?.includes("label")) {
+      // Migration 055 not applied — insert without label/description
+      console.warn("[insertItems] label column missing — inserting without label/description. Run migration 055.");
+      const legacyRows = items.map((it) => ({
+        order_id: orderId,
+        quantity: Math.max(1, Number(it.quantity) || 1),
+        unit_price: Number(it.unitPrice) || 0,
+        product_id: it.productId || null,
+      }));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase.from("order_items") as any).insert(legacyRows);
+    }
   };
 
   // Single order
@@ -105,10 +130,18 @@ export async function POST(req: NextRequest) {
     base.title = title;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data, error } = await (supabase.from("orders") as any)
+    let { data, error } = await (supabase.from("orders") as any)
       .insert(base)
-      .select("*, clients(name, email, phone), order_items(id, label, description, quantity, unit_price, product_id)")
+      .select(ORDER_SELECT_FULL)
       .single();
+
+    // Fallback if label column missing
+    if (error && error.message?.includes("label")) {
+      ({ data, error } = await (supabase.from("orders") as any)
+        .insert(base)
+        .select(ORDER_SELECT_LEGACY)
+        .single());
+    }
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -118,10 +151,10 @@ export async function POST(req: NextRequest) {
     if (items) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: refreshed } = await (supabase.from("orders") as any)
-        .select("*, clients(name, email, phone), order_items(id, label, description, quantity, unit_price, product_id)")
+        .select(ORDER_SELECT_FULL)
         .eq("id", data.id)
         .single();
-      return NextResponse.json(refreshed ?? data, { status: 201 });
+      if (refreshed) return NextResponse.json(refreshed, { status: 201 });
     }
 
     return NextResponse.json(data, { status: 201 });
