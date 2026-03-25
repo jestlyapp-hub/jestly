@@ -120,6 +120,16 @@ export default function EventFormModal({
     }
   }, [open, initialEvent, defaultDate, defaultStartTime, defaultEndTime, todayStr]);
 
+  // Escape key → fermer la modal
+  useEffect(() => {
+    if (!open) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { e.preventDefault(); onClose(); }
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [open, onClose]);
+
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (startPickerRef.current && !startPickerRef.current.contains(e.target as Node)) {
@@ -199,6 +209,7 @@ export default function EventFormModal({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 8 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            onClick={onClose}
           >
             <div
               role="dialog"
