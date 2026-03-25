@@ -16,6 +16,8 @@ interface NavbarProps {
   currentSlug?: string;
   resolveHref: (link: NavLink) => string;
   isBuilder?: boolean;
+  /** Force mobile/tablet rendering regardless of viewport (for builder preview) */
+  forceMode?: "mobile" | "tablet" | "desktop";
 }
 
 // ─── Shared helpers ───
@@ -1007,9 +1009,31 @@ export default function NavbarRenderer({
   currentSlug,
   resolveHref,
   isBuilder,
+  forceMode,
 }: NavbarProps) {
   const Variant = variantMap[nav.variant || "classic-floating"] || NavClassicFloating;
-  return <Variant nav={nav} siteName={siteName} logoUrl={logoUrl} currentSlug={currentSlug} resolveHref={resolveHref} isBuilder={isBuilder} />;
+  const isForceMobile = forceMode === "mobile" || forceMode === "tablet";
+
+  return (
+    <>
+      {/* When forceMode is mobile/tablet, override Tailwind md: breakpoint via CSS scope */}
+      {isForceMobile && (
+        <style dangerouslySetInnerHTML={{ __html: `
+          [data-navbar-force-mobile] .md\\:hidden { display: none !important; }
+          [data-navbar-force-mobile] .md\\:flex { display: none !important; }
+          [data-navbar-force-mobile] .md\\:block { display: none !important; }
+          [data-navbar-force-mobile] .hidden.md\\:flex { display: none !important; }
+          [data-navbar-force-mobile] .hidden.md\\:block { display: none !important; }
+          [data-navbar-force-mobile] .lg\\:flex { display: none !important; }
+          [data-navbar-force-mobile] button.md\\:hidden { display: flex !important; }
+          [data-navbar-force-mobile] div.md\\:hidden { display: block !important; }
+        ` }} />
+      )}
+      <div data-navbar-force-mobile={isForceMobile || undefined}>
+        <Variant nav={nav} siteName={siteName} logoUrl={logoUrl} currentSlug={currentSlug} resolveHref={resolveHref} isBuilder={isBuilder} />
+      </div>
+    </>
+  );
 }
 
 // ─── Variant metadata for editor ───

@@ -223,6 +223,7 @@ export default function BuilderCanvas() {
                 logoUrl={state.site.settings.logoUrl}
                 resolveHref={() => "#"}
                 isBuilder
+                forceMode={state.breakpoint === "mobile" ? "mobile" : state.breakpoint === "tablet" ? "tablet" : undefined}
               />
             )}
             {activePage.blocks.length === 0 && !isPreview && (
