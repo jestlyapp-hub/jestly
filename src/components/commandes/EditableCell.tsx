@@ -82,6 +82,7 @@ export default function EditableCell({
 
   return (
     <span
+      data-no-drawer
       onDoubleClick={(e) => {
         e.stopPropagation();
         setEditing(true);

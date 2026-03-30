@@ -9,6 +9,9 @@ import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { useColumns } from "@/lib/hooks/use-columns";
 import { orderRecordToOrder } from "@/lib/adapters";
 import type { Order, FieldOption, BoardField } from "@/types";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import SortableOrderRow from "@/components/commandes/SortableOrderRow";
 
 const OrderDrawer = dynamic(() => import("@/components/commandes/OrderDrawer"), { ssr: false });
 const CreateOrderDrawer = dynamic(() => import("@/components/commandes/CreateOrderDrawer"), { ssr: false });
@@ -24,6 +27,7 @@ import { formatDateFR, isOverdue, isOrderOverdue, isActiveProductionStatus } fro
 import { NEXT_STATUS, PREV_STATUS, STATUS_LABELS, LEGACY_SEEDED_KEYS } from "@/lib/kanban-config";
 import SelectableCheckbox from "@/components/ui/SelectableCheckbox";
 import PipelineSummaryCards from "@/components/ui/PipelineSummaryCards";
+import { isInteractiveClick } from "@/lib/interactive-click";
 import { computeOrdersPipelineSummary } from "@/lib/business-metrics";
 
 /* ─── Notion-style color palette for select options ─── */
@@ -239,6 +243,8 @@ export default function CommandesPage() {
           o.id.toLowerCase().includes(q)
       );
     }
+    // Tri par position manuelle (croissant)
+    list = [...list].sort((a, b) => (a.sortPosition ?? 0) - (b.sortPosition ?? 0));
     return list;
   }, [orders, activeTab, search]);
 
@@ -472,6 +478,68 @@ export default function CommandesPage() {
     }
   }, [selectedIds, setRawOrders, mutate]);
 
+  /* ─── Drag and drop ─── */
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+  const isDragEnabled = !search.trim();
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = filtered.findIndex(o => o.id === active.id);
+    const newIndex = filtered.findIndex(o => o.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(filtered, oldIndex, newIndex);
+
+    // Compute new sort_position from neighbours
+    const prevPos = newIndex > 0 ? (reordered[newIndex - 1].sortPosition ?? 0) : null;
+    const nextPos = newIndex < reordered.length - 1 ? (reordered[newIndex + 1].sortPosition ?? 0) : null;
+
+    const gap = prevPos !== null && nextPos !== null ? Math.abs(nextPos - prevPos) : Infinity;
+
+    // If gap is too small, renormalize all visible positions
+    if (gap < 2 && reordered.length > 1) {
+      const updates = reordered.map((o, i) => ({ id: o.id, sort_position: (i + 1) * 1000 }));
+      setRawOrders(prev => {
+        if (!prev) return prev;
+        const posMap = new Map(updates.map(u => [u.id, u.sort_position]));
+        return prev.map(row => posMap.has(row.id) ? { ...row, sort_position: posMap.get(row.id) } : row);
+      });
+      apiFetch("/api/orders/reorder", { method: "PATCH", body: { items: updates } })
+        .catch(() => { mutate(); toast.error("Erreur lors du réordonnancement"); });
+      return;
+    }
+
+    // Normal case: compute position between neighbours
+    let newPosition: number;
+    if (prevPos !== null && nextPos !== null) {
+      newPosition = Math.round((prevPos + nextPos) / 2);
+    } else if (prevPos !== null) {
+      newPosition = prevPos + 1000;
+    } else if (nextPos !== null) {
+      newPosition = nextPos - 1000;
+    } else {
+      newPosition = 1000;
+    }
+
+    // Optimistic update
+    setRawOrders(prev =>
+      prev?.map(row => row.id === active.id ? { ...row, sort_position: newPosition } : row) ?? null
+    );
+
+    apiFetch("/api/orders/reorder", {
+      method: "PATCH",
+      body: { items: [{ id: active.id as string, sort_position: newPosition }] },
+    }).catch(() => {
+      mutate();
+      toast.error("Erreur lors du réordonnancement");
+    });
+  }, [filtered, setRawOrders, mutate]);
+
   /* ─── Loading (only on initial fetch, never on refetch) ─── */
 
   if (loading && !rawOrders) {
@@ -518,15 +586,15 @@ export default function CommandesPage() {
 
   const allSelected = filtered.length > 0 && selectedIds.size === filtered.length;
   const someSelected = selectedIds.size > 0 && selectedIds.size < filtered.length;
-  // checkbox + advance + dynamic columns + add/chevron
-  const totalColSpan = 3 + visibleColumns.length;
+  // grip + checkbox + advance + dynamic columns + add/chevron
+  const totalColSpan = 4 + visibleColumns.length;
 
   // Cell renderer: dispatches to the right component based on field key
   const renderCell = (field: BoardField, order: Order) => {
     switch (field.key) {
       case "title":
         return (
-          <div>
+          <div data-no-drawer>
             <EditableCell value={order.product} onCommit={(v) => handleInlineTitle(order.id, v)} />
             {order.category && (
               <span className="text-[11px] text-[#8A8A88] mt-0.5 block">{order.category}</span>
@@ -559,7 +627,7 @@ export default function CommandesPage() {
         const operationallyOverdue = isOrderOverdue(order.deadline, order.status);
         const operationallySoon = order.deadline && isDeadlineSoon(order.deadline) && !isOverdue(order.deadline) && isActiveProductionStatus(order.status);
         return order.deadline ? (
-          <span className={`inline-flex items-center gap-1.5 text-[12px] px-2 py-0.5 rounded-md ${
+          <span data-no-drawer className={`inline-flex items-center gap-1.5 text-[12px] px-2 py-0.5 rounded-md ${
             operationallyOverdue
               ? "bg-red-50 text-red-600 font-medium"
               : operationallySoon
@@ -572,11 +640,11 @@ export default function CommandesPage() {
             {formatDateFR(order.deadline)}
           </span>
         ) : (
-          <span className="text-[#D0D0CE] text-[12px]">—</span>
+          <span data-no-drawer className="text-[#D0D0CE] text-[12px]">—</span>
         );
       }
       case "date":
-        return <span className="text-[12px] text-[#8A8A88]">{formatDateFR(order.date)}</span>;
+        return <span data-no-drawer className="text-[12px] text-[#8A8A88]">{formatDateFR(order.date)}</span>;
       default:
         return (
           <CustomCell
@@ -708,9 +776,12 @@ export default function CommandesPage() {
       >
         <div className="bg-white rounded-b-xl border border-[#E6E6E4] border-t-[#EFEFEF] shadow-sm">
           <div className="overflow-x-auto">
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[#E6E6E4]">
+                  {/* Drag handle column */}
+                  <th className="w-8 px-0 py-3" />
                   {/* Select all checkbox */}
                   <th className="w-[44px] px-3 py-3">
                     <div className="flex items-center justify-center">
@@ -749,79 +820,99 @@ export default function CommandesPage() {
                   </th>
                 </tr>
               </thead>
+              <SortableContext items={filtered.map(o => o.id)} strategy={verticalListSortingStrategy}>
               <tbody>
-                <AnimatePresence mode="popLayout">
                   {filtered.map((order, idx) => {
                     const hasNext = !!NEXT_STATUS[order.status];
                     const isDone = order.status === "paid";
                     const isSelected = selectedIds.has(order.id);
 
                     return (
-                      <motion.tr
+                      <SortableOrderRow
                         key={order.id}
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                        onClick={() => setSelectedId(order.id)}
+                        id={order.id}
+                        disabled={!isDragEnabled}
+                        onClick={(e) => { if (!isInteractiveClick(e)) setSelectedId(order.id); }}
                         className={`group border-b border-[#F5F5F3] last:border-b-0 transition-colors cursor-pointer ${
                           isSelected
                             ? "bg-[#EEF2FF] hover:bg-[#E8EDFF]"
                             : "hover:bg-[#FAFAF9]"
                         }`}
                       >
-                        {/* Row checkbox */}
-                        <td className="w-[44px] px-3 py-3">
-                          <div className="flex items-center justify-center">
-                            <SelectableCheckbox
-                              checked={isSelected}
-                              onChange={() => handleRowSelect(order.id, idx)}
-                            />
-                          </div>
-                        </td>
-                        {/* Check circle = advance status */}
-                        <td className="px-1 py-3 text-center">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); handleAdvanceStatus(order.id, order.status); }}
-                            disabled={!hasNext}
-                            title={hasNext ? `Avancer vers ${STATUS_LABELS[NEXT_STATUS[order.status]]}` : "Terminé"}
-                            className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center transition-all cursor-pointer ${
-                              isDone
-                                ? "bg-emerald-500 border-emerald-500 text-white"
-                                : "border-[#D0D0CE] hover:border-[#4F46E5] hover:bg-[#EEF2FF] text-transparent hover:text-[#4F46E5]"
-                            }`}
-                          >
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          </button>
-                        </td>
-                        {/* ── All cells (dynamic) ── */}
-                        {visibleColumns.map((field) => (
-                          <td
-                            key={field.id}
-                            className={`px-5 py-3 text-[13px] text-[#191919] ${CELL_STYLES[field.key] ?? ""}`}
-                          >
-                            {renderCell(field, order)}
-                          </td>
-                        ))}
-                        {/* Chevron = open drawer */}
-                        <td className="px-3 py-3 text-center">
-                          <button
-                            onClick={(e) => { e.stopPropagation(); setSelectedId(order.id); }}
-                            title="Voir le détail"
-                            className="p-1.5 rounded-md hover:bg-[#F0F0EE] text-[#C0C0BE] hover:text-[#5A5A58] transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                          </button>
-                        </td>
-                      </motion.tr>
+                        {({ dragHandleProps }) => (
+                          <>
+                            {/* Drag handle */}
+                            <td className="w-8 px-0 py-3 text-center">
+                              {isDragEnabled && (
+                                <button
+                                  {...dragHandleProps}
+                                  className="opacity-0 group-hover:opacity-60 hover:!opacity-100 p-1 rounded cursor-grab active:cursor-grabbing text-[#C0C0BE] hover:text-[#8A8A88] transition-opacity"
+                                  title="Glisser pour réordonner"
+                                  tabIndex={-1}
+                                >
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                                    <circle cx="9" cy="4" r="1.5"/>
+                                    <circle cx="15" cy="4" r="1.5"/>
+                                    <circle cx="9" cy="10" r="1.5"/>
+                                    <circle cx="15" cy="10" r="1.5"/>
+                                    <circle cx="9" cy="16" r="1.5"/>
+                                    <circle cx="15" cy="16" r="1.5"/>
+                                  </svg>
+                                </button>
+                              )}
+                            </td>
+                            {/* Row checkbox */}
+                            <td className="w-[44px] px-3 py-3">
+                              <div className="flex items-center justify-center">
+                                <SelectableCheckbox
+                                  checked={isSelected}
+                                  onChange={() => handleRowSelect(order.id, idx)}
+                                />
+                              </div>
+                            </td>
+                            {/* Check circle = advance status */}
+                            <td className="px-1 py-3 text-center">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleAdvanceStatus(order.id, order.status); }}
+                                disabled={!hasNext}
+                                title={hasNext ? `Avancer vers ${STATUS_LABELS[NEXT_STATUS[order.status]]}` : "Terminé"}
+                                className={`w-[18px] h-[18px] rounded-full border-[1.5px] flex items-center justify-center transition-all cursor-pointer ${
+                                  isDone
+                                    ? "bg-emerald-500 border-emerald-500 text-white"
+                                    : "border-[#D0D0CE] hover:border-[#4F46E5] hover:bg-[#EEF2FF] text-transparent hover:text-[#4F46E5]"
+                                }`}
+                              >
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              </button>
+                            </td>
+                            {/* ── All cells (dynamic) ── */}
+                            {visibleColumns.map((field) => (
+                              <td
+                                key={field.id}
+                                className={`px-5 py-3 text-[13px] text-[#191919] ${CELL_STYLES[field.key] ?? ""}`}
+                              >
+                                {renderCell(field, order)}
+                              </td>
+                            ))}
+                            {/* Chevron = open drawer */}
+                            <td className="px-3 py-3 text-center">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setSelectedId(order.id); }}
+                                title="Voir le détail"
+                                className="p-1.5 rounded-md hover:bg-[#F0F0EE] text-[#C0C0BE] hover:text-[#5A5A58] transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                              >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="9 18 15 12 9 6" />
+                                </svg>
+                              </button>
+                            </td>
+                          </>
+                        )}
+                      </SortableOrderRow>
                     );
                   })}
-                </AnimatePresence>
                 {filtered.length === 0 && (
                   <tr>
                     <td colSpan={totalColSpan} className="px-5 py-16 text-center">
@@ -836,7 +927,9 @@ export default function CommandesPage() {
                   </tr>
                 )}
               </tbody>
+              </SortableContext>
             </table>
+            </DndContext>
           </div>
         </div>
       </motion.div>

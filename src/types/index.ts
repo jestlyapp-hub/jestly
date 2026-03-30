@@ -104,6 +104,7 @@ export interface Order {
   groupTotal?: number;
   customFields?: Record<string, unknown>;
   items?: LineItem[];
+  sortPosition?: number;
 }
 
 /* ─── Board Config Types (dynamic workflow) ─── */

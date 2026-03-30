@@ -15,12 +15,13 @@ export async function GET(req: NextRequest) {
   const source = req.nextUrl.searchParams.get("source");
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const buildQuery = (select: string) => {
+  const buildQuery = (select: string, useSortPosition = true) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let q = (supabase.from("orders") as any)
       .select(select)
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
+      .eq("user_id", user.id);
+    if (useSortPosition) q = q.order("sort_position", { ascending: true });
+    q = q.order("created_at", { ascending: false });
     if (source === "site") q = q.not("product_id", "is", null);
     return q;
   };
@@ -28,10 +29,16 @@ export async function GET(req: NextRequest) {
   // Try full select (with label/description from migration 055)
   let { data, error } = await buildQuery(ORDER_SELECT_FULL);
 
+  // Fallback: if sort_position column doesn't exist yet, retry without it
+  if (error && error.message?.includes("sort_position")) {
+    console.warn("[GET /api/orders] sort_position column missing — Run migration 056.");
+    ({ data, error } = await buildQuery(ORDER_SELECT_FULL, false));
+  }
+
   // Fallback: if label column doesn't exist yet, retry without it
   if (error && error.message?.includes("label")) {
     console.warn("[GET /api/orders] label column missing — using legacy select. Run migration 055.");
-    ({ data, error } = await buildQuery(ORDER_SELECT_LEGACY));
+    ({ data, error } = await buildQuery(ORDER_SELECT_LEGACY, false));
   }
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });

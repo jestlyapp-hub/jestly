@@ -109,6 +109,8 @@ export function orderRecordToOrder(
           productId: it.product_id ?? undefined,
         }))
       : undefined,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    sortPosition: (row as any).sort_position ?? 0,
   };
 }
 

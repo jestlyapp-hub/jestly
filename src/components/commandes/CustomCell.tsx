@@ -82,7 +82,7 @@ export default function CustomCell({ field, value, onCommit, onAddOption }: Cust
 
     default:
       return (
-        <span className="text-[13px] text-[#8A8A88]">
+        <span data-no-drawer className="text-[13px] text-[#8A8A88]">
           {value != null ? String(value) : "—"}
         </span>
       );
