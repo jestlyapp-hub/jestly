@@ -1,6 +1,51 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      // ── Hubs marketing ──
+      { source: "/fonctionnalites", destination: "/landing/fonctionnalites" },
+      { source: "/pour-qui", destination: "/landing/pour-qui" },
+      { source: "/ressources", destination: "/landing/ressources" },
+      { source: "/faq", destination: "/landing/faq" },
+      { source: "/a-propos", destination: "/landing/a-propos" },
+      { source: "/roadmap", destination: "/landing/roadmap" },
+      { source: "/blog", destination: "/landing/blog" },
+      { source: "/blog/:slug", destination: "/landing/blog/:slug" },
+      { source: "/centre-aide", destination: "/landing/centre-aide" },
+      { source: "/demo", destination: "/landing/demo" },
+      { source: "/integrations", destination: "/landing/integrations" },
+      { source: "/cookies", destination: "/landing/cookies" },
+      { source: "/comparatifs", destination: "/landing/comparatifs" },
+      // ── Sous-pages fonctionnalités ──
+      { source: "/fonctionnalites/site-vitrine", destination: "/landing/site-web" },
+      { source: "/fonctionnalites/crm", destination: "/landing/crm" },
+      { source: "/fonctionnalites/calendrier", destination: "/landing/agenda" },
+      { source: "/fonctionnalites/facturation", destination: "/landing/facturation" },
+      { source: "/fonctionnalites/commandes", destination: "/landing/commandes" },
+      { source: "/fonctionnalites/analytics", destination: "/landing/analytics" },
+      { source: "/fonctionnalites/portfolio", destination: "/landing/portfolio" },
+      { source: "/fonctionnalites/paiements", destination: "/landing/paiements" },
+      { source: "/fonctionnalites/briefs", destination: "/landing/briefs" },
+      // ── Sous-pages personas ──
+      { source: "/pour-qui/createurs", destination: "/landing/pour-qui/createurs" },
+      { source: "/pour-qui/developpeurs", destination: "/landing/pour-qui/developpeurs" },
+      { source: "/pour-qui/designers", destination: "/landing/pour-qui/designers" },
+      { source: "/pour-qui/agences", destination: "/landing/pour-qui/agences" },
+      { source: "/pour-qui/consultants", destination: "/landing/pour-qui/consultants" },
+      // ── Comparatifs ──
+      { source: "/comparatifs/jestly-vs-notion", destination: "/landing/comparatifs/jestly-vs-notion" },
+      { source: "/comparatifs/jestly-vs-trello", destination: "/landing/comparatifs/jestly-vs-trello" },
+      { source: "/comparatifs/jestly-vs-clickup", destination: "/landing/comparatifs/jestly-vs-clickup" },
+      { source: "/comparatifs/jestly-vs-google-sheets", destination: "/landing/comparatifs/jestly-vs-google-sheets" },
+      { source: "/comparatifs/jestly-vs-google-agenda", destination: "/landing/comparatifs/jestly-vs-google-agenda" },
+      { source: "/comparatifs/jestly-vs-hubspot", destination: "/landing/comparatifs/jestly-vs-hubspot" },
+      // ── Légal ──
+      { source: "/mentions-legales", destination: "/legal/mentions-legales" },
+      { source: "/confidentialite", destination: "/legal/confidentialite" },
+      { source: "/cgu", destination: "/legal/cgu" },
+    ];
+  },
   images: {
     remotePatterns: [
       {

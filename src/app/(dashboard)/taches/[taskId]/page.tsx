@@ -21,6 +21,7 @@ import {
 import ClientAutocomplete from "@/components/taches/ClientAutocomplete";
 import RelationBadge from "@/components/ui/RelationBadge";
 import SubtaskDetailPanel from "@/components/taches/SubtaskDetailPanel";
+import TaskAttachments from "@/components/taches/TaskAttachments";
 
 /* ── Helpers ── */
 function arrayMove<T>(arr: T[], from: number, to: number): T[] {
@@ -720,6 +721,17 @@ export default function TaskDetailPage() {
               rows={6}
               className="w-full bg-[#FBFBFA] border border-[#E6E6E4] rounded-lg px-4 py-3 text-[14px] text-[#191919] placeholder-[#CCC] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all resize-none leading-relaxed"
               style={{ minHeight: "120px" }}
+            />
+          </div>
+
+          {/* Photos */}
+          <div className="bg-white rounded-xl border border-[#E6E6E4] p-6">
+            <label className="text-[11px] text-[#999] font-semibold uppercase tracking-wider block mb-3">
+              Photos
+            </label>
+            <TaskAttachments
+              attachments={task.attachments || []}
+              onChange={(attachments) => update({ attachments })}
             />
           </div>
 

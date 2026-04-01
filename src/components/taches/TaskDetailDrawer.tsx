@@ -17,6 +17,7 @@ import {
 import RelationBadge from "@/components/ui/RelationBadge";
 import ClientAutocomplete from "./ClientAutocomplete";
 import SubtaskDetailPanel from "./SubtaskDetailPanel";
+import TaskAttachments from "./TaskAttachments";
 
 interface TaskDetailDrawerProps {
   task: Task | null;
@@ -445,6 +446,17 @@ export default function TaskDetailDrawer({
                   />
                 </div>
 
+                {/* Photos */}
+                <div>
+                  <label className="text-[11px] text-[#999] font-medium block mb-2">
+                    Photos
+                  </label>
+                  <TaskAttachments
+                    attachments={local.attachments || []}
+                    onChange={(attachments) => update({ attachments })}
+                  />
+                </div>
+
                 {/* Subtasks */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -506,13 +518,20 @@ export default function TaskDetailDrawer({
                           }}
                           onOpen={() => { setSelectedSubIdx(i); setSubtaskPanelOpen(true); }}
                         />
-                        {(sub.notes || sub.checklist?.length || (sub.priority && sub.priority !== "medium")) && (
+                        {(sub.notes || sub.checklist?.length || sub.attachments?.length || (sub.priority && sub.priority !== "medium")) && (
                           <span className="flex items-center gap-0.5 flex-shrink-0">
                             {sub.priority && sub.priority !== "medium" && (
                               <span className="w-1.5 h-1.5 rounded-full" style={{ background: PRIORITY_CONFIG[sub.priority].dot }} />
                             )}
                             {sub.checklist && sub.checklist.length > 0 && (
                               <span className="text-[9px] text-[#BBB]">{sub.checklist.filter((c) => c.done).length}/{sub.checklist.length}</span>
+                            )}
+                            {sub.attachments && sub.attachments.length > 0 && (
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#BBB" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                <circle cx="8.5" cy="8.5" r="1.5" />
+                                <polyline points="21 15 16 10 5 21" />
+                              </svg>
                             )}
                           </span>
                         )}

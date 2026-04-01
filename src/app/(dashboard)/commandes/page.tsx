@@ -22,6 +22,7 @@ import CustomCell from "@/components/commandes/CustomCell";
 import AddColumnButton from "@/components/commandes/AddColumnButton";
 import ColumnHeaderMenu from "@/components/commandes/ColumnHeaderMenu";
 import BulkToolbar from "@/components/commandes/BulkToolbar";
+import TimeNavigator from "@/components/commandes/TimeNavigator";
 import { toast } from "@/lib/hooks/use-toast";
 import { formatDateFR, isOverdue, isOrderOverdue, isActiveProductionStatus } from "@/lib/notion-colors";
 import { NEXT_STATUS, PREV_STATUS, STATUS_LABELS, LEGACY_SEEDED_KEYS } from "@/lib/kanban-config";
@@ -29,6 +30,13 @@ import SelectableCheckbox from "@/components/ui/SelectableCheckbox";
 import PipelineSummaryCards from "@/components/ui/PipelineSummaryCards";
 import { isInteractiveClick } from "@/lib/interactive-click";
 import { computeOrdersPipelineSummary } from "@/lib/business-metrics";
+import {
+  type TimeGranularity,
+  getTimeWindow,
+  filterOrdersByPeriod,
+  getCurrentPeriodRef,
+  formatPeriodLabel,
+} from "@/lib/time-navigation";
 
 /* ─── Notion-style color palette for select options ─── */
 const OPTION_COLORS = ["violet", "blue", "cyan", "emerald", "amber", "orange", "rose", "pink", "indigo", "teal"];
@@ -110,6 +118,22 @@ export default function CommandesPage() {
     updateUrl({ tab: tab === "todo" ? null : tab });
   };
   const [search, setSearch] = useState(searchFromUrl ?? "");
+
+  /* ─── Time navigation state (persisted in localStorage) ─── */
+  const [timeGranularity, setTimeGranularity] = useState<TimeGranularity>(() => {
+    if (typeof window === "undefined") return "month";
+    return (localStorage.getItem("jestly_time_granularity") as TimeGranularity) || "month";
+  });
+  const [periodRef, setPeriodRef] = useState<Date>(() => getCurrentPeriodRef());
+
+  const handleGranularityChange = useCallback((g: TimeGranularity) => {
+    setTimeGranularity(g);
+    localStorage.setItem("jestly_time_granularity", g);
+  }, []);
+
+  const handlePeriodChange = useCallback((ref: Date) => {
+    setPeriodRef(ref);
+  }, []);
 
   // Persister la recherche dans l'URL (debounce)
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -204,27 +228,40 @@ export default function CommandesPage() {
     return null;
   };
 
+  /* ─── Time-filtered orders (première étape du pipeline) ─── */
+  const timeWindow = useMemo(
+    () => getTimeWindow(timeGranularity, periodRef),
+    [timeGranularity, periodRef],
+  );
+
+  const periodOrders = useMemo(
+    () => filterOrdersByPeriod(orders, timeWindow),
+    [orders, timeWindow],
+  );
+
+  /* Compteurs d'onglets basés sur la période active */
   const counts = useMemo(() => {
-    const c = { todo: 0, in_progress: 0, delivered: 0, paid: 0, all: orders.length };
-    for (const o of orders) {
+    const c = { todo: 0, in_progress: 0, delivered: 0, paid: 0, all: periodOrders.length };
+    for (const o of periodOrders) {
       const group = getTabForStatus(o.status);
       if (group && group in c) c[group as keyof Omit<typeof c, "all">]++;
     }
     return c;
-  }, [orders]);
+  }, [periodOrders]);
 
-  /* ─── Pipeline summary (source de vérité unique) ─── */
-  const pipelineSummary = useMemo(() => computeOrdersPipelineSummary(orders), [orders]);
+  /* ─── Pipeline summary aligné sur la période active ─── */
+  const pipelineSummary = useMemo(() => computeOrdersPipelineSummary(periodOrders), [periodOrders]);
 
-  /* ─── Aggregated stats (overdue/soon pour alertes) ─── */
+  /* ─── Aggregated stats (overdue/soon pour alertes, période active) ─── */
   const stats = useMemo(() => {
-    const overdueCount = orders.filter(o => isOrderOverdue(o.deadline, o.status)).length;
-    const soonCount = orders.filter(o => o.deadline && isDeadlineSoon(o.deadline) && !isOverdue(o.deadline) && isActiveProductionStatus(o.status)).length;
+    const overdueCount = periodOrders.filter(o => isOrderOverdue(o.deadline, o.status)).length;
+    const soonCount = periodOrders.filter(o => o.deadline && isDeadlineSoon(o.deadline) && !isOverdue(o.deadline) && isActiveProductionStatus(o.status)).length;
     return { overdueCount, soonCount };
-  }, [orders]);
+  }, [periodOrders]);
 
+  /* Pipeline complet : période → statut → recherche */
   const filtered = useMemo(() => {
-    let list = orders;
+    let list = periodOrders;
     const tab = TABS.find((t) => t.key === activeTab);
     if (tab?.slug) {
       const groupStatuses = STATUS_GROUPS[activeTab];
@@ -246,7 +283,7 @@ export default function CommandesPage() {
     // Tri par position manuelle (croissant)
     list = [...list].sort((a, b) => (a.sortPosition ?? 0) - (b.sortPosition ?? 0));
     return list;
-  }, [orders, activeTab, search]);
+  }, [periodOrders, activeTab, search]);
 
   /* ─── Multi-select ─── */
 
@@ -712,12 +749,27 @@ export default function CommandesPage() {
         )}
       </motion.div>
 
+      {/* ═══ TIME NAVIGATOR ═══ */}
+      <motion.div
+        className="mb-3"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.05 }}
+      >
+        <TimeNavigator
+          granularity={timeGranularity}
+          periodRef={periodRef}
+          onGranularityChange={handleGranularityChange}
+          onPeriodChange={handlePeriodChange}
+        />
+      </motion.div>
+
       {/* ═══ CONTROL BAR ═══ */}
       <motion.div
         className="bg-white rounded-t-xl border border-[#E6E6E4] border-b-0 px-2 pt-1"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.05 }}
+        transition={{ duration: 0.4, delay: 0.08 }}
       >
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 px-2">
           {/* Tabs */}
@@ -919,9 +971,17 @@ export default function CommandesPage() {
                       <div className="text-[#C0C0BE] mb-2">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                       </div>
-                      <p className="text-[14px] text-[#8A8A88] font-medium">Aucune commande trouvée</p>
+                      <p className="text-[14px] text-[#8A8A88] font-medium">
+                        {search
+                          ? "Aucune commande trouvée"
+                          : `Aucune commande pour ${formatPeriodLabel(timeGranularity, periodRef).toLowerCase()}`}
+                      </p>
                       <p className="text-[12px] text-[#B0B0AE] mt-1">
-                        {search ? "Essayez un autre terme de recherche." : "Créez votre première commande pour commencer."}
+                        {search
+                          ? "Essayez un autre terme de recherche."
+                          : orders.length > 0
+                            ? "Naviguez vers une autre période ou créez une commande."
+                            : "Créez votre première commande pour commencer."}
                       </p>
                     </td>
                   </tr>

@@ -111,6 +111,8 @@ export function orderRecordToOrder(
       : undefined,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     sortPosition: (row as any).sort_position ?? 0,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    statusBeforePaid: (row as any).status_before_paid ?? undefined,
   };
 }
 

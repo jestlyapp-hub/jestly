@@ -10,7 +10,9 @@ import {
   type TaskPriority,
   type ChecklistItem,
   type SubtaskComment,
+  type TaskAttachment,
 } from "@/lib/tasks-utils";
+import TaskAttachments from "./TaskAttachments";
 
 /* ── Timer formatting ── */
 function fmtTime(s: number): string {
@@ -63,7 +65,7 @@ export default function SubtaskDetailPanel({
   const [newComment, setNewComment] = useState("");
   const [timerRunning, setTimerRunning] = useState(false);
   const [timerElapsed, setTimerElapsed] = useState(0);
-  const [activeSection, setActiveSection] = useState<"notes" | "checklist" | "comments">("notes");
+  const [activeSection, setActiveSection] = useState<"notes" | "checklist" | "comments" | "photos">("notes");
   const titleRef = useRef<HTMLInputElement>(null);
   const notesRef = useRef<HTMLTextAreaElement>(null);
   const commentRef = useRef<HTMLInputElement>(null);
@@ -298,7 +300,12 @@ export default function SubtaskDetailPanel({
 
                 {/* ── Section tabs ── */}
                 <div className="flex gap-0.5 border-b border-[#EFEFEF]">
-                  {([["notes", "Notes"], ["checklist", `Liste${checkProgress ? ` (${checkProgress.done}/${checkProgress.total})` : ""}`], ["comments", `Commentaires${comments.length > 0 ? ` (${comments.length})` : ""}`]] as const).map(([key, label]) => (
+                  {([
+                    ["notes", "Notes"],
+                    ["checklist", `Liste${checkProgress ? ` (${checkProgress.done}/${checkProgress.total})` : ""}`],
+                    ["photos", `Photos${(local.attachments || []).length > 0 ? ` (${(local.attachments || []).length})` : ""}`],
+                    ["comments", `Commentaires${comments.length > 0 ? ` (${comments.length})` : ""}`],
+                  ] as const).map(([key, label]) => (
                     <button key={key} onClick={() => setActiveSection(key as typeof activeSection)}
                       className={`px-3 py-2 text-[11px] font-medium transition-colors cursor-pointer ${activeSection === key ? "text-[#4F46E5] border-b-2 border-[#4F46E5]" : "text-[#999] hover:text-[#666]"}`}>
                       {label}
@@ -361,6 +368,17 @@ export default function SubtaskDetailPanel({
                       <button onClick={addCheckItem} disabled={!newCheckItem.trim()}
                         className="text-[11px] text-[#4F46E5] font-medium px-2.5 py-1.5 rounded-lg hover:bg-[#EEF2FF] disabled:opacity-30 cursor-pointer transition-colors">+</button>
                     </div>
+                  </motion.div>
+                )}
+
+                {/* ── Photos section ── */}
+                {activeSection === "photos" && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.15 }}>
+                    <TaskAttachments
+                      attachments={local.attachments || []}
+                      onChange={(attachments) => update({ attachments })}
+                      compact
+                    />
                   </motion.div>
                 )}
 

@@ -5,9 +5,9 @@ import { motion } from "framer-motion";
 import Button from "./ui/Button";
 
 const links = [
-  { label: "Fonctionnalités", href: "#features" },
-  { label: "Tarifs", href: "#pricing" },
-  { label: "FAQ", href: "#faq" },
+  { label: "Fonctionnalités", href: "/fonctionnalites" },
+  { label: "Tarifs", href: "/tarifs" },
+  { label: "FAQ", href: "/faq" },
 ];
 
 export default function Navbar() {

@@ -44,8 +44,8 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { user, supabase } = auth;
 
     const body = await req.json();
-    const allowed = ["status", "priority", "deadline", "notes", "paid", "title", "description", "amount", "checklist", "tags", "custom_fields", "client_id", "briefing", "resources", "category", "external_ref"];
-    const optionalCols = ["checklist", "tags", "custom_fields", "briefing", "resources", "category", "external_ref"];
+    const allowed = ["status", "priority", "deadline", "notes", "paid", "title", "description", "amount", "checklist", "tags", "custom_fields", "client_id", "briefing", "resources", "category", "external_ref", "status_before_paid"];
+    const optionalCols = ["checklist", "tags", "custom_fields", "briefing", "resources", "category", "external_ref", "status_before_paid"];
 
     const updates: Record<string, unknown> = {};
     for (const key of allowed) {

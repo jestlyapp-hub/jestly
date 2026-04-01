@@ -82,6 +82,7 @@ export async function POST(req: NextRequest) {
     order_title: body.orderTitle || null,
     tags: body.tags || [],
     subtasks: body.subtasks || [],
+    attachments: body.attachments || [],
     archived_at: null,
     created_at: now,
     updated_at: now,
@@ -155,6 +156,7 @@ export async function PATCH(req: NextRequest) {
   if (fields.orderTitle !== undefined) update.order_title = fields.orderTitle;
   if (fields.tags !== undefined) update.tags = fields.tags;
   if (fields.subtasks !== undefined) update.subtasks = fields.subtasks;
+  if (fields.attachments !== undefined) update.attachments = fields.attachments;
 
   // Archive: use archived_at timestamp
   if (fields.archived === true) {
@@ -192,6 +194,7 @@ export async function PATCH(req: NextRequest) {
     delete safeUpdate.order_title;
     delete safeUpdate.tags;
     delete safeUpdate.subtasks;
+    delete safeUpdate.attachments;
     delete safeUpdate.archived_at;
     // Priority stays as-is (migration 024 uses 'medium' not 'normal')
 
@@ -282,6 +285,7 @@ function mapRowToTask(row: any) {
     orderTitle: row.order_title || undefined,
     tags,
     subtasks,
+    attachments: Array.isArray(row.attachments) ? row.attachments : [],
     archived: !!row.archived_at,
     archivedAt: row.archived_at || undefined,
     createdAt: row.created_at,

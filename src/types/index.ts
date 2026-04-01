@@ -105,6 +105,7 @@ export interface Order {
   customFields?: Record<string, unknown>;
   items?: LineItem[];
   sortPosition?: number;
+  statusBeforePaid?: string;
 }
 
 /* ─── Board Config Types (dynamic workflow) ─── */

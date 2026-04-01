@@ -17,6 +17,7 @@ import OrderDrawerChecklist from "./OrderDrawerChecklist";
 import OrderDrawerNotes from "./OrderDrawerNotes";
 import CustomCell from "./CustomCell";
 import { toast } from "@/lib/hooks/use-toast";
+import { STATUS_LABELS } from "@/lib/kanban-config";
 
 const CATEGORIES = [
   { value: "", label: "Aucune" },
@@ -786,21 +787,53 @@ export default function OrderDrawer({
                       />
                     </FieldRow>
 
-                    {/* Paid toggle */}
-                    <FieldRow label="Payé" indicator={<FieldSaveIndicator state={getState("paid")} />}>
+                    {/* Paid toggle — sync avec statut + facturation */}
+                    <div className="flex items-center justify-between min-h-[36px] py-1 hover:bg-[#FAFAF9] -mx-2 px-2 rounded-md transition-colors">
+                      <span className={`text-[13px] transition-colors duration-200 ${order.paid ? "text-emerald-600 font-medium" : "text-[#5A5A58]"}`}>
+                        Payé
+                      </span>
                       <button
-                        onClick={() => saveField("paid", { paid: !order.paid }, { paid: !order.paid })}
-                        className={`w-10 h-[22px] rounded-full transition-colors cursor-pointer relative ${
-                          order.paid ? "bg-[#4F46E5]" : "bg-[#E6E6E4]"
+                        role="switch"
+                        aria-checked={order.paid}
+                        onClick={() => {
+                          if (!order.paid) {
+                            // ON : mémorise le statut actuel, passe en payé
+                            saveField("paid", {
+                              paid: true,
+                              status: "paid",
+                              status_before_paid: order.status,
+                            }, {
+                              paid: true,
+                              status: "paid",
+                              status_before_paid: order.status,
+                            });
+                            toast.success("Commande marquée comme payée");
+                          } else {
+                            // OFF : restaure le statut d'origine
+                            const restore = order.statusBeforePaid || "delivered";
+                            saveField("paid", {
+                              paid: false,
+                              status: restore,
+                              status_before_paid: null,
+                            }, {
+                              paid: false,
+                              status: restore,
+                              status_before_paid: null,
+                            });
+                            toast.success(`Commande restaurée en ${STATUS_LABELS[restore] ?? restore}`);
+                          }
+                        }}
+                        className={`inline-flex items-center w-9 h-5 rounded-full transition-colors duration-200 cursor-pointer flex-shrink-0 ${
+                          order.paid ? "bg-emerald-500" : "bg-[#D0D0CE]"
                         }`}
                       >
                         <span
-                          className={`absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform ${
-                            order.paid ? "translate-x-[22px]" : "translate-x-[3px]"
+                          className={`inline-block w-3.5 h-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                            order.paid ? "translate-x-[18px]" : "translate-x-[3px]"
                           }`}
                         />
                       </button>
-                    </FieldRow>
+                    </div>
 
                     {/* Date (read-only) */}
                     <FieldRow label="Créée le">

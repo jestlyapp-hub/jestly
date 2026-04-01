@@ -70,6 +70,7 @@ const navGroups: NavGroup[] = [
 ];
 
 const bottomNav: NavItem[] = [
+  { label: "Abonnement", href: "/abonnement", icon: <Sparkles size={18} strokeWidth={1.7} /> },
   { label: "Paramètres", href: "/parametres", icon: <Settings size={18} strokeWidth={1.7} /> },
 ];
 
@@ -170,7 +171,7 @@ function AccountMenu({ user, open, onClose, triggerRef }: {
             {/* ── Navigation principale ── */}
             <div className="py-1.5 px-1.5">
               <MenuLink href="/parametres" icon={<Settings size={15} strokeWidth={1.7} />} label="Paramètres" onClick={onClose} />
-              <MenuLink href="/parametres#abonnement" icon={<CreditCard size={15} strokeWidth={1.7} />} label="Abonnement" onClick={onClose} />
+              <MenuLink href="/abonnement" icon={<CreditCard size={15} strokeWidth={1.7} />} label="Abonnement" onClick={onClose} />
               <MenuLink href="/support" icon={<Headphones size={15} strokeWidth={1.7} />} label="Support" onClick={onClose} />
               <MenuLink href="/guide" icon={<HelpCircle size={15} strokeWidth={1.7} />} label="Guide" onClick={onClose} />
               <MenuButton icon={<MessageCircle size={15} strokeWidth={1.7} />} label="Discord" onClick={() => { window.open("https://discord.gg/jestly", "_blank"); onClose(); }} external />

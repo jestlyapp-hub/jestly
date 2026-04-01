@@ -148,6 +148,8 @@ async function main() {
     "054_task_comments_activity.sql",
     "055_order_items_freeform.sql",
     "056_orders_sort_position.sql",
+    "057_task_attachments.sql",
+    "058_order_status_before_paid.sql",
   ];
 
   const migrationsDir = join(__dirname, "..", "supabase", "migrations");

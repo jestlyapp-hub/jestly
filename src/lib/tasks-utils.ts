@@ -15,6 +15,16 @@ export interface SubtaskComment {
   createdAt: string;
 }
 
+export interface TaskAttachment {
+  id: string;
+  url: string;
+  fileName: string;
+  mimeType: string;
+  size: number;
+  storagePath: string;
+  createdAt: string;
+}
+
 export interface Subtask {
   id: string;
   text: string;
@@ -25,6 +35,7 @@ export interface Subtask {
   checklist?: ChecklistItem[];
   tags?: string[];
   comments?: SubtaskComment[];
+  attachments?: TaskAttachment[];
   timeSpent?: number; // total seconds tracked
 }
 
@@ -41,6 +52,7 @@ export interface Task {
   orderTitle?: string;
   tags: string[];
   subtasks: Subtask[];
+  attachments?: TaskAttachment[];
   archived: boolean;
   createdAt: string;
   updatedAt: string;

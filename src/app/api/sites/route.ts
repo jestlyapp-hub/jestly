@@ -7,14 +7,35 @@ export async function GET() {
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
 
+  // Try with page count join first, fallback without if schema cache issue
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("sites") as any)
-    .select("id, slug, name, status, theme, settings, custom_domain, is_private, created_at, updated_at")
+  let { data, error } = await (supabase.from("sites") as any)
+    .select("id, slug, name, status, theme, settings, seo, nav, custom_domain, is_private, created_at, updated_at, site_pages(id)")
     .eq("owner_id", user.id)
     .order("created_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json(data);
+  if (error) {
+    // Fallback: query without join
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fallback = await (supabase.from("sites") as any)
+      .select("id, slug, name, status, theme, settings, seo, nav, custom_domain, is_private, created_at, updated_at")
+      .eq("owner_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (fallback.error) return NextResponse.json({ error: fallback.error.message }, { status: 500 });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return NextResponse.json((fallback.data || []).map((s: any) => ({ ...s, pages_count: 0 })));
+  }
+
+  // Enrich with page count
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const enriched = (data || []).map((s: any) => ({
+    ...s,
+    pages_count: Array.isArray(s.site_pages) ? s.site_pages.length : 0,
+    site_pages: undefined,
+  }));
+
+  return NextResponse.json(enriched);
 }
 
 // POST /api/sites — create a new site

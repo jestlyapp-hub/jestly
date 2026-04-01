@@ -16,31 +16,29 @@ const ease = [0.22, 1, 0.36, 1] as const;
 
 /* ─── Data ─── */
 const FEATURES = [
-  { key: "site", title: "Site web", desc: "Créez un site freelance premium, rapide et personnalisable.", color: "#FF8A3D", bg: "#FFF2E8", iconPath: "M3 3h18v18H3zM3 9h18M9 21V9", href: "/landing/site-web" },
-  { key: "crm", title: "CRM clients", desc: "Centralisez vos prospects, clients, échanges et suivis.", color: "#EC4899", bg: "#FDF2F8", iconPath: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75", href: "/landing/crm" },
-  { key: "agenda", title: "Agenda", desc: "Planifiez vos rendez-vous, deadlines et disponibilités.", color: "#4C8DFF", bg: "#EAF3FF", iconPath: "M3 4h18v18H3zM16 2v4M8 2v4M3 10h18", href: "/landing/agenda" },
-  { key: "facturation", title: "Facturation", desc: "Pilotez devis, paiements, relances et santé financière.", color: "#22c55e", bg: "#ECFDF5", iconPath: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 14l2 2 4-4", href: "/landing/facturation" },
-  { key: "analytics", title: "Analytics", desc: "Suivez vos performances, revenus et croissance en temps réel.", color: "#7c3aed", bg: "#EEE8FF", iconPath: "M3 3v18h18M7 16l4-8 4 4 5-9", href: "/landing/analytics" },
-  { key: "commandes", title: "Commandes", desc: "Gérez vos projets, statuts, livraisons et CA.", color: "#F59E0B", bg: "#FEF9EC", iconPath: "M9 5H2v7l6.29 6.29a1 1 0 001.42 0l5.58-5.58a1 1 0 000-1.42zM6 9a1 1 0 100-2 1 1 0 000 2", href: "/landing/commandes" },
-  { key: "portfolio", title: "Portfolio", desc: "Présentez vos meilleurs projets avec une mise en scène premium.", color: "#A855F7", bg: "#F3E8FF", iconPath: "M4 4h16v16H4zM4 12h16M12 4v16", href: "/landing/portfolio" },
-  { key: "paiements", title: "Paiements", desc: "Encaissez simplement avec une expérience client fluide.", color: "#10B981", bg: "#D1FAE5", iconPath: "M1 4h22v16H1zM1 10h22", href: "/landing/paiements" },
+  { key: "site", title: "Site web", desc: "Créez un site freelance premium, rapide et personnalisable.", color: "#FF8A3D", bg: "#FFF2E8", iconPath: "M3 3h18v18H3zM3 9h18M9 21V9", href: "/fonctionnalites/site-vitrine" },
+  { key: "crm", title: "CRM clients", desc: "Centralisez vos prospects, clients, échanges et suivis.", color: "#EC4899", bg: "#FDF2F8", iconPath: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75", href: "/fonctionnalites/crm" },
+  { key: "agenda", title: "Agenda", desc: "Planifiez vos rendez-vous, deadlines et disponibilités.", color: "#4C8DFF", bg: "#EAF3FF", iconPath: "M3 4h18v18H3zM16 2v4M8 2v4M3 10h18", href: "/fonctionnalites/calendrier" },
+  { key: "facturation", title: "Facturation", desc: "Pilotez devis, paiements, relances et santé financière.", color: "#22c55e", bg: "#ECFDF5", iconPath: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 14l2 2 4-4", href: "/fonctionnalites/facturation" },
+  { key: "analytics", title: "Analytics", desc: "Suivez vos performances, revenus et croissance en temps réel.", color: "#7c3aed", bg: "#EEE8FF", iconPath: "M3 3v18h18M7 16l4-8 4 4 5-9", href: "/fonctionnalites/analytics" },
+  { key: "commandes", title: "Commandes", desc: "Gérez vos projets, statuts, livraisons et CA.", color: "#F59E0B", bg: "#FEF9EC", iconPath: "M9 5H2v7l6.29 6.29a1 1 0 001.42 0l5.58-5.58a1 1 0 000-1.42zM6 9a1 1 0 100-2 1 1 0 000 2", href: "/fonctionnalites/commandes" },
+  { key: "portfolio", title: "Portfolio", desc: "Présentez vos meilleurs projets avec une mise en scène premium.", color: "#A855F7", bg: "#F3E8FF", iconPath: "M4 4h16v16H4zM4 12h16M12 4v16", href: "/fonctionnalites/portfolio" },
+  { key: "paiements", title: "Paiements", desc: "Encaissez simplement avec une expérience client fluide.", color: "#10B981", bg: "#D1FAE5", iconPath: "M1 4h22v16H1zM1 10h22", href: "/fonctionnalites/paiements" },
 ];
 
 const SOLUTIONS = [
-  { title: "Pour les créateurs", desc: "Monteurs, designers, photographes — un cockpit créatif complet.", icon: "✦", href: "/landing/pour-qui/createurs" },
-  { title: "Pour les développeurs", desc: "Outils adaptés aux freelances tech et indie hackers.", icon: "⟨/⟩", href: "/landing/pour-qui/developpeurs" },
-  { title: "Pour les designers", desc: "Portfolio, briefs, facturation — tout en un seul espace.", icon: "◇", href: "/landing/pour-qui/designers" },
-  { title: "Pour les agences", desc: "Structurez vos projets multi-clients avec un système unifié.", icon: "▣", href: "/landing/pour-qui/agences" },
-  { title: "Pour les consultants", desc: "Gérez missions, CRM et facturation en toute simplicité.", icon: "◎", href: "/landing/pour-qui/consultants" },
+  { title: "Pour les créateurs", desc: "Monteurs, designers, photographes — un cockpit créatif complet.", icon: "✦", href: "/pour-qui/createurs" },
+  { title: "Pour les développeurs", desc: "Outils adaptés aux freelances tech et indie hackers.", icon: "⟨/⟩", href: "/pour-qui/developpeurs" },
+  { title: "Pour les designers", desc: "Portfolio, briefs, facturation — tout en un seul espace.", icon: "◇", href: "/pour-qui/designers" },
+  { title: "Pour les agences", desc: "Structurez vos projets multi-clients avec un système unifié.", icon: "▣", href: "/pour-qui/agences" },
+  { title: "Pour les consultants", desc: "Gérez missions, CRM et facturation en toute simplicité.", icon: "◎", href: "/pour-qui/consultants" },
 ];
 
 const RESOURCES = [
-  { title: "Blog", desc: "Conseils et tendances pour freelances." },
-  { title: "Centre d'aide", desc: "Guides et FAQ pour bien démarrer." },
-  { title: "Templates", desc: "Modèles prêts à l'emploi." },
-  { title: "Comparatifs", desc: "Jestly vs les outils existants." },
-  { title: "Roadmap", desc: "Découvrez les prochaines fonctionnalités." },
-  { title: "Contact", desc: "Parlez-nous directement." },
+  { title: "Blog", desc: "Conseils et tendances pour freelances.", href: "/blog" },
+  { title: "Centre d'aide", desc: "Guides et FAQ pour bien démarrer.", href: "/centre-aide" },
+  { title: "Comparatifs", desc: "Jestly vs les outils existants.", href: "/comparatifs" },
+  { title: "Roadmap", desc: "Découvrez les prochaines fonctionnalités.", href: "/roadmap" },
 ];
 
 /* ─── Feature preview ─── */
@@ -103,7 +101,7 @@ function SolutionsDrawer({ onClose }: { onClose: () => void }) {
       </div>
       <div className="w-[260px] flex-shrink-0 rounded-2xl p-6 flex flex-col justify-between" style={{ background: "linear-gradient(135deg, #EEE8FF, #F3F0FF)", border: "1px solid rgba(124,58,237,0.08)" }}>
         <div><div className="text-[15px] font-bold text-[#111118] leading-snug mb-2">Tout votre business freelance dans un seul cockpit</div><div className="text-[12px] text-[#66697A] leading-relaxed">Remplacez 10 outils par un système unifié, pensé pour les créatifs indépendants.</div></div>
-        <Link href="/landing/site-web" onClick={onClose} className="cta-gloss relative mt-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-white px-4 py-2 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-[1px] active:scale-[0.98]" style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)", boxShadow: "0 4px 14px rgba(124,58,237,0.25)" }}>
+        <Link href="/fonctionnalites/site-vitrine" onClick={onClose} className="cta-gloss relative mt-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-white px-4 py-2 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-[1px] active:scale-[0.98]" style={{ background: "linear-gradient(135deg, #7c3aed, #a78bfa)", boxShadow: "0 4px 14px rgba(124,58,237,0.25)" }}>
           <span className="relative z-10 flex items-center gap-1.5">Voir comment ça marche <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg></span>
         </Link>
       </div>
@@ -118,18 +116,18 @@ function ResourcesDrawer({ onClose }: { onClose: () => void }) {
         <div className="text-[10px] font-bold uppercase tracking-[0.15em] text-[#8A8FA3] mb-3 px-3">Ressources</div>
         <div className="grid grid-cols-2 gap-x-3 gap-y-1">
           {RESOURCES.map((r) => (
-            <span key={r.title} onClick={onClose} className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[#F7F7FB] transition-colors duration-200 cursor-default opacity-60" title="Bientôt disponible">
+            <Link key={r.title} href={r.href} onClick={onClose} className="flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-[#F7F7FB] transition-colors duration-200">
               <div className="w-8 h-8 rounded-lg bg-[#F5F4FA] flex items-center justify-center flex-shrink-0"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A8FA3" strokeWidth="2" strokeLinecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" /></svg></div>
               <div><div className="text-[13px] font-semibold text-[#111118]">{r.title}</div><div className="text-[11px] text-[#8A8FA3] mt-0.5">{r.desc}</div></div>
-            </span>
+            </Link>
           ))}
         </div>
       </div>
       <div className="w-[260px] flex-shrink-0 rounded-2xl p-6 flex flex-col justify-between" style={{ background: "linear-gradient(135deg, #F0FDF4, #ECFDF5)", border: "1px solid rgba(34,197,94,0.08)" }}>
         <div><div className="text-[15px] font-bold text-[#111118] leading-snug mb-2">Découvrir les meilleures pratiques</div><div className="text-[12px] text-[#66697A] leading-relaxed">Guides, templates et conseils pour lancer votre activité freelance.</div></div>
-        <span className="cta-gloss relative mt-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-white px-4 py-2 rounded-xl overflow-hidden cursor-default opacity-60" style={{ background: "linear-gradient(135deg, #16a34a, #4ade80)", boxShadow: "0 4px 14px rgba(34,197,94,0.25)" }} title="Bientôt disponible">
+        <Link href="/blog" onClick={onClose} className="cta-gloss relative mt-4 inline-flex items-center gap-1.5 text-[12px] font-semibold text-white px-4 py-2 rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-[1px] active:scale-[0.98]" style={{ background: "linear-gradient(135deg, #16a34a, #4ade80)", boxShadow: "0 4px 14px rgba(34,197,94,0.25)" }}>
           <span className="relative z-10 flex items-center gap-1.5">Explorer les ressources <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg></span>
-        </span>
+        </Link>
       </div>
     </div>
   );
@@ -194,7 +192,7 @@ export default function LandingHeader() {
   const NAV_ITEMS: { label: string; menu: MenuKey; href?: string }[] = [
     { label: "Fonctionnalités", menu: "features" },
     { label: "Pour qui ?", menu: "solutions" },
-    { label: "Tarifs", menu: null, href: "/landing#pricing" },
+    { label: "Tarifs", menu: null, href: "/tarifs" },
     { label: "Ressources", menu: "resources" },
   ];
 
@@ -289,7 +287,7 @@ export default function LandingHeader() {
           {NAV_ITEMS.filter(item => item.menu || item.href).map((item) => (
             <Link
               key={item.label}
-              href={item.href || (item.menu === "features" ? "/landing/site-web" : item.menu === "solutions" ? "/landing/pour-qui/createurs" : "/landing")}
+              href={item.href || (item.menu === "features" ? "/fonctionnalites/site-vitrine" : item.menu === "solutions" ? "/pour-qui/createurs" : "/landing")}
               onClick={closeMobile}
               className="flex items-center px-3 py-2.5 rounded-lg text-[14px] font-medium text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#191919] transition-colors"
             >

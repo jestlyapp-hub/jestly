@@ -12,38 +12,36 @@ const COLUMNS = [
   {
     title: "Produit",
     links: [
-      { label: "Fonctionnalités", href: "/landing#features" },
-      { label: "Solutions", href: "/landing#solutions" },
-      { label: "Tarifs", href: "/landing#pricing" },
-      { label: "Témoignages", href: "/landing#testimonials" },
-      { label: "Démo", href: "/landing#demo" },
+      { label: "Fonctionnalités", href: "/fonctionnalites" },
+      { label: "Solutions", href: "/pour-qui" },
+      { label: "Tarifs", href: "/tarifs" },
+      { label: "Démo", href: "/demo" },
+      { label: "Intégrations", href: "/integrations" },
     ],
   },
   {
     title: "Ressources",
     links: [
-      { label: "Blog", href: "", disabled: true },
-      { label: "Guide freelance", href: "", disabled: true },
-      { label: "FAQ", href: "/landing#faq" },
-      { label: "Centre d'aide", href: "", disabled: true },
+      { label: "Blog", href: "/blog" },
+      { label: "FAQ", href: "/faq" },
+      { label: "Centre d'aide", href: "/centre-aide" },
     ],
   },
   {
     title: "Entreprise",
     links: [
-      { label: "À propos", href: "", disabled: true },
-      { label: "Contact", href: "/contact" },
-      { label: "Partenariats", href: "", disabled: true },
-      { label: "Roadmap", href: "", disabled: true },
+      { label: "À propos", href: "/a-propos" },
+      { label: "Roadmap", href: "/roadmap" },
+      { label: "Comparatifs", href: "/comparatifs" },
     ],
   },
   {
     title: "Légal",
     links: [
-      { label: "Mentions légales", href: "/legal/mentions-legales" },
-      { label: "Confidentialité", href: "/legal/confidentialite" },
-      { label: "Conditions générales", href: "/legal/cgu" },
-      { label: "Cookies", href: "", disabled: true },
+      { label: "Mentions légales", href: "/mentions-legales" },
+      { label: "Confidentialité", href: "/confidentialite" },
+      { label: "Conditions générales", href: "/cgu" },
+      { label: "Cookies", href: "/cookies" },
     ],
   },
 ];
@@ -83,23 +81,13 @@ export default function LandingFooter() {
               <ul className="space-y-3">
                 {col.links.map((link) => (
                   <li key={link.label}>
-                    {"disabled" in link && link.disabled ? (
-                      <span
-                        className="text-[13px] font-medium inline-block cursor-default opacity-50"
-                        style={{ color: "#6B7280" }}
-                        title="Bientôt disponible"
-                      >
-                        {link.label}
-                      </span>
-                    ) : (
-                      <Link
-                        href={link.href}
-                        className="text-[13px] font-medium transition-all duration-200 hover:text-[#7C3AED] hover:translate-x-0.5 inline-block"
-                        style={{ color: "#6B7280" }}
-                      >
-                        {link.label}
-                      </Link>
-                    )}
+                    <Link
+                      href={link.href}
+                      className="text-[13px] font-medium transition-all duration-200 hover:text-[#7C3AED] hover:translate-x-0.5 inline-block"
+                      style={{ color: "#6B7280" }}
+                    >
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -118,9 +106,8 @@ export default function LandingFooter() {
 
           <div className="flex items-center gap-6">
             {[
-              { label: "Confidentialité", href: "/legal/confidentialite" },
-              { label: "Conditions", href: "/legal/cgu" },
-              { label: "Contact", href: "/contact" },
+              { label: "Confidentialité", href: "/confidentialite" },
+              { label: "Conditions", href: "/cgu" },
             ].map((link) => (
               <Link
                 key={link.label}
