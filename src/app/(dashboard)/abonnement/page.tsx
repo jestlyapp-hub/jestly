@@ -155,6 +155,20 @@ export default function AbonnementPage() {
     doSync();
   }, [searchParams, mutateProfile, refreshSubscription]);
 
+  // ── Auto-sync à chaque ouverture si un customer Stripe existe ──
+  // Filet de sécurité : si le webhook a raté, on resync depuis Stripe
+  const openSyncDone = useRef(false);
+  useEffect(() => {
+    if (openSyncDone.current || loading || !profile) return;
+    if (!profile.stripe_customer_id) return;
+    if (searchParams.get("success") === "true") return; // déjà géré par le sync checkout
+    openSyncDone.current = true;
+
+    apiFetch("/api/stripe/sync", { method: "POST" })
+      .then(() => { mutateProfile(); refreshSubscription(); })
+      .catch(() => {});
+  }, [loading, profile, searchParams, mutateProfile, refreshSubscription]);
+
   async function handleUpgrade(targetPlan: "pro" | "business") {
     setCheckoutLoading(targetPlan);
     try {

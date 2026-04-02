@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, stripePriceToPlan } from "@/lib/stripe";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resetToStarter } from "@/lib/billing-helpers";
 import Stripe from "stripe";
 
 // Stripe webhook handler — synchronise billing data
@@ -29,9 +30,65 @@ export async function POST(req: NextRequest) {
 
   try {
     switch (event.type) {
-      case "customer.subscription.created":
-      case "customer.subscription.updated":
       case "customer.subscription.deleted": {
+        // Subscription supprimée → reset vers Starter
+        const deletedSub = event.data.object as Stripe.Subscription;
+        const deletedCustomerId = typeof deletedSub.customer === "string"
+          ? deletedSub.customer
+          : deletedSub.customer.id;
+
+        // Trouver le user_id via stripe_customer_id
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const { data: deletedProfile } = await (supabase.from("profiles") as any)
+          .select("id")
+          .eq("stripe_customer_id", deletedCustomerId)
+          .maybeSingle();
+
+        if (deletedProfile?.id) {
+          // Vérifier si la période est encore active (canceled at period end)
+          const rawEnd = (deletedSub as unknown as Record<string, unknown>).current_period_end as number | undefined;
+          const periodEndDate = rawEnd ? new Date(rawEnd * 1000) : null;
+          const stillInPeriod = periodEndDate && periodEndDate > new Date();
+
+          if (stillInPeriod) {
+            // Période encore active → conserver le plan jusqu'à échéance
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            await (supabase.from("profiles") as any)
+              .update({ subscription_status: "canceled", current_period_end: periodEndDate.toISOString() })
+              .eq("id", deletedProfile.id);
+            console.log(`[stripe webhook] subscription.deleted but period active until ${periodEndDate.toISOString()} — plan conservé`);
+          } else {
+            // Période expirée ou pas de période → reset immédiat
+            await resetToStarter(supabase, deletedProfile.id, "subscription_deleted", { customerId: deletedCustomerId, subscriptionId: deletedSub.id });
+          }
+        } else {
+          console.warn(`[stripe webhook] subscription.deleted — no profile found for customer ${deletedCustomerId}`);
+        }
+
+        // Log
+        await (supabase.from("billing_sync_events") as any).insert({
+          stripe_event_id: event.id,
+          event_type: event.type,
+          customer_id: deletedCustomerId,
+          payload: { subscription_id: deletedSub.id, status: deletedSub.status },
+          status: "processed",
+        }).onConflict("stripe_event_id").ignore();
+
+        await (supabase.from("admin_audit_logs") as any).insert({
+          actor_id: "00000000-0000-0000-0000-000000000000",
+          actor_email: "system@stripe",
+          action: "stripe.subscription.deleted",
+          target_type: "billing",
+          target_id: deletedCustomerId,
+          metadata: { subscription_id: deletedSub.id, user_id: deletedProfile?.id },
+          ip_address: "stripe-webhook",
+          result: "success",
+        });
+        break;
+      }
+
+      case "customer.subscription.created":
+      case "customer.subscription.updated": {
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = typeof subscription.customer === "string"
           ? subscription.customer
@@ -45,7 +102,6 @@ export async function POST(req: NextRequest) {
         let syncStatus: string = "processed";
 
         if (!isActive) {
-          // Subscription inactive → retour au plan gratuit
           plan = "free";
         } else {
           const resolved = stripePriceToPlan(priceId);

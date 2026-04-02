@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { stripe, stripePriceToPlan } from "@/lib/stripe";
+import { resetToStarter } from "@/lib/billing-helpers";
 
 /**
  * POST /api/stripe/sync
@@ -116,22 +117,16 @@ export async function POST() {
       }
     }
 
-    // Aucune subscription active → retour au plan gratuit
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (supabase.from("profiles") as any)
-      .update({
-        plan: "free",
-        subscription_status: "none",
-        stripe_subscription_id: null,
-        stripe_plan_id: null,
-        current_period_end: null,
-        trial_ends_at: null,
-      })
-      .eq("id", user.id);
+    // Aucune subscription active et période expirée → reset vers Starter
+    const result = await resetToStarter(supabase, user.id, "no_active_subscription", {
+      customerId: profile.stripe_customer_id,
+    });
 
-    console.log(`[stripe/sync] user=${user.id} → plan=free (no active subscription)`);
+    if (!result.ok) {
+      return NextResponse.json({ synced: false, error: result.error }, { status: 500 });
+    }
 
-    return NextResponse.json({ synced: true, plan: "free", status: "none" });
+    return NextResponse.json({ synced: true, plan: "starter", status: "none" });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[stripe/sync] Stripe API error:", msg);
