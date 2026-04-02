@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { useApi } from "@/lib/hooks/use-api";
+import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import { useSubscription } from "@/lib/hooks/use-subscription";
+import { QuotaBar } from "@/components/ui/UpgradeGate";
 
 /* ═══════════════════════════════════════════════════════════
    ABONNEMENT — Page de gestion du plan + upgrade in-app
@@ -119,9 +122,61 @@ function Check() {
    ═══════════════════════════════════════════════════════════ */
 
 export default function AbonnementPage() {
-  const { data: profile, loading } = useApi<ProfileData>("/api/settings");
+  const { data: profile, loading, mutate: mutateProfile } = useApi<ProfileData>("/api/settings");
+  const { entitlements, planId: subPlanId, refresh: refreshSubscription } = useSubscription();
+  const searchParams = useSearchParams();
   const [annual, setAnnual] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [syncingAfterCheckout, setSyncingAfterCheckout] = useState(false);
+  const syncDone = useRef(false);
+
+  // ── Auto-sync après retour Stripe Checkout ──
+  useEffect(() => {
+    if (syncDone.current) return;
+    const isSuccess = searchParams.get("success") === "true";
+    if (!isSuccess) return;
+    syncDone.current = true;
+    setSyncingAfterCheckout(true);
+
+    // Appeler le resync endpoint puis rafraîchir les données
+    const doSync = async () => {
+      try {
+        await apiFetch("/api/stripe/sync", { method: "POST" });
+      } catch (e) {
+        console.error("[abonnement] Sync after checkout failed:", e);
+      }
+      // Rafraîchir les données même si le sync échoue (le webhook a peut-être déjà traité)
+      await Promise.all([mutateProfile(), refreshSubscription()]);
+      setSyncingAfterCheckout(false);
+      // Nettoyer l'URL
+      window.history.replaceState({}, "", "/abonnement");
+    };
+    doSync();
+  }, [searchParams, mutateProfile, refreshSubscription]);
+
+  async function handleUpgrade(targetPlan: "pro" | "business") {
+    setCheckoutLoading(targetPlan);
+    try {
+      const { url } = await apiFetch<{ url: string }>("/api/stripe/checkout", {
+        method: "POST",
+        body: { plan: targetPlan, yearly: annual },
+      });
+      if (url) window.location.href = url;
+    } catch (err) {
+      console.error("Checkout error:", err);
+      setCheckoutLoading(null);
+    }
+  }
+
+  async function handleManageSubscription() {
+    try {
+      const { url } = await apiFetch<{ url: string }>("/api/stripe/portal", { method: "POST" });
+      if (url) window.location.href = url;
+    } catch (err) {
+      console.error("Portal error:", err);
+    }
+  }
 
   const currentPlan: Plan = (profile?.plan as Plan) || "free";
   const currentIdx = planIndex(currentPlan);
@@ -142,6 +197,18 @@ export default function AbonnementPage() {
 
   return (
     <div className="max-w-[960px] mx-auto">
+      {/* ═══ Bandeau sync post-checkout ═══ */}
+      {syncingAfterCheckout && (
+        <motion.div
+          className="mb-4 flex items-center gap-3 px-5 py-3.5 bg-[#F0EEFF] border border-[#DDD6FE] rounded-xl"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <span className="w-4 h-4 border-2 border-[#7C3AED] border-t-transparent rounded-full animate-spin" />
+          <span className="text-[13px] font-medium text-[#6D28D9]">Activation de votre abonnement en cours…</span>
+        </motion.div>
+      )}
+
       {/* ═══ Header ═══ */}
       <motion.div className="mb-8" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
         <h1 className="text-[22px] font-bold text-[#191919] tracking-tight">Abonnement</h1>
@@ -193,9 +260,12 @@ export default function AbonnementPage() {
               <span className="text-[14px] text-[#8A8A88] ml-1">€/mois</span>
             </div>
             {profile?.stripe_subscription_id && (
-              <span className="text-[11px] text-[#8A8A88]">
-                Géré via Stripe
-              </span>
+              <button
+                onClick={handleManageSubscription}
+                className="text-[12px] font-semibold text-[#4F46E5] hover:text-[#4338CA] transition-colors cursor-pointer"
+              >
+                Gérer l&apos;abonnement →
+              </button>
             )}
             {currentIdx < 2 && (
               <a
@@ -205,6 +275,16 @@ export default function AbonnementPage() {
                 Voir les plans supérieurs ↓
               </a>
             )}
+          </div>
+        </div>
+
+        {/* Barres de quota */}
+        <div className="mt-5 pt-5 border-t border-[#F0F0EE]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#B0B0AE] mb-3">Usage actuel</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <QuotaBar resource="orders_per_month" />
+            <QuotaBar resource="sites" />
+            <QuotaBar resource="active_projects" />
           </div>
         </div>
 
@@ -321,8 +401,16 @@ export default function AbonnementPage() {
                     Plan actuel
                   </div>
                 ) : isUpgrade ? (
-                  <button className="w-full py-2.5 rounded-lg text-[12px] font-semibold text-white bg-[#4F46E5] hover:bg-[#4338CA] transition-colors cursor-pointer mb-4">
-                    Passer à {plan.name}
+                  <button
+                    onClick={() => handleUpgrade(plan.id as "pro" | "business")}
+                    disabled={checkoutLoading !== null}
+                    className="w-full py-2.5 rounded-lg text-[12px] font-semibold text-white bg-[#4F46E5] hover:bg-[#4338CA] transition-colors cursor-pointer mb-4 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {checkoutLoading === plan.id ? (
+                      <><span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> Redirection…</>
+                    ) : (
+                      `Passer à ${plan.name}`
+                    )}
                   </button>
                 ) : (
                   <div className="text-center py-2.5 rounded-lg text-[12px] font-medium text-[#B0B0AE] border border-[#E6E6E4] mb-4">

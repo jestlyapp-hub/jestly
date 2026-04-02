@@ -1043,28 +1043,33 @@ export default function OrderDrawer({
                 )}
 
                 {/* ═══ DANGER ZONE ═══ */}
-                {order.clientId && (
-                  <div className="mt-2 pt-5 border-t border-[#E6E6E4]">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="text-[#D0D0CE]">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-                      </span>
-                      <span className="text-[11px] font-semibold text-[#B0B0AE] uppercase tracking-wider">
-                        Zone sensible
-                      </span>
-                    </div>
-                    <div className="rounded-lg border border-red-100 bg-red-50/30 p-1">
-                      <DeleteOrderFromDrawer
-                        orderId={order.id}
-                        orderTitle={order.product || "cette commande"}
-                        onDeleted={() => {
-                          onOrderDeleted?.(order.id);
-                          onClose();
-                        }}
-                      />
-                    </div>
+                <div className="mt-2 pt-5 border-t border-[#E6E6E4]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-[#D0D0CE]">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </span>
+                    <span className="text-[11px] font-semibold text-[#B0B0AE] uppercase tracking-wider">
+                      Zone sensible
+                    </span>
                   </div>
-                )}
+                  <div className="rounded-lg border border-red-100 bg-red-50/30 p-1 space-y-0.5">
+                    <DeleteOrderFromDrawer
+                      orderId={order.id}
+                      orderTitle={order.product || "cette commande"}
+                      onDeleted={() => {
+                        onOrderDeleted?.(order.id);
+                        onClose();
+                      }}
+                    />
+                    {order.clientId && order.client && (
+                      <DeleteClientFromDrawer
+                        clientId={order.clientId}
+                        clientName={order.client}
+                        onDeleted={() => onClientDeleted?.()}
+                      />
+                    )}
+                  </div>
+                </div>
 
               </div>
             </div>

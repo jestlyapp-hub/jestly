@@ -47,6 +47,16 @@ export async function POST(
     .maybeSingle();
   if (!site) return NextResponse.json({ error: "Site introuvable" }, { status: 404 });
 
+  // ── Subscription guard: vérifier quota pages/site ──
+  const { checkResourceQuota } = await import("@/lib/subscription-guard");
+  const guard = await checkResourceQuota(supabase, user.id, "pages_per_site", { siteId: id });
+  if (!guard.allowed) {
+    return NextResponse.json(
+      { error: guard.error, upgrade: guard.upgrade, quotaExceeded: true },
+      { status: 403 },
+    );
+  }
+
   const body = await req.json();
   const { slug, title, is_home, sort_order } = body;
 

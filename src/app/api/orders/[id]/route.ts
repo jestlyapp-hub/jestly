@@ -35,6 +35,72 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
   }
 }
 
+// DELETE /api/orders/[id]
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    const auth = await getAuthUser();
+    if (auth.error) return auth.error;
+    const { user, supabase } = auth;
+
+    // Vérifier que la commande existe et appartient à l'utilisateur
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: order, error: findErr } = await (supabase.from("orders") as any)
+      .select("id, title")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (findErr) {
+      console.error(`[DELETE /api/orders/${id}] find:`, findErr.message);
+      return NextResponse.json({ error: findErr.message }, { status: 500 });
+    }
+    if (!order) {
+      return NextResponse.json({ error: "Commande introuvable" }, { status: 404 });
+    }
+
+    // Détacher les FK bloquantes (invoices, tasks) — ON DELETE RESTRICT implicite
+    // On SET NULL avant de supprimer pour éviter les erreurs de contrainte
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from("invoices") as any)
+      .update({ order_id: null })
+      .eq("order_id", id);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from("tasks") as any)
+      .update({ order_id: null })
+      .eq("order_id", id);
+
+    // Supprimer la commande
+    // Les FK CASCADE suppriment automatiquement : order_items, order_submissions, order_brief_responses, order_files
+    // Les FK SET NULL détachent automatiquement : billing_items, projects, events
+    // Le trigger fn_orders_on_delete nettoie : search_documents
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: delErr } = await (supabase.from("orders") as any)
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
+
+    if (delErr) {
+      console.error(`[DELETE /api/orders/${id}]`, delErr.code, delErr.message);
+      if (delErr.code === "23503") {
+        return NextResponse.json(
+          { error: "Impossible de supprimer : des données liées empêchent la suppression. Détachez-les d'abord." },
+          { status: 409 },
+        );
+      }
+      return NextResponse.json({ error: delErr.message }, { status: 500 });
+    }
+
+    console.log(`[DELETE /api/orders/${id}] ✓ Commande "${order.title}" supprimée`);
+    return NextResponse.json({ success: true, id, title: order.title });
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[DELETE /api/orders/:id] fatal:", msg);
+    return NextResponse.json({ error: `Server: ${msg}` }, { status: 500 });
+  }
+}
+
 // PATCH /api/orders/[id]
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {

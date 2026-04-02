@@ -411,31 +411,63 @@ export default function TasksWorkspace() {
     }
   }, [setData]);
 
+  // ── Save state for UX feedback ──
+  const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingTaskRef = useRef<Task | null>(null);
+
+  // Flush pending save immediately (called on drawer close / navigation)
+  const flushSave = useCallback(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const pending = pendingTaskRef.current;
+    if (!pending) return;
+    pendingTaskRef.current = null;
+
+    setSaveState("saving");
+    apiFetch("/api/tasks", {
+      method: "PATCH",
+      body: {
+        id: pending.id,
+        title: pending.title,
+        description: pending.description || "",
+        status: pending.status,
+        priority: pending.priority,
+        dueDate: pending.dueDate || null,
+        clientId: pending.clientId || null,
+        clientName: pending.clientName || null,
+        orderId: pending.orderId || null,
+        orderTitle: pending.orderTitle || null,
+        tags: pending.tags,
+        subtasks: pending.subtasks,
+        attachments: pending.attachments || [],
+      },
+    }).then(() => {
+      setSaveState("saved");
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = setTimeout(() => setSaveState("idle"), 2000);
+    }).catch((e) => {
+      console.error("Task sync error:", e);
+      setSaveState("error");
+    });
+  }, []);
+
   const updateTaskLocally = useCallback(
     (updatedTask: Task) => {
+      // Update UI immediately (optimistic)
       setData((prev) =>
         (prev || []).map((t) => (t.id === updatedTask.id ? updatedTask : t))
       );
       setSelectedTask(updatedTask);
-      apiFetch("/api/tasks", {
-        method: "PATCH",
-        body: {
-          id: updatedTask.id,
-          title: updatedTask.title,
-          description: updatedTask.description || "",
-          status: updatedTask.status,
-          priority: updatedTask.priority,
-          dueDate: updatedTask.dueDate || null,
-          clientId: updatedTask.clientId || null,
-          clientName: updatedTask.clientName || null,
-          orderId: updatedTask.orderId || null,
-          orderTitle: updatedTask.orderTitle || null,
-          tags: updatedTask.tags,
-          subtasks: updatedTask.subtasks,
-        },
-      }).catch((e) => console.error("Task sync error:", e));
+
+      // Debounce the API save (300ms) — last write wins
+      pendingTaskRef.current = updatedTask;
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(() => {
+        flushSave();
+      }, 300);
     },
-    [setData]
+    [setData, flushSave]
   );
 
   function handleSelectTask(task: Task, fullPage = false) {
@@ -567,12 +599,18 @@ export default function TasksWorkspace() {
   async function handleDelete(id: string) {
     const ok = await confirm({ title: "Supprimer la tâche", message: "Supprimer cette tâche ? Cette action est irréversible.", variant: "danger", confirmLabel: "Supprimer" });
     if (!ok) return;
+    // Cancel any pending save for this task
+    if (pendingTaskRef.current?.id === id) pendingTaskRef.current = null;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setData((prev) => (prev || []).filter((t) => t.id !== id));
     setDrawerOpen(false);
     apiFetch("/api/tasks", { method: "DELETE", body: { id } }).catch((e) => console.error("Task delete error:", e));
   }
 
   async function handleArchive(id: string) {
+    // Cancel any pending save for this task
+    if (pendingTaskRef.current?.id === id) pendingTaskRef.current = null;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     // Optimistic update
     setData((prev) =>
       (prev || []).map((t) =>
@@ -704,12 +742,19 @@ export default function TasksWorkspace() {
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
       if (e.key === "Escape" && drawerOpen) {
+        flushSave();
         setDrawerOpen(false);
       }
     }
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [drawerOpen]);
+  }, [drawerOpen, flushSave]);
+
+  // Flush pending saves on unmount (navigation away)
+  useEffect(() => {
+    return () => { flushSave(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) {
     return (
@@ -916,13 +961,14 @@ export default function TasksWorkspace() {
       <TaskDetailDrawer
         task={selectedTask}
         open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
+        onClose={() => { flushSave(); setDrawerOpen(false); }}
         onUpdate={updateTaskLocally}
         onDelete={handleDelete}
         onArchive={handleArchive}
         onDuplicate={handleDuplicate}
         onSchedule={handleScheduleTask}
         onSaveAsTemplate={handleSaveAsTemplate}
+        saveState={saveState}
       />
 
       {/* Template picker */}

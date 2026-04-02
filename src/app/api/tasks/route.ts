@@ -23,35 +23,14 @@ export async function GET(req: NextRequest) {
     query = query.is("archived_at", null);
   }
 
-  let { data, error } = await query;
+  const { data, error } = await query;
 
-  // If query fails (likely missing archived_at column), retry without archive filter
   if (error) {
-    console.error("[/api/tasks] Primary query failed:", error.code, error.message);
-
-    // If requesting archived tasks but column doesn't exist, return empty array
-    // (nothing can be archived if the column doesn't exist)
-    if (showArchived) {
-      console.warn("[/api/tasks] Cannot query archived tasks — archived_at column missing (migration 024)");
-      return NextResponse.json([]);
-    }
-
-    // For active tasks, fall back to unfiltered query (all tasks are active pre-migration)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fallback = await (supabase.from("tasks") as any)
-      .select("*")
-      .eq("user_id", user.id)
-      .order("created_at", { ascending: false });
-
-    if (fallback.error) {
-      console.error("[/api/tasks] Fallback query also failed:", fallback.error.code, fallback.error.message);
-      return NextResponse.json(
-        { error: `Erreur de chargement des tâches : ${fallback.error.message}` },
-        { status: 500 }
-      );
-    }
-    data = fallback.data;
-    console.warn("[/api/tasks] Fallback query succeeded — migration 024_tasks_upgrade.sql is likely not applied");
+    console.error("[/api/tasks GET]", error.code, error.message);
+    return NextResponse.json(
+      { error: `Erreur de chargement des tâches : ${error.message}` },
+      { status: 500 },
+    );
   }
 
   // Map snake_case DB rows to camelCase for frontend, filter out malformed rows
@@ -89,41 +68,17 @@ export async function POST(req: NextRequest) {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let { data, error } = await (supabase.from("tasks") as any)
+  const { data, error } = await (supabase.from("tasks") as any)
     .insert(fullRecord)
     .select()
     .single();
 
-  // If insert fails (likely missing columns from migration 024), try minimal insert
   if (error) {
-    console.error("[/api/tasks POST] Full insert failed:", error.code, error.message);
-    const minimalRecord = {
-      user_id: user.id,
-      title: body.title || "Sans titre",
-      description: body.description || null,
-      status: body.status || "todo",
-      priority: body.priority || "medium",
-      due_date: body.dueDate || null,
-      order_id: body.orderId || null,
-      created_at: now,
-      updated_at: now,
-    };
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fallback = await (supabase.from("tasks") as any)
-      .insert(minimalRecord)
-      .select()
-      .single();
-
-    if (fallback.error) {
-      console.error("[/api/tasks POST] Minimal insert also failed:", fallback.error.code, fallback.error.message);
-      return NextResponse.json(
-        { error: `Erreur lors de la création de la tâche : ${fallback.error.message}` },
-        { status: 500 }
-      );
-    }
-    data = fallback.data;
-    console.warn("[/api/tasks POST] Minimal insert succeeded — migration 024 likely not applied");
+    console.error("[/api/tasks POST]", error.code, error.message);
+    return NextResponse.json(
+      { error: `Erreur lors de la création de la tâche : ${error.message}` },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json(mapRowToTask(data), { status: 201 });
@@ -166,55 +121,19 @@ export async function PATCH(req: NextRequest) {
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let { data, error } = await (supabase.from("tasks") as any)
+  const { data, error } = await (supabase.from("tasks") as any)
     .update(update)
     .eq("id", id)
     .eq("user_id", user.id)
     .select()
     .single();
 
-  // If update fails (likely column doesn't exist), handle based on operation type
   if (error) {
-    console.error("[/api/tasks PATCH] Full update failed:", error.code, error.message);
-
-    // If this was an archive/restore operation, do NOT silently drop it
-    // The archive column must exist for archive to work
-    if (fields.archived !== undefined) {
-      console.error("[/api/tasks PATCH] Archive operation failed — archived_at column likely missing (migration 024)");
-      return NextResponse.json(
-        { error: "L'archivage nécessite la migration 024. Exécutez-la dans Supabase." },
-        { status: 500 }
-      );
-    }
-
-    // For non-archive updates, strip migration-024-only fields and retry
-    const safeUpdate = { ...update };
-    delete safeUpdate.client_id;
-    delete safeUpdate.client_name;
-    delete safeUpdate.order_title;
-    delete safeUpdate.tags;
-    delete safeUpdate.subtasks;
-    delete safeUpdate.attachments;
-    delete safeUpdate.archived_at;
-    // Priority stays as-is (migration 024 uses 'medium' not 'normal')
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fallback = await (supabase.from("tasks") as any)
-      .update(safeUpdate)
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .select()
-      .single();
-
-    if (fallback.error) {
-      console.error("[/api/tasks PATCH] Safe update also failed:", fallback.error.code, fallback.error.message);
-      return NextResponse.json(
-        { error: `Erreur lors de la mise à jour : ${fallback.error.message}` },
-        { status: 500 }
-      );
-    }
-    data = fallback.data;
-    console.warn("[/api/tasks PATCH] Safe update succeeded — migration 024 likely not applied");
+    console.error(`[/api/tasks PATCH] id=${id}:`, error.code, error.message);
+    return NextResponse.json(
+      { error: `Erreur lors de la mise à jour : ${error.message}` },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json(mapRowToTask(data));

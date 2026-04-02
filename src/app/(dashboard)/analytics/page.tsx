@@ -19,9 +19,12 @@ import {
   Image,
 } from "lucide-react";
 
+// ── Period filter (shared with Facturation) ──
+import { type PeriodFilter, PERIOD_ALL, buildShortcutPresets } from "@/lib/period-filter";
+import PeriodFilterDropdown from "@/components/facturation/PeriodFilterDropdown";
+
 // ── Extracted components ──
 import type { AnalyticsData } from "@/components/analytics/analytics-types";
-import { RANGES } from "@/components/analytics/analytics-types";
 import { CardSkeleton } from "@/components/analytics/AnalyticsShared";
 import dynamic from "next/dynamic";
 
@@ -41,8 +44,19 @@ const TABS = [
 // ═══════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════
+// Preset par défaut : 30 derniers jours
+const DEFAULT_PERIOD: PeriodFilter = (() => {
+  const presets = buildShortcutPresets();
+  const last30 = presets.find(p => p.id === "last30");
+  if (last30) {
+    const r = last30.range();
+    return { label: last30.label, range: r };
+  }
+  return PERIOD_ALL;
+})();
+
 export default function AnalyticsPage() {
-  const [range, setRange] = useState("30d");
+  const [period, setPeriod] = useState<PeriodFilter>(DEFAULT_PERIOD);
   const [activeTab, setActiveTab] = useState("overview");
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -50,8 +64,16 @@ export default function AnalyticsPage() {
   const exportLockRef = useRef(false);
   const exportReportRef = useRef<HTMLDivElement>(null);
 
-  const apiUrl = `/api/analytics/advanced?range=${range}`;
+  // Construire l'URL API depuis le PeriodFilter
+  const apiUrl = useMemo(() => {
+    if (!period.range) return "/api/analytics/advanced?range=all";
+    return `/api/analytics/advanced?range=custom&from=${period.range.start}&to=${period.range.end}`;
+  }, [period]);
+
   const { data, loading, error, mutate } = useApi<AnalyticsData>(apiUrl);
+
+  // Label court pour l'export
+  const rangeLabel = period.label;
 
   // ── Refresh handler ──
   const handleRefresh = useCallback(async () => {
@@ -71,7 +93,7 @@ export default function AnalyticsPage() {
   const exportData = useMemo((): ExportData | null => {
     if (!data) return null;
     return {
-      range,
+      range: rangeLabel,
       kpis: {
         totalRevenue: data.kpis.totalRevenue,
         netProfit: data.kpis.netProfit,
@@ -107,7 +129,7 @@ export default function AnalyticsPage() {
       insights: data.insights || [],
       revenueByDay: data.revenueByDay || [],
     };
-  }, [data, range]);
+  }, [data, rangeLabel]);
 
   // ── Export handlers ──
   const handleExport = useCallback(async (format: "csv" | "pdf" | "png") => {
@@ -122,8 +144,8 @@ export default function AnalyticsPage() {
       } else {
         const node = exportReportRef.current;
         if (!node) throw new Error("Export report non monté");
-        if (format === "pdf") await downloadPdf(node, range);
-        else await downloadPng(node, range);
+        if (format === "pdf") await downloadPdf(node, rangeLabel);
+        else await downloadPng(node, rangeLabel);
       }
       toast.success(`Export ${format.toUpperCase()} généré`);
     } catch (err) {
@@ -133,7 +155,7 @@ export default function AnalyticsPage() {
       setIsExporting(null);
       exportLockRef.current = false;
     }
-  }, [data, exportData, range]);
+  }, [data, exportData, rangeLabel]);
 
   // Build sparkline data from time series
   const sparkData = useMemo(() => {
@@ -193,13 +215,7 @@ export default function AnalyticsPage() {
         </motion.div>
 
         <motion.div className="flex items-center gap-2" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
-          <div className="flex items-center gap-1 bg-white border border-[#E6E6E4] rounded-lg p-0.5">
-            {RANGES.map((r) => (
-              <button key={r.key} onClick={() => setRange(r.key)} className={`px-3 py-1.5 text-[11px] font-medium rounded-md transition-all cursor-pointer ${range === r.key ? "bg-[#4F46E5] text-white shadow-sm" : "text-[#666] hover:text-[#1A1A1A] hover:bg-[#F7F7F5]"}`}>
-                {r.label}
-              </button>
-            ))}
-          </div>
+          <PeriodFilterDropdown value={period} onChange={setPeriod} />
 
           <button onClick={handleRefresh} disabled={isRefreshing} className={`p-2 rounded-lg transition-all cursor-pointer ${isRefreshing ? "text-[#4F46E5] bg-[#F7F7F5]" : "text-[#999] hover:text-[#4F46E5] hover:bg-[#F7F7F5]"}`} title="Rafraîchir">
             <RefreshCw size={15} className={isRefreshing ? "animate-spin" : ""} />
@@ -241,7 +257,7 @@ export default function AnalyticsPage() {
 
       {/* ═══ TAB CONTENT ═══ */}
       {activeTab === "overview" && (
-        <AnalyticsOverviewTab data={data} sparkData={sparkData} orderSparkData={orderSparkData} range={range} />
+        <AnalyticsOverviewTab data={data} sparkData={sparkData} orderSparkData={orderSparkData} range={rangeLabel} />
       )}
       {activeTab === "products" && (
         <AnalyticsProductsTab data={data} />

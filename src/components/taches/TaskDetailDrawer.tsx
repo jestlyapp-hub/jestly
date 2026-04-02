@@ -29,6 +29,7 @@ interface TaskDetailDrawerProps {
   onDuplicate?: (task: Task) => void;
   onSchedule?: (task: Task, date: string, startTime?: string) => void;
   onSaveAsTemplate?: (task: Task) => void;
+  saveState?: "idle" | "saving" | "saved" | "error";
 }
 
 /* ── SubtaskText: 1 clic = ouvrir panel, 2 clics = éditer le nom ── */
@@ -86,6 +87,7 @@ export default function TaskDetailDrawer({
   onDuplicate,
   onSchedule,
   onSaveAsTemplate,
+  saveState = "idle",
 }: TaskDetailDrawerProps) {
   const [local, setLocal] = useState<Task | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -230,6 +232,25 @@ export default function TaskDetailDrawer({
                   </svg>
                   Ouvrir
                 </a>
+                {/* Save state indicator */}
+                {saveState === "saving" && (
+                  <span className="text-[11px] text-[#A8A29E] flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                    Enregistrement…
+                  </span>
+                )}
+                {saveState === "saved" && (
+                  <span className="text-[11px] text-emerald-500 flex items-center gap-1">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                    Enregistré
+                  </span>
+                )}
+                {saveState === "error" && (
+                  <span className="text-[11px] text-red-500 flex items-center gap-1">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    Erreur de sauvegarde
+                  </span>
+                )}
               </div>
               <button
                 onClick={onClose}

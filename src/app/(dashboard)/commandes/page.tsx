@@ -6,6 +6,8 @@ import { useTrack } from "@/lib/hooks/use-track";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import { useSubscription } from "@/lib/hooks/use-subscription";
+import { QuotaBar } from "@/components/ui/UpgradeGate";
 import { useColumns } from "@/lib/hooks/use-columns";
 import { orderRecordToOrder } from "@/lib/adapters";
 import type { Order, FieldOption, BoardField } from "@/types";
@@ -98,6 +100,7 @@ function fmtEur(n: number): string {
 
 export default function CommandesPage() {
   const track = useTrack();
+  const { canCreate: canCreateResource } = useSubscription();
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabFromUrl = searchParams.get("tab") as TabKey | null;
@@ -712,17 +715,30 @@ export default function CommandesPage() {
               Suivez, organisez et transformez vos commandes en livrables.
             </p>
           </div>
-          <button
-            data-guide="new-order-btn"
-            onClick={() => setCreateOpen(true)}
-            className="flex items-center gap-2 bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] transition-all shadow-sm hover:shadow cursor-pointer"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Nouvelle commande
-          </button>
+          {canCreateResource("orders_per_month") ? (
+            <button
+              data-guide="new-order-btn"
+              onClick={() => setCreateOpen(true)}
+              className="flex items-center gap-2 bg-[#4F46E5] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#4338CA] transition-all shadow-sm hover:shadow cursor-pointer"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Nouvelle commande
+            </button>
+          ) : (
+            <a
+              href="/abonnement"
+              className="flex items-center gap-2 bg-gradient-to-r from-[#7C3AED] to-[#6D28D9] text-white text-[13px] font-semibold px-5 py-2.5 rounded-lg transition-all shadow-sm cursor-pointer"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              Limite atteinte — Passer Pro
+            </a>
+          )}
+          <QuotaBar resource="orders_per_month" className="w-32" />
         </div>
 
         {/* ─── Pipeline Summary (source de vérité unique) ─── */}
@@ -1016,6 +1032,7 @@ export default function CommandesPage() {
         customFields={drawerFields}
         onAddOption={handleAddOption}
         onClientDeleted={mutate}
+        onOrderDeleted={() => { setSelectedId(null); mutate(); }}
       />
       <CreateOrderDrawer
         open={createOpen}

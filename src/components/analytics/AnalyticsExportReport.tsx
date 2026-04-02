@@ -70,7 +70,6 @@ const TDB: React.CSSProperties = { ...TDR, fontWeight: 600 };
 
 const AnalyticsExportReport = forwardRef<HTMLDivElement, { data: ExportData }>(({ data }, ref) => {
   const { kpis, pipeline, timeSeries, topProducts, topClients, customerAnalytics, monthlyGrowth, forecast, bestMonth, worstMonth, insights, revenueByDay } = data;
-  const barMax = Math.max(...timeSeries.map(p => p.revenue), 1);
   const dayMax = Math.max(...(revenueByDay || []).map(p => p.revenue), 1);
 
   // Load logo as data URL so html2canvas can render it
@@ -100,14 +99,14 @@ const AnalyticsExportReport = forwardRef<HTMLDivElement, { data: ExportData }>((
       {/* ════════════════════════════════════
           HEADER — Premium branded
           ════════════════════════════════════ */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 6 }}>
         <div style={{ flexShrink: 0 }}><Logo size={48} /></div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 26, fontWeight: 800, color: "#111", letterSpacing: -0.7, lineHeight: 1.1 }}>Rapport Analytics</div>
           <div style={{ fontSize: 13, color: "#888", marginTop: 4 }}>Vue complète de l&apos;activité — Jestly</div>
         </div>
-        <div style={{ textAlign: "right" as const, flexShrink: 0 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#7C5CFF", background: "#EDE9FE", padding: "6px 18px", borderRadius: 20, display: "inline-block", marginBottom: 6 }}>{rangeLabel(data.range)}</div>
+        <div style={{ display: "flex", flexDirection: "column" as const, alignItems: "flex-end", gap: 6, flexShrink: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#7C5CFF", background: "#EDE9FE", padding: "7px 20px", borderRadius: 20, letterSpacing: 0.2 }}>{rangeLabel(data.range)}</div>
           <div style={{ fontSize: 11, color: "#999" }}>Exporté le {date()}</div>
         </div>
       </div>
@@ -137,24 +136,112 @@ const AnalyticsExportReport = forwardRef<HTMLDivElement, { data: ExportData }>((
       </div>
 
       {/* ════════════════════════════════════
-          MAIN CHART — Revenue evolution (BIG)
+          MAIN CHART — Revenue evolution (SVG line chart)
           ════════════════════════════════════ */}
-      {timeSeries.length > 0 && (
-        <div style={{ background: "#FAFAFE", border: "1px solid #E8E5F0", borderRadius: 14, padding: "22px 24px", marginBottom: 24 }}>
-          <SectionTitle>📊 Évolution des revenus</SectionTitle>
-          <div style={{ display: "flex", gap: 3, alignItems: "flex-end", marginTop: 8 }}>
-            {timeSeries.slice(-12).map((p, i) => (
-              <div key={i} style={{ flex: "1 1 0", display: "flex", flexDirection: "column" as const, alignItems: "center", gap: 4 }}>
-                <div style={{ width: "100%", height: 200, display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-                  <div style={{ width: "55%", height: Math.max(6, (p.revenue / barMax) * 200), background: "linear-gradient(180deg, #7C5CFF, #A78BFA)", borderRadius: "5px 5px 0 0" }} />
-                </div>
-                <div style={{ fontSize: 9, color: "#999", whiteSpace: "nowrap" as const }}>{p.label}</div>
-                <div style={{ fontSize: 9, fontWeight: 600, color: "#333" }}>{fmtEur(p.revenue)}</div>
-              </div>
-            ))}
+      {timeSeries.length > 0 && (() => {
+        const points = timeSeries;
+        const maxVal = Math.max(...points.map(p => p.revenue), 1);
+        const chartW = CW - 48; // inner chart width
+        const chartH = 200;
+        const padL = 60; // left padding for Y axis labels
+        const padR = 16;
+        const padT = 12;
+        const padB = 36; // bottom for X axis labels
+        const svgW = chartW;
+        const svgH = chartH + padT + padB;
+        const plotW = svgW - padL - padR;
+        const plotH = chartH;
+
+        // Generate nice Y axis ticks (4 lines)
+        const yTicks = [0, 0.25, 0.5, 0.75, 1].map(f => Math.round(maxVal * f));
+
+        // X positions for each data point
+        const xStep = points.length > 1 ? plotW / (points.length - 1) : plotW / 2;
+        const coords = points.map((p, i) => ({
+          x: padL + (points.length > 1 ? i * xStep : plotW / 2),
+          y: padT + plotH - (p.revenue / maxVal) * plotH,
+          ...p,
+        }));
+
+        // Build smooth curve path (catmull-rom → cubic bezier)
+        let linePath = "";
+        let areaPath = "";
+        if (coords.length === 1) {
+          // Single point — draw a dot
+          linePath = "";
+          areaPath = "";
+        } else {
+          linePath = `M ${coords[0].x},${coords[0].y}`;
+          for (let i = 1; i < coords.length; i++) {
+            const prev = coords[i - 1];
+            const curr = coords[i];
+            const cpx = (prev.x + curr.x) / 2;
+            linePath += ` C ${cpx},${prev.y} ${cpx},${curr.y} ${curr.x},${curr.y}`;
+          }
+          // Area path = line + close down to bottom
+          areaPath = linePath + ` L ${coords[coords.length - 1].x},${padT + plotH} L ${coords[0].x},${padT + plotH} Z`;
+        }
+
+        // Smart label thinning — show max ~8 labels
+        const maxLabels = 8;
+        const labelStep = Math.max(1, Math.ceil(points.length / maxLabels));
+
+        return (
+          <div style={{ background: "#FAFAFE", border: "1px solid #E8E5F0", borderRadius: 14, padding: "20px 24px 16px", marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+              <SectionTitle>📊 Évolution des revenus</SectionTitle>
+              <div style={{ fontSize: 12, fontWeight: 700, color: "#7C5CFF", background: "#EDE9FE", padding: "4px 14px", borderRadius: 16 }}>{rangeLabel(data.range)}</div>
+            </div>
+            <svg width={svgW} height={svgH} style={{ display: "block" }}>
+              {/* Gradient fill under curve */}
+              <defs>
+                <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#7C5CFF" stopOpacity="0.18" />
+                  <stop offset="100%" stopColor="#7C5CFF" stopOpacity="0.01" />
+                </linearGradient>
+              </defs>
+
+              {/* Y axis grid lines + labels */}
+              {yTicks.map((val, i) => {
+                const y = padT + plotH - (val / maxVal) * plotH;
+                return (
+                  <g key={i}>
+                    <line x1={padL} y1={y} x2={svgW - padR} y2={y} stroke="#E8E5F0" strokeWidth={1} strokeDasharray={i === 0 ? "0" : "4,3"} />
+                    <text x={padL - 8} y={y + 4} textAnchor="end" style={{ fontSize: 10, fill: "#999", fontFamily: "inherit" }}>{fmtEur(val)}</text>
+                  </g>
+                );
+              })}
+
+              {/* Area fill */}
+              {areaPath && <path d={areaPath} fill="url(#areaGrad)" />}
+
+              {/* Main curve */}
+              {linePath && <path d={linePath} fill="none" stroke="#7C5CFF" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />}
+
+              {/* Data points */}
+              {coords.map((c, i) => (
+                <circle key={i} cx={c.x} cy={c.y} r={points.length <= 15 ? 3.5 : 2} fill="#fff" stroke="#7C5CFF" strokeWidth={2} />
+              ))}
+
+              {/* X axis labels */}
+              {coords.map((c, i) => {
+                if (i % labelStep !== 0 && i !== coords.length - 1) return null;
+                return (
+                  <text key={i} x={c.x} y={svgH - 6} textAnchor="middle" style={{ fontSize: 9, fill: "#999", fontFamily: "inherit" }}>{c.label}</text>
+                );
+              })}
+
+              {/* Single point fallback */}
+              {coords.length === 1 && (
+                <>
+                  <circle cx={coords[0].x} cy={coords[0].y} r={5} fill="#7C5CFF" />
+                  <text x={coords[0].x} y={coords[0].y - 12} textAnchor="middle" style={{ fontSize: 11, fill: "#333", fontWeight: 600, fontFamily: "inherit" }}>{fmtEur(coords[0].revenue)}</text>
+                </>
+              )}
+            </svg>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ════════════════════════════════════
           INSIGHTS

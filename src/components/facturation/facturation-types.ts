@@ -96,56 +96,20 @@ export const billingTransitions: Record<BillingStatusKey, { label: string; next:
   ],
 };
 
-/* ── Period filter ── */
+/* ── Period filter — réexporté depuis le module partagé ── */
 
-export type PeriodKey = "all" | "week" | "month" | "quarter" | "year";
-
-export const periodOptions: { key: PeriodKey; label: string }[] = [
-  { key: "all", label: "Toutes les dates" },
-  { key: "week", label: "Cette semaine" },
-  { key: "month", label: "Ce mois-ci" },
-  { key: "quarter", label: "Ce trimestre" },
-  { key: "year", label: "Cette année" },
-];
-
-export function getPeriodRange(key: PeriodKey): { start: string; end: string } | null {
-  if (key === "all") return null;
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth();
-  const d = now.getDate();
-  const day = now.getDay();
-  let start: Date;
-  let end: Date;
-  switch (key) {
-    case "week": {
-      const diff = day === 0 ? 6 : day - 1;
-      start = new Date(y, m, d - diff);
-      end = new Date(y, m, d + (6 - diff));
-      break;
-    }
-    case "month":
-      start = new Date(y, m, 1);
-      end = new Date(y, m + 1, 0);
-      break;
-    case "quarter": {
-      const q = Math.floor(m / 3);
-      start = new Date(y, q * 3, 1);
-      end = new Date(y, q * 3 + 3, 0);
-      break;
-    }
-    case "year":
-      start = new Date(y, 0, 1);
-      end = new Date(y, 11, 31);
-      break;
-  }
-  return {
-    start: start!.toISOString().slice(0, 10),
-    end: end!.toISOString().slice(0, 10),
-  };
-}
-
-/* ── Helpers ── */
+export {
+  type PeriodFilter,
+  type PeriodPreset,
+  PERIOD_ALL,
+  toLocalISO,
+  getMonthName,
+  isoDatePart,
+  isoYearMonth,
+  buildShortcutPresets,
+  buildMonthPresets,
+  buildQuarterPresets,
+} from "@/lib/period-filter";
 
 export function formatEur(n: number): string {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(n);

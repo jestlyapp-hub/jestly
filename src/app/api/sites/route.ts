@@ -44,6 +44,16 @@ export async function POST(req: NextRequest) {
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
 
+  // ── Subscription guard: vérifier quota sites ──
+  const { checkResourceQuota } = await import("@/lib/subscription-guard");
+  const guard = await checkResourceQuota(supabase, user.id, "sites");
+  if (!guard.allowed) {
+    return NextResponse.json(
+      { error: guard.error, upgrade: guard.upgrade, quotaExceeded: true },
+      { status: 403 },
+    );
+  }
+
   const body = await req.json();
   const { slug, name, theme, settings, seo } = body;
 

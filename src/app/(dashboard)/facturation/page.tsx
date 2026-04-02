@@ -43,7 +43,6 @@ import type {
   BillingStatusKey,
   TabKey,
   ViewMode,
-  PeriodKey,
   ExportMeta,
   HealthData,
   HealthSuggestion,
@@ -51,10 +50,13 @@ import type {
 import {
   billingTransitions,
   tabs,
-  periodOptions,
-  getPeriodRange,
+  PERIOD_ALL,
+  type PeriodFilter,
   formatEur,
+  isoYearMonth,
+  getMonthName,
 } from "@/components/facturation/facturation-types";
+import PeriodFilterDropdown from "@/components/facturation/PeriodFilterDropdown";
 import { downloadCsv, downloadPdf } from "@/components/facturation/billing-export";
 import { KpiCard, EmptyState, SummaryBar } from "@/components/facturation/BillingKpiCards";
 import { ItemRow, GroupedView } from "@/components/facturation/BillingTable";
@@ -101,36 +103,12 @@ export default function FacturationPage() {
     console.groupEnd();
   }, [rawPipeline, pipelineError, items]);
 
-  /* ── Pipeline stats (computed client-side from pipeline data) ── */
-  /* Utilise orderStatus pour séparer "À faire" (new) de "En cours"
-     — aligné avec business-metrics.ts (Dashboard/Commandes/Analytics) */
-  const pipelineStats = useMemo(() => {
-    const s = { total: 0, todo: 0, todoCount: 0, inProgress: 0, inProgressCount: 0, ready: 0, readyCount: 0, invoiced: 0, invoicedCount: 0, paid: 0, paidCount: 0, clientIds: new Set<string>(), count: 0 };
-    for (const item of items) {
-      s.count++;
-      s.total += item.amount;
-      if (item.clientId) s.clientIds.add(item.clientId);
-      // Pour les commandes : séparer "À faire" (new) de "En cours" via orderStatus
-      if (item.orderStatus === "new") {
-        s.todo += item.amount; s.todoCount++;
-      } else {
-        switch (item.billingStatus) {
-          case "in_progress": s.inProgress += item.amount; s.inProgressCount++; break;
-          case "ready": s.ready += item.amount; s.readyCount++; break;
-          case "invoiced": s.invoiced += item.amount; s.invoicedCount++; break;
-          case "paid": s.paid += item.amount; s.paidCount++; break;
-        }
-      }
-    }
-    return { ...s, activeClients: s.clientIds.size };
-  }, [items]);
-
   /* ── State ── */
   const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [search, setSearch] = useState("");
   const [filterClient, setFilterClient] = useState("");
-  const [filterPeriod, setFilterPeriod] = useState<PeriodKey>("all");
+  const [filterPeriod, setFilterPeriod] = useState<PeriodFilter>(PERIOD_ALL);
   const [filterCategory, setFilterCategory] = useState("");
   const [filterUnexported, setFilterUnexported] = useState(false);
 
@@ -174,7 +152,7 @@ export default function FacturationPage() {
     await mutateExports();
   }, [mutateExports]);
 
-  /* ── Derived: categories ── */
+  /* ── Derived: categories (from all items so filter dropdown stays stable) ── */
   const categories = useMemo(() => {
     const set = new Set<string>();
     for (const item of items) {
@@ -183,11 +161,77 @@ export default function FacturationPage() {
     return Array.from(set).sort();
   }, [items]);
 
-  /* ── Filters ── */
-  const hasActiveFilters = !!(filterClient || filterPeriod !== "all" || filterCategory || filterUnexported);
+  /* ══════════════════════════════════════════════════════════════════════
+     FILTER CHAIN — source de vérité unique
+     ──────────────────────────────────────────────────────────────────────
+     Niveau 1 : baseFilteredItems
+       Filtres globaux (période + client + catégorie + non payées)
+       → alimente KPIs, tabCounts, résumés
 
-  const filteredItems = useMemo(() => {
+     Niveau 2 : filteredItems
+       baseFilteredItems + tab + recherche texte
+       → alimente la liste / tableau
+
+     Date de référence : createdAt (date de création de la commande / ligne)
+     Bornes : inclusives (start ≤ date ≤ end)
+     ══════════════════════════════════════════════════════════════════════ */
+
+  const hasActiveFilters = !!(filterClient || filterPeriod.range !== null || filterCategory || filterUnexported);
+
+  /* ── Niveau 1 : filtres globaux → KPIs + tabs ── */
+  const baseFilteredItems = useMemo(() => {
     let filtered = items;
+
+    if (filterPeriod.range) {
+      const { start, end } = filterPeriod.range;
+      filtered = filtered.filter(i => {
+        const d = i.createdAt?.split("T")[0];
+        if (!d) return false;
+        return d >= start && d <= end;
+      });
+    }
+
+    if (filterClient) {
+      filtered = filtered.filter(i => i.clientId === filterClient);
+    }
+
+    if (filterCategory) {
+      filtered = filtered.filter(i => i.category === filterCategory);
+    }
+
+    if (filterUnexported) {
+      filtered = filtered.filter(i => i.billingStatus !== "paid");
+    }
+
+    return filtered;
+  }, [items, filterPeriod, filterClient, filterCategory, filterUnexported]);
+
+  /* ── Pipeline stats — calculés sur baseFilteredItems (période active) ── */
+  /* Utilise orderStatus pour séparer "À faire" (new) de "En cours"
+     — aligné avec business-metrics.ts (Dashboard/Commandes/Analytics) */
+  const pipelineStats = useMemo(() => {
+    const s = { total: 0, todo: 0, todoCount: 0, inProgress: 0, inProgressCount: 0, ready: 0, readyCount: 0, invoiced: 0, invoicedCount: 0, paid: 0, paidCount: 0, clientIds: new Set<string>(), count: 0 };
+    for (const item of baseFilteredItems) {
+      s.count++;
+      s.total += item.amount;
+      if (item.clientId) s.clientIds.add(item.clientId);
+      if (item.orderStatus === "new") {
+        s.todo += item.amount; s.todoCount++;
+      } else {
+        switch (item.billingStatus) {
+          case "in_progress": s.inProgress += item.amount; s.inProgressCount++; break;
+          case "ready": s.ready += item.amount; s.readyCount++; break;
+          case "invoiced": s.invoiced += item.amount; s.invoicedCount++; break;
+          case "paid": s.paid += item.amount; s.paidCount++; break;
+        }
+      }
+    }
+    return { ...s, activeClients: s.clientIds.size };
+  }, [baseFilteredItems]);
+
+  /* ── Niveau 2 : baseFilteredItems + tab + recherche → liste ── */
+  const filteredItems = useMemo(() => {
+    let filtered = baseFilteredItems;
 
     const tabDef = tabs.find(t => t.key === activeTab);
     if (tabDef && tabDef.billingStatuses.length > 0) {
@@ -204,31 +248,8 @@ export default function FacturationPage() {
       );
     }
 
-    if (filterClient) {
-      filtered = filtered.filter(i => i.clientId === filterClient);
-    }
-
-    const range = getPeriodRange(filterPeriod);
-    if (range) {
-      filtered = filtered.filter(i => {
-        const d = i.createdAt?.split("T")[0];
-        if (!d) return false;
-        return d >= range.start && d <= range.end;
-      });
-    }
-
-    if (filterCategory) {
-      filtered = filtered.filter(i => i.category === filterCategory);
-    }
-
-    if (filterUnexported) {
-      filtered = filtered.filter(i => i.billingStatus !== "paid");
-    }
-
-    console.log(`[Facturation FILTER] tab=${activeTab} | before=${items.length} | after=${filtered.length} | search="${search}" | client=${filterClient || "all"} | period=${filterPeriod} | category=${filterCategory || "all"} | unexported=${filterUnexported}`);
-
     return filtered;
-  }, [items, activeTab, search, filterClient, filterPeriod, filterCategory, filterUnexported]);
+  }, [baseFilteredItems, activeTab, search]);
 
   /* ── Bulk selection functions ── */
   const toggleSelection = useCallback((id: string, shiftKey?: boolean) => {
@@ -275,14 +296,15 @@ export default function FacturationPage() {
   }, [selectedItems]);
 
   /* ── Tab counts ── */
+  /* tabCounts — basé sur baseFilteredItems (cohérent avec la période active) */
   const tabCounts = useMemo(() => {
     const counts: Record<TabKey, number> = { all: 0, in_progress: 0, ready: 0, invoiced: 0, paid: 0 };
-    for (const item of items) {
+    for (const item of baseFilteredItems) {
       counts.all++;
       counts[item.billingStatus]++;
     }
     return counts;
-  }, [items]);
+  }, [baseFilteredItems]);
 
   /* ── Grouping ── */
   const byClient = useMemo(() => {
@@ -301,9 +323,9 @@ export default function FacturationPage() {
   const byMonth = useMemo(() => {
     const map = new Map<string, { label: string; items: PipelineItem[]; total: number }>();
     for (const item of filteredItems) {
-      const d = item.createdAt ? new Date(item.createdAt) : null;
-      const key = d ? `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}` : "sans-date";
-      const label = d ? d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" }) : "Sans date";
+      const ym = isoYearMonth(item.createdAt);
+      const key = ym ? `${ym.year}-${String(ym.month + 1).padStart(2, "0")}` : "sans-date";
+      const label = ym ? `${getMonthName(ym.month)} ${ym.year}` : "Sans date";
       if (!map.has(key)) map.set(key, { label, items: [], total: 0 });
       const g = map.get(key)!;
       g.items.push(item);
@@ -321,17 +343,22 @@ export default function FacturationPage() {
     if (mutating) return;
     setMutating(true);
     try {
-      if (item.type === "order") {
-        await fetch(`/api/orders/${item.id}`, { method: "DELETE" });
-      } else {
-        await fetch(`/api/billing/items/${item.billingItemId || item.id}`, { method: "DELETE" });
+      const url = item.type === "order"
+        ? `/api/orders/${item.id}`
+        : `/api/billing/items/${item.billingItemId || item.id}`;
+      const res = await fetch(url, { method: "DELETE" });
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        console.error(`[Facturation DELETE] ${res.status}:`, body?.error || res.statusText);
+        return;
       }
       await refreshAll();
       if (detailItem?.id === item.id) setDetailItem(null);
+      if (orderDrawerItem?.id === item.id) { setOrderDrawerItem(null); setOrderForDrawer(null); }
     } finally {
       setMutating(false);
     }
-  }, [refreshAll, detailItem, mutating]);
+  }, [refreshAll, detailItem, orderDrawerItem, mutating]);
 
   const handleSaveManual = useCallback(async (data: Record<string, unknown>, id?: string) => {
     if (mutating) return;
@@ -470,7 +497,7 @@ export default function FacturationPage() {
   }, [refreshAll, mutating]);
 
   const clearFilters = useCallback(() => {
-    setFilterClient(""); setFilterPeriod("all"); setFilterCategory(""); setFilterUnexported(false); setSearch("");
+    setFilterClient(""); setFilterPeriod(PERIOD_ALL); setFilterCategory(""); setFilterUnexported(false); setSearch("");
   }, []);
 
   /* ── Bulk actions ── */
@@ -600,6 +627,15 @@ export default function FacturationPage() {
       </motion.div>
 
       {/* ══════════════════════ KPI CARDS ══════════════════════ */}
+      {filterPeriod.range && (
+        <motion.div className="mb-3 flex items-center gap-2" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[#F0EEFF] border border-[#DDD6FE] rounded-lg">
+            <Calendar size={11} className="text-[#7C3AED]" />
+            <span className="text-[11px] font-medium text-[#6D28D9]">Période : {filterPeriod.label}</span>
+          </div>
+          <span className="text-[11px] text-[#A8A29E]">— KPIs, compteurs et liste filtrés sur cette période</span>
+        </motion.div>
+      )}
       <motion.div className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-3 mb-6" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
         {loading ? (
           Array.from({ length: 7 }).map((_, i) => (
@@ -635,12 +671,7 @@ export default function FacturationPage() {
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#C4C4C2]" />
             <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher une commande..." className="w-full pl-9 pr-3 py-2 text-[13px] text-[#1A1A1A] bg-white border border-[#E6E6E4] rounded-lg focus:outline-none focus:border-[#7C3AED]/40 focus:ring-2 focus:ring-[#7C3AED]/8 placeholder:text-[#C4C4C2] transition-all" />
           </div>
-          <div className="relative">
-            <select value={filterPeriod} onChange={e => setFilterPeriod(e.target.value as PeriodKey)} className="pl-3 pr-8 py-2 text-[12px] font-medium text-[#57534E] bg-white border border-[#E6E6E4] rounded-lg focus:outline-none focus:border-[#7C3AED]/40 focus:ring-2 focus:ring-[#7C3AED]/8 transition-all appearance-none cursor-pointer">
-              {periodOptions.map(p => (<option key={p.key} value={p.key}>{p.label}</option>))}
-            </select>
-            <Calendar size={12} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#A8A29E] pointer-events-none" />
-          </div>
+          <PeriodFilterDropdown value={filterPeriod} onChange={setFilterPeriod} />
           <div className="relative">
             <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className="pl-3 pr-8 py-2 text-[12px] font-medium text-[#57534E] bg-white border border-[#E6E6E4] rounded-lg focus:outline-none focus:border-[#7C3AED]/40 focus:ring-2 focus:ring-[#7C3AED]/8 transition-all appearance-none cursor-pointer">
               <option value="">Tous les clients</option>
@@ -692,7 +723,7 @@ export default function FacturationPage() {
             ))}
           </div>
           <div className="text-[12px] text-[#A8A29E] tabular-nums">
-            {filteredItems.length} résultat{filteredItems.length > 1 ? "s" : ""}{hasActiveFilters && " (filtré)"}
+            {filteredItems.length} résultat{filteredItems.length > 1 ? "s" : ""}{hasActiveFilters && ` · ${filterPeriod.range ? filterPeriod.label : "filtré"}`}
           </div>
         </div>
 
@@ -712,7 +743,7 @@ export default function FacturationPage() {
             {Array.from({ length: 6 }).map((_, i) => (<div key={i} className="h-[52px] bg-[#FAFAF9] rounded-lg animate-pulse" />))}
           </div>
         ) : filteredItems.length === 0 ? (
-          <EmptyState hasItems={items.length > 0} hasFilters={hasActiveFilters} onClear={clearFilters} />
+          <EmptyState hasItems={items.length > 0} hasFilters={hasActiveFilters} onClear={clearFilters} periodLabel={filterPeriod.range ? filterPeriod.label : undefined} />
         ) : viewMode === "client" ? (
           <GroupedView groups={byClient} icon={<User size={13} className="text-[#7C3AED]" />} items={filteredItems} onRowClick={openOrderDrawer} onStatusChange={handleBillingStatusChange} onDelete={handleDelete} mutating={mutating} />
         ) : viewMode === "period" ? (
@@ -766,7 +797,7 @@ export default function FacturationPage() {
         {showArchives && (<ArchivesDrawer key="archives" closures={dbClosures || []} exports={dbExports || []} onClose={() => setShowArchives(false)} onReopen={handleReopenPeriod} />)}
       </AnimatePresence>
 
-      <OrderDrawer order={orderForDrawer} onClose={closeOrderDrawer} patchOrder={patchOrderFromBilling} clients={billingClients} billingStatus={orderDrawerItem?.billingStatus} billingActions={orderBillingActions} onBillingStatusChange={handleOrderBillingStatusChange} billingMutating={mutating} onClientDeleted={refreshAll} />
+      <OrderDrawer order={orderForDrawer} onClose={closeOrderDrawer} patchOrder={patchOrderFromBilling} clients={billingClients} billingStatus={orderDrawerItem?.billingStatus} billingActions={orderBillingActions} onBillingStatusChange={handleOrderBillingStatusChange} billingMutating={mutating} onClientDeleted={refreshAll} onOrderDeleted={() => { closeOrderDrawer(); refreshAll(); }} />
 
       <AnimatePresence>
         {orderDrawerLoading && (

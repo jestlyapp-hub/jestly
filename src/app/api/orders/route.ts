@@ -60,6 +60,16 @@ export async function POST(req: NextRequest) {
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
 
+  // ── Subscription guard: vérifier quota commandes/mois ──
+  const { checkResourceQuota } = await import("@/lib/subscription-guard");
+  const guard = await checkResourceQuota(supabase, user.id, "orders_per_month");
+  if (!guard.allowed) {
+    return NextResponse.json(
+      { error: guard.error, upgrade: guard.upgrade, quotaExceeded: true },
+      { status: 403 },
+    );
+  }
+
   const body = await req.json();
   const {
     client_id, product_id, title, description, amount, status, priority,

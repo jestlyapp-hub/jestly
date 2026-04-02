@@ -45,10 +45,11 @@ export function KpiCard({ icon, label, value, sub, accent, warn }: {
    EMPTY STATE
    ══════════════════════════════════════════════════════════════════════ */
 
-export function EmptyState({ hasItems, hasFilters, onClear }: {
+export function EmptyState({ hasItems, hasFilters, onClear, periodLabel }: {
   hasItems: boolean;
   hasFilters: boolean;
   onClear: () => void;
+  periodLabel?: string;
 }) {
   return (
     <div className="py-20 text-center">
@@ -73,7 +74,12 @@ export function EmptyState({ hasItems, hasFilters, onClear }: {
         <>
           <p className="text-[15px] font-semibold text-[#44403C]">Aucun résultat</p>
           <p className="text-[13px] text-[#A8A29E] mt-1.5 mb-5">
-            {hasFilters ? "Aucune commande ne correspond à vos filtres." : "Essayez une autre recherche."}
+            {periodLabel
+              ? `Aucune commande sur ${periodLabel}.`
+              : hasFilters
+                ? "Aucune commande ne correspond à vos filtres."
+                : "Essayez une autre recherche."
+            }
           </p>
           {hasFilters && (
             <button

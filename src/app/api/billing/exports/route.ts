@@ -24,6 +24,16 @@ export async function POST(req: NextRequest) {
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
 
+  // ── Subscription guard: exports comptables = feature Pro+ ──
+  const { checkFeatureAccess } = await import("@/lib/subscription-guard");
+  const guard = await checkFeatureAccess(supabase, user.id, "accounting_exports");
+  if (!guard.allowed) {
+    return NextResponse.json(
+      { error: guard.error, upgrade: guard.upgrade, quotaExceeded: true },
+      { status: 403 },
+    );
+  }
+
   const body = await req.json();
   const {
     label, format, period_start, period_end,
