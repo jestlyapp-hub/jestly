@@ -49,7 +49,7 @@ export async function getDashboardToday(
   const { data: deadlineOrders } = await (supabase.from("orders") as any)
     .select("id, title, status, priority, deadline, amount, clients(name)")
     .eq("user_id", userId)
-    .not("status", "in", '("paid","delivered","cancelled","refunded")')
+    .not("status", "in", '("paid","delivered","invoiced","cancelled","refunded","dispute")')
     .not("deadline", "is", null)
     .lte("deadline", todayStr + "T23:59:59Z")
     .order("deadline", { ascending: true });

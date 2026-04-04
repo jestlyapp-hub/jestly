@@ -88,7 +88,7 @@ export function isOverdue(iso: string | undefined | null): boolean {
  * Statuts terminés — une commande dans ces statuts ne peut plus être "en retard"
  * car elle a quitté le flux opérationnel de production.
  */
-const TERMINAL_STATUSES = new Set(["delivered", "invoiced", "paid", "cancelled", "refunded", "dispute"]);
+export const TERMINAL_STATUSES = new Set(["delivered", "invoiced", "paid", "cancelled", "refunded", "dispute"]);
 
 /** Is this order status still in active production (not yet delivered/completed)? */
 export function isActiveProductionStatus(status: string): boolean {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { computeOrdersPipelineSummary, isExcludedOrder, getActiveClientsCount } from "@/lib/business-metrics";
-import { isOrderOverdue, isActiveProductionStatus } from "@/lib/notion-colors";
+import { isOrderOverdue, isActiveProductionStatus, TERMINAL_STATUSES } from "@/lib/notion-colors";
 
 // GET /api/dashboard/stats — complete dashboard data
 export async function GET() {
@@ -168,10 +168,9 @@ export async function GET() {
   const calendarData = { month: now.getMonth(), year: now.getFullYear(), days: calendarDays };
 
   // ── Upcoming deadlines ──
-  // Inclut toutes les commandes avec deadline non terminées (exclut: paid, cancelled, refunded, dispute)
-  const DEADLINE_EXCLUDE = new Set(["paid", "cancelled", "refunded", "dispute"]);
+  // Utilise TERMINAL_STATUSES (source de vérité unique) — exclut les commandes finalisées
   const upcomingDeadlines = orders
-    .filter((o) => o.deadline && !DEADLINE_EXCLUDE.has(o.status))
+    .filter((o) => o.deadline && !TERMINAL_STATUSES.has(o.status))
     .sort((a, b) => (a.deadline! > b.deadline! ? 1 : -1))
     .slice(0, 10)
     .map((o) => ({
