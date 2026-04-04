@@ -295,7 +295,7 @@ export default function SettingsPage() {
             <WorkspaceSection form={form} actions={actions} dirty={dirtySections.has("workspace")} />
             <PreferencesSection form={form} actions={actions} dirty={dirtySections.has("preferences")} />
             <BillingSection form={form} actions={actions} dirty={dirtySections.has("facturation")} />
-            <SubscriptionSection profile={profile} />
+            {/* SubscriptionSection masquée en bêta full free */}
             <IntegrationsSection profile={profile} />
             <NotificationsSection form={form} actions={actions} dirty={dirtySections.has("notifications")} />
             <SecuritySection profile={profile} />

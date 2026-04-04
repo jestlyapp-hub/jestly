@@ -70,7 +70,6 @@ const navGroups: NavGroup[] = [
 ];
 
 const bottomNav: NavItem[] = [
-  { label: "Abonnement", href: "/abonnement", icon: <Sparkles size={18} strokeWidth={1.7} /> },
   { label: "Paramètres", href: "/parametres", icon: <Settings size={18} strokeWidth={1.7} /> },
 ];
 
@@ -171,7 +170,6 @@ function AccountMenu({ user, open, onClose, triggerRef }: {
             {/* ── Navigation principale ── */}
             <div className="py-1.5 px-1.5">
               <MenuLink href="/parametres" icon={<Settings size={15} strokeWidth={1.7} />} label="Paramètres" onClick={onClose} />
-              <MenuLink href="/abonnement" icon={<CreditCard size={15} strokeWidth={1.7} />} label="Abonnement" onClick={onClose} />
               <MenuLink href="/support" icon={<Headphones size={15} strokeWidth={1.7} />} label="Support" onClick={onClose} />
               <MenuLink href="/guide" icon={<HelpCircle size={15} strokeWidth={1.7} />} label="Guide" onClick={onClose} />
               <MenuButton icon={<MessageCircle size={15} strokeWidth={1.7} />} label="Discord" onClick={() => { window.open("https://discord.gg/jestly", "_blank"); onClose(); }} external />
@@ -423,23 +421,7 @@ export default function Sidebar() {
       {/* ── Guide onboarding ── */}
       <GuideSidebarWidget />
 
-      {/* ── Upgrade CTA ── */}
-      {(!user || user.plan !== "pro") && (
-        <div className="px-3 py-3">
-          <div onClick={() => track("upgrade_clicked", { source: "sidebar" })} className="rounded-xl border border-[#E8E5F5] bg-[#FAFAFF] p-3.5 group/cta hover:border-[#D4CEF0] hover:bg-[#F5F3FF] transition-all duration-200 cursor-pointer">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-[#EDE9FE] flex items-center justify-center text-[#7C3AED] flex-shrink-0">
-                <Sparkles size={16} strokeWidth={1.8} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <span className="block text-[12px] font-semibold text-[#191919]">Passer au Pro</span>
-                <span className="block text-[11px] text-[#8A8A88] mt-0.5">Débloquer tout le potentiel</span>
-              </div>
-              <ChevronRight size={14} className="text-[#CCCCCC] group-hover/cta:text-[#7C3AED] transition-colors flex-shrink-0" />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── Upgrade CTA — masqué en bêta full free ── */}
 
       {/* ── User footer with menu ── */}
       <div className="relative px-3 pb-4">
