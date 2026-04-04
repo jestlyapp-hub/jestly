@@ -322,10 +322,10 @@ export default function ClientsPage() {
         transition={{ duration: 0.35 }}
       >
         <div className="flex items-center gap-3">
-          <h1 className="text-[22px] font-bold text-[#191919]">Clients</h1>
+          <h1 className="text-[24px] font-bold text-[#191919] tracking-tight">Clients</h1>
           {rows.length > 0 && (
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#F7F7F5] text-[#5A5A58]">
-              {rows.length} client{rows.length > 1 ? "s" : ""}
+            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-[#EEF2FF] text-[#4F46E5] border border-[#DDD6FE]">
+              {rows.length}
             </span>
           )}
         </div>
@@ -352,7 +352,7 @@ export default function ClientsPage() {
               placeholder="Rechercher un client..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border border-[#E6E6E4] rounded-lg pl-9 pr-4 py-2 text-[13px] text-[#191919] placeholder-[#BBB] focus:outline-none focus:border-[#4F46E5]/30 focus:ring-1 focus:ring-[#4F46E5]/20 transition-all"
+              className="w-full bg-[#F7F7F5] border border-transparent rounded-lg pl-9 pr-4 py-2.5 text-[13px] text-[#191919] placeholder-[#8A8A88] focus:outline-none focus:bg-white focus:border-[#4F46E5]/30 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
             />
           </div>
 
@@ -405,7 +405,7 @@ export default function ClientsPage() {
           <button
             data-guide="new-client-btn"
             onClick={() => setShowCreate(true)}
-            className="bg-[#4F46E5] text-white rounded-md px-3.5 py-2 text-[13px] font-medium hover:bg-[#4338CA] transition-colors whitespace-nowrap cursor-pointer"
+            className="bg-[#4F46E5] text-white rounded-lg px-4 py-2.5 text-[13px] font-semibold hover:bg-[#4338CA] transition-all shadow-sm hover:shadow whitespace-nowrap cursor-pointer"
           >
             + Nouveau client
           </button>
@@ -414,7 +414,7 @@ export default function ClientsPage() {
 
       {/* ── Filter tabs ── */}
       <motion.div
-        className="flex items-center gap-0 border-b border-[#E6E6E4] mb-4"
+        className="flex items-center gap-1 p-1 bg-[#F7F7F5] rounded-lg mb-5 w-fit"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.05 }}
@@ -426,8 +426,8 @@ export default function ClientsPage() {
             <button
               key={t}
               onClick={() => setTab(t)}
-              className={`relative px-4 py-2.5 text-[13px] font-medium transition-colors cursor-pointer ${
-                isActive ? "text-[#4F46E5]" : "text-[#8A8A88] hover:text-[#5A5A58]"
+              className={`relative px-4 py-2 text-[13px] font-medium transition-all cursor-pointer rounded-md ${
+                isActive ? "text-[#191919] bg-white shadow-sm" : "text-[#8A8A88] hover:text-[#5A5A58]"
               }`}
             >
               {labels[t]}
@@ -436,12 +436,7 @@ export default function ClientsPage() {
                   {counts[t]}
                 </span>
               )}
-              {isActive && (
-                <motion.div
-                  layoutId="tab-underline"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#4F46E5] rounded-full"
-                />
-              )}
+              {/* Pill style — pas d'underline */}
             </button>
           );
         })}
@@ -499,7 +494,7 @@ export default function ClientsPage() {
 
       {/* ── Table ── */}
       <motion.div
-        className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden"
+        className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden shadow-sm"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, delay: 0.1 }}
@@ -604,13 +599,13 @@ export default function ClientsPage() {
                     </td>
 
                     {/* Client */}
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-[#EEF2FF] flex items-center justify-center text-[11px] font-semibold text-[#4F46E5] flex-shrink-0">
+                        <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#EEF2FF] to-[#E0E7FF] flex items-center justify-center text-[11px] font-bold text-[#4F46E5] flex-shrink-0 border border-[#DDD6FE]/50">
                           {initials(client.name)}
                         </div>
                         <div className="min-w-0">
-                          <span className="text-[13px] font-medium text-[#191919] truncate block">{client.name}</span>
+                          <span className="text-[13px] font-semibold text-[#191919] truncate block group-hover:text-[#4F46E5] transition-colors">{client.name}</span>
                           {client.company && (
                             <span className="text-[11px] text-[#8A8A88] truncate block">{client.company}</span>
                           )}
@@ -619,14 +614,16 @@ export default function ClientsPage() {
                     </td>
 
                     {/* Email */}
-                    <td className="px-4 py-3 text-[13px] text-[#5A5A58]">{client.email || "\u2014"}</td>
+                    <td className="px-4 py-3.5 text-[13px] text-[#5A5A58] max-w-[200px] truncate">{client.email || <span className="text-[#CCCCCC]">{"\u2014"}</span>}</td>
 
                     {/* Commandes */}
                     <td className="px-4 py-3 text-[13px] text-[#191919]">{client.orders_count}</td>
 
                     {/* Revenu */}
-                    <td className="px-4 py-3 text-[13px] font-medium text-[#191919]">
-                      {formatRevenue(client.total_revenue)}
+                    <td className="px-4 py-3.5">
+                      <span className={`text-[13px] font-semibold ${client.total_revenue > 0 ? "text-[#191919]" : "text-[#CCCCCC]"}`}>
+                        {formatRevenue(client.total_revenue)}
+                      </span>
                     </td>
 
                     {/* Dernière commande */}
