@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { isBetaOpenAccess } from "@/lib/beta";
+import BetaPricingLock from "@/components/ui/BetaPricingLock";
 
 /* ═══════════════════════════════════════════════════════════
    JESTLY — PAGE TARIFS
@@ -208,6 +210,7 @@ function Chevron({ open }: { open: boolean }) {
 export default function TarifsPage() {
   const [annual, setAnnual] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const beta = isBetaOpenAccess();
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -264,43 +267,69 @@ export default function TarifsPage() {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.15 }}
             >
-              Gratuit · Sans carte bancaire · Sans engagement
+              {beta ? "Bêta ouverte — Tout est inclus gratuitement" : "Gratuit · Sans carte bancaire · Sans engagement"}
             </motion.p>
 
-            {/* Toggle */}
-            <motion.div
-              className="inline-flex items-center bg-white rounded-full p-1 border border-[#EEEDF2] shadow-sm"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease, delay: 0.2 }}
-            >
-              <button
-                onClick={() => setAnnual(false)}
-                className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all duration-200 cursor-pointer ${
-                  !annual ? "bg-[#111118] text-white shadow-sm" : "text-[#8A8A88] hover:text-[#5A5A58]"
-                }`}
+            {/* Toggle — masqué en mode bêta */}
+            {!beta && (
+              <motion.div
+                className="inline-flex items-center bg-white rounded-full p-1 border border-[#EEEDF2] shadow-sm"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, ease, delay: 0.2 }}
               >
-                Mensuel
-              </button>
-              <button
-                onClick={() => setAnnual(true)}
-                className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all duration-200 cursor-pointer flex items-center gap-2 ${
-                  annual ? "bg-[#111118] text-white shadow-sm" : "text-[#8A8A88] hover:text-[#5A5A58]"
-                }`}
-              >
-                Annuel
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                  annual ? "bg-white/15 text-white/90" : "bg-emerald-50 text-emerald-600"
-                }`}>
-                  -20 %
-                </span>
-              </button>
-            </motion.div>
+                <button
+                  onClick={() => setAnnual(false)}
+                  className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all duration-200 cursor-pointer ${
+                    !annual ? "bg-[#111118] text-white shadow-sm" : "text-[#8A8A88] hover:text-[#5A5A58]"
+                  }`}
+                >
+                  Mensuel
+                </button>
+                <button
+                  onClick={() => setAnnual(true)}
+                  className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all duration-200 cursor-pointer flex items-center gap-2 ${
+                    annual ? "bg-[#111118] text-white shadow-sm" : "text-[#8A8A88] hover:text-[#5A5A58]"
+                  }`}
+                >
+                  Annuel
+                  <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                    annual ? "bg-white/15 text-white/90" : "bg-emerald-50 text-emerald-600"
+                  }`}>
+                    -20 %
+                  </span>
+                </button>
+              </motion.div>
+            )}
           </div>
         </section>
 
         {/* ═══ 2. CARTES PRICING ═══ */}
         <section className="px-6 pt-14 pb-20">
+          {beta ? (
+            <div className="max-w-[1060px] mx-auto">
+              <BetaPricingLock
+                title="Abonnements disponibles prochainement"
+                subtitle="Pendant la bêta, toutes les fonctionnalités sont incluses gratuitement. Inscrivez-vous pour en profiter."
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+                  {PLANS.map((plan) => (
+                    <div key={plan.id} className="bg-white rounded-2xl border border-[#EEEDF2] p-7">
+                      <h3 className="text-[15px] font-bold text-[#111118] mb-0.5">{plan.name}</h3>
+                      <p className="text-[12px] text-[#8A8A88] mb-6">{plan.tagline}</p>
+                      <div className="text-[42px] font-extrabold text-[#111118] mb-6">••••</div>
+                      <div className="h-12 bg-[#F7F7F5] rounded-xl mb-5" />
+                      <div className="border-t border-[#F0F0EE] pt-5 space-y-2.5">
+                        {plan.features.map((_, j) => (
+                          <div key={j} className="h-3 bg-[#F7F7F5] rounded" style={{ width: `${55 + (j * 11) % 35}%` }} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </BetaPricingLock>
+            </div>
+          ) : (
           <div className="max-w-[1060px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
             {PLANS.map((plan, i) => {
               const price = annual ? plan.yearlyPrice : plan.monthlyPrice;
@@ -352,14 +381,16 @@ export default function TarifsPage() {
                     <motion.a
                       href="/login"
                       className={`block text-center w-full py-3 rounded-xl text-[13px] font-semibold transition-all duration-200 cursor-pointer ${
-                        hl
-                          ? "text-white shadow-md" : "bg-[#111118] text-white hover:bg-[#2A2A30]"
+                        beta
+                          ? "bg-[#EEF2FF] text-[#7C5CFF] border border-[#DDD6FE]"
+                          : hl
+                            ? "text-white shadow-md" : "bg-[#111118] text-white hover:bg-[#2A2A30]"
                       }`}
-                      style={hl ? { background: "linear-gradient(135deg, #7C5CFF 0%, #9B7EFF 100%)" } : undefined}
+                      style={!beta && hl ? { background: "linear-gradient(135deg, #7C5CFF 0%, #9B7EFF 100%)" } : undefined}
                       whileHover={{ scale: 1.015 }}
                       whileTap={{ scale: 0.985 }}
                     >
-                      {plan.cta}
+                      {beta ? (plan.monthlyPrice === 0 ? "Commencer gratuitement" : "Inclus pendant la bêta") : plan.cta}
                     </motion.a>
                   </div>
 
@@ -389,6 +420,7 @@ export default function TarifsPage() {
               );
             })}
           </div>
+          )}
         </section>
 
         {/* ═══ 3. RÉASSURANCE ═══ */}
@@ -410,76 +442,100 @@ export default function TarifsPage() {
         </section>
 
         {/* ═══ 4. TABLEAU COMPARATIF ═══ */}
-        <section className="px-6 pb-28">
-          <div className="max-w-4xl mx-auto">
-            <motion.div
-              className="text-center mb-14"
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, ease }}
-            >
-              <h2 className="text-[24px] sm:text-[32px] font-bold text-[#111118] tracking-tight mb-3">
-                Comparer en détail
-              </h2>
-              <p className="text-[15px]" style={{ color: "#6B7280" }}>
-                Tout ce qui est inclus, plan par plan.
-              </p>
-            </motion.div>
-
-            <motion.div
-              className="bg-white rounded-2xl border border-[#EEEDF2] overflow-hidden shadow-sm"
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, ease, delay: 0.05 }}
-            >
-              {/* Header */}
-              <div className="grid grid-cols-4 border-b border-[#EEEDF2] bg-[#FAFAFE]">
-                <div className="px-5 py-4" />
-                <div className="px-3 py-4 text-center">
-                  <span className="text-[11px] font-bold text-[#B0B0AE] uppercase tracking-[0.08em]">Starter</span>
-                </div>
-                <div className="px-3 py-4 text-center">
-                  <div className="inline-flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#7C5CFF]" />
-                    <span className="text-[11px] font-bold text-[#7C5CFF] uppercase tracking-[0.08em]">Pro</span>
+        {beta ? (
+          <section className="px-6 pb-28">
+            <div className="max-w-4xl mx-auto">
+              <BetaPricingLock title="Comparatif disponible prochainement" subtitle="Les détails de chaque plan seront visibles lors du lancement des abonnements.">
+                <div className="bg-white rounded-2xl border border-[#EEEDF2] overflow-hidden shadow-sm">
+                  <div className="grid grid-cols-4 border-b border-[#EEEDF2] bg-[#FAFAFE]">
+                    <div className="px-5 py-4" />
+                    <div className="px-3 py-4 text-center"><span className="text-[11px] font-bold text-[#B0B0AE] uppercase tracking-[0.08em]">Starter</span></div>
+                    <div className="px-3 py-4 text-center"><span className="text-[11px] font-bold text-[#7C5CFF] uppercase tracking-[0.08em]">Pro</span></div>
+                    <div className="px-3 py-4 text-center"><span className="text-[11px] font-bold text-[#B0B0AE] uppercase tracking-[0.08em]">Business</span></div>
                   </div>
-                </div>
-                <div className="px-3 py-4 text-center">
-                  <span className="text-[11px] font-bold text-[#B0B0AE] uppercase tracking-[0.08em]">Business</span>
-                </div>
-              </div>
-
-              {COMPARISON.map((cat, ci) => (
-                <div key={ci}>
-                  <div className="px-5 py-3 bg-[#FAFAFE] border-b border-[#F0F0EE]">
-                    <span className="text-[10px] font-bold text-[#8A8A88] uppercase tracking-[0.1em]">{cat.category}</span>
-                  </div>
-                  {cat.rows.map((row, ri) => {
-                    const rowSoon = row.label.includes("::soon");
-                    const rowLabel = row.label.replace(" ::soon", "");
-                    return (
-                    <div key={ri} className="grid grid-cols-4 border-b border-[#F5F5F3] last:border-b-0 hover:bg-[#FCFCFB] transition-colors">
-                      <div className="px-5 py-3.5 text-[13px] text-[#5A5A58] flex items-center gap-1.5">
-                        {rowLabel}
-                        {rowSoon && (
-                          <span className="text-[9px] font-bold uppercase tracking-wide text-[#7C5CFF] bg-[#7C5CFF]/[0.08] px-1.5 py-0.5 rounded-full leading-none">
-                            Soon
-                          </span>
-                        )}
+                  {COMPARISON.slice(0, 2).map((cat, ci) => (
+                    <div key={ci}>
+                      <div className="px-5 py-3 bg-[#FAFAFE] border-b border-[#F0F0EE]">
+                        <span className="text-[10px] font-bold text-[#8A8A88] uppercase tracking-[0.1em]">{cat.category}</span>
                       </div>
-                      <div className="px-3 py-3.5 text-center"><CellDisplay value={row.starter} /></div>
-                      <div className="px-3 py-3.5 text-center bg-[#7C5CFF]/[0.015]"><CellDisplay value={row.pro} /></div>
-                      <div className="px-3 py-3.5 text-center"><CellDisplay value={row.business} /></div>
+                      {cat.rows.map((row, ri) => (
+                        <div key={ri} className="grid grid-cols-4 border-b border-[#F5F5F3]">
+                          <div className="px-5 py-3.5 text-[13px] text-[#5A5A58]">{row.label.replace(" ::soon", "")}</div>
+                          <div className="px-3 py-3.5 text-center text-[13px] text-[#C0C0BE]">—</div>
+                          <div className="px-3 py-3.5 text-center text-[13px] text-[#C0C0BE]">—</div>
+                          <div className="px-3 py-3.5 text-center text-[13px] text-[#C0C0BE]">—</div>
+                        </div>
+                      ))}
                     </div>
-                    );
-                  })}
+                  ))}
                 </div>
-              ))}
-            </motion.div>
-          </div>
-        </section>
+              </BetaPricingLock>
+            </div>
+          </section>
+        ) : (
+          <section className="px-6 pb-28">
+            <div className="max-w-4xl mx-auto">
+              <motion.div
+                className="text-center mb-14"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, ease }}
+              >
+                <h2 className="text-[24px] sm:text-[32px] font-bold text-[#111118] tracking-tight mb-3">
+                  Comparer en détail
+                </h2>
+                <p className="text-[15px]" style={{ color: "#6B7280" }}>
+                  Tout ce qui est inclus, plan par plan.
+                </p>
+              </motion.div>
+
+              <motion.div
+                className="bg-white rounded-2xl border border-[#EEEDF2] overflow-hidden shadow-sm"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, ease, delay: 0.05 }}
+              >
+                <div className="grid grid-cols-4 border-b border-[#EEEDF2] bg-[#FAFAFE]">
+                  <div className="px-5 py-4" />
+                  <div className="px-3 py-4 text-center"><span className="text-[11px] font-bold text-[#B0B0AE] uppercase tracking-[0.08em]">Starter</span></div>
+                  <div className="px-3 py-4 text-center">
+                    <div className="inline-flex items-center gap-1.5">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#7C5CFF]" />
+                      <span className="text-[11px] font-bold text-[#7C5CFF] uppercase tracking-[0.08em]">Pro</span>
+                    </div>
+                  </div>
+                  <div className="px-3 py-4 text-center"><span className="text-[11px] font-bold text-[#B0B0AE] uppercase tracking-[0.08em]">Business</span></div>
+                </div>
+                {COMPARISON.map((cat, ci) => (
+                  <div key={ci}>
+                    <div className="px-5 py-3 bg-[#FAFAFE] border-b border-[#F0F0EE]">
+                      <span className="text-[10px] font-bold text-[#8A8A88] uppercase tracking-[0.1em]">{cat.category}</span>
+                    </div>
+                    {cat.rows.map((row, ri) => {
+                      const rowSoon = row.label.includes("::soon");
+                      const rowLabel = row.label.replace(" ::soon", "");
+                      return (
+                        <div key={ri} className="grid grid-cols-4 border-b border-[#F5F5F3] last:border-b-0 hover:bg-[#FCFCFB] transition-colors">
+                          <div className="px-5 py-3.5 text-[13px] text-[#5A5A58] flex items-center gap-1.5">
+                            {rowLabel}
+                            {rowSoon && (
+                              <span className="text-[9px] font-bold uppercase tracking-wide text-[#7C5CFF] bg-[#7C5CFF]/[0.08] px-1.5 py-0.5 rounded-full leading-none">Soon</span>
+                            )}
+                          </div>
+                          <div className="px-3 py-3.5 text-center"><CellDisplay value={row.starter} /></div>
+                          <div className="px-3 py-3.5 text-center bg-[#7C5CFF]/[0.015]"><CellDisplay value={row.pro} /></div>
+                          <div className="px-3 py-3.5 text-center"><CellDisplay value={row.business} /></div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </motion.div>
+            </div>
+          </section>
+        )}
 
         {/* ═══ 5. POURQUOI ÇA VAUT LE COUP ═══ */}
         <section className="px-6 pb-28">
@@ -582,7 +638,7 @@ export default function TarifsPage() {
               Prêt à centraliser ton business ?
             </h2>
             <p className="text-[15px] mb-8" style={{ color: "#6B7280" }}>
-              Commence gratuitement. Passe Pro quand tu es prêt.
+              {beta ? "Toutes les fonctionnalités sont incluses pendant la bêta." : "Commence gratuitement. Passe Pro quand tu es prêt."}
             </p>
             <motion.a
               href="/login"

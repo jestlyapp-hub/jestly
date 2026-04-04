@@ -238,7 +238,7 @@ export default function BuilderToolbar({ activePanel, onPanelChange }: { activeP
 
         <div className="relative">
           <button
-            data-guide="publish-btn"
+            data-guide="publish-site"
             data-testid="publish-site"
             onClick={handlePublish}
             disabled={publishStatus === "publishing"}

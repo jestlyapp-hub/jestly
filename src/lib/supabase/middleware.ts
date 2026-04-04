@@ -31,7 +31,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Protected routes: redirect to /login if not authenticated
-  const protectedPrefixes = ["/dashboard", "/admin", "/clients", "/commandes", "/produits", "/facturation", "/abonnements", "/analytics", "/parametres", "/site-web", "/taches", "/briefs", "/calendrier"];
+  const protectedPrefixes = ["/dashboard", "/admin", "/clients", "/commandes", "/produits", "/facturation", "/abonnements", "/analytics", "/parametres", "/site-web", "/taches", "/briefs", "/calendrier", "/onboarding"];
   const isProtectedRoute = protectedPrefixes.some((p) => request.nextUrl.pathname.startsWith(p));
 
   if (!user && isProtectedRoute) {
@@ -40,8 +40,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect authenticated users away from /login
-  if (user && request.nextUrl.pathname === "/login") {
+  // Allow reset-password and forgot-password even if authenticated
+  // (user clicked recovery link while logged in, or recovery session is active)
+  const authBypassRoutes = ["/reset-password", "/forgot-password"];
+  const isAuthBypass = authBypassRoutes.some((r) => request.nextUrl.pathname.startsWith(r));
+
+  // Redirect authenticated users away from /login (but NOT from reset/forgot)
+  if (user && request.nextUrl.pathname === "/login" && !isAuthBypass) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

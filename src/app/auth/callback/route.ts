@@ -5,6 +5,7 @@ import { ensureProfile } from "@/lib/ensure-profile";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  // Default vers dashboard — le layout dashboard redirigera vers /onboarding si nécessaire
   const next = searchParams.get("next") ?? "/dashboard";
 
   if (code) {

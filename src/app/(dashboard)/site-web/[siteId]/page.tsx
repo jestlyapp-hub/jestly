@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import BadgeStatus from "@/components/ui/BadgeStatus";
 import { useSite } from "@/lib/hooks/use-site";
 import { useApi } from "@/lib/hooks/use-api";
+import { isSitePublished, getSitePublicUrl, getSiteDisplayUrl, canOpenPublicSite } from "@/lib/site-url-helpers";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -35,13 +36,18 @@ export default function SiteWebDashboard() {
   const [copied, setCopied] = useState(false);
   const [previewError, setPreviewError] = useState(false);
 
-  const subdomain = site.domain.subdomain;
-  const hasSubdomain = !!subdomain;
-  const baseDomain = process.env.NEXT_PUBLIC_BASE_DOMAIN || "jestly.fr";
-  const siteUrl = hasSubdomain ? `${baseDomain}/s/${subdomain}` : "";
-  const fullUrl = hasSubdomain ? `https://${siteUrl}` : "";
+  const siteUrlInput = {
+    id: siteId,
+    slug: site.domain.subdomain,
+    status: site.status ?? "draft" as const,
+    custom_domain: site.domain.customDomain,
+  };
+  const published = isSitePublished(siteUrlInput);
+  const fullUrl = getSitePublicUrl(siteUrlInput);
+  const siteUrl = getSiteDisplayUrl(siteUrlInput);
+  const hasSubdomain = !!site.domain.subdomain;
 
-  const siteStatus = maintenance ? "maintenance" : "published";
+  const siteStatus = !published ? "draft" : maintenance ? "maintenance" : "published";
 
   const recentOrders = dashboard?.recentOrders || [];
 
@@ -64,7 +70,7 @@ export default function SiteWebDashboard() {
   }, [maintenance, siteId, site.settings]);
 
   const handleCopy = () => {
-    if (!fullUrl) return;
+    if (!fullUrl || !published) return;
     navigator.clipboard.writeText(fullUrl);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -92,13 +98,15 @@ export default function SiteWebDashboard() {
               <div className="h-4 bg-[#F7F7F5] rounded w-48 animate-pulse" />
             ) : hasSubdomain ? (
               <div className="flex items-center gap-2.5 min-w-0">
-                <span className="text-[14px] font-medium text-[#191919] truncate">{siteUrl}</span>
+                <span className={`text-[14px] font-medium truncate ${published ? "text-[#191919]" : "text-[#8A8A88] italic"}`}>{siteUrl}</span>
                 <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
-                  siteStatus === "maintenance"
+                  siteStatus === "draft"
+                    ? "bg-[#F0F0EE] text-[#8A8A88] border border-[#E6E6E4]"
+                    : siteStatus === "maintenance"
                     ? "bg-amber-50 text-amber-600 border border-amber-200"
                     : "bg-emerald-50 text-emerald-600 border border-emerald-200"
                 }`}>
-                  {siteStatus === "maintenance" ? "Maintenance" : "En ligne"}
+                  {siteStatus === "draft" ? "Brouillon" : siteStatus === "maintenance" ? "Maintenance" : "En ligne"}
                 </span>
               </div>
             ) : (
@@ -113,7 +121,7 @@ export default function SiteWebDashboard() {
                 Publié le {new Date(dashboard.lastPublishedAt).toLocaleDateString("fr-FR")}
               </span>
             )}
-            {hasSubdomain && (
+            {published && fullUrl ? (
               <>
                 <button onClick={handleCopy} className="text-[12px] font-medium text-[#4F46E5] border border-[#4F46E5]/20 px-3 py-1.5 rounded-lg hover:bg-[#EEF2FF] transition-colors">
                   {copied ? "Copié !" : "Copier"}
@@ -123,7 +131,9 @@ export default function SiteWebDashboard() {
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
                 </a>
               </>
-            )}
+            ) : hasSubdomain && !published ? (
+              <span className="text-[12px] text-[#B0B0AE] italic px-3 py-1.5">Publiez pour obtenir le lien</span>
+            ) : null}
           </div>
         </div>
       </motion.div>
@@ -135,12 +145,12 @@ export default function SiteWebDashboard() {
         <motion.div className="lg:col-span-2 bg-white rounded-xl border border-[#E6E6E4] overflow-hidden" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: 0.2 }}>
           <div className="px-5 py-3.5 border-b border-[#E6E6E4] flex items-center justify-between">
             <h2 className="text-[14px] font-semibold text-[#191919]">Aperçu du site</h2>
-            {hasSubdomain && (
+            {published && fullUrl ? (
               <a href={fullUrl} target="_blank" rel="noopener noreferrer" className="text-[11px] font-medium text-[#4F46E5] hover:underline flex items-center gap-1">
                 Ouvrir en grand
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
               </a>
-            )}
+            ) : null}
           </div>
           {/* Browser chrome */}
           <div className="flex items-center gap-2 px-4 py-2 bg-white border-b border-[#E6E6E4]">
@@ -150,7 +160,7 @@ export default function SiteWebDashboard() {
               <div className="w-2 h-2 rounded-full bg-[#28C840]" />
             </div>
             <div className="flex-1 bg-[#F7F7F5] rounded px-3 py-1 text-[10px] text-[#999] text-center truncate">
-              {hasSubdomain ? siteUrl : "jestly.fr/s/votre-site"}
+              {published && hasSubdomain ? siteUrl : hasSubdomain ? "Brouillon — non publié" : "jestly.fr/s/votre-site"}
             </div>
           </div>
           {/* Preview body — fixed height, image or fallback */}
@@ -175,22 +185,22 @@ export default function SiteWebDashboard() {
                 </div>
                 <div className="text-[14px] font-semibold text-[#191919]">{site.settings.name}</div>
                 <div className="text-[12px] text-[#8A8A88] max-w-xs text-center">
-                  {hasSubdomain ? "Ajoutez une image OG dans les paramètres SEO pour afficher un aperçu." : "Configurez un domaine pour voir l'aperçu."}
+                  {!hasSubdomain ? "Configurez un domaine pour voir l'aperçu." : published ? "Ajoutez une image OG dans les paramètres SEO pour afficher un aperçu." : "Publiez votre site pour afficher un aperçu en direct."}
                 </div>
-                {hasSubdomain ? (
-                  <div className="flex gap-2 mt-1">
-                    <Link href={`/site-web/${siteId}/seo`} className="text-[12px] font-medium text-[#4F46E5] border border-[#4F46E5]/20 px-3 py-1.5 rounded-lg hover:bg-[#EEF2FF] transition-colors">
-                      Paramètres SEO
-                    </Link>
+                <div className="flex gap-2 mt-1">
+                  <Link href={`/site-web/${siteId}/seo`} className="text-[12px] font-medium text-[#4F46E5] border border-[#4F46E5]/20 px-3 py-1.5 rounded-lg hover:bg-[#EEF2FF] transition-colors">
+                    Paramètres SEO
+                  </Link>
+                  {published && fullUrl ? (
                     <a href={fullUrl} target="_blank" rel="noopener noreferrer" className="text-[12px] font-medium text-white bg-[#4F46E5] px-3 py-1.5 rounded-lg hover:bg-[#4338CA] transition-colors">
                       Ouvrir le site
                     </a>
-                  </div>
-                ) : (
-                  <Link href={`/site-web/${siteId}/domaine`} className="text-[12px] font-medium text-[#4F46E5] hover:underline mt-1">
-                    Configurer le domaine
-                  </Link>
-                )}
+                  ) : (
+                    <Link href={`/site-web/${siteId}/createur`} className="text-[12px] font-medium text-white bg-[#4F46E5] px-3 py-1.5 rounded-lg hover:bg-[#4338CA] transition-colors">
+                      Éditer le site
+                    </Link>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -223,7 +233,8 @@ export default function SiteWebDashboard() {
             </div>
           </div>
 
-          {/* Maintenance */}
+          {/* Maintenance — uniquement pour les sites publiés */}
+          {published && (
           <div className={`rounded-xl border p-5 transition-colors ${maintenance ? "bg-amber-50/50 border-amber-200" : "bg-white border-[#E6E6E4]"}`}>
             <div className="flex items-center justify-between">
               <div>
@@ -242,6 +253,7 @@ export default function SiteWebDashboard() {
               </button>
             </div>
           </div>
+          )}
 
           {/* Revenue Summary */}
           {dashboard && (dashboard.totalRevenue > 0 || dashboard.totalOrders > 0) && (

@@ -161,6 +161,8 @@ interface Ctx {
   step: GuideStep | null;
   chapter: GuideChapter | null;
   progress: number;
+  chapterIndex: number;
+  totalChapters: number;
   isReady: boolean;
   isActive: boolean;
   isDone: boolean;
@@ -620,6 +622,9 @@ export function GuideProvider({ children }: { children: ReactNode }) {
   }
   const progress = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
+  const chapterIndex = state.chapterId ? CHAPTERS.findIndex((c) => c.id === state.chapterId) : -1;
+  const totalChapters = CHAPTERS.length;
+
   const isReady =
     hydrated && state.active && !!step && state.engineStatus === "ready";
   const isActive = hydrated && state.active;
@@ -633,6 +638,8 @@ export function GuideProvider({ children }: { children: ReactNode }) {
         step,
         chapter,
         progress,
+        chapterIndex,
+        totalChapters,
         isReady,
         isActive,
         isDone,

@@ -25,6 +25,7 @@ import {
   FEATURE_LABELS,
   formatLimit,
 } from "./plans";
+import { isBetaOpenAccess } from "./beta";
 
 export interface GuardResult {
   allowed: boolean;
@@ -101,6 +102,12 @@ export async function checkResourceQuota(
   resource: ResourceKey,
   context?: { siteId?: string },
 ): Promise<GuardResult> {
+  // Mode bêta : toutes les ressources sont autorisées
+  if (isBetaOpenAccess()) {
+    const planId = await getUserPlan(supabase, userId);
+    return { allowed: true, planId };
+  }
+
   const planId = await getUserPlan(supabase, userId);
   const plan = PLANS[planId];
   const limit = plan.limits[resource];
@@ -135,6 +142,12 @@ export async function checkFeatureAccess(
   userId: string,
   feature: FeatureKey,
 ): Promise<GuardResult> {
+  // Mode bêta : toutes les features sont accessibles
+  if (isBetaOpenAccess()) {
+    const planId = await getUserPlan(supabase, userId);
+    return { allowed: true, planId };
+  }
+
   const planId = await getUserPlan(supabase, userId);
   const plan = PLANS[planId];
 

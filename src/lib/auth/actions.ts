@@ -158,7 +158,7 @@ export async function forgotPassword(formData: FormData) {
   }
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=/parametres`,
+    redirectTo: `${origin}/reset-password`,
   });
 
   if (error) {
@@ -166,6 +166,31 @@ export async function forgotPassword(formData: FormData) {
   }
 
   return { success: true, message: "Lien de réinitialisation envoyé par email." };
+}
+
+// ── Update Password (after recovery link) ──
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient();
+  const password = (formData.get("password") as string) || "";
+  const confirm = (formData.get("confirm") as string) || "";
+
+  if (!password || password.length < 8) {
+    return { error: "Le mot de passe doit contenir au moins 8 caractères." };
+  }
+  if (password !== confirm) {
+    return { error: "Les mots de passe ne correspondent pas." };
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  // Security: destroy session after password change — user must re-login
+  await supabase.auth.signOut();
+
+  return { success: true };
 }
 
 // ── Sign Out ──

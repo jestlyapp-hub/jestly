@@ -35,6 +35,8 @@ export async function middleware(req: NextRequest) {
       url.pathname.startsWith("/taches") ||
       url.pathname.startsWith("/briefs") ||
       url.pathname.startsWith("/calendrier") ||
+      url.pathname.startsWith("/reset-password") ||
+      url.pathname.startsWith("/forgot-password") ||
       url.pathname === "/login";
 
     if (needsSession) {

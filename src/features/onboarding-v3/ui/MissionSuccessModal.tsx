@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGuide } from "../engine/guide-engine";
 import { ExternalLink, ShoppingCart, Users } from "lucide-react";
+import { useModalBehavior } from "./use-modal-behavior";
 
 // ═══════════════════════════════════════════════════════════════════
 // Mission Success Modal — Shown ONLY after completing the LAST chapter
@@ -18,28 +19,29 @@ export default function MissionSuccessModal() {
   const [confettiPieces, setConfettiPieces] = useState<ConfettiPiece[]>([]);
   const wasDoneRef = useRef(isDone);
 
+  const dismiss = useCallback(() => {
+    setVisible(false);
+    close();
+  }, [close]);
+
+  // Focus trap + scroll lock
+  const modalRef = useModalBehavior(visible, dismiss);
+
   useEffect(() => {
-    // Only show if isDone JUST became true during this session
-    // (wasDoneRef was false → isDone is now true)
     if (isDone && !wasDoneRef.current) {
-      // Check if already shown before (prevent re-show on hot reload)
-      const alreadyShown = sessionStorage.getItem(SHOWN_KEY);
+      let alreadyShown = false;
+      try { alreadyShown = !!sessionStorage.getItem(SHOWN_KEY); } catch {}
       if (!alreadyShown) {
         const t = setTimeout(() => {
           setVisible(true);
           setConfettiPieces(generateConfetti(40));
-          sessionStorage.setItem(SHOWN_KEY, "1");
+          try { sessionStorage.setItem(SHOWN_KEY, "1"); } catch {}
         }, 300);
         return () => clearTimeout(t);
       }
     }
     wasDoneRef.current = isDone;
   }, [isDone]);
-
-  const dismiss = useCallback(() => {
-    setVisible(false);
-    close();
-  }, [close]);
 
   const siteUrl = account.siteId
     ? `/s/${account.siteId}`
@@ -48,7 +50,7 @@ export default function MissionSuccessModal() {
   return (
     <AnimatePresence>
       {visible && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center">
+        <div ref={modalRef} className="fixed inset-0 z-[90] flex items-center justify-center">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -56,6 +58,7 @@ export default function MissionSuccessModal() {
             exit={{ opacity: 0 }}
             className="absolute inset-0 bg-black/40"
             onClick={dismiss}
+            aria-hidden="true"
           />
 
           {/* Confetti */}
@@ -64,7 +67,7 @@ export default function MissionSuccessModal() {
               key={piece.id}
               initial={{ y: -20, x: piece.x, opacity: 1, rotate: 0 }}
               animate={{
-                y: typeof window !== "undefined" ? window.innerHeight + 20 : 800,
+                y: window.innerHeight + 20,
                 x: piece.x + piece.drift,
                 opacity: 0,
                 rotate: piece.rotation,
@@ -86,6 +89,9 @@ export default function MissionSuccessModal() {
 
           {/* Modal */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="guide-success-title"
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
@@ -102,7 +108,7 @@ export default function MissionSuccessModal() {
               >
                 🎉
               </motion.div>
-              <h2 className="text-xl font-bold">Bravo, ton espace Jestly est prêt</h2>
+              <h2 id="guide-success-title" className="text-xl font-bold">Bravo, ton espace Jestly est prêt</h2>
               <p className="text-white/80 text-sm mt-1.5 leading-relaxed">
                 Tu as terminé la configuration de départ.<br />
                 Tu peux maintenant créer ton premier service, ajouter un client et commencer à utiliser Jestly.
@@ -121,6 +127,7 @@ export default function MissionSuccessModal() {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[#4F46E5] hover:text-[#4338CA] transition-colors"
+                    aria-label="Ouvrir le site dans un nouvel onglet"
                   >
                     <ExternalLink size={16} />
                   </a>
@@ -197,7 +204,7 @@ const CONFETTI_COLORS = [
 function generateConfetti(count: number): ConfettiPiece[] {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
-    x: Math.random() * (typeof window !== "undefined" ? window.innerWidth : 800),
+    x: Math.random() * window.innerWidth,
     drift: (Math.random() - 0.5) * 200,
     rotation: Math.random() * 720 - 360,
     duration: 2 + Math.random() * 2,

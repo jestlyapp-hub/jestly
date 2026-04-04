@@ -1,12 +1,25 @@
 "use client";
 
+import { useState } from "react";
 import { Smartphone, Monitor, Globe, Lock } from "lucide-react";
 import type { ProfileData } from "./shared";
 import { SectionCard } from "./shared";
+import { forgotPassword } from "@/lib/auth/actions";
 
 export function SecuritySection({ profile }: {
   profile: ProfileData;
 }) {
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const handleResetPassword = async () => {
+    setResetLoading(true);
+    const fd = new FormData();
+    fd.set("email", profile.email);
+    const result = await forgotPassword(fd);
+    setResetLoading(false);
+    if (result?.success) setResetSent(true);
+  };
   return (
     <SectionCard id="securite" title="Sécurité" description="Protégez votre compte et gérez vos accès.">
       <div className="space-y-5">
@@ -19,9 +32,23 @@ export function SecuritySection({ profile }: {
             </div>
             <div className="flex-1 min-w-0">
               <span className="text-[13px] font-medium text-[#191919]">Modifier le mot de passe</span>
-              <p className="text-[12px] text-[#A8A29E]">Un email de réinitialisation sera envoyé à votre adresse.</p>
+              <p className="text-[12px] text-[#A8A29E]">
+                {resetSent
+                  ? "Un email de réinitialisation a été envoyé !"
+                  : "Un email de réinitialisation sera envoyé à votre adresse."}
+              </p>
             </div>
-            <span className="text-[10px] font-semibold text-[#A8A29E] bg-[#F5F5F4] px-2 py-0.5 rounded-full">Bientôt</span>
+            {resetSent ? (
+              <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">Envoyé ✓</span>
+            ) : (
+              <button
+                onClick={handleResetPassword}
+                disabled={resetLoading}
+                className="text-[11px] font-semibold text-[#7C3AED] bg-[#F0EEFF] hover:bg-[#E8E4FF] px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {resetLoading ? "Envoi..." : "Modifier"}
+              </button>
+            )}
           </div>
         </div>
 

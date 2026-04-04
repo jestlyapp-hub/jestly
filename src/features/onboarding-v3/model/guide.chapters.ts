@@ -159,21 +159,12 @@ export const CHAPTERS: GuideChapter[] = [
         completeWhen: { type: "click", selector: '[data-guide="new-brief-btn"]' },
       },
       {
-        id: "brief_name", chapterId: "brief", kind: "show",
-        title: "Nommez votre brief",
-        body: "Exemples :\n• Brief Miniature YouTube\n• Brief Logo\n• Brief Identité visuelle",
+        id: "brief_fill_and_submit", chapterId: "brief", kind: "action",
+        title: "Nommez et créez votre brief",
+        body: "Donnez un nom (ex : Brief Miniature YouTube), puis cliquez « Créer avec le template par défaut ».\n\nLe template inclut les champs essentiels : date souhaitée, description du besoin, fichiers à fournir.\nTout est personnalisable ensuite.",
         requiredRoute: "/offres",
         target: { selector: '[data-guide="brief-name-input"]', placement: "right" },
         preActions: [{ type: "waitFor", selector: '[data-guide="brief-name-input"]', timeout: 6000 }],
-        completeWhen: { type: "acknowledge" }, ctaLabel: "Nom saisi",
-      },
-      {
-        id: "brief_submit", chapterId: "brief", kind: "action",
-        title: "Créez avec le template par défaut",
-        body: "Le template inclut les champs essentiels :\n• Date souhaitée\n• Description du besoin\n• Fichiers à fournir\n\nPersonnalisables à tout moment.",
-        requiredRoute: "/offres",
-        target: { selector: '[data-guide="brief-create-default"]', placement: "top" },
-        preActions: [{ type: "waitFor", selector: '[data-guide="brief-create-default"]', timeout: 6000 }],
         completeWhen: { type: "click", selector: '[data-guide="brief-create-default"]' },
       },
       {
@@ -215,30 +206,12 @@ export const CHAPTERS: GuideChapter[] = [
         completeWhen: { type: "click", selector: '[data-guide="new-product-btn"]' },
       },
       {
-        id: "product_name", chapterId: "product", kind: "show",
-        title: "Donnez un nom à votre offre",
-        body: "Exemples :\n• Miniature YouTube Premium\n• Logo & Identité visuelle\n• Coaching stratégique 1h",
+        id: "product_fill_and_submit", chapterId: "product", kind: "action",
+        title: "Remplissez et créez votre offre",
+        body: "Donnez un nom (ex : Miniature YouTube Premium), un prix, puis cliquez « Créer ».\n\nTout sera modifiable ensuite.",
         requiredRoute: "/offres",
         target: { selector: '[data-guide="product-name-input"]', placement: "right" },
         preActions: [{ type: "waitFor", selector: '[data-guide="product-name-input"]', timeout: 6000 }],
-        completeWhen: { type: "acknowledge" }, ctaLabel: "C'est fait",
-      },
-      {
-        id: "product_price", chapterId: "product", kind: "show",
-        title: "Définissez le prix",
-        body: "Le montant en euros affiché sur votre site.\nC'est ce que le client paiera.",
-        requiredRoute: "/offres",
-        target: { selector: '[data-guide="product-price-input"]', placement: "right" },
-        preActions: [{ type: "waitFor", selector: '[data-guide="product-price-input"]' }],
-        completeWhen: { type: "acknowledge" }, ctaLabel: "Prix défini",
-      },
-      {
-        id: "product_submit", chapterId: "product", kind: "action",
-        title: "Validez la création",
-        body: "Remplissez les champs puis cliquez « Créer ».",
-        requiredRoute: "/offres",
-        target: { selector: '[data-guide="product-create-submit"]', placement: "top" },
-        preActions: [{ type: "waitFor", selector: '[data-guide="product-create-submit"]' }],
         completeWhen: { type: "click", selector: '[data-guide="product-create-submit"]' },
       },
       {
@@ -265,6 +238,7 @@ export const CHAPTERS: GuideChapter[] = [
         id: "product_tab_brief", chapterId: "product", kind: "action",
         title: "Ouvrez l'onglet « Brief »",
         body: "C'est ici que vous associez le brief à votre produit.",
+        requiredRoute: "/offres",
         target: { selector: '[data-guide="product-tab-brief"]', placement: "bottom" },
         preActions: [{ type: "waitFor", selector: '[data-guide="product-tab-brief"]', timeout: 8000 }],
         // Valide dès le clic sur l'onglet OU auto-complete si brief déjà lié
@@ -274,6 +248,7 @@ export const CHAPTERS: GuideChapter[] = [
         id: "product_select_brief", chapterId: "product", kind: "show",
         title: "Sélectionnez votre brief",
         body: "Choisissez le brief créé précédemment dans la liste.\nLe client le recevra après chaque commande.",
+        requiredRoute: "/offres",
         target: { selector: '[data-guide="product-add-brief-select"]', placement: "right" },
         preActions: [
           { type: "waitFor", selector: '[data-guide="product-add-brief-select"]', timeout: 6000 },
@@ -398,9 +373,9 @@ export const CHAPTERS: GuideChapter[] = [
         requiredRoute: "/createur",
         // Target: product option first, fallback to search input
         // The overlay will try product-option first, then products-search
-        target: { selector: '[data-testid="products-search"]', placement: "left" },
+        target: { selector: '[data-guide="products-search"]', placement: "left" },
         preActions: [
-          { type: "waitFor", selector: '[data-testid="products-search"]', timeout: 15000 },
+          { type: "waitFor", selector: '[data-guide="products-search"]', timeout: 15000 },
         ],
         // NON-BLOCKING: compact card, doesn't hide the product list
         nonBlocking: true,
@@ -440,10 +415,10 @@ export const CHAPTERS: GuideChapter[] = [
         title: "Cliquez ici pour publier",
         body: "Cliquez sur « Publier » pour mettre votre site en ligne.\nVotre produit sera commandable avec le brief associé.",
         requiredRoute: "/createur",
-        target: { selector: '[data-testid="publish-site"]', placement: "bottom" },
+        target: { selector: '[data-guide="publish-site"]', placement: "bottom" },
         preActions: [
           { type: "navigate", route: "/createur" },
-          { type: "waitFor", selector: '[data-testid="publish-site"]', timeout: 10000 },
+          { type: "waitFor", selector: '[data-guide="publish-site"]', timeout: 10000 },
         ],
         // VALIDATION RÉELLE : détecte que le site est publié (bouton passe à "Publié !")
         completeWhen: { type: "custom", key: "site_published", pollMs: 500, timeoutMs: 30000 },

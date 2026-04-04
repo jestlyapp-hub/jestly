@@ -1238,7 +1238,7 @@ describe("Brief auto-complete when already linked", () => {
     const step = product.steps.find((s) => s.id === "product_tab_brief")!;
     expect(step.completeWhen.type).toBe("custom");
     if (step.completeWhen.type === "custom") {
-      expect(step.completeWhen.key).toBe("brief_linked_to_product");
+      expect(step.completeWhen.key).toBe("brief_tab_or_linked");
     }
   });
 
@@ -1258,13 +1258,17 @@ describe("Brief auto-complete when already linked", () => {
     }
   });
 
-  it("all 3 brief steps use the same validator (adaptive skip)", () => {
-    const briefSteps = ["product_tab_brief", "product_select_brief", "product_save_brief"];
-    for (const id of briefSteps) {
+  it("all 3 brief steps use custom validators for adaptive skip", () => {
+    const expectedKeys: Record<string, string> = {
+      product_tab_brief: "brief_tab_or_linked",
+      product_select_brief: "brief_linked_to_product",
+      product_save_brief: "brief_linked_to_product",
+    };
+    for (const [id, expectedKey] of Object.entries(expectedKeys)) {
       const step = product.steps.find((s) => s.id === id)!;
       expect(step.completeWhen.type).toBe("custom");
       if (step.completeWhen.type === "custom") {
-        expect(step.completeWhen.key).toBe("brief_linked_to_product");
+        expect(step.completeWhen.key).toBe(expectedKey);
       }
     }
   });

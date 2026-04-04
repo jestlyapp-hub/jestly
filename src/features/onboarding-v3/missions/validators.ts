@@ -134,7 +134,7 @@ function validateProductDisplayed(): ValidatorResult {
 
   // Fallback: DOM chip detection
   log("product_displayed: bridge not found, checking DOM fallback");
-  const searchInputs = document.querySelectorAll('[data-testid="products-search"]');
+  const searchInputs = document.querySelectorAll('[data-guide="products-search"], [data-testid="products-search"]');
   for (const input of searchInputs) {
     const container = input.closest(".space-y-2");
     if (container) {
@@ -156,7 +156,7 @@ function validateProductDisplayed(): ValidatorResult {
 // ═══════════════════════════════════════════════════════════════════
 
 function validateSitePublished(): ValidatorResult {
-  const btn = document.querySelector('[data-testid="publish-site"]');
+  const btn = document.querySelector('[data-guide="publish-site"]') || document.querySelector('[data-testid="publish-site"]');
   if (!btn) {
     log("site_published: publish button not found");
     return { valid: false };

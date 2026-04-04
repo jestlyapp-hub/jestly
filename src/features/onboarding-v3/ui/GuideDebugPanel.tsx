@@ -77,7 +77,7 @@ export default function GuideDebugPanel() {
   const prereqs = CHAPTER_PREREQUISITES[currentChapterId] ?? [];
 
   const publishBtn = typeof document !== "undefined"
-    ? document.querySelector('[data-testid="publish-site"]')
+    ? (document.querySelector('[data-guide="publish-site"]') || document.querySelector('[data-testid="publish-site"]'))
     : null;
   const isPublished = publishBtn?.textContent?.includes("Publié") ?? false;
 

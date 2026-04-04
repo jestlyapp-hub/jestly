@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGuide } from "../engine/guide-engine";
 import { GraduationCap, ArrowRight, X } from "lucide-react";
+import { useModalBehavior } from "./use-modal-behavior";
 
 const DISMISS_KEY = "jestly_guide_v3_launch_dismissed";
 
@@ -16,55 +17,47 @@ export default function GuideLauncher() {
   const [showModal, setShowModal] = useState(false);
   const hasChecked = useRef(false);
 
+  const handleDismiss = useCallback(() => {
+    setShowModal(false);
+    try { localStorage.setItem(DISMISS_KEY, "1"); } catch {}
+  }, []);
+
+  const handleStart = useCallback(() => {
+    setShowModal(false);
+    try { localStorage.setItem(DISMISS_KEY, "1"); } catch {}
+    start();
+  }, [start]);
+
+  // Focus trap + scroll lock + escape
+  const modalRef = useModalBehavior(showModal, handleDismiss);
+
   // Check ONE TIME on mount — never re-trigger on navigation
   useEffect(() => {
     if (hasChecked.current) return;
     hasChecked.current = true;
-
-    // Already active or completed — don't show
     if (isActive || isDone) return;
-
-    // Already dismissed — don't show
-    const dismissed = localStorage.getItem(DISMISS_KEY);
-    if (dismissed) return;
-
-    // Show after short delay
+    try { if (localStorage.getItem(DISMISS_KEY)) return; } catch {}
     const t = setTimeout(() => setShowModal(true), 1500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleStart = () => {
-    setShowModal(false);
-    localStorage.setItem(DISMISS_KEY, "1");
-    start();
-  };
-
-  const handleDismiss = () => {
-    setShowModal(false);
-    localStorage.setItem(DISMISS_KEY, "1");
-  };
-
-  // Escape to close
-  useEffect(() => {
-    if (!showModal) return;
-    const handler = (e: KeyboardEvent) => { if (e.key === "Escape") handleDismiss(); };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [showModal]);
-
   return (
     <AnimatePresence>
       {showModal && (
-        <>
+        <div ref={modalRef}>
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/30 z-[95]"
             onClick={handleDismiss}
+            aria-hidden="true"
           />
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="guide-launcher-title"
             initial={{ opacity: 0, scale: 0.95, y: 12 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 12 }}
@@ -75,6 +68,7 @@ export default function GuideLauncher() {
               <button
                 type="button"
                 onClick={handleDismiss}
+                aria-label="Fermer le guide"
                 className="absolute top-4 right-4 p-1.5 rounded-lg text-[#CCCCCC] hover:text-[#8A8A88] hover:bg-[#F7F7F5] transition-all cursor-pointer"
               >
                 <X size={16} />
@@ -84,7 +78,7 @@ export default function GuideLauncher() {
                 <GraduationCap size={32} className="text-[#4F46E5]" strokeWidth={1.5} />
               </div>
 
-              <h2 className="text-xl font-bold text-[#191919] tracking-[-0.01em] mb-2">
+              <h2 id="guide-launcher-title" className="text-xl font-bold text-[#191919] tracking-[-0.01em] mb-2">
                 Découvrez Jestly pas à pas
               </h2>
               <p className="text-[14px] text-[#5A5A58] leading-relaxed mb-2">
@@ -113,7 +107,7 @@ export default function GuideLauncher() {
               </div>
             </div>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );

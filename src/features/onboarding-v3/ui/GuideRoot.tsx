@@ -5,6 +5,7 @@ import { GuideProvider } from "../engine/guide-engine";
 import GuideOverlay from "./GuideOverlay";
 import GuideLauncher from "./GuideLauncher";
 import MissionSuccessModal from "./MissionSuccessModal";
+import GuideSuccessToast from "./GuideSuccessToast";
 
 class SafeGuard extends Component<{ children: ReactNode; name: string }, { err: boolean }> {
   state = { err: false };
@@ -25,6 +26,9 @@ export default function GuideRoot({ children }: { children: ReactNode }) {
       </SafeGuard>
       <SafeGuard name="MissionSuccessModal">
         <MissionSuccessModal />
+      </SafeGuard>
+      <SafeGuard name="GuideSuccessToast">
+        <GuideSuccessToast />
       </SafeGuard>
     </GuideProvider>
   );

@@ -48,9 +48,12 @@ interface UpgradeGateProps {
 }
 
 export default function UpgradeGate({ resource, feature, mode = "replace", children }: UpgradeGateProps) {
-  const { entitlements, loading } = useSubscription();
+  const { entitlements, loading, isBeta } = useSubscription();
 
   if (loading) return <>{children}</>;
+
+  // Mode bêta : jamais de blocage
+  if (isBeta) return <>{children}</>;
 
   let blocked = false;
   let upgradePlan: PlanId = "pro";
@@ -147,8 +150,11 @@ export default function UpgradeGate({ resource, feature, mode = "replace", child
    ══════════════════════════════════════════════════════════════ */
 
 export function QuotaBar({ resource, className = "" }: { resource: ResourceKey; className?: string }) {
-  const { entitlements, loading } = useSubscription();
+  const { entitlements, loading, isBeta } = useSubscription();
   if (loading) return null;
+
+  // Mode bêta : pas de barre de quota (tout est illimité)
+  if (isBeta) return null;
 
   const ent = entitlements.resources[resource];
   if (ent.limit === -1) return null; // pas de barre pour illimité

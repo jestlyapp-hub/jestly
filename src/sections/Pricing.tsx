@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { isBetaOpenAccess } from "@/lib/beta";
+import BetaPricingLock from "@/components/ui/BetaPricingLock";
 
 /* ═══════════════════════════════════════════════════════════
    DONNÉES PRICING
@@ -271,6 +273,7 @@ function CellDisplay({ value }: { value: CellValue }) {
 export default function Pricing() {
   const [annual, setAnnual] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const beta = isBetaOpenAccess();
 
   return (
     <section id="pricing" className="relative bg-[#f0eff5] overflow-hidden">
@@ -312,7 +315,7 @@ export default function Pricing() {
           </motion.p>
 
           <motion.p
-            className="text-[12px] text-[#8A8A88] mb-10"
+            className="text-[12px] text-[#8A8A88] mb-6"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
@@ -321,111 +324,150 @@ export default function Pricing() {
             Gratuit · Sans carte bancaire · Sans engagement
           </motion.p>
 
-          {/* Toggle Mensuel / Annuel */}
-          <motion.div
-            className="inline-flex items-center gap-3 bg-white rounded-full p-1.5 border border-[#E6E6E4] shadow-sm"
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.2 }}
-          >
-            <button
-              onClick={() => setAnnual(false)}
-              className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all cursor-pointer ${
-                !annual ? "bg-[#7C3AED] text-white shadow-sm" : "text-[#5A5A58] hover:text-[#191919]"
-              }`}
+          {/* Bandeau bêta */}
+          {beta && (
+            <motion.div
+              className="inline-flex items-center gap-2.5 bg-white border border-[#DDD6FE] rounded-full px-5 py-2.5 mb-6 shadow-sm"
+              initial={{ opacity: 0, scale: 0.95 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.18 }}
             >
-              Mensuel
-            </button>
-            <button
-              onClick={() => setAnnual(true)}
-              className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all cursor-pointer flex items-center gap-2 ${
-                annual ? "bg-[#7C3AED] text-white shadow-sm" : "text-[#5A5A58] hover:text-[#191919]"
-              }`}
-            >
-              Annuel
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors ${
-                annual ? "bg-white/20 text-white" : "bg-emerald-50 text-emerald-600"
-              }`}>
-                -20 %
+              <span className="w-2 h-2 rounded-full bg-[#7C3AED] animate-pulse" />
+              <span className="text-[13px] font-semibold text-[#191919]">
+                Bêta ouverte — Tout est inclus gratuitement
               </span>
-            </button>
-          </motion.div>
+            </motion.div>
+          )}
+
+          {/* Toggle Mensuel / Annuel — masqué en mode bêta */}
+          {!beta && (
+            <motion.div
+              className="inline-flex items-center gap-3 bg-white rounded-full p-1.5 border border-[#E6E6E4] shadow-sm"
+              initial={{ opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              <button
+                onClick={() => setAnnual(false)}
+                className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all cursor-pointer ${
+                  !annual ? "bg-[#7C3AED] text-white shadow-sm" : "text-[#5A5A58] hover:text-[#191919]"
+                }`}
+              >
+                Mensuel
+              </button>
+              <button
+                onClick={() => setAnnual(true)}
+                className={`px-5 py-2 text-[13px] font-semibold rounded-full transition-all cursor-pointer flex items-center gap-2 ${
+                  annual ? "bg-[#7C3AED] text-white shadow-sm" : "text-[#5A5A58] hover:text-[#191919]"
+                }`}
+              >
+                Annuel
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors ${
+                  annual ? "bg-white/20 text-white" : "bg-emerald-50 text-emerald-600"
+                }`}>
+                  -20 %
+                </span>
+              </button>
+            </motion.div>
+          )}
         </div>
       </div>
 
       {/* ═══ 2. CARTES DES PLANS ═══ */}
       <div className="relative px-6 pt-12 pb-16">
-        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
-          {PLANS.map((plan, i) => {
-            const price = annual ? plan.yearlyPrice : plan.monthlyPrice;
-            const isHighlighted = plan.highlighted;
-
-            return (
-              <motion.div
-                key={plan.id}
-                className={`relative rounded-2xl p-7 flex flex-col transition-shadow ${
-                  isHighlighted
-                    ? "bg-white border-2 border-[#7C3AED] shadow-lg shadow-[#7C3AED]/8 md:-mt-3 md:pb-9"
-                    : "bg-white border border-[#E6E6E4] hover:shadow-md"
-                }`}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-              >
-                {/* Badge */}
-                {plan.badge && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="text-[11px] font-bold uppercase tracking-wider bg-[#7C3AED] text-white px-4 py-1.5 rounded-full shadow-sm whitespace-nowrap">
-                      {plan.badge}
-                    </span>
+        <div className="max-w-5xl mx-auto">
+          {beta ? (
+            <BetaPricingLock
+              title="Abonnements disponibles prochainement"
+              subtitle="Pendant la bêta, toutes les fonctionnalités sont incluses gratuitement. Inscrivez-vous pour en profiter."
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+                {PLANS.map((plan) => (
+                  <div key={plan.id} className="bg-white rounded-2xl border border-[#E6E6E4] p-7">
+                    <h3 className="text-[15px] font-semibold text-[#191919] mb-0.5">{plan.name}</h3>
+                    <p className="text-[12px] text-[#8A8A88] mb-5">{plan.tagline}</p>
+                    <div className="text-[40px] font-extrabold text-[#191919] mb-5">••••</div>
+                    <div className="h-12 bg-[#F7F7F5] rounded-lg mb-7" />
+                    <div className="space-y-3">
+                      {plan.features.map((f, j) => (
+                        <div key={j} className="h-3 bg-[#F7F7F5] rounded" style={{ width: `${60 + (j * 7) % 30}%` }} />
+                      ))}
+                    </div>
                   </div>
-                )}
+                ))}
+              </div>
+            </BetaPricingLock>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5 items-start">
+              {PLANS.map((plan, i) => {
+                const price = annual ? plan.yearlyPrice : plan.monthlyPrice;
+                const isHighlighted = plan.highlighted;
 
-                <h3 className="text-[15px] font-semibold text-[#191919] mb-0.5">{plan.name}</h3>
-                <p className="text-[12px] text-[#8A8A88] mb-5">{plan.tagline}</p>
+                return (
+                  <motion.div
+                    key={plan.id}
+                    className={`relative rounded-2xl p-7 flex flex-col transition-shadow ${
+                      isHighlighted
+                        ? "bg-white border-2 border-[#7C3AED] shadow-lg shadow-[#7C3AED]/8 md:-mt-3 md:pb-9"
+                        : "bg-white border border-[#E6E6E4] hover:shadow-md"
+                    }`}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: i * 0.1 }}
+                  >
+                    {plan.badge && (
+                      <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                        <span className="text-[11px] font-bold uppercase tracking-wider bg-[#7C3AED] text-white px-4 py-1.5 rounded-full shadow-sm whitespace-nowrap">
+                          {plan.badge}
+                        </span>
+                      </div>
+                    )}
 
-                {/* Prix */}
-                <div className="flex items-baseline gap-1 mb-1">
-                  <span className="text-[40px] font-extrabold text-[#191919] leading-none tracking-tight">
-                    {price === 0 ? "0" : price.toFixed(2).replace(".", ",")}€
-                  </span>
-                  <span className="text-[13px] text-[#8A8A88]">/mois</span>
-                </div>
-                {annual && price > 0 && (
-                  <p className="text-[11px] text-emerald-600 font-medium mb-5">
-                    Facturé {(price * 12).toFixed(2).replace(".", ",")} € / an
-                  </p>
-                )}
-                {(!annual || price === 0) && <div className="mb-5" />}
+                    <h3 className="text-[15px] font-semibold text-[#191919] mb-0.5">{plan.name}</h3>
+                    <p className="text-[12px] text-[#8A8A88] mb-5">{plan.tagline}</p>
 
-                {/* CTA */}
-                <motion.a
-                  href={plan.ctaHref}
-                  className={`block text-center w-full py-3 rounded-lg text-[13px] font-semibold transition-colors cursor-pointer mb-7 ${
-                    isHighlighted
-                      ? "bg-[#7C3AED] text-white hover:bg-[#6D28D9] shadow-sm"
-                      : "border border-[#E6E6E4] text-[#191919] hover:bg-[#F7F7F5]"
-                  }`}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  {plan.cta}
-                </motion.a>
+                    <div className="flex items-baseline gap-1 mb-1">
+                      <span className="text-[40px] font-extrabold text-[#191919] leading-none tracking-tight">
+                        {price === 0 ? "0" : price.toFixed(2).replace(".", ",")}€
+                      </span>
+                      <span className="text-[13px] text-[#8A8A88]">/mois</span>
+                    </div>
+                    {annual && price > 0 && (
+                      <p className="text-[11px] text-emerald-600 font-medium mb-5">
+                        Facturé {(price * 12).toFixed(2).replace(".", ",")} € / an
+                      </p>
+                    )}
+                    {(!annual || price === 0) && <div className="mb-5" />}
 
-                {/* Features */}
-                <ul className="flex flex-col gap-3">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2.5 text-[13px] text-[#5A5A58]">
-                      <CheckIcon className={isHighlighted ? "text-[#7C3AED] flex-shrink-0 mt-0.5" : "text-[#C0C0BE] flex-shrink-0 mt-0.5"} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            );
-          })}
+                    <motion.a
+                      href={plan.ctaHref}
+                      className={`block text-center w-full py-3 rounded-lg text-[13px] font-semibold transition-colors cursor-pointer mb-7 ${
+                        isHighlighted
+                          ? "bg-[#7C3AED] text-white hover:bg-[#6D28D9] shadow-sm"
+                          : "border border-[#E6E6E4] text-[#191919] hover:bg-[#F7F7F5]"
+                      }`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      {plan.cta}
+                    </motion.a>
+
+                    <ul className="flex flex-col gap-3">
+                      {plan.features.map((f) => (
+                        <li key={f} className="flex items-start gap-2.5 text-[13px] text-[#5A5A58]">
+                          <CheckIcon className={isHighlighted ? "text-[#7C3AED] flex-shrink-0 mt-0.5" : "text-[#C0C0BE] flex-shrink-0 mt-0.5"} />
+                          {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
@@ -448,68 +490,89 @@ export default function Pricing() {
       </div>
 
       {/* ═══ 4. TABLEAU COMPARATIF ═══ */}
-      <div className="relative px-6 pb-24">
-        <div className="max-w-4xl mx-auto">
-          <motion.div
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-          >
-            <h3 className="text-2xl sm:text-[2rem] font-bold text-[#191919] mb-3">
-              Comparer les plans en détail
-            </h3>
-            <p className="text-[14px] text-[#8A8A88]">
-              Tout ce qui est inclus, plan par plan.
-            </p>
-          </motion.div>
-
-          <motion.div
-            className="bg-white rounded-2xl border border-[#E6E6E4] overflow-hidden shadow-sm"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            {/* Header */}
-            <div className="grid grid-cols-4 border-b border-[#E6E6E4] bg-[#FAFAF9]">
-              <div className="px-5 py-4" />
-              <div className="px-3 py-4 text-center">
-                <span className="text-[12px] font-semibold text-[#8A8A88] uppercase tracking-wider">Starter</span>
-              </div>
-              <div className="px-3 py-4 text-center">
-                <span className="text-[12px] font-bold text-[#7C3AED] uppercase tracking-wider">Pro</span>
-              </div>
-              <div className="px-3 py-4 text-center">
-                <span className="text-[12px] font-semibold text-[#8A8A88] uppercase tracking-wider">Business</span>
-              </div>
-            </div>
-
-            {/* Categories */}
-            {COMPARISON.map((cat, ci) => (
-              <div key={cat.category}>
-                {/* Category header */}
-                <div className="px-5 py-3 bg-[#FAFAF9] border-b border-[#EFEFEF]">
-                  <span className="text-[11px] font-bold text-[#8A8A88] uppercase tracking-wider">{cat.category}</span>
+      {beta ? (
+        <div className="relative px-6 pb-24">
+          <div className="max-w-4xl mx-auto">
+            <BetaPricingLock
+              title="Comparatif disponible prochainement"
+              subtitle="Les détails de chaque plan seront visibles lors du lancement des abonnements."
+            >
+              <div className="bg-white rounded-2xl border border-[#E6E6E4] overflow-hidden shadow-sm">
+                <div className="grid grid-cols-4 border-b border-[#E6E6E4] bg-[#FAFAF9]">
+                  <div className="px-5 py-4" />
+                  <div className="px-3 py-4 text-center"><span className="text-[12px] font-semibold text-[#8A8A88] uppercase tracking-wider">Starter</span></div>
+                  <div className="px-3 py-4 text-center"><span className="text-[12px] font-bold text-[#7C3AED] uppercase tracking-wider">Pro</span></div>
+                  <div className="px-3 py-4 text-center"><span className="text-[12px] font-semibold text-[#8A8A88] uppercase tracking-wider">Business</span></div>
                 </div>
-                {/* Rows */}
-                {cat.rows.map((row, ri) => (
-                  <div
-                    key={`${ci}-${ri}`}
-                    className="grid grid-cols-4 border-b border-[#F5F5F3] last:border-b-0 hover:bg-[#FAFAF9] transition-colors"
-                  >
-                    <div className="px-5 py-3 text-[13px] text-[#5A5A58]">{row.label}</div>
-                    <div className="px-3 py-3 text-center"><CellDisplay value={row.starter} /></div>
-                    <div className="px-3 py-3 text-center bg-[#7C3AED]/[0.02]"><CellDisplay value={row.pro} /></div>
-                    <div className="px-3 py-3 text-center"><CellDisplay value={row.business} /></div>
+                {COMPARISON.slice(0, 2).map((cat) => (
+                  <div key={cat.category}>
+                    <div className="px-5 py-3 bg-[#FAFAF9] border-b border-[#EFEFEF]">
+                      <span className="text-[11px] font-bold text-[#8A8A88] uppercase tracking-wider">{cat.category}</span>
+                    </div>
+                    {cat.rows.map((row, ri) => (
+                      <div key={ri} className="grid grid-cols-4 border-b border-[#F5F5F3]">
+                        <div className="px-5 py-3 text-[13px] text-[#5A5A58]">{row.label}</div>
+                        <div className="px-3 py-3 text-center text-[13px] text-[#C0C0BE]">—</div>
+                        <div className="px-3 py-3 text-center text-[13px] text-[#C0C0BE]">—</div>
+                        <div className="px-3 py-3 text-center text-[13px] text-[#C0C0BE]">—</div>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
-            ))}
-          </motion.div>
+            </BetaPricingLock>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div className="relative px-6 pb-24">
+          <div className="max-w-4xl mx-auto">
+            <motion.div
+              className="text-center mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <h3 className="text-2xl sm:text-[2rem] font-bold text-[#191919] mb-3">
+                Comparer les plans en détail
+              </h3>
+              <p className="text-[14px] text-[#8A8A88]">
+                Tout ce qui est inclus, plan par plan.
+              </p>
+            </motion.div>
+
+            <motion.div
+              className="bg-white rounded-2xl border border-[#E6E6E4] overflow-hidden shadow-sm"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+            >
+              <div className="grid grid-cols-4 border-b border-[#E6E6E4] bg-[#FAFAF9]">
+                <div className="px-5 py-4" />
+                <div className="px-3 py-4 text-center"><span className="text-[12px] font-semibold text-[#8A8A88] uppercase tracking-wider">Starter</span></div>
+                <div className="px-3 py-4 text-center"><span className="text-[12px] font-bold text-[#7C3AED] uppercase tracking-wider">Pro</span></div>
+                <div className="px-3 py-4 text-center"><span className="text-[12px] font-semibold text-[#8A8A88] uppercase tracking-wider">Business</span></div>
+              </div>
+              {COMPARISON.map((cat, ci) => (
+                <div key={cat.category}>
+                  <div className="px-5 py-3 bg-[#FAFAF9] border-b border-[#EFEFEF]">
+                    <span className="text-[11px] font-bold text-[#8A8A88] uppercase tracking-wider">{cat.category}</span>
+                  </div>
+                  {cat.rows.map((row, ri) => (
+                    <div key={`${ci}-${ri}`} className="grid grid-cols-4 border-b border-[#F5F5F3] last:border-b-0 hover:bg-[#FAFAF9] transition-colors">
+                      <div className="px-5 py-3 text-[13px] text-[#5A5A58]">{row.label}</div>
+                      <div className="px-3 py-3 text-center"><CellDisplay value={row.starter} /></div>
+                      <div className="px-3 py-3 text-center bg-[#7C3AED]/[0.02]"><CellDisplay value={row.pro} /></div>
+                      <div className="px-3 py-3 text-center"><CellDisplay value={row.business} /></div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </motion.div>
+          </div>
+        </div>
+      )}
 
       {/* ═══ 5. POURQUOI ÇA VAUT LE COUP ═══ */}
       <div className="relative px-6 pb-24">

@@ -119,7 +119,7 @@ export default function ProductSingleSelect({ selectedId, onChange, filterType, 
       {label && <label className="block text-[11px] font-medium text-[#999]">{label}</label>}
       <div className="relative">
         <input
-          data-guide="product-single-search"
+          data-guide="products-search"
           data-testid="products-search"
           type="text"
           value={search}

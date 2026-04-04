@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { computeCoachmarkPosition } from "./coachmark-position";
 import { getStepCopy, getGuideExperienceMode } from "../missions/adaptive";
+import { useScrollLock } from "./use-modal-behavior";
 
 const PADDING = 8;
 const BORDER_RADIUS = 12;
@@ -33,6 +34,9 @@ export default function GuideOverlay() {
     chapter,
     engineStatus,
     state,
+    progress,
+    chapterIndex,
+    totalChapters,
     next,
     close,
     start,
@@ -210,6 +214,10 @@ export default function GuideOverlay() {
     };
   }, [isActive, step?.id, customValidatorKey, customPollMs, customTimeoutMs, next]);
 
+  // ── Scroll lock quand overlay bloquant est actif ──
+  const isBlockingOverlay = isActive && !!step && step.nonBlocking !== true;
+  useScrollLock(isBlockingOverlay);
+
   if (!isActive) return null;
 
   // ── For custom validator steps: guard status is SECONDARY ──────
@@ -369,16 +377,21 @@ export default function GuideOverlay() {
           >
             <X size={14} />
           </button>
-          {chapter && (
-            <div className="mb-2 pr-8">
+          <div className="mb-2 pr-8 flex items-center gap-2">
+            {chapter && (
               <span
                 className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
                 style={{ color: chapter.color, backgroundColor: `${chapter.color}15` }}
               >
                 {chapter.icon} {chapter.title}
               </span>
-            </div>
-          )}
+            )}
+            {chapterIndex >= 0 && (
+              <span className="text-[9px] font-medium text-[#B0B0AE]">
+                {chapterIndex + 1}/{totalChapters}
+              </span>
+            )}
+          </div>
           <h3 className="text-[14px] font-bold text-[#191919] mb-1 pr-8">{displayTitle}</h3>
           <p className="text-[12px] text-[#5A5A58] leading-relaxed whitespace-pre-line">{displayBody}</p>
           {displayWhy && (
@@ -467,17 +480,7 @@ export default function GuideOverlay() {
               animation: "guide-glow-breathe 2s ease-in-out infinite",
             }}
           />
-          {/* Inline keyframes */}
-          <style>{`
-            @keyframes guide-spotlight-pulse {
-              0%, 100% { opacity: 1; }
-              50% { opacity: 0.6; }
-            }
-            @keyframes guide-glow-breathe {
-              0%, 100% { opacity: 1; transform: scale(1); }
-              50% { opacity: 0.7; transform: scale(1.02); }
-            }
-          `}</style>
+          {/* Keyframes defined in globals.css (guide-spotlight-pulse, guide-glow-breathe) */}
         </motion.div>
       )}
 
@@ -541,11 +544,18 @@ export default function GuideOverlay() {
               )}
             </div>
             <div className="px-5 pb-4 flex items-center justify-between gap-3">
-              <span className="text-[11px] text-[#B0B0AE]">
-                {chapter
-                  ? `${chapter.steps.indexOf(step) + 1}/${chapter.steps.length}`
-                  : ""}
-              </span>
+              <div className="flex items-center gap-2">
+                {chapterIndex >= 0 && (
+                  <span className="text-[10px] font-semibold text-[#B0B0AE]">
+                    Section {chapterIndex + 1}/{totalChapters}
+                  </span>
+                )}
+                {chapter && (
+                  <span className="text-[10px] text-[#D0D0CE]">
+                    — étape {chapter.steps.indexOf(step) + 1}/{chapter.steps.length}
+                  </span>
+                )}
+              </div>
               {step.completeWhen.type === "acknowledge" && (
                 <button
                   onClick={next}
