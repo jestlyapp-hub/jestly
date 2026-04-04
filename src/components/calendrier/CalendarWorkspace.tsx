@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import {
@@ -36,8 +36,37 @@ export default function CalendarWorkspace() {
   const [formDefaultStartTime, setFormDefaultStartTime] = useState<string | undefined>();
   const [formDefaultEndTime, setFormDefaultEndTime] = useState<string | undefined>();
 
+  // Compute date range for the visible period (± buffer for smooth transitions)
+  const apiUrl = useMemo(() => {
+    const d = new Date(currentDate);
+    let start: string;
+    let end: string;
+    if (view === "month") {
+      start = new Date(d.getFullYear(), d.getMonth() - 1, 1).toISOString().slice(0, 10);
+      end = new Date(d.getFullYear(), d.getMonth() + 2, 0).toISOString().slice(0, 10);
+    } else if (view === "week") {
+      const day = d.getDay();
+      const mondayOffset = day === 0 ? -6 : 1 - day;
+      const monday = new Date(d);
+      monday.setDate(d.getDate() + mondayOffset - 7); // 1 week buffer before
+      const sundayAfter = new Date(monday);
+      sundayAfter.setDate(monday.getDate() + 20); // 1 week buffer after
+      start = monday.toISOString().slice(0, 10);
+      end = sundayAfter.toISOString().slice(0, 10);
+    } else {
+      // Day view — load ± 7 days
+      const before = new Date(d);
+      before.setDate(d.getDate() - 7);
+      const after = new Date(d);
+      after.setDate(d.getDate() + 7);
+      start = before.toISOString().slice(0, 10);
+      end = after.toISOString().slice(0, 10);
+    }
+    return `/api/calendar/events?start=${start}&end=${end}`;
+  }, [currentDate, view]);
+
   const { data: events, loading, error, mutate, setData: setEvents } = useApi<CalendarEvent[]>(
-    "/api/calendar/events",
+    apiUrl,
     []
   );
 

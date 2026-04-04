@@ -148,191 +148,153 @@ function buildInsertPayload(userId: string, body: any) {
 
 // ─── GET ───
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
 
-  let manualEvents: CalendarEvent[] = [];
+  // ── Date range from query params (default: current month ± 1 month buffer) ──
+  const url = new URL(req.url);
+  const now = new Date();
+  const defaultStart = new Date(now.getFullYear(), now.getMonth() - 1, 1).toISOString().slice(0, 10);
+  const defaultEnd = new Date(now.getFullYear(), now.getMonth() + 2, 0).toISOString().slice(0, 10);
+  const rangeStart = url.searchParams.get("start") || defaultStart;
+  const rangeEnd = url.searchParams.get("end") || defaultEnd;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let result = await (supabase.from("calendar_events") as any)
-    .select("*")
-    .eq("user_id", user.id)
-    .order("date", { ascending: true });
+  // ── Parallel queries for all 5 sources ──
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  const [calendarResult, ordersResult, tasksResult, projectsResult, invoicesResult] = await Promise.allSettled([
+    // 1. Manual calendar events
+    (supabase.from("calendar_events") as any)
+      .select("*")
+      .eq("user_id", user.id)
+      .gte("date", rangeStart)
+      .lte("date", rangeEnd)
+      .order("date", { ascending: true }),
 
-  // If table missing → auto-migrate and retry
-  if (result.error && isTableMissingError(result.error)) {
-    console.warn("[calendar GET] Table missing, attempting auto-migration...");
-    const migrated = await ensureCalendarTable();
-    if (migrated) {
-      // Wait for PostgREST schema cache to refresh, then retry (up to 2 attempts)
-      for (const delay of [2000, 3000]) {
-        await new Promise((r) => setTimeout(r, delay));
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        result = await (supabase.from("calendar_events") as any)
-          .select("*")
-          .eq("user_id", user.id)
-          .order("date", { ascending: true });
-        if (!result.error) break;
-        console.warn(`[calendar GET] Retry after ${delay}ms still failed:`, result.error.message);
-      }
-    }
-  }
-
-  if (result.error) {
-    console.warn("[calendar GET] calendar_events query failed:", result.error.code, result.error.message);
-  } else if (result.data) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    manualEvents = result.data.map((row: any) => rowToEvent(row));
-  }
-
-  // Fetch orders
-  let orderEvents: CalendarEvent[] = [];
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let ordersResult = await (supabase.from("orders") as any)
+    // 2. Orders with deadlines
+    (supabase.from("orders") as any)
       .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email)")
-      .eq("user_id", user.id);
+      .eq("user_id", user.id)
+      .not("deadline", "is", null)
+      .gte("deadline", rangeStart + "T00:00:00")
+      .lte("deadline", rangeEnd + "T23:59:59"),
 
-    if (ordersResult.error || !ordersResult.data) {
-      ordersResult = await (supabase.from("orders") as any)
-        .select("id, title, deadline, status, amount, priority, notes, created_at, clients(name, email)")
-        .eq("user_id", user.id);
-    }
-
-    if (ordersResult.error || !ordersResult.data) {
-      ordersResult = await (supabase.from("orders") as any)
-        .select("id, title, deadline, status, amount, priority, notes, created_at")
-        .eq("user_id", user.id);
-    }
-
-    if (ordersResult.data) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      orderEvents = ordersResult.data.filter((o: any) => o.deadline || o.created_at).map((o: any) => {
-        const hasDeadline = !!o.deadline;
-        const rawDate = hasDeadline ? o.deadline : o.created_at;
-        const eventDate = typeof rawDate === "string"
-          ? rawDate.substring(0, 10)
-          : new Date(rawDate).toISOString().substring(0, 10);
-
-        const productName = o.title || "Commande";
-        const clientName = o.clients?.name || "Client";
-
-        return {
-          id: `order-${o.id}`,
-          title: hasDeadline ? `${productName} — ${clientName}` : `Commande: ${productName} — ${clientName}`,
-          category: "deadline" as EventCategory,
-          date: eventDate,
-          allDay: true,
-          notes: o.notes || undefined,
-          priority: o.priority === "urgent" ? "urgent" : o.priority === "high" ? "high" : "medium",
-          source: "order" as const,
-          orderId: o.id,
-          orderStatus: o.status,
-          orderPrice: o.amount,
-          clientName: o.clients?.name,
-          clientEmail: o.clients?.email,
-          productName,
-        } as CalendarEvent;
-      });
-    }
-  } catch {
-    // No orders table
-  }
-
-  // ── Fetch tasks with due_date ──
-  let taskEvents: CalendarEvent[] = [];
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: tasks } = await (supabase.from("tasks") as any)
+    // 3. Tasks with due dates
+    (supabase.from("tasks") as any)
       .select("id, title, due_date, status, priority, client_name")
       .eq("user_id", user.id)
       .not("due_date", "is", null)
-      .is("archived_at", null);
+      .is("archived_at", null)
+      .gte("due_date", rangeStart)
+      .lte("due_date", rangeEnd),
 
-    if (tasks) {
-      const TASK_DONE = new Set(["done", "completed"]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      taskEvents = tasks.filter((t: any) => !TASK_DONE.has(t.status)).map((t: any) => ({
-        id: `task-${t.id}`,
-        title: t.title || "Tâche",
-        category: "tache" as EventCategory,
-        date: typeof t.due_date === "string" ? t.due_date.substring(0, 10) : t.due_date,
-        allDay: true,
-        priority: t.priority === "urgent" ? "urgent" : t.priority === "high" ? "high" : "medium",
-        source: "task" as const,
-        taskId: t.id,
-        taskStatus: t.status,
-        clientName: t.client_name || undefined,
-      } as CalendarEvent));
-    }
-  } catch {
-    // tasks table may not exist
-  }
-
-  // ── Fetch projects with deadline ──
-  let projectEvents: CalendarEvent[] = [];
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: projects } = await (supabase.from("projects") as any)
+    // 4. Projects with deadlines
+    (supabase.from("projects") as any)
       .select("id, name, deadline, start_date, status, priority")
       .eq("user_id", user.id)
-      .not("status", "in", '("completed","archived")');
+      .not("deadline", "is", null)
+      .not("status", "in", '("completed","archived")')
+      .gte("deadline", rangeStart + "T00:00:00")
+      .lte("deadline", rangeEnd + "T23:59:59"),
 
-    if (projects) {
-      const PROJECT_EXCLUDE = new Set(["completed", "archived"]);
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      for (const p of projects as any[]) {
-        if (PROJECT_EXCLUDE.has(p.status)) continue;
-        if (p.deadline) {
-          projectEvents.push({
-            id: `project-deadline-${p.id}`,
-            title: `${p.name || "Projet"} — Échéance`,
-            category: "projet" as EventCategory,
-            date: typeof p.deadline === "string" ? p.deadline.substring(0, 10) : new Date(p.deadline).toISOString().substring(0, 10),
-            allDay: true,
-            priority: p.priority === "urgent" ? "urgent" : p.priority === "high" ? "high" : "medium",
-            source: "project" as const,
-            projectId: p.id,
-            projectStatus: p.status,
-          } as CalendarEvent);
-        }
-      }
-    }
-  } catch {
-    // projects table may not exist
-  }
-
-  // ── Fetch invoices with due_date ──
-  let invoiceEvents: CalendarEvent[] = [];
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: invoices } = await (supabase.from("invoices") as any)
+    // 5. Invoices with due dates
+    (supabase.from("invoices") as any)
       .select("id, invoice_number, amount, due_date, status, client_id, clients(name)")
       .eq("user_id", user.id)
       .not("due_date", "is", null)
-      .not("status", "in", '("paid","cancelled")');
+      .not("status", "in", '("paid","cancelled")')
+      .gte("due_date", rangeStart)
+      .lte("due_date", rangeEnd),
+  ]);
 
-    if (invoices) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      invoiceEvents = invoices.map((inv: any) => ({
-        id: `invoice-${inv.id}`,
-        title: `Facture ${inv.invoice_number || ""} — ${inv.clients?.name || "Client"}`,
-        category: "facture" as EventCategory,
-        date: typeof inv.due_date === "string" ? inv.due_date.substring(0, 10) : inv.due_date,
-        allDay: true,
-        priority: "medium" as const,
-        source: "invoice" as const,
-        invoiceId: inv.id,
-        invoiceStatus: inv.status,
-        invoiceAmount: inv.amount,
-        clientName: inv.clients?.name,
-      } as CalendarEvent));
-    }
-  } catch {
-    // invoices table may not exist
+  // ── Process results (graceful partial failure) ──
+  let manualEvents: CalendarEvent[] = [];
+  if (calendarResult.status === "fulfilled" && calendarResult.value.data) {
+    manualEvents = calendarResult.value.data.map((row: any) => rowToEvent(row));
+  } else if (calendarResult.status === "fulfilled" && calendarResult.value.error && isTableMissingError(calendarResult.value.error)) {
+    // Auto-migrate calendar_events table if missing
+    await ensureCalendarTable();
   }
+
+  let orderEvents: CalendarEvent[] = [];
+  if (ordersResult.status === "fulfilled" && ordersResult.value.data) {
+    orderEvents = ordersResult.value.data.filter((o: any) => o.deadline).map((o: any) => {
+      const eventDate = typeof o.deadline === "string" ? o.deadline.substring(0, 10) : new Date(o.deadline).toISOString().substring(0, 10);
+      const productName = o.title || "Commande";
+      const clientName = o.clients?.name || "Client";
+      return {
+        id: `order-${o.id}`,
+        title: `${productName} — ${clientName}`,
+        category: "deadline" as EventCategory,
+        date: eventDate,
+        allDay: true,
+        notes: o.notes || undefined,
+        priority: o.priority === "urgent" ? "urgent" : o.priority === "high" ? "high" : "medium",
+        source: "order" as const,
+        orderId: o.id,
+        orderStatus: o.status,
+        orderPrice: o.amount,
+        clientName: o.clients?.name,
+        clientEmail: o.clients?.email,
+        productName,
+      } as CalendarEvent;
+    });
+  }
+
+  let taskEvents: CalendarEvent[] = [];
+  if (tasksResult.status === "fulfilled" && tasksResult.value.data) {
+    const TASK_DONE = new Set(["done", "completed"]);
+    taskEvents = tasksResult.value.data.filter((t: any) => !TASK_DONE.has(t.status)).map((t: any) => ({
+      id: `task-${t.id}`,
+      title: t.title || "Tâche",
+      category: "tache" as EventCategory,
+      date: typeof t.due_date === "string" ? t.due_date.substring(0, 10) : t.due_date,
+      allDay: true,
+      priority: t.priority === "urgent" ? "urgent" : t.priority === "high" ? "high" : "medium",
+      source: "task" as const,
+      taskId: t.id,
+      taskStatus: t.status,
+      clientName: t.client_name || undefined,
+    } as CalendarEvent));
+  }
+
+  let projectEvents: CalendarEvent[] = [];
+  if (projectsResult.status === "fulfilled" && projectsResult.value.data) {
+    for (const p of projectsResult.value.data as any[]) {
+      if (p.deadline) {
+        projectEvents.push({
+          id: `project-deadline-${p.id}`,
+          title: `${p.name || "Projet"} — Échéance`,
+          category: "projet" as EventCategory,
+          date: typeof p.deadline === "string" ? p.deadline.substring(0, 10) : new Date(p.deadline).toISOString().substring(0, 10),
+          allDay: true,
+          priority: p.priority === "urgent" ? "urgent" : p.priority === "high" ? "high" : "medium",
+          source: "project" as const,
+          projectId: p.id,
+          projectStatus: p.status,
+        } as CalendarEvent);
+      }
+    }
+  }
+
+  let invoiceEvents: CalendarEvent[] = [];
+  if (invoicesResult.status === "fulfilled" && invoicesResult.value.data) {
+    invoiceEvents = invoicesResult.value.data.map((inv: any) => ({
+      id: `invoice-${inv.id}`,
+      title: `Facture ${inv.invoice_number || ""} — ${inv.clients?.name || "Client"}`,
+      category: "facture" as EventCategory,
+      date: typeof inv.due_date === "string" ? inv.due_date.substring(0, 10) : inv.due_date,
+      allDay: true,
+      priority: "medium" as const,
+      source: "invoice" as const,
+      invoiceId: inv.id,
+      invoiceStatus: inv.status,
+      invoiceAmount: inv.amount,
+      clientName: inv.clients?.name,
+    } as CalendarEvent));
+  }
+  /* eslint-enable @typescript-eslint/no-explicit-any */
 
   return NextResponse.json([...manualEvents, ...orderEvents, ...taskEvents, ...projectEvents, ...invoiceEvents]);
 }
