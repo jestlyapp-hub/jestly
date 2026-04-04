@@ -69,8 +69,9 @@ export async function GET() {
   // Exclut : delivered, invoiced, paid, cancelled, refunded, dispute
   const overdueOrders = orders.filter((o) => isOrderOverdue(o.deadline, o.status)).length;
 
-  // ── Revenue data (6 months) — uniquement commandes payées (encaissées) ──
-  const paidOrdersList = orders.filter((o) => o.status === "paid");
+  // ── Revenue data (6 months) — commandes encaissées (paid + invoiced + delivered) ──
+  const REVENUE_STATUSES = ["paid", "invoiced", "delivered"];
+  const paidOrdersList = orders.filter((o) => REVENUE_STATUSES.includes(o.status));
   const series: { monthKey: string; monthLabel: string; revenue: number; ordersCount: number; paidOrdersCount: number }[] = [];
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -167,9 +168,10 @@ export async function GET() {
   const calendarData = { month: now.getMonth(), year: now.getFullYear(), days: calendarDays };
 
   // ── Upcoming deadlines ──
-  // Upcoming deadlines = only active production orders (same logic as Commandes page)
+  // Inclut toutes les commandes avec deadline non terminées (exclut: paid, cancelled, refunded, dispute)
+  const DEADLINE_EXCLUDE = new Set(["paid", "cancelled", "refunded", "dispute"]);
   const upcomingDeadlines = orders
-    .filter((o) => o.deadline && o.deadline >= todayStr && isActiveProductionStatus(o.status))
+    .filter((o) => o.deadline && !DEADLINE_EXCLUDE.has(o.status))
     .sort((a, b) => (a.deadline! > b.deadline! ? 1 : -1))
     .slice(0, 10)
     .map((o) => ({
