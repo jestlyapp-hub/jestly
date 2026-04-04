@@ -150,36 +150,58 @@ function teasingProduit(data: TemplateData): RenderedEmail {
 function invitationBeta(data: TemplateData): RenderedEmail {
   const safe = escapeHtml(data.first_name);
   const html = layout(`
-    ${heading(`${safe}, votre accès bêta est prêt`)}
-    ${paragraph(`Vous faites partie des premiers inscrits sur la waitlist Jestly. Votre patience est récompensée : votre accès à la bêta privée est maintenant disponible.`)}
-    ${paragraph(`Connectez-vous dès maintenant pour découvrir le cockpit freelance en avant-première. Votre retour nous aidera à construire l'outil parfait.`)}
-    ${ctaButton("Accéder à la bêta", "https://jestly.fr/login", true)}
+    ${heading(`${safe}, la bêta Jestly est ouverte`)}
+    ${paragraph(`Tu fais partie des premiers inscrits. On t'avait promis un accès prioritaire — le voici.`)}
+    ${paragraph(`Jestly est maintenant ouvert : commandes, facturation, clients, site vitrine, agenda — tout est inclus gratuitement pendant la bêta.`)}
+    ${ctaButton("Créer mon compte gratuitement \u2192", "https://jestly.fr/signup", true)}
+    <p style="margin:8px 0 0;font-size:12px;color:#8A8A88;text-align:center">Gratuit · Aucun engagement · Prêt en 30 secondes</p>
     ${divider()}
-    ${paragraph(`<span style="font-size:13px;color:#94A3B8">Cet accès est personnel et réservé aux membres de la waitlist. Si vous rencontrez un souci, répondez simplement à cet email.</span>`)}
+    ${paragraph(`<span style="font-size:13px;color:#94A3B8">Ton retour nous aidera à construire l'outil parfait. Si tu as une question, réponds simplement à cet email.</span>`)}
   `);
 
   return {
-    subject: "Ton accès bêta Jestly est prêt",
+    subject: "La bêta Jestly est ouverte — ton accès est prêt",
     html,
-    text: `${data.first_name}, votre accès bêta est prêt.\n\nVous faites partie des premiers inscrits sur la waitlist Jestly. Votre accès à la bêta privée est maintenant disponible.\n\nConnectez-vous : https://jestly.fr/login\n\nVotre retour nous aidera à construire l'outil parfait.\n\n---\nJestly — Le cockpit tout-en-un pour freelances créatifs\nVous recevez cet email car vous vous êtes inscrit(e) à la waitlist Jestly sur jestly.fr.`,
+    text: `${data.first_name}, la bêta Jestly est ouverte.\n\nTu fais partie des premiers inscrits. Jestly est maintenant ouvert : commandes, facturation, clients, site vitrine, agenda — tout est inclus gratuitement.\n\nCréer mon compte : https://jestly.fr/signup\n\nGratuit · Aucun engagement · Prêt en 30 secondes\n\n---\nJestly — Le cockpit du freelance moderne\njestly.fr`,
   };
 }
 
 function lancementOfficiel(data: TemplateData): RenderedEmail {
   const safe = escapeHtml(data.first_name);
+
+  const checkIcon = `<span style="display:inline-block;width:20px;height:20px;background:#f0eeff;border-radius:6px;text-align:center;line-height:20px;font-size:12px;color:#7C3AED;font-weight:bold">&#10003;</span>`;
+
+  function benefitLine(title: string, desc: string): string {
+    return `<table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px">
+<tr><td width="28" valign="top" style="padding-top:2px">${checkIcon}</td>
+<td style="padding-left:10px"><span style="font-size:14px;color:#111118;font-weight:600">${title}</span><br><span style="font-size:13px;color:#8A8A88">${desc}</span></td></tr></table>`;
+  }
+
+  const badgeHtml = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 20px"><tr><td style="background:#f0eeff;border-radius:20px;padding:6px 16px"><span style="font-size:11px;font-weight:700;color:#7C3AED;letter-spacing:0.08em;text-transform:uppercase">Lancement officiel</span></td></tr></table>`;
+
   const html = layout(`
-    ${heading(`${safe}, Jestly est officiellement lancé`)}
-    ${paragraph(`C'est le jour J. Après des mois de développement et de retours bêta, Jestly est maintenant ouvert à tous.`)}
-    ${paragraph(`Un seul espace pour gérer vos commandes, votre workflow, vos factures, votre site vitrine, vos fichiers et votre agenda. Conçu pour les freelances créatifs qui veulent un outil à la hauteur de leur travail.`)}
-    ${ctaButton("Découvrir Jestly", "https://jestly.fr/login", true)}
+    ${badgeHtml}
+    ${heading(`Jestly est live. Ton espace t'attend.`)}
+    ${paragraph(`${safe}, c'est officiel — après des mois de construction, Jestly est ouvert. Tu fais partie des premiers à y accéder.`)}
     ${divider()}
-    ${paragraph(`<span style="font-size:13px;color:#94A3B8">Merci d'avoir cru en Jestly depuis le début. Vous êtes parmi ceux qui rendent ce projet possible.</span>`)}
+    <p style="margin:0 0 14px;font-size:13px;font-weight:700;color:#111118;text-transform:uppercase;letter-spacing:0.06em">Ce que ça change pour toi</p>
+    ${benefitLine("5h gagnées par semaine", "Fini les allers-retours entre 10 outils.")}
+    ${benefitLine("Commandes, factures, clients — un seul endroit", "Tout centralisé, rien ne se perd.")}
+    ${benefitLine("Un site vitrine pro en 10 minutes", "Ton portfolio en ligne, sans code.")}
+    ${benefitLine("Pilote tout depuis un seul dashboard", "Conçu pour les freelances, pas pour les entreprises.")}
+    ${ctaButton("Créer mon compte gratuitement \u2192", "https://jestly.fr/signup", true)}
+    <p style="margin:8px 0 0;font-size:12px;color:#8A8A88;text-align:center">Gratuit · Aucun engagement · Prêt en 30 secondes</p>
+    ${divider()}
+    ${paragraph(`On a construit Jestly pour que les créatifs puissent se concentrer sur ce qu'ils font de mieux — créer. Pas administrer.`)}
+    ${paragraph(`Merci de faire partie de l'aventure.`)}
+    <p style="margin:16px 0 0;font-size:14px;color:#111118;font-weight:600">Gabriel</p>
+    <p style="margin:2px 0 0;font-size:12px;color:#8A8A88">Fondateur de Jestly</p>
   `);
 
   return {
-    subject: "Jestly est officiellement lancé",
+    subject: "Jestly est live. Ton espace freelance t'attend.",
     html,
-    text: `${data.first_name}, Jestly est officiellement lancé.\n\nC'est le jour J. Jestly est maintenant ouvert à tous.\n\nUn seul espace pour gérer commandes, workflow, factures, site vitrine, fichiers et agenda. Conçu pour les freelances créatifs.\n\nDécouvrir : https://jestly.fr/login\n\nMerci d'avoir cru en Jestly depuis le début.\n\n---\nJestly — Le cockpit tout-en-un pour freelances créatifs\nVous recevez cet email car vous vous êtes inscrit(e) à la waitlist Jestly sur jestly.fr.`,
+    text: `${data.first_name}, c'est officiel — Jestly est ouvert.\n\nTu fais partie des premiers à y accéder.\n\nCe que ça change :\n- 5h gagnées par semaine\n- Commandes, factures, clients — un seul endroit\n- Un site vitrine pro en 10 minutes\n- Pilote tout depuis un seul dashboard\n\nCréer mon compte gratuitement : https://jestly.fr/signup\n\nGratuit · Aucun engagement · Prêt en 30 secondes\n\nMerci de faire partie de l'aventure.\n\nGabriel — Fondateur de Jestly\n\n---\nJestly — Le cockpit du freelance moderne\njestly.fr`,
   };
 }
 
