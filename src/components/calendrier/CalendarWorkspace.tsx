@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { usePreferences } from "@/lib/hooks/use-preferences";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import {
@@ -25,8 +26,18 @@ const VIEW_LABELS: Record<ViewType, string> = {
 };
 
 export default function CalendarWorkspace() {
-  const [view, setView] = useState<ViewType>("week");
+  const { preferences } = usePreferences();
+  const [view, setView] = useState<ViewType>(preferences.calendarView || "week");
   const [currentDate, setCurrentDate] = useState(new Date());
+
+  // Sync default view from preferences (only on first meaningful load)
+  const [prefApplied, setPrefApplied] = useState(false);
+  useEffect(() => {
+    if (!prefApplied && preferences.calendarView) {
+      setView(preferences.calendarView);
+      setPrefApplied(true);
+    }
+  }, [preferences.calendarView, prefApplied]);
 
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);

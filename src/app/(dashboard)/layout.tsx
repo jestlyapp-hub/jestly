@@ -6,6 +6,7 @@ import Toaster from "@/components/ui/Toaster";
 import ProductEventTracker from "@/components/ProductEventTracker";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import GuideRoot from "@/features/onboarding-v3/ui/GuideRoot";
+import { PreferencesProvider } from "@/lib/hooks/use-preferences";
 
 export default async function DashboardLayout({
   children,
@@ -57,6 +58,7 @@ export default async function DashboardLayout({
   }
 
   return (
+    <PreferencesProvider>
     <GuideRoot>
       <div className="flex h-screen bg-[#F7F7F5] overflow-hidden">
         <Sidebar />
@@ -72,5 +74,6 @@ export default async function DashboardLayout({
         </div>
       </div>
     </GuideRoot>
+    </PreferencesProvider>
   );
 }

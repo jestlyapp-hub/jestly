@@ -44,6 +44,16 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
   }
 
+  // For JSONB fields (settings, workspace, notifications), merge with existing data
+  if (updates.settings && typeof updates.settings === "object") {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: current } = await (supabase.from("profiles") as any)
+      .select("settings")
+      .eq("id", user.id)
+      .single();
+    updates.settings = { ...(current?.settings || {}), ...(updates.settings as Record<string, unknown>) };
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("profiles") as any)
     .update(updates)
