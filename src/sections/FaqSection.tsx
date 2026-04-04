@@ -12,7 +12,7 @@ import SectionShell from "@/components/landing/SectionShell";
 const ease = [0.22, 1, 0.36, 1] as const;
 
 const FAQ = [
-  { q: "Combien ça coûte ?", a: "Plan gratuit jusqu'à 10 commandes/mois. Plan Pro à 7 €/mois pour un accès illimité." },
+  { q: "Combien ça coûte ?", a: "Plan gratuit jusqu'à 10 commandes/mois. Plan Pro à 4,99 €/mois pour un accès illimité." },
   { q: "C'est compliqué à prendre en main ?", a: "Non. L'interface est conçue pour être comprise en 5 minutes, sans tutoriel." },
   { q: "Je travaille seul, c'est utile ?", a: "C'est justement pour vous. Jestly automatise le suivi, la relance et la facturation." },
   { q: "J'ai déjà Notion et Excel…", a: "C'est le problème qu'on résout. Tout est interconnecté au même endroit." },

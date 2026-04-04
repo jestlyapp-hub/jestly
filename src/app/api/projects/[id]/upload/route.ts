@@ -71,12 +71,16 @@ export async function POST(req: NextRequest, ctx: Ctx) {
     return NextResponse.json({ error: uploadErr.message }, { status: 500 });
   }
 
-  const { data: urlData } = supabase.storage
+  const { data: signedData, error: signError } = await supabase.storage
     .from("order-uploads")
-    .getPublicUrl(storagePath);
+    .createSignedUrl(storagePath, 3600);
+
+  if (signError || !signedData?.signedUrl) {
+    return NextResponse.json({ error: "Impossible de générer l'URL signée" }, { status: 500 });
+  }
 
   return NextResponse.json({
-    url: urlData.publicUrl,
+    url: signedData.signedUrl,
     path: storagePath,
     name: file.name,
     size: file.size,

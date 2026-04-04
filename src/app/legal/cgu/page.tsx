@@ -106,7 +106,7 @@ export default function CGUPage() {
           l&apos;ensemble des fonctionnalités de base.
         </li>
         <li>
-          <strong>Pro</strong> : abonnement à 7 €/mois offrant un accès illimité à toutes les
+          <strong>Pro</strong> : abonnement à 4,99 €/mois offrant un accès illimité à toutes les
           fonctionnalités de la Plateforme (commandes illimitées, analytics avancés, support
           prioritaire).
         </li>

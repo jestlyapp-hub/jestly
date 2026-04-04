@@ -4,6 +4,26 @@ import { createClient } from "@/lib/supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+// ── Simple in-memory rate limiter for server actions ──
+const actionLimiters = new Map<string, Map<string, { count: number; resetAt: number }>>();
+function actionRateLimit(name: string, max: number, windowMs: number = 60_000) {
+  if (!actionLimiters.has(name)) actionLimiters.set(name, new Map());
+  const store = actionLimiters.get(name)!;
+  return (ip: string): boolean => {
+    const now = Date.now();
+    const entry = store.get(ip);
+    if (!entry || now > entry.resetAt) {
+      store.set(ip, { count: 1, resetAt: now + windowMs });
+      return true;
+    }
+    entry.count++;
+    return entry.count <= max;
+  };
+}
+
+const checkForgotPasswordLimit = actionRateLimit("forgot-password", 3, 120_000); // 3 requêtes / 2 min
+const checkResendLimit = actionRateLimit("resend-confirmation", 2, 120_000); // 2 requêtes / 2 min
+
 // ── Sign Up ──
 export async function signUp(formData: FormData) {
   const supabase = await createClient();
@@ -102,6 +122,11 @@ export async function resendConfirmationEmail(email: string) {
   const supabase = await createClient();
   const headerStore = await headers();
   const origin = headerStore.get("origin") || "http://localhost:3000";
+  const ip = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+
+  if (!checkResendLimit(ip)) {
+    return { error: "Trop de tentatives. Réessayez dans quelques minutes." };
+  }
 
   const { error } = await supabase.auth.resend({
     type: "signup",
@@ -152,6 +177,11 @@ export async function forgotPassword(formData: FormData) {
   const email = (formData.get("email") as string)?.trim().toLowerCase();
   const headerStore = await headers();
   const origin = headerStore.get("origin") || "http://localhost:3000";
+  const ip = headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+
+  if (!checkForgotPasswordLimit(ip)) {
+    return { error: "Trop de tentatives. Réessayez dans quelques minutes." };
+  }
 
   if (!email) {
     return { error: "Email requis." };

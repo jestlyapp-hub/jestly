@@ -619,7 +619,7 @@ export default function SiteDomainePage() {
               <span className="flex-1 px-3 py-2.5 text-[13px] text-[#CCCCCC]">www.votresite.fr</span>
             </div>
             <p className="text-[11px] text-[#BBBBBB] mt-2">
-              Disponible avec le plan Pro à 7 EUR/mois.
+              Disponible avec le plan Pro à 4,99 €/mois.
             </p>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import AdminHeader from "@/components/admin/AdminHeader";
+import SafeHTML from "@/components/ui/SafeHTML";
 import {
   Search,
   ChevronLeft,
@@ -790,9 +791,9 @@ export default function AdminEmailCampaignsPage() {
                 {detail.html_content && (
                   <div className="px-6 py-4">
                     <p className="text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide mb-2">Aperçu du contenu</p>
-                    <div
+                    <SafeHTML
+                      html={detail.html_content}
                       className="bg-[#F7F7F5] border border-[#EFEFEF] rounded-md p-3 max-h-[200px] overflow-y-auto text-[12px] text-[#5A5A58]"
-                      dangerouslySetInnerHTML={{ __html: detail.html_content }}
                     />
                   </div>
                 )}

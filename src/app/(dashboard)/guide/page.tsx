@@ -422,7 +422,7 @@ const CATEGORIES: Category[] = [
         ],
         tips: [
           "Le plan Free inclut 10 commandes par mois.",
-          "Le plan Pro \u00e0 7\u20ac/mois est illimit\u00e9.",
+          "Le plan Pro \u00e0 4,99\u20ac/mois est illimit\u00e9.",
         ],
       },
       {
@@ -502,7 +502,7 @@ const FAQ_ITEMS = [
   { q: "Comment supprimer un client ?", a: "Dans la liste Clients, cliquez sur le menu \u00b7\u00b7\u00b7 du client > Supprimer. Tapez SUPPRIMER pour confirmer. Pr\u00e9f\u00e9rez l\u2019archivage pour garder l\u2019historique." },
   { q: "Comment recevoir un paiement ?", a: "Ouvrez la commande et passez son statut \u00e0 Pay\u00e9. Le revenu sera automatiquement comptabilis\u00e9 dans vos statistiques." },
   { q: "Comment publier mon site ?", a: "Ouvrez votre site dans l\u2019\u00e9diteur et cliquez sur le bouton Publier en haut \u00e0 droite. Votre site sera accessible sur prenom.jestly.fr." },
-  { q: "C\u2019est quoi le plan Pro ?", a: "Le plan Pro \u00e0 7\u20ac/mois vous donne un acc\u00e8s illimit\u00e9 \u00e0 toutes les fonctionnalit\u00e9s : commandes illimit\u00e9es, site personnalis\u00e9, analytics avanc\u00e9s et support prioritaire." },
+  { q: "C\u2019est quoi le plan Pro ?", a: "Le plan Pro \u00e0 4,99\u20ac/mois vous donne un acc\u00e8s illimit\u00e9 \u00e0 toutes les fonctionnalit\u00e9s : commandes illimit\u00e9es, site personnalis\u00e9, analytics avanc\u00e9s et support prioritaire." },
   { q: "Comment contacter le support ?", a: "Envoyez un email \u00e0 support@jestly.fr ou utilisez le formulaire de contact depuis le menu Support." },
 ];
 

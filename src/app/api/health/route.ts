@@ -29,6 +29,24 @@ export async function GET() {
     };
   }
 
+  // Check Stripe env
+  checks.stripe = {
+    ok: !!process.env.STRIPE_SECRET_KEY,
+    ...(process.env.STRIPE_SECRET_KEY ? {} : { error: "STRIPE_SECRET_KEY missing" }),
+  };
+
+  // Check Resend env
+  checks.resend = {
+    ok: !!process.env.RESEND_API_KEY,
+    ...(process.env.RESEND_API_KEY ? {} : { error: "RESEND_API_KEY missing" }),
+  };
+
+  // Check Sentry env
+  checks.sentry = {
+    ok: !!process.env.SENTRY_DSN || !!process.env.NEXT_PUBLIC_SENTRY_DSN,
+    ...(!(process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN) ? { error: "SENTRY_DSN missing" } : {}),
+  };
+
   const allOk = Object.values(checks).every((c) => c.ok);
   const responseTime = Date.now() - start;
 

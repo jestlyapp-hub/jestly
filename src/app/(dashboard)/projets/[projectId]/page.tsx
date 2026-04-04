@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, useDroppable, type DragEndEvent } from "@dnd-kit/core";
+import SafeHTML from "@/components/ui/SafeHTML";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, rectSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
@@ -248,9 +249,7 @@ function SortableItemCard({ item, isSelected, onSelect, onEdit, onDelete, onPin,
         </div>
         {item.description && <p className="text-[11px] text-[#8A8A88] line-clamp-2 mb-1.5">{item.description}</p>}
         {isNote && item.content && (
-          <div className="text-[12px] text-[#5A5A58] line-clamp-5 whitespace-pre-wrap bg-amber-50/40 rounded-lg p-3 mt-1 leading-relaxed border border-amber-100/50"
-            dangerouslySetInnerHTML={{ __html: simpleMarkdown(item.content) }}
-          />
+          <SafeHTML html={simpleMarkdown(item.content)} className="text-[12px] text-[#5A5A58] line-clamp-5 whitespace-pre-wrap bg-amber-50/40 rounded-lg p-3 mt-1 leading-relaxed border border-amber-100/50" />
         )}
         {item.tags.length > 0 && (
           <div className="flex items-center gap-1 mt-2 flex-wrap">
@@ -821,7 +820,7 @@ function EditItemPanel({ item, projectId, open, onClose, onSaved }: { item: Proj
                   {content && (
                     <div className="mt-2 p-3 bg-[#FAFAF9] rounded-lg border border-[#EFEFEF]">
                       <div className="text-[11px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-2">Aperçu</div>
-                      <div className="text-[12px] text-[#191919] leading-relaxed" dangerouslySetInnerHTML={{ __html: simpleMarkdown(content) }} />
+                      <SafeHTML html={simpleMarkdown(content)} className="text-[12px] text-[#191919] leading-relaxed" />
                     </div>
                   )}
                 </div>

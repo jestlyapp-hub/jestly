@@ -76,7 +76,7 @@ export function SubscriptionSection({ profile }: {
                   )}
                 </div>
                 <p className="text-[13px] text-[#A8A29E] mt-0.5">
-                  {isPro ? "7 €/mois — Accès complet" : "Gratuit — Limité à 10 commandes/mois"}
+                  {isPro ? "4,99 €/mois — Accès complet" : "Gratuit — Limité à 10 commandes/mois"}
                 </p>
               </div>
             </div>
@@ -104,7 +104,7 @@ export function SubscriptionSection({ profile }: {
                 onClick={() => track("upgrade_clicked", { source: "settings" })}
                 className="flex items-center gap-1.5 text-[13px] font-semibold text-white bg-[#7C3AED] px-5 py-2.5 rounded-lg hover:bg-[#6D28D9] transition-colors shadow-sm shadow-[#7C3AED]/20"
               >
-                Passer au Pro — 7 €/mois
+                Passer au Pro — 4,99 €/mois
               </a>
             )}
           </div>

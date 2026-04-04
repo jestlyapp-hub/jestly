@@ -42,7 +42,7 @@ const FAQ_CATEGORIES: FaqCategory[] = [
       {
         question: "Jestly est-il gratuit ?",
         answer:
-          "Oui, Jestly propose un plan gratuit (Free) qui inclut jusqu\u2019à 10 commandes par mois et l\u2019accès à toutes les fonctionnalités essentielles. Le plan Pro à 7\u00a0\u20ac/mois débloque l\u2019usage illimité.",
+          "Oui, Jestly propose un plan gratuit (Free) qui inclut jusqu\u2019à 10 commandes par mois et l\u2019accès à toutes les fonctionnalités essentielles. Le plan Pro à 4,99\u00a0\u20ac/mois débloque l\u2019usage illimité.",
       },
     ],
   },
@@ -52,7 +52,7 @@ const FAQ_CATEGORIES: FaqCategory[] = [
       {
         question: "Quels sont les plans disponibles ?",
         answer:
-          "Deux plans : Free (10 commandes/mois, fonctionnalités essentielles) et Pro (7\u00a0\u20ac/mois, usage illimité, domaine personnalisé, priorité support). Pas de plan entreprise complexe — on garde les choses simples.",
+          "Deux plans : Free (10 commandes/mois, fonctionnalités essentielles) et Pro (4,99\u00a0\u20ac/mois, usage illimité, domaine personnalisé, priorité support). Pas de plan entreprise complexe — on garde les choses simples.",
       },
       {
         question: "Comment passer au plan Pro ?",
