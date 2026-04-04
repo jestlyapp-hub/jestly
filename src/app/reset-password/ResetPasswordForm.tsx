@@ -6,6 +6,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { translateAuthError } from "@/lib/auth/error-messages";
 import AuthLayout from "@/components/auth/AuthLayout";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -44,37 +45,42 @@ export default function ResetPasswordForm() {
     setError("");
     setLoading(true);
 
-    const fd = new FormData(formRef.current!);
-    const password = (fd.get("password") as string) || "";
-    const confirm = (fd.get("confirm") as string) || "";
+    try {
+      const fd = new FormData(formRef.current!);
+      const password = (fd.get("password") as string) || "";
+      const confirm = (fd.get("confirm") as string) || "";
 
-    if (!password || password.length < 8) {
-      setError("Le mot de passe doit contenir au moins 8 caractères.");
-      setLoading(false);
-      return;
+      // Client-side validation (FR)
+      if (!password || password.length < 8) {
+        setError("Le mot de passe doit contenir au moins 8 caractères.");
+        return;
+      }
+      if (password !== confirm) {
+        setError("Les mots de passe ne correspondent pas.");
+        return;
+      }
+
+      const supabase = createClient();
+
+      // Update password via browser client (session is client-side from hash fragment)
+      const { error: updateError } = await supabase.auth.updateUser({ password });
+
+      if (updateError) {
+        setError(translateAuthError(updateError.message));
+        return;
+      }
+
+      // Security: destroy session — user must re-login manually
+      await supabase.auth.signOut();
+
+      setSuccess(true);
+      setTimeout(() => router.push("/login?reset=success"), 2500);
+    } catch {
+      setError("Une erreur est survenue. Réessaie ou demande un nouveau lien.");
+    } finally {
+      // ALWAYS release the button — prevents infinite loading
+      if (!success) setLoading(false);
     }
-    if (password !== confirm) {
-      setError("Les mots de passe ne correspondent pas.");
-      setLoading(false);
-      return;
-    }
-
-    // Use browser client — the recovery session is client-side (hash fragment)
-    const supabase = createClient();
-
-    const { error: updateError } = await supabase.auth.updateUser({ password });
-
-    if (updateError) {
-      setError(updateError.message);
-      setLoading(false);
-      return;
-    }
-
-    // Security: destroy session — user must re-login
-    await supabase.auth.signOut();
-
-    setSuccess(true);
-    setTimeout(() => router.push("/login?reset=success"), 2500);
   };
 
   return (
