@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
 
   // ── Step 1: Fetch profiles with filters + pagination ──
   let query = (supabase.from("profiles") as any).select(
-    "id, email, full_name, business_name, avatar_url, plan, subdomain, created_at, updated_at",
+    "id, email, full_name, business_name, avatar_url, plan, subdomain, created_at, updated_at, settings",
     { count: "exact" },
   );
 
@@ -184,20 +184,32 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Step 3: Merge profiles + stats + health ──
-  const data = profiles.map((p: any) => ({
-    ...p,
-    ...(statsMap[p.id] || {
-      order_count: 0,
-      total_revenue: 0,
-      client_count: 0,
-      product_count: 0,
-      site_count: 0,
-      project_count: 0,
-      last_order_at: null,
-    }),
-    health_score: healthMap[p.id]?.score ?? null,
-    health_tier: healthMap[p.id]?.tier ?? null,
-  }));
+  const data = profiles.map((p: any) => {
+    const onboarding = p.settings?.onboarding || {};
+    return {
+      ...p,
+      settings: undefined, // Don't leak full settings to frontend
+      ...(statsMap[p.id] || {
+        order_count: 0,
+        total_revenue: 0,
+        client_count: 0,
+        product_count: 0,
+        site_count: 0,
+        project_count: 0,
+        last_order_at: null,
+      }),
+      health_score: healthMap[p.id]?.score ?? null,
+      health_tier: healthMap[p.id]?.tier ?? null,
+      // Onboarding questionnaire
+      onboarding_completed: onboarding.completed === true,
+      discovery_source: onboarding.discovery_source || null,
+      freelance_type: onboarding.freelance_type || null,
+      freelance_experience: onboarding.freelance_experience || null,
+      client_volume: onboarding.client_volume || null,
+      main_goal: onboarding.main_goal || null,
+      wants_tips: onboarding.wants_tips ?? null,
+    };
+  });
 
   return NextResponse.json({ data, total: count || 0 });
 }

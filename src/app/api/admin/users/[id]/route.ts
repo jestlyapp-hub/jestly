@@ -31,7 +31,7 @@ export async function GET(
   // ── 1. Profile ──────────────────────────────────────────────────
   const { data: profile, error: profileErr } = await (supabase.from("profiles") as any)
     .select(
-      "id, email, full_name, business_name, avatar_url, plan, subdomain, created_at, updated_at, phone, role, locale, timezone",
+      "id, email, full_name, business_name, avatar_url, plan, subdomain, created_at, updated_at, phone, role, locale, timezone, settings",
     )
     .eq("id", id)
     .single();
@@ -226,8 +226,21 @@ export async function GET(
   }));
 
   // ── 7. Build response ──────────────────────────────────────────
+  // Extract onboarding data from settings, then strip settings from profile response
+  const onboarding = profile.settings?.onboarding || {};
+  const { settings: _settings, ...profileClean } = profile;
+
   return NextResponse.json({
-    profile,
+    profile: profileClean,
+    onboarding: {
+      completed: onboarding.completed === true,
+      discovery_source: onboarding.discovery_source || null,
+      freelance_type: onboarding.freelance_type || null,
+      freelance_experience: onboarding.freelance_experience || null,
+      client_volume: onboarding.client_volume || null,
+      main_goal: onboarding.main_goal || null,
+      wants_tips: onboarding.wants_tips ?? null,
+    },
     stats: {
       order_count: ordersRes.count || 0,
       total_revenue: totalRevenue,

@@ -29,6 +29,7 @@ import {
   RefreshCw,
   Heart,
 } from "lucide-react";
+import { getOnboardingLabel, FREELANCE_TYPE_LABELS, FREELANCE_TYPE_COLORS } from "@/lib/admin/onboarding-labels";
 
 // ── Types ─────────────────────────────────────────────────────────
 interface Profile {
@@ -135,8 +136,19 @@ interface HealthData {
   computed_at: string;
 }
 
+interface OnboardingData {
+  completed: boolean;
+  discovery_source: string | null;
+  freelance_type: string | null;
+  freelance_experience: string | null;
+  client_volume: string | null;
+  main_goal: string | null;
+  wants_tips: boolean | null;
+}
+
 interface UserDetail {
   profile: Profile;
+  onboarding: OnboardingData;
   stats: Stats;
   recent_orders: Order[];
   recent_clients: Client[];
@@ -542,6 +554,59 @@ export default function AdminUserDetailPage() {
           ))}
         </div>
       </div>
+
+      {/* ══════════════════════════════════════════════════════════
+          PROFIL ONBOARDING
+      ══════════════════════════════════════════════════════════ */}
+      {data.onboarding && (
+        <div className="bg-white rounded-lg border border-[#E6E6E4] p-6">
+          <h2 className="text-[14px] font-semibold text-[#191919] mb-4 flex items-center gap-2">
+            <UserPlus size={15} className="text-[#4F46E5]" />
+            Profil d&apos;inscription
+            {data.onboarding.completed ? (
+              <span className="text-[10px] font-medium bg-emerald-50 text-emerald-600 border border-emerald-200 px-2 py-0.5 rounded-full">Complet</span>
+            ) : (
+              <span className="text-[10px] font-medium bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full">Incomplet</span>
+            )}
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {/* Freelance type */}
+            <div>
+              <p className="text-[10px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1">M&eacute;tier</p>
+              {data.onboarding.freelance_type ? (
+                <span className={`inline-block px-2.5 py-1 rounded-md text-[11px] font-semibold border ${FREELANCE_TYPE_COLORS[data.onboarding.freelance_type] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
+                  {FREELANCE_TYPE_LABELS[data.onboarding.freelance_type] || data.onboarding.freelance_type}
+                </span>
+              ) : <span className="text-[12px] text-[#CCC]">&mdash;</span>}
+            </div>
+            {/* Experience */}
+            <div>
+              <p className="text-[10px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1">Exp&eacute;rience</p>
+              <p className="text-[13px] text-[#191919]">{getOnboardingLabel("freelance_experience", data.onboarding.freelance_experience)}</p>
+            </div>
+            {/* Client volume */}
+            <div>
+              <p className="text-[10px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1">Clients au signup</p>
+              <p className="text-[13px] text-[#191919]">{getOnboardingLabel("client_volume", data.onboarding.client_volume)}</p>
+            </div>
+            {/* Main goal */}
+            <div>
+              <p className="text-[10px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1">Objectif principal</p>
+              <p className="text-[13px] text-[#191919]">{getOnboardingLabel("main_goal", data.onboarding.main_goal)}</p>
+            </div>
+            {/* Discovery source */}
+            <div>
+              <p className="text-[10px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1">Source d&apos;acquisition</p>
+              <p className="text-[13px] text-[#191919]">{getOnboardingLabel("discovery_source", data.onboarding.discovery_source)}</p>
+            </div>
+            {/* Wants tips */}
+            <div>
+              <p className="text-[10px] font-semibold text-[#8A8A88] uppercase tracking-wider mb-1">Conseils email</p>
+              <p className="text-[13px] text-[#191919]">{data.onboarding.wants_tips === true ? "Oui" : data.onboarding.wants_tips === false ? "Non" : "\u2014"}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ══════════════════════════════════════════════════════════
           HEALTH SCORE CARD

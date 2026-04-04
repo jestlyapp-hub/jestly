@@ -16,6 +16,7 @@ import {
   RefreshCw,
   Activity,
 } from "lucide-react";
+import { FREELANCE_TYPE_LABELS, FREELANCE_TYPE_COLORS, DISCOVERY_SOURCE_LABELS, MAIN_GOAL_LABELS } from "@/lib/admin/onboarding-labels";
 
 // ── Types ──────────────────────────────────────────────────────────
 type HealthTier = "healthy" | "watch" | "risky" | "critical";
@@ -39,6 +40,14 @@ interface UserProfile {
   last_order_at: string | null;
   health_score: number | null;
   health_tier: HealthTier | null;
+  // Onboarding questionnaire
+  onboarding_completed: boolean;
+  discovery_source: string | null;
+  freelance_type: string | null;
+  freelance_experience: string | null;
+  client_volume: string | null;
+  main_goal: string | null;
+  wants_tips: boolean | null;
 }
 
 // ── Constants ──────────────────────────────────────────────────────
@@ -344,7 +353,10 @@ export default function AdminUsersPage() {
                   Utilisateur
                 </th>
                 <th className="px-5 py-3 text-[11px] font-semibold text-[#666] uppercase tracking-wide">
-                  Plan
+                  Profil
+                </th>
+                <th className="px-5 py-3 text-[11px] font-semibold text-[#666] uppercase tracking-wide">
+                  Source
                 </th>
                 <th className="px-5 py-3 text-[11px] font-semibold text-[#666] uppercase tracking-wide">
                   <span className="flex items-center gap-1.5">
@@ -417,17 +429,22 @@ export default function AdminUsersPage() {
                       </div>
                     </td>
 
-                    {/* Plan badge */}
+                    {/* Profil (freelance type + experience) */}
                     <td className="px-5 py-3.5">
-                      <span
-                        className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-medium ${
-                          user.plan === "pro"
-                            ? "bg-indigo-50 text-indigo-700"
-                            : "bg-gray-100 text-gray-500"
-                        }`}
-                      >
-                        {user.plan === "pro" ? "Pro" : "Free"}
-                      </span>
+                      {user.freelance_type ? (
+                        <div>
+                          <span className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-semibold border ${FREELANCE_TYPE_COLORS[user.freelance_type] || "bg-gray-50 text-gray-600 border-gray-200"}`}>
+                            {FREELANCE_TYPE_LABELS[user.freelance_type] || user.freelance_type}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-[11px] text-[#CCC]">{"\u2014"}</span>
+                      )}
+                    </td>
+
+                    {/* Source acquisition */}
+                    <td className="px-5 py-3.5 text-[11px] text-[#5A5A58]">
+                      {user.discovery_source ? (DISCOVERY_SOURCE_LABELS[user.discovery_source] || user.discovery_source) : <span className="text-[#CCC]">{"\u2014"}</span>}
                     </td>
 
                     {/* Orders */}
