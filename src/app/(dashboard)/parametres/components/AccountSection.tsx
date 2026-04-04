@@ -155,7 +155,7 @@ export function AccountSection({ profile, form, actions, dirty, onAvatarChange }
           </div>
           <div>
             <label className={labelCls}>Email</label>
-            <input type="email" value={profile.email} disabled className={`${inputCls} opacity-60 cursor-not-allowed`} />
+            <input type="email" value={profile.email ?? ""} disabled className={`${inputCls} opacity-60 cursor-not-allowed`} />
           </div>
           <div>
             <label className={labelCls}>Téléphone</label>
