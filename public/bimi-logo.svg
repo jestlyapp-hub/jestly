@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 512 512">
   <title>Jestly</title>
-  <!-- Background -->
-  <rect width="512" height="512" rx="64" fill="#4F46E5"/>
-  <!-- Letter J -->
-  <text x="256" y="340" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-weight="bold" font-size="280" fill="#FFFFFF">J</text>
+  <!-- White background (BIMI requires solid background, no transparency) -->
+  <rect width="512" height="512" fill="#FFFFFF"/>
+  <!-- J body - dark navy curved shape -->
+  <path d="M310 105 L310 300 C310 370 270 420 200 420 C130 420 80 370 80 300 L80 270 C80 255 92 245 107 245 L140 245 C155 245 165 255 165 270 L165 290 C165 315 178 330 200 330 C222 330 235 315 235 290 L235 105 C235 90 245 80 260 80 L285 80 C300 80 310 90 310 105 Z" fill="#1E1B3A"/>
+  <!-- Purple diamond dot -->
+  <path d="M310 55 L345 20 C352 13 363 13 370 20 L405 55 C412 62 412 73 405 80 L370 115 C363 122 352 122 345 115 L310 80 C303 73 303 62 310 55 Z" fill="#7C3AED"/>
 </svg>
