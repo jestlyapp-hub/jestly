@@ -453,48 +453,61 @@ function RevenueChart({ revenueData }: { revenueData: DashboardRevenueData }) {
     return <Empty message="Pas encore de revenu encaissé" icon={TrendingUp} />;
   }
 
-  const maxRev = Math.max(...revenueData.series.map((m) => m.revenue));
+  const series = revenueData.series;
+  const maxRev = Math.max(...series.map((m) => m.revenue), 1);
+  const W = 280;
+  const H = 120;
+  const PAD = 2;
+
+  // Build SVG area + line path
+  const points = series.map((m, i) => ({
+    x: PAD + (i / Math.max(series.length - 1, 1)) * (W - PAD * 2),
+    y: PAD + (1 - m.revenue / maxRev) * (H - PAD * 2 - 4) + 2,
+  }));
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ");
+  const areaPath = `${linePath} L${points[points.length - 1].x},${H} L${points[0].x},${H} Z`;
 
   return (
-    <div className="px-4 py-3 flex-1 flex flex-col">
-      {/* Summary line */}
-      <div className="flex items-center justify-between mb-3">
+    <div className="px-5 py-4 flex-1 flex flex-col">
+      {/* Summary */}
+      <div className="flex items-center justify-between mb-4">
         <div>
-          <span className="text-[18px] font-bold text-[#191919]">{fmtEur(revenueData.totalRevenue)}</span>
-          <span className="text-[10px] text-[#BBB] ml-1.5">sur 6 mois</span>
+          <span className="text-[22px] font-bold text-[#191919]">{fmtEur(revenueData.totalRevenue)}</span>
+          <span className="text-[11px] text-[#8A8A88] ml-2">sur 6 mois</span>
         </div>
         {revenueData.changePercent !== 0 && (
-          <span className={`flex items-center gap-0.5 text-[11px] font-semibold ${revenueData.changePercent >= 0 ? "text-emerald-600" : "text-red-500"}`}>
-            {revenueData.changePercent >= 0 ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
+          <span className={`flex items-center gap-1 text-[12px] font-semibold px-2.5 py-1 rounded-full ${revenueData.changePercent >= 0 ? "text-emerald-700 bg-emerald-50" : "text-red-600 bg-red-50"}`}>
+            {revenueData.changePercent >= 0 ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
             {revenueData.changePercent >= 0 ? "+" : ""}{revenueData.changePercent}%
-            <span className="text-[9px] text-[#BBB] font-normal ml-0.5">vs mois préc.</span>
           </span>
         )}
       </div>
-      {/* Bar chart */}
-      <div className="flex items-end gap-1.5 flex-1 min-h-[100px]">
-        {revenueData.series.map((m, i) => {
-          const h = maxRev > 0 ? (m.revenue / maxRev) * 100 : 0;
-          const isLast = i === revenueData.series.length - 1;
-          return (
-            <div key={m.monthKey} className="flex-1 flex flex-col items-center gap-0.5 group relative">
-              <span className="text-[9px] font-semibold text-[#191919]">{m.revenue > 0 ? fmtEur(m.revenue) : ""}</span>
-              <motion.div
-                className={`w-full rounded-t-md ${isLast ? "bg-[#4F46E5]" : "bg-[#EDEAFF]"} hover:opacity-80 transition-opacity`}
-                initial={{ height: 0 }}
-                animate={{ height: `${Math.max(h, 3)}%` }}
-                transition={{ duration: 0.5, delay: 0.4 + i * 0.06 }}
-              />
-              <span className="text-[9px] text-[#BBB]">{m.monthLabel}</span>
-              {/* Tooltip */}
-              {m.revenue > 0 && (
-                <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-[#191919] text-white text-[9px] px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg">
-                  {fmtEur(m.revenue)} · {m.paidOrdersCount} payée{m.paidOrdersCount > 1 ? "s" : ""} / {m.ordersCount} cmd
-                </div>
-              )}
-            </div>
-          );
-        })}
+
+      {/* Area chart SVG */}
+      <div className="flex-1 min-h-[120px] relative">
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-full" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#4F46E5" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#4F46E5" stopOpacity="0.01" />
+            </linearGradient>
+          </defs>
+          <path d={areaPath} fill="url(#revGrad)" />
+          <path d={linePath} fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          {/* Dots */}
+          {points.map((p, i) => (
+            <circle key={i} cx={p.x} cy={p.y} r="3" fill="white" stroke="#4F46E5" strokeWidth="1.5" className="opacity-0 hover:opacity-100 transition-opacity" />
+          ))}
+          {/* Last dot always visible */}
+          <circle cx={points[points.length - 1].x} cy={points[points.length - 1].y} r="3.5" fill="#4F46E5" stroke="white" strokeWidth="2" />
+        </svg>
+      </div>
+
+      {/* X-axis labels */}
+      <div className="flex justify-between mt-2">
+        {series.map((m) => (
+          <span key={m.monthKey} className="text-[10px] text-[#8A8A88] capitalize">{m.monthLabel}</span>
+        ))}
       </div>
     </div>
   );
@@ -655,11 +668,17 @@ export default function DashboardPage() {
   return (
     <div className="max-w-[1100px] mx-auto pb-10">
 
-      {/* ════════════════════════ HEADER ════════════════════════ */}
-      <motion.div className="flex items-start justify-between mb-6" {...fadeUp(0)}>
+      {/* ════════════════════════ HEADER V2 ════════════════════════ */}
+      <motion.div className="flex items-start justify-between mb-7" {...fadeUp(0)}>
         <div>
-          <h1 className="text-[22px] font-bold text-[#191919]">Dashboard</h1>
-          <p className="text-[13px] text-[#999] mt-0.5">{isEmptyAccount ? "Configure ton espace pour démarrer" : "Aperçu de ton activité"}</p>
+          <h1 className="text-[24px] font-bold text-[#191919] tracking-tight">
+            {isEmptyAccount ? "Bienvenue sur Jestly" : "Dashboard"}
+          </h1>
+          <p className="text-[13px] text-[#8A8A88] mt-1">
+            {isEmptyAccount
+              ? "Configure ton espace pour démarrer"
+              : new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+          </p>
         </div>
         <CreateMenu />
       </motion.div>
@@ -794,22 +813,52 @@ export default function DashboardPage() {
               <Empty message="Aucune échéance prochaine" icon={Clock} />
             ) : (
               <div className="divide-y divide-[#F5F5F3]">
-                {(safeData.upcomingDeadlines || []).map((d) => {
+                {(safeData.upcomingDeadlines || []).slice(0, 6).map((d) => {
                   const dateObj = new Date(d.deadline + "T00:00:00");
+                  const now = new Date();
+                  const diffDays = Math.ceil((dateObj.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
                   const dayLabel = dateObj.toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short" });
+                  const urgencyLabel = d.isOverdue
+                    ? "En retard"
+                    : d.isToday
+                      ? "Aujourd'hui"
+                      : diffDays === 1
+                        ? "Demain"
+                        : diffDays <= 7
+                          ? `Dans ${diffDays}j`
+                          : dayLabel;
+
                   return (
-                    <a key={d.id} href="/commandes" className="flex items-center gap-3 px-5 py-2.5 hover:bg-[#FBFBFA] transition-colors">
-                      <div className={`w-6 h-6 rounded-md flex items-center justify-center ${
-                        d.isOverdue ? "bg-red-50" : d.isToday ? "bg-amber-50" : "bg-[#F7F7F5]"
+                    <a key={d.id} href="/commandes" className="flex items-center gap-3 px-5 py-3 hover:bg-[#FBFBFA] transition-colors group">
+                      {/* Urgency indicator */}
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                        d.isOverdue ? "bg-red-50 border border-red-100" : d.isToday ? "bg-amber-50 border border-amber-100" : "bg-[#F7F7F5] border border-[#EFEFEF]"
                       }`}>
-                        <Clock size={12} className={d.isOverdue ? "text-red-500" : d.isToday ? "text-amber-600" : "text-[#999]"} />
+                        {d.isOverdue ? (
+                          <AlertTriangle size={14} className="text-red-500" />
+                        ) : (
+                          <Clock size={14} className={d.isToday ? "text-amber-600" : "text-[#999]"} />
+                        )}
                       </div>
+                      {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <span className="text-[12px] font-medium text-[#191919] block truncate">{d.title}</span>
-                        <span className="text-[10px] text-[#BBB]">
+                        <span className="text-[13px] font-medium text-[#191919] block truncate">{d.title}</span>
+                        <span className="text-[11px] text-[#8A8A88]">
                           {d.clientName ? `${d.clientName} · ` : ""}{dayLabel}
                         </span>
                       </div>
+                      {/* Urgency badge */}
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${
+                        d.isOverdue
+                          ? "text-red-700 bg-red-50 border border-red-100"
+                          : d.isToday
+                            ? "text-amber-700 bg-amber-50 border border-amber-100"
+                            : diffDays <= 3
+                              ? "text-orange-600 bg-orange-50 border border-orange-100"
+                              : "text-[#8A8A88] bg-[#F7F7F5] border border-[#EFEFEF]"
+                      }`}>
+                        {urgencyLabel}
+                      </span>
                       <BadgeStatus status={d.status as OrderStatus} />
                     </a>
                   );
@@ -820,22 +869,24 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ════════════════════════ ROW 5 — Stats rapides ════════════════════════ */}
-      <motion.div className="mt-6 bg-white rounded-xl border border-[#E6E6E4] px-6 py-4" {...fadeUp(0.55)}>
-        <div className="flex flex-wrap items-center justify-between gap-6">
-          {[
-            { label: "CA total", value: fmtEur(safeData.pipelineSummary.totalRevenue), icon: DollarSign, color: "text-emerald-600" },
-            { label: "Commandes totales", value: String(safeData.pipelineSummary.totalCount), icon: ShoppingCart, color: "text-violet-600" },
-            { label: "Produits actifs", value: String(data.activeProductsCount), icon: Package, color: "text-blue-600" },
-            { label: "Taux complétion", value: data.ordersCount > 0 ? `${Math.round((data.paidOrders / data.ordersCount) * 100)}%` : "\u2014", icon: CheckCircle2, color: "text-amber-600" },
-          ].map((item) => (
-            <div key={item.label} className="flex items-center gap-2.5">
-              <item.icon size={14} className={item.color} strokeWidth={1.8} />
-              <span className="text-[11px] text-[#999]">{item.label}</span>
-              <span className="text-[13px] font-bold text-[#191919]">{item.value}</span>
+      {/* ════════════════════════ ROW 5 — Stats rapides V2 ════════════════════════ */}
+      <motion.div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-3" {...fadeUp(0.55)}>
+        {[
+          { label: "CA total", value: fmtEur(safeData.pipelineSummary.totalRevenue), icon: DollarSign, color: "bg-emerald-50 text-emerald-600" },
+          { label: "Commandes totales", value: String(safeData.pipelineSummary.totalCount), icon: ShoppingCart, color: "bg-violet-50 text-violet-600" },
+          { label: "Produits actifs", value: String(safeData.activeProductsCount), icon: Package, color: "bg-blue-50 text-blue-600" },
+          { label: "Taux complétion", value: safeData.ordersCount > 0 ? `${Math.round((safeData.paidOrders / safeData.ordersCount) * 100)}%` : "\u2014", icon: CheckCircle2, color: "bg-amber-50 text-amber-600" },
+        ].map((item) => (
+          <div key={item.label} className="bg-white rounded-xl border border-[#E6E6E4] px-4 py-3 flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${item.color}`}>
+              <item.icon size={15} strokeWidth={1.8} />
             </div>
-          ))}
-        </div>
+            <div>
+              <div className="text-[10px] font-medium text-[#8A8A88] uppercase tracking-wider">{item.label}</div>
+              <div className="text-[16px] font-bold text-[#191919] leading-tight">{item.value}</div>
+            </div>
+          </div>
+        ))}
       </motion.div>
     </div>
   );
