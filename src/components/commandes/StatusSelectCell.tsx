@@ -11,9 +11,16 @@ interface StatusOption {
 
 const STATUSES: StatusOption[] = [
   { slug: "new", label: "À faire" },
+  { slug: "brief_received", label: "Brief reçu" },
   { slug: "in_progress", label: "En cours" },
+  { slug: "in_review", label: "En révision" },
+  { slug: "validated", label: "Validé" },
   { slug: "delivered", label: "Livré" },
+  { slug: "invoiced", label: "Facturé" },
   { slug: "paid", label: "Payé" },
+  { slug: "cancelled", label: "Annulé" },
+  { slug: "refunded", label: "Remboursé" },
+  { slug: "dispute", label: "Litige" },
 ];
 
 interface StatusSelectCellProps {

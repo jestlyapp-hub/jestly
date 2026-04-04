@@ -42,10 +42,17 @@ export function getNotionColor(key: string): NotionColor {
 /* ─── Status-specific colors (Notion style: pastel bg + subtle border) ─── */
 
 export const STATUS_COLORS: Record<string, NotionColor> = {
-  new:         { bg: "bg-rose-50",    text: "text-rose-600",    border: "border-rose-200",    dot: "bg-rose-400" },
-  in_progress: { bg: "bg-blue-50",    text: "text-blue-600",    border: "border-blue-200",    dot: "bg-blue-400" },
-  delivered:   { bg: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-200", dot: "bg-emerald-400" },
-  paid:        { bg: "bg-amber-50",   text: "text-amber-600",   border: "border-amber-200",   dot: "bg-amber-400" },
+  new:            { bg: "bg-rose-50",    text: "text-rose-600",    border: "border-rose-200",    dot: "bg-rose-400" },
+  brief_received: { bg: "bg-pink-50",    text: "text-pink-600",    border: "border-pink-200",    dot: "bg-pink-400" },
+  in_progress:    { bg: "bg-blue-50",    text: "text-blue-600",    border: "border-blue-200",    dot: "bg-blue-400" },
+  in_review:      { bg: "bg-indigo-50",  text: "text-indigo-600",  border: "border-indigo-200",  dot: "bg-indigo-400" },
+  validated:      { bg: "bg-cyan-50",    text: "text-cyan-600",    border: "border-cyan-200",    dot: "bg-cyan-400" },
+  delivered:      { bg: "bg-emerald-50", text: "text-emerald-600", border: "border-emerald-200", dot: "bg-emerald-400" },
+  invoiced:       { bg: "bg-violet-50",  text: "text-violet-600",  border: "border-violet-200",  dot: "bg-violet-400" },
+  paid:           { bg: "bg-amber-50",   text: "text-amber-600",   border: "border-amber-200",   dot: "bg-amber-400" },
+  cancelled:      { bg: "bg-gray-50",    text: "text-gray-500",    border: "border-gray-200",    dot: "bg-gray-400" },
+  refunded:       { bg: "bg-orange-50",  text: "text-orange-600",  border: "border-orange-200",  dot: "bg-orange-400" },
+  dispute:        { bg: "bg-red-50",     text: "text-red-600",     border: "border-red-200",     dot: "bg-red-400" },
 };
 
 /** Fallback for unknown statuses */
