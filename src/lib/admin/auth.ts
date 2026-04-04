@@ -7,11 +7,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // ── Constantes admin ──────────────────────────────────────────────
 export const ADMIN_EMAILS = new Set([
   "jestlyapp@gmail.com",
-  "bltgabriel17@gmail.com",
-  "briaultgabriel@gmail.com",
 ]);
 
-/** @deprecated Use ADMIN_EMAILS instead */
 export const ADMIN_EMAIL = "jestlyapp@gmail.com";
 
 // ID admin lu depuis l'env pour double vérification (optionnel)
