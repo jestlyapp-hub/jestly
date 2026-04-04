@@ -16,6 +16,16 @@ export default function DashboardError({
 }) {
   useEffect(() => {
     console.error("[Jestly][Dashboard] Erreur :", error);
+    fetch("/api/log-error", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: error.message,
+        source: "error-boundary-dashboard",
+        metadata: { digest: error.digest, stack: error.stack?.slice(0, 1000) },
+        url: window.location.href,
+      }),
+    }).catch(() => {});
   }, [error]);
 
   return (

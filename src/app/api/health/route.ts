@@ -41,16 +41,18 @@ export async function GET() {
     ...(process.env.RESEND_API_KEY ? {} : { error: "RESEND_API_KEY missing" }),
   };
 
-  // Check Sentry env
+  // Check Sentry env (optional — does not affect overall health status)
+  const hasSentry = !!process.env.SENTRY_DSN || !!process.env.NEXT_PUBLIC_SENTRY_DSN;
   checks.sentry = {
-    ok: !!process.env.SENTRY_DSN || !!process.env.NEXT_PUBLIC_SENTRY_DSN,
-    ...(!(process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN) ? { error: "SENTRY_DSN missing" } : {}),
+    ok: hasSentry,
+    ...(hasSentry ? {} : { error: "SENTRY_DSN not configured (optional)" }),
   };
 
-  const allOk = Object.values(checks).every((c) => c.ok);
+  // Only critical services (DB, Stripe, Resend) affect health status
+  const criticalOk = checks.database.ok && checks.stripe.ok && checks.resend.ok;
   const responseTime = Date.now() - start;
 
-  if (!allOk) {
+  if (!criticalOk) {
     logger.warn("health_check_degraded", {
       action: "health_check",
       duration: responseTime,
@@ -60,12 +62,12 @@ export async function GET() {
 
   return NextResponse.json(
     {
-      status: allOk ? "healthy" : "degraded",
+      status: criticalOk ? (hasSentry ? "healthy" : "healthy_no_sentry") : "degraded",
       uptime: process.uptime(),
       timestamp: new Date().toISOString(),
       responseTime,
       checks,
     },
-    { status: allOk ? 200 : 503 }
+    { status: criticalOk ? 200 : 503 }
   );
 }

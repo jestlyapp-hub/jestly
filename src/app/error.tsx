@@ -16,6 +16,17 @@ export default function GlobalError({
 }) {
   useEffect(() => {
     console.error("[Jestly] Erreur non gérée :", error);
+    // Report to error logging (replaces Sentry during beta)
+    fetch("/api/log-error", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: error.message,
+        source: "error-boundary-global",
+        metadata: { digest: error.digest, stack: error.stack?.slice(0, 1000) },
+        url: window.location.href,
+      }),
+    }).catch(() => {});
   }, [error]);
 
   return (
