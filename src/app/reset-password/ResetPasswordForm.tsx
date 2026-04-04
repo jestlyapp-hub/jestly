@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { updatePassword } from "@/lib/auth/actions";
+import { createClient } from "@/lib/supabase/client";
 import AuthLayout from "@/components/auth/AuthLayout";
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -44,15 +44,35 @@ export default function ResetPasswordForm() {
     setError("");
     setLoading(true);
 
-    const result = await updatePassword(new FormData(formRef.current!));
+    const fd = new FormData(formRef.current!);
+    const password = (fd.get("password") as string) || "";
+    const confirm = (fd.get("confirm") as string) || "";
 
-    if (result?.error) {
-      setError(result.error);
+    if (!password || password.length < 8) {
+      setError("Le mot de passe doit contenir au moins 8 caractères.");
+      setLoading(false);
+      return;
+    }
+    if (password !== confirm) {
+      setError("Les mots de passe ne correspondent pas.");
       setLoading(false);
       return;
     }
 
-    // Password updated + session destroyed server-side → redirect to login
+    // Use browser client — the recovery session is client-side (hash fragment)
+    const supabase = createClient();
+
+    const { error: updateError } = await supabase.auth.updateUser({ password });
+
+    if (updateError) {
+      setError(updateError.message);
+      setLoading(false);
+      return;
+    }
+
+    // Security: destroy session — user must re-login
+    await supabase.auth.signOut();
+
     setSuccess(true);
     setTimeout(() => router.push("/login?reset=success"), 2500);
   };
