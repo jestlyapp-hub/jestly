@@ -11,7 +11,10 @@ export type EventCategory =
   | "rappel"
   | "admin"
   | "contenu"
-  | "personnel";
+  | "personnel"
+  | "tache"
+  | "projet"
+  | "facture";
 
 export type EventPriority = "low" | "medium" | "high" | "urgent";
 
@@ -25,19 +28,29 @@ export interface CalendarEvent {
   allDay: boolean;
   notes?: string;
   priority: EventPriority;
-  /** Source: "manual" = user-created, "order" = auto from order deadline */
-  source: "manual" | "order";
+  /** Source type */
+  source: "manual" | "order" | "task" | "project" | "invoice";
   /** Custom hex color (overrides category default) */
   color?: string;
   /** FK to clients table */
   clientId?: string;
+  clientName?: string;
+  clientEmail?: string;
   /** If source === "order" */
   orderId?: string;
   orderStatus?: string;
   orderPrice?: number;
-  clientName?: string;
-  clientEmail?: string;
   productName?: string;
+  /** If source === "task" */
+  taskId?: string;
+  taskStatus?: string;
+  /** If source === "project" */
+  projectId?: string;
+  projectStatus?: string;
+  /** If source === "invoice" */
+  invoiceId?: string;
+  invoiceStatus?: string;
+  invoiceAmount?: number;
 }
 
 export interface CategoryConfig {
@@ -58,10 +71,13 @@ export const CATEGORY_CONFIG: Record<EventCategory, CategoryConfig> = {
   admin:     { label: "Admin",      bg: "bg-gray-100",   text: "text-gray-600",    dot: "bg-gray-500",    border: "border-gray-200" },
   contenu:   { label: "Contenu",    bg: "bg-cyan-50",    text: "text-cyan-600",    dot: "bg-cyan-500",    border: "border-cyan-200" },
   personnel: { label: "Personnel",  bg: "bg-indigo-50",  text: "text-indigo-600",  dot: "bg-indigo-500",  border: "border-indigo-200" },
+  tache:     { label: "Tâche",      bg: "bg-purple-50",  text: "text-purple-600",  dot: "bg-purple-500",  border: "border-purple-200" },
+  projet:    { label: "Projet",     bg: "bg-teal-50",    text: "text-teal-600",    dot: "bg-teal-500",    border: "border-teal-200" },
+  facture:   { label: "Facture",    bg: "bg-pink-50",    text: "text-pink-600",    dot: "bg-pink-500",    border: "border-pink-200" },
 };
 
 export const ALL_CATEGORIES: EventCategory[] = [
-  "appel", "session", "contenu", "review", "livraison", "rappel", "admin", "personnel", "deadline",
+  "appel", "session", "contenu", "review", "livraison", "rappel", "admin", "personnel", "deadline", "tache", "projet", "facture",
 ];
 
 export const PRIORITY_CONFIG: Record<EventPriority, { label: string; color: string }> = {
@@ -83,6 +99,9 @@ export const CATEGORY_SOLID: Record<EventCategory, string> = {
   admin:     "#64748B",
   contenu:   "#06B6D4",
   personnel: "#6366F1",
+  tache:     "#9333EA",
+  projet:    "#14B8A6",
+  facture:   "#EC4899",
 };
 
 /** Curated palette for custom event color picker */
