@@ -5,6 +5,13 @@ import { getAuthUser } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // ── Constantes admin ──────────────────────────────────────────────
+export const ADMIN_EMAILS = new Set([
+  "jestlyapp@gmail.com",
+  "bltgabriel17@gmail.com",
+  "briaultgabriel@gmail.com",
+]);
+
+/** @deprecated Use ADMIN_EMAILS instead */
 export const ADMIN_EMAIL = "jestlyapp@gmail.com";
 
 // ID admin lu depuis l'env pour double vérification (optionnel)
@@ -34,10 +41,7 @@ type AdminFailure = {
  */
 export function isAdmin(user: User | null | undefined): boolean {
   if (!user?.email) return false;
-  const emailMatch = user.email.toLowerCase() === ADMIN_EMAIL;
-  if (!emailMatch) return false;
-  // Si ADMIN_USER_ID est défini, on vérifie aussi l'id
-  if (ADMIN_USER_ID && user.id !== ADMIN_USER_ID) return false;
+  if (!ADMIN_EMAILS.has(user.email.toLowerCase())) return false;
   return true;
 }
 
