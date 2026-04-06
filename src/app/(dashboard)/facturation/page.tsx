@@ -44,8 +44,6 @@ import type {
   TabKey,
   ViewMode,
   ExportMeta,
-  HealthData,
-  HealthSuggestion,
 } from "@/components/facturation/facturation-types";
 import {
   billingTransitions,
@@ -60,7 +58,6 @@ import PeriodFilterDropdown from "@/components/facturation/PeriodFilterDropdown"
 import { downloadCsv, downloadPdf } from "@/components/facturation/billing-export";
 import { KpiCard, EmptyState, SummaryBar } from "@/components/facturation/BillingKpiCards";
 import { ItemRow, GroupedView } from "@/components/facturation/BillingTable";
-import BillingHealthPanel from "@/components/facturation/BillingHealthCheck";
 import DetailDrawer from "@/components/facturation/BillingDetailDrawer";
 import ManualItemDrawer from "@/components/facturation/BillingDrawer";
 import MonthlyCloseDrawer from "@/components/facturation/PeriodClosureSection";
@@ -75,7 +72,6 @@ export default function FacturationPage() {
   /* ── Data ── */
   const { data: rawPipeline, loading: loadingItems, error: pipelineError, mutate: mutatePipeline } = useApi<PipelineItem[]>("/api/billing/pipeline");
   const { data: rawClients } = useApi<{ id: string; name: string }[]>("/api/clients");
-  const { data: health, mutate: mutateHealth } = useApi<HealthData>("/api/billing/health");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: dbExports, mutate: mutateExports } = useApi<any[]>("/api/billing/exports");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,7 +117,6 @@ export default function FacturationPage() {
   const [showExports, setShowExports] = useState(false);
   const [showMonthlyClose, setShowMonthlyClose] = useState(false);
   const [showArchives, setShowArchives] = useState(false);
-  const [healthExpanded, setHealthExpanded] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [mutating, setMutating] = useState(false);
 
@@ -336,8 +331,8 @@ export default function FacturationPage() {
 
   /* ── Handlers ── */
   const refreshAll = useCallback(async () => {
-    await Promise.all([mutatePipeline(), mutateHealth()]);
-  }, [mutatePipeline, mutateHealth]);
+    await mutatePipeline();
+  }, [mutatePipeline]);
 
   const handleDelete = useCallback(async (item: PipelineItem) => {
     if (mutating) return;
@@ -481,20 +476,6 @@ export default function FacturationPage() {
       await mutateClosures();
     } finally { setMutating(false); }
   }, [mutateClosures, mutating]);
-
-  const handleActSuggestion = useCallback(async (suggestion: HealthSuggestion) => {
-    if (mutating) return;
-    setMutating(true);
-    try {
-      if (suggestion.type === "unbilled_order" && suggestion.orderId) {
-        await fetch("/api/billing/from-order", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ order_id: suggestion.orderId }) });
-        await refreshAll();
-      } else if (suggestion.type === "missing_recurring" && suggestion.profileId) {
-        await fetch(`/api/billing/recurring/${suggestion.profileId}/generate`, { method: "POST" });
-        await refreshAll();
-      }
-    } finally { setMutating(false); }
-  }, [refreshAll, mutating]);
 
   const clearFilters = useCallback(() => {
     setFilterClient(""); setFilterPeriod(PERIOD_ALL); setFilterCategory(""); setFilterUnexported(false); setSearch("");
@@ -657,13 +638,6 @@ export default function FacturationPage() {
         )}
       </motion.div>
 
-      {/* ══════════════════════ BILLING INTELLIGENCE ══════════════════════ */}
-      {health && (health.counts.errors > 0 || health.counts.warnings > 0 || health.suggestions.length > 0) && (
-        <motion.div className="mb-5" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.07 }}>
-          <BillingHealthPanel health={health} expanded={healthExpanded} onToggle={() => setHealthExpanded(!healthExpanded)} onActSuggestion={handleActSuggestion} mutating={mutating} />
-        </motion.div>
-      )}
-
       {/* ══════════════════════ FILTER BAR ══════════════════════ */}
       <motion.div className="mb-4" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
         <div className="flex items-center gap-2 flex-wrap">
@@ -793,7 +767,6 @@ export default function FacturationPage() {
         {showCreate && (<ManualItemDrawer key="create" clients={clients} onClose={() => setShowCreate(false)} onSave={data => handleSaveManual(data)} />)}
         {detailItem && detailItem.type !== "order" && (<DetailDrawer key={`detail-${detailItem.id}`} item={detailItem} onClose={() => setDetailItem(null)} onStatusChange={(status) => handleBillingStatusChange(detailItem, status)} onDelete={() => handleDelete(detailItem)} mutating={mutating} />)}
         {showExports && (<ExportsDrawer key="exports" exports={dbExports || []} onClose={() => setShowExports(false)} />)}
-        {showMonthlyClose && health && (<MonthlyCloseDrawer key="monthly-close" health={health} closures={dbClosures || []} onClose={() => setShowMonthlyClose(false)} onExportCsv={handleExportCsv} onExportPdf={handleExportPdf} onClosePeriod={handleClosePeriod} />)}
         {showArchives && (<ArchivesDrawer key="archives" closures={dbClosures || []} exports={dbExports || []} onClose={() => setShowArchives(false)} onReopen={handleReopenPeriod} />)}
       </AnimatePresence>
 
