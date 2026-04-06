@@ -6,6 +6,7 @@ import Link from "next/link";
 import TextSwapButton from "@/components/ui/TextSwapButton";
 import SectionShell from "@/components/landing/SectionShell";
 import InteractiveFeatures from "@/sections/InteractiveFeatures";
+import DemosSoon from "@/sections/DemosSoon";
 
 /* ═══════════════════════════════════════════════════════════════════════
    JESTLY V7 — COMPACT CONVERSION MACHINE
@@ -522,7 +523,7 @@ function FinalCTA() {
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
             <TextSwapButton label="Commencer gratuitement" href="/login" variant="primary" size="lg" />
-            <TextSwapButton label="Voir la démo" href="/landing" variant="ghost" size="md" />
+            <TextSwapButton label="Voir la démo" href="/" variant="ghost" size="md" />
           </div>
           <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-6">
             {["Gratuit pour commencer", "Aucun engagement", "Export libre", "Support inclus"].map((item) => (
@@ -551,6 +552,7 @@ export default function LandingPage() {
         <InteractiveFeatures />
         <ProblemSolutionSection />
         <SocialProofSection />
+        <DemosSoon />
         <FinalCTA />
       </main>
     </div>

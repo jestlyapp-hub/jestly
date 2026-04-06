@@ -13,6 +13,7 @@ const ease = [0.22, 1, 0.36, 1] as const;
 const FEATURES = [
   {
     slug: "site-web",
+    href: "/fonctionnalites/site-vitrine",
     title: "Site web",
     description: "Créez un site freelance premium.",
     color: "#FF8A3D",
@@ -20,6 +21,7 @@ const FEATURES = [
   },
   {
     slug: "crm",
+    href: "/fonctionnalites/crm",
     title: "CRM clients",
     description: "Centralisez prospects, clients et suivis.",
     color: "#EC4899",
@@ -27,6 +29,7 @@ const FEATURES = [
   },
   {
     slug: "agenda",
+    href: "/fonctionnalites/calendrier",
     title: "Agenda",
     description: "Planifiez rendez-vous et deadlines.",
     color: "#4C8DFF",
@@ -34,6 +37,7 @@ const FEATURES = [
   },
   {
     slug: "facturation",
+    href: "/fonctionnalites/facturation",
     title: "Facturation",
     description: "Devis, factures, paiements, relances.",
     color: "#22c55e",
@@ -41,6 +45,7 @@ const FEATURES = [
   },
   {
     slug: "commandes",
+    href: "/fonctionnalites/commandes",
     title: "Commandes",
     description: "Gérez projets, statuts et livraisons.",
     color: "#F59E0B",
@@ -48,6 +53,7 @@ const FEATURES = [
   },
   {
     slug: "analytics",
+    href: "/fonctionnalites/analytics",
     title: "Analytics",
     description: "Revenus, performances, croissance.",
     color: "#7c3aed",
@@ -55,6 +61,7 @@ const FEATURES = [
   },
   {
     slug: "portfolio",
+    href: "/fonctionnalites/portfolio",
     title: "Portfolio",
     description: "Présentez vos projets avec une mise en scène premium.",
     color: "#A855F7",
@@ -62,6 +69,7 @@ const FEATURES = [
   },
   {
     slug: "paiements",
+    href: "/fonctionnalites/paiements",
     title: "Paiements",
     description: "Encaissez simplement, suivez vos paiements.",
     color: "#10B981",
@@ -69,6 +77,7 @@ const FEATURES = [
   },
   {
     slug: "briefs",
+    href: "/fonctionnalites/briefs",
     title: "Briefs",
     description: "Collectez les besoins clients structurés.",
     color: "#6366F1",
@@ -190,7 +199,7 @@ export default function FonctionnalitesPage() {
               transition={{ duration: 0.5, delay: i * 0.06, ease }}
             >
               <Link
-                href={`/landing/${f.slug}`}
+                href={f.href}
                 className="group block rounded-2xl p-6 transition-shadow duration-300 hover:shadow-lg"
                 style={{
                   background: "#FFFFFF",
@@ -330,7 +339,7 @@ export default function FonctionnalitesPage() {
             />
             <TextSwapButton
               label="Voir les tarifs"
-              href="/landing#pricing"
+              href="/#pricing"
               variant="secondary"
               size="lg"
             />

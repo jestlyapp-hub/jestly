@@ -207,7 +207,7 @@ export default function LandingHeader() {
       <motion.header className="fixed top-0 left-0 right-0 z-50 flex flex-col items-center px-4 pt-5" initial={{ y: -60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.9, ease }}>
         <div className="w-full flex flex-col items-center" style={{ maxWidth: 1100 }} onMouseEnter={handleEnterZone} onMouseLeave={handleLeaveZone}>
         <div className="flex items-center justify-between w-full transition-all duration-500" style={{ maxWidth: 1100, height: 64, padding: "0 24px", borderRadius: 999, background: scrolled ? "rgba(124,58,237,0.12)" : "rgba(124,58,237,0.10)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", border: "1px solid rgba(124,58,237,0.22)", boxShadow: scrolled ? "0 12px 35px rgba(0,0,0,0.10), inset 0 1px 0 rgba(255,255,255,0.45)" : "0 8px 25px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.45)" }}>
-          <Link href="/landing" className="flex items-center gap-2 group" onClick={() => setActiveMenu(null)}>
+          <Link href="/" className="flex items-center gap-2 group" onClick={() => setActiveMenu(null)}>
             <Image src="/logo-color.png" alt="Jestly" width={28} height={28} className="w-7 h-7 group-hover:scale-105 transition-transform" priority />
             <span className="text-[16px] font-bold text-[#111118] tracking-tight">Jestly</span>
           </Link>
@@ -287,7 +287,7 @@ export default function LandingHeader() {
           {NAV_ITEMS.filter(item => item.menu || item.href).map((item) => (
             <Link
               key={item.label}
-              href={item.href || (item.menu === "features" ? "/fonctionnalites/site-vitrine" : item.menu === "solutions" ? "/pour-qui/createurs" : "/landing")}
+              href={item.href || (item.menu === "features" ? "/fonctionnalites/site-vitrine" : item.menu === "solutions" ? "/pour-qui/createurs" : "/")}
               onClick={closeMobile}
               className="flex items-center px-3 py-2.5 rounded-lg text-[14px] font-medium text-[#5A5A58] hover:bg-[#F7F7F5] hover:text-[#191919] transition-colors"
             >

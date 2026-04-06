@@ -597,7 +597,7 @@ function FinalCTASection({ data }: { data: PersonaPageData }) {
             <p className="text-[15px] sm:text-[17px] mt-5 max-w-[460px] mx-auto" style={{ color: "#6B7280" }}>{data.ctaSubtitle}</p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mt-8">
               <TextSwapButton label="Commencer gratuitement" href="/signup" variant="primary" size="lg" />
-              <TextSwapButton label="Voir la démo" href="/landing" variant="ghost" size="md" />
+              <TextSwapButton label="Voir la démo" href="/" variant="ghost" size="md" />
             </div>
             <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-6">
               {["Gratuit pour commencer", "Aucun engagement", "Prêt en 2 minutes"].map((item) => (

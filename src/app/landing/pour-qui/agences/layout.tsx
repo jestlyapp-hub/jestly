@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Jestly pour agences créatives",
     description:
       "Le système qui scale avec votre agence.",
-    url: "https://jestly.fr/landing/pour-qui/agences",
+    url: "https://jestly.fr/pour-qui/agences",
   },
 };
 

@@ -53,7 +53,7 @@ function LoginContent() {
 
       {/* Logo + badge */}
       <div className="flex items-center justify-between mb-10">
-        <Link href="/landing" className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5">
           <Image src="/logo-color.png" alt="Jestly" width={32} height={32} className="w-8 h-8" priority />
           <span className="text-[17px] font-bold text-[#111118] tracking-tight">Jestly</span>
         </Link>

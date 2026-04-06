@@ -56,7 +56,7 @@ export default function LandingFooter() {
 
           {/* Brand column */}
           <div className="lg:pr-8">
-            <Link href="/landing" className="flex items-center gap-2.5 mb-5">
+            <Link href="/" className="flex items-center gap-2.5 mb-5">
               <Image src="/logo-color.png" alt="Jestly" width={32} height={32} className="w-8 h-8" />
               <span className="text-[18px] font-bold text-[#111118] tracking-tight">Jestly</span>
             </Link>

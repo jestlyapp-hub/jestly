@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { fixAttachmentUrls } from "@/lib/storage-utils";
 
 // GET /api/tasks — list user's tasks
 export async function GET(req: NextRequest) {
@@ -78,6 +79,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: `Erreur lors de la création de la tâche : ${error.message}` },
       { status: 500 },
+    );
+  }
+
+  // 🔔 Notification — tâche avec échéance (fire-and-forget)
+  if (data?.due_date) {
+    import("@/lib/notifications/triggers").then(({ triggerTaskDue }) =>
+      triggerTaskDue({
+        userId: user.id,
+        taskId: data.id,
+        taskTitle: data.title,
+        dueDate: data.due_date,
+      }).catch(() => {})
     );
   }
 
@@ -204,7 +217,7 @@ function mapRowToTask(row: any) {
     orderTitle: row.order_title || undefined,
     tags,
     subtasks,
-    attachments: Array.isArray(row.attachments) ? row.attachments : [],
+    attachments: fixAttachmentUrls(Array.isArray(row.attachments) ? row.attachments : []),
     archived: !!row.archived_at,
     archivedAt: row.archived_at || undefined,
     createdAt: row.created_at,

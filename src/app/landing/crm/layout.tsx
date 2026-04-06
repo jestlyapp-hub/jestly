@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "CRM pour freelances | Jestly",
     description:
       "Centralisez vos prospects et clients dans un CRM pensé pour les freelances.",
-    url: "https://jestly.fr/landing/crm",
+    url: "https://jestly.fr/fonctionnalites/crm",
   },
 };
 

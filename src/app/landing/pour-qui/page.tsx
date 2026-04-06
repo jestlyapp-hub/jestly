@@ -155,7 +155,7 @@ export default function PourQuiPage() {
               transition={{ duration: 0.5, delay: i * 0.08, ease }}
             >
               <Link
-                href={`/landing/pour-qui/${p.slug}`}
+                href={`/pour-qui/${p.slug}`}
                 className="group block rounded-2xl p-6 transition-shadow duration-300 hover:shadow-lg"
                 style={{
                   background: "#FFFFFF",

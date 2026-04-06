@@ -21,6 +21,7 @@ export function AccountSection({ profile, form, actions, dirty, onAvatarChange }
   const [uploading, setUploading] = useState(false);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imgBroken, setImgBroken] = useState(false);
 
   const displayUrl = previewUrl || profile.avatar_url;
 
@@ -41,6 +42,7 @@ export function AccountSection({ profile, form, actions, dirty, onAvatarChange }
     // Local preview
     const localUrl = URL.createObjectURL(file);
     setPreviewUrl(localUrl);
+    setImgBroken(false);
 
     // Upload to Supabase Storage
     setUploading(true);
@@ -107,8 +109,8 @@ export function AccountSection({ profile, form, actions, dirty, onAvatarChange }
             >
               {uploading ? (
                 <Loader2 size={20} className="animate-spin text-[#7C3AED]" />
-              ) : displayUrl ? (
-                <Image src={displayUrl} alt="" fill className="object-cover" unoptimized />
+              ) : displayUrl && !imgBroken ? (
+                <Image src={displayUrl} alt="" fill className="object-cover" unoptimized onError={() => setImgBroken(true)} />
               ) : (
                 form.fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2) || "?"
               )}

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { normalizeStorageUrl } from "@/lib/storage-utils";
 
 /**
  * GET /api/settings — full profile + settings + workspace + notifications
@@ -18,6 +19,12 @@ export async function GET() {
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Normaliser l'avatar_url (convertit les signed URLs expirées en URLs publiques)
+  if (data?.avatar_url) {
+    data.avatar_url = normalizeStorageUrl(data.avatar_url);
+  }
+
   return NextResponse.json(data);
 }
 

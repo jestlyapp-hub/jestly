@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Jestly pour créateurs de contenu",
     description:
       "Le cockpit qui centralise tout votre business créatif.",
-    url: "https://jestly.fr/landing/pour-qui/createurs",
+    url: "https://jestly.fr/pour-qui/createurs",
   },
 };
 

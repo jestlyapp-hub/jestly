@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Jestly pour développeurs freelance",
     description:
       "Le système de gestion que vous auriez codé vous-même.",
-    url: "https://jestly.fr/landing/pour-qui/developpeurs",
+    url: "https://jestly.fr/pour-qui/developpeurs",
   },
 };
 

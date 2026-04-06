@@ -351,7 +351,7 @@ export default function ComparatifsPage() {
                   transition={{ duration: 0.5, ease, delay: i * 0.08 }}
                 >
                   <Link
-                    href={`/landing/comparatifs/${comp.slug}`}
+                    href={`/comparatifs/${comp.slug}`}
                     style={{
                       display: "block",
                       background: "#fff",
@@ -441,7 +441,7 @@ export default function ComparatifsPage() {
               />
               <TextSwapButton
                 label="Voir les tarifs"
-                href="/landing#pricing"
+                href="/#pricing"
                 variant="secondary"
                 size="lg"
               />

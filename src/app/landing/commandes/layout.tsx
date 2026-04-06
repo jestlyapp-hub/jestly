@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Gestion de commandes freelance | Jestly",
     description:
       "Gérez vos commandes et briefs dans un seul flux clair, pensé pour les freelances.",
-    url: "https://jestly.fr/landing/commandes",
+    url: "https://jestly.fr/fonctionnalites/commandes",
   },
 };
 

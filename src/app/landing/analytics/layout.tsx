@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Analytics business freelance | Jestly",
     description:
       "Des chiffres qui éclairent vos décisions — revenus, activité, tendances.",
-    url: "https://jestly.fr/landing/analytics",
+    url: "https://jestly.fr/fonctionnalites/analytics",
   },
 };
 

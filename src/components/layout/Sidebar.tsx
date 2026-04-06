@@ -52,7 +52,7 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Business",
+    title: "Gestion",
     items: [
       { label: "Commandes", href: "/commandes", icon: <ShoppingBag size={18} strokeWidth={1.7} /> },
       { label: "Clients", href: "/clients", icon: <Users size={18} strokeWidth={1.7} /> },
@@ -60,7 +60,7 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: "Workspace",
+    title: "Organisation",
     items: [
       { label: "Projets", href: "/projets", icon: <Palette size={18} strokeWidth={1.7} /> },
       { label: "Tâches", href: "/taches", icon: <CheckSquare size={18} strokeWidth={1.7} /> },
@@ -129,7 +129,7 @@ function AccountMenu({ user, open, onClose, triggerRef }: {
   const displayName = user.full_name || user.email?.split("@")[0] || "Utilisateur";
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {open && (
         <motion.div
           ref={menuRef}
@@ -146,10 +146,9 @@ function AccountMenu({ user, open, onClose, triggerRef }: {
               <div className="flex items-center gap-3">
                 <div className="relative w-10 h-10 rounded-full bg-[#EDE9FE] ring-1 ring-[#E8E5F5] flex items-center justify-center flex-shrink-0 overflow-hidden">
                   {user.avatar_url ? (
-                    <Image src={user.avatar_url} alt="" fill className="object-cover" unoptimized />
-                  ) : (
-                    <span className="text-[13px] font-bold text-[#7C3AED]">{initials}</span>
-                  )}
+                    <Image src={user.avatar_url} alt="" fill className="object-cover" unoptimized onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                  ) : null}
+                  <span className={`text-[13px] font-bold text-[#7C3AED] ${user.avatar_url ? "absolute" : ""}`}>{initials}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
@@ -256,9 +255,12 @@ export default function Sidebar() {
 
   useEffect(() => {
     fetch("/api/auth/me")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) return null; // 401 ou erreur → pas de user, état par défaut
+        return r.json();
+      })
       .then((d) => {
-        if (d.email) {
+        if (d?.email) {
           setUser({
             email: d.email,
             full_name: d.full_name || null,
@@ -271,7 +273,7 @@ export default function Sidebar() {
           if (d.is_admin) setIsAdminUser(true);
         }
       })
-      .catch(() => {});
+      .catch(() => {}); // Network error — no-op, user stays null
   }, []);
 
   const isActive = (href: string) =>
@@ -445,10 +447,9 @@ export default function Sidebar() {
         >
           <div className="relative w-8 h-8 rounded-full bg-[#EDE9FE] ring-1 ring-[#E8E5F5] flex items-center justify-center text-[11px] font-semibold text-[#7C3AED] flex-shrink-0 overflow-hidden">
             {user?.avatar_url ? (
-              <Image src={user.avatar_url} alt="" fill className="object-cover" unoptimized />
-            ) : (
-              initials
-            )}
+              <Image src={user.avatar_url} alt="" fill className="object-cover" unoptimized onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+            ) : null}
+            {initials}
           </div>
           <div className="flex-1 min-w-0 text-left">
             <div className="text-[13px] font-medium text-[#191919] truncate">{displayName}</div>

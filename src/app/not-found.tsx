@@ -69,7 +69,7 @@ export default function NotFound() {
           </Link>
 
           <Link
-            href="/landing"
+            href="/"
             className="w-full h-[48px] rounded-xl text-[13px] font-medium flex items-center justify-center transition-all duration-200 hover:bg-[#F7F7FB]"
             style={{
               border: "1px solid rgba(0,0,0,0.08)",

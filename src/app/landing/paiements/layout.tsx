@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Paiements freelance | Jestly",
     description:
       "Des paiements suivis avec sérénité, reliés à vos factures et clients.",
-    url: "https://jestly.fr/landing/paiements",
+    url: "https://jestly.fr/fonctionnalites/paiements",
   },
 };
 

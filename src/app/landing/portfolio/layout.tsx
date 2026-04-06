@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Portfolio professionnel freelance | Jestly",
     description:
       "Un portfolio qui fait le travail pour vous — intégré à votre site Jestly.",
-    url: "https://jestly.fr/landing/portfolio",
+    url: "https://jestly.fr/fonctionnalites/portfolio",
   },
 };
 

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Jestly pour consultants",
     description:
       "Gérez vos missions comme un vrai business avec Jestly.",
-    url: "https://jestly.fr/landing/pour-qui/consultants",
+    url: "https://jestly.fr/pour-qui/consultants",
   },
 };
 

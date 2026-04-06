@@ -10,7 +10,7 @@ export default function CGUPage() {
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
       <Link
-        href="/landing"
+        href="/"
         className="text-sm text-[#4F46E5] hover:text-[#4338CA] transition-colors mb-8 inline-block"
       >
         &larr; Retour à l&apos;accueil

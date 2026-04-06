@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Agenda freelance intégré | Jestly",
     description:
       "Vos rendez-vous, deadlines et tâches dans une vue unique.",
-    url: "https://jestly.fr/landing/agenda",
+    url: "https://jestly.fr/fonctionnalites/calendrier",
   },
 };
 

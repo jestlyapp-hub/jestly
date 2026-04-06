@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     title: "Facturation freelance simplifiée | Jestly",
     description:
       "Pilotez devis, factures et relances sans vous éparpiller.",
-    url: "https://jestly.fr/landing/facturation",
+    url: "https://jestly.fr/fonctionnalites/facturation",
   },
 };
 

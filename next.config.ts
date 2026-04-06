@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      // Legacy /landing → / (permanent redirect pour SEO)
+      { source: "/landing", destination: "/", permanent: true },
+    ];
+  },
   async rewrites() {
     return [
       // ── Hubs marketing ──

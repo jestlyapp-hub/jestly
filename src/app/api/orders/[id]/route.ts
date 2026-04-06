@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { enrichOrdersWithProducts } from "@/lib/supabase-helpers";
+import { fixOrderFileUrls } from "@/lib/storage-utils";
 
 // GET /api/orders/[id]
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -24,6 +25,11 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 
     if (!data) {
       return NextResponse.json({ error: "Commande introuvable" }, { status: 404 });
+    }
+
+    // Normaliser les file_url (signed URLs expirées → public URLs)
+    if (Array.isArray(data.order_files)) {
+      data.order_files = fixOrderFileUrls(data.order_files);
     }
 
     const [enriched] = await enrichOrdersWithProducts(supabase, [data], user.id);
@@ -158,6 +164,20 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       }
       console.error(`[PATCH /api/orders/${id}]`, error.code, error.message);
       return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // 🔔 Notifications — commande livrée + suggestion facturation (fire-and-forget)
+    if (body.status === "delivered") {
+      import("@/lib/notifications/triggers").then(({ triggerOrderDelivered, triggerInvoiceSuggestion }) => {
+        const p = {
+          userId: user.id,
+          orderId: id,
+          orderTitle: data.title ?? "Commande",
+          clientName: data.clients?.name,
+        };
+        triggerOrderDelivered(p).catch(() => {});
+        triggerInvoiceSuggestion(p).catch(() => {});
+      });
     }
 
     const [enriched] = await enrichOrdersWithProducts(supabase, [data], user.id);

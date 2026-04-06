@@ -6,11 +6,11 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       {/* Header minimal */}
       <header className="border-b border-[#E6E6E4] bg-white sticky top-0 z-50">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/landing" className="text-xl font-bold tracking-tight text-[#191919] hover:opacity-80 transition-opacity">
+          <Link href="/" className="text-xl font-bold tracking-tight text-[#191919] hover:opacity-80 transition-opacity">
             Jestly
           </Link>
           <Link
-            href="/landing"
+            href="/"
             className="text-sm text-[#5A5A58] hover:text-[#191919] transition-colors"
           >
             &larr; Retour à l&apos;accueil
