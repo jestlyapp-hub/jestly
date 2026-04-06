@@ -128,21 +128,21 @@ export const EVENT_PALETTE = [
 
 /** Get the display color for an event (custom color > custom category > built-in category) */
 export function getEventDisplayColor(event: CalendarEvent, customCategories?: CustomCategory[]): string {
-  if (event.color) return event.color;
-  if (event.categoryId && customCategories) {
+  if (event?.color) return event.color;
+  if (event?.categoryId && customCategories) {
     const custom = customCategories.find((c) => c.id === event.categoryId);
-    if (custom) return custom.color;
+    if (custom?.color) return custom.color;
   }
-  return CATEGORY_SOLID[event.category] || "#6366F1";
+  return (event?.category && CATEGORY_SOLID[event.category]) || "#6366F1";
 }
 
 /** Get category label for display */
 export function getCategoryLabel(event: CalendarEvent, customCategories?: CustomCategory[]): string {
-  if (event.categoryId && customCategories) {
+  if (event?.categoryId && customCategories) {
     const custom = customCategories.find((c) => c.id === event.categoryId);
     if (custom) return custom.name;
   }
-  return CATEGORY_CONFIG[event.category]?.label || event.category;
+  return CATEGORY_CONFIG[event?.category]?.label || event?.category || "Événement";
 }
 
 /* ─── Order → CalendarEvent ─── */
@@ -302,9 +302,9 @@ export function getEventHeightPercent(startTime: string, endTime: string, startH
 /* ─── Event Display Helpers ─── */
 
 /** Get a stronger background color for event blocks (category or custom color) */
-export function getEventBgColor(event: CalendarEvent, opacity = 0.18): string {
-  const color = getEventDisplayColor(event);
-  // Convert hex to rgba for controlled opacity
+export function getEventBgColor(event: CalendarEvent, opacity = 0.18, customCategories?: CustomCategory[]): string {
+  const color = getEventDisplayColor(event, customCategories) || "#6366F1";
+  if (!color || color.length < 7) return `rgba(99, 102, 241, ${opacity})`;
   const r = parseInt(color.slice(1, 3), 16);
   const g = parseInt(color.slice(3, 5), 16);
   const b = parseInt(color.slice(5, 7), 16);
