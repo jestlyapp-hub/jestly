@@ -56,7 +56,8 @@ export async function getDashboardRevenueSeries(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   allOrders.forEach((o: any) => {
     // Use paid_at if available, else created_at
-    const dateRef = o.paid_at ? String(o.paid_at).slice(0, 7) : o.created_at?.slice(0, 7);
+    const rawDate = o.paid_at || o.created_at;
+    const dateRef = rawDate ? String(rawDate).slice(0, 7) : null;
     if (!dateRef) return;
 
     const bucket = monthBuckets[dateRef];

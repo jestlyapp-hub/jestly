@@ -675,8 +675,8 @@ export default function DashboardPage() {
     activeProductsCount: (raw.activeProductsCount ?? 0) as number,
   };
   /* eslint-enable @typescript-eslint/no-explicit-any */
-  const sparkRev = safeData.revenueData.series?.map((m) => m.revenue) ?? [];
-  const sparkOrd = safeData.revenueData.series?.map((m) => m.ordersCount) ?? [];
+  const sparkRev = (safeData.revenueData?.series || []).map((m) => m.revenue);
+  const sparkOrd = (safeData.revenueData?.series || []).map((m) => m.ordersCount);
 
   // Detect empty account (new user)
   const isEmptyAccount = safeData.ordersCount === 0 && safeData.clientsCount === 0 && safeData.activeProductsCount === 0;

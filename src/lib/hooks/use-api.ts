@@ -122,8 +122,9 @@ export async function apiFetch<T = unknown>(
   url: string,
   options: { method?: string; body?: unknown } = {}
 ): Promise<T> {
+  const method = options.method || (options.body ? "POST" : "GET");
   const res = await fetch(url, {
-    method: options.method || "POST",
+    method,
     headers: { "Content-Type": "application/json" },
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
