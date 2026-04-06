@@ -2,16 +2,7 @@
 
 import { motion } from "framer-motion";
 import TextSwapButton from "@/components/ui/TextSwapButton";
-import VideoPlaceholder from "./VideoPlaceholder";
-import BuilderDemoPlayer from "./BuilderDemoPlayer";
-import CrmDemoPlayer from "./CrmDemoPlayer";
-import AgendaDemoPlayer from "./AgendaDemoPlayer";
-import FacturationDemoPlayer from "./FacturationDemoPlayer";
-import CommandesDemoPlayer from "./CommandesDemoPlayer";
-import AnalyticsDemoPlayer from "./AnalyticsDemoPlayer";
-import PortfolioDemoPlayer from "./PortfolioDemoPlayer";
-import PaiementsDemoPlayer from "./PaiementsDemoPlayer";
-import BriefsDemoPlayer from "./BriefsDemoPlayer";
+import FeatureDemoSoonHero from "./FeatureDemoSoonHero";
 
 /* ═══════════════════════════════════════════════════════════════════════
    FeaturePageLayout — Premium high-contrast feature pages
@@ -116,30 +107,14 @@ export default function FeaturePageLayout({ data: d }: { data: FeaturePageData }
 
           <motion.div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.3, ease }}>
             <TextSwapButton label="Commencer gratuitement" href="/login" variant="primary" size="lg" />
-            <TextSwapButton label="Voir la démo" href="#demo" variant="ghost" size="md" />
+            <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-[14px] font-medium text-[#BBB] bg-[#F9F9F8] border border-[#EFEFEF] cursor-default">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3" /></svg>
+              Démo bientôt
+              <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-full" style={{ background: `${d.accentColor}12`, color: d.accentColor }}>Soon</span>
+            </span>
           </motion.div>
 
-          {d.useBuilderDemo ? (
-            <BuilderDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
-          ) : d.useCrmDemo ? (
-            <CrmDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
-          ) : d.useAgendaDemo ? (
-            <AgendaDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
-          ) : d.useFacturationDemo ? (
-            <FacturationDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
-          ) : d.useCommandesDemo ? (
-            <CommandesDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
-          ) : d.useAnalyticsDemo ? (
-            <AnalyticsDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
-          ) : d.usePortfolioDemo ? (
-            <PortfolioDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
-          ) : d.usePaiementsDemo ? (
-            <PaiementsDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
-          ) : d.useBriefsDemo ? (
-            <BriefsDemoPlayer label={d.videoLabel} accentColor={d.accentColor} />
-          ) : (
-            <VideoPlaceholder label={d.videoLabel} accentColor={d.accentColor} />
-          )}
+          <FeatureDemoSoonHero accentColor={d.accentColor} featureName={d.badge} />
         </div>
       </Section>
 
