@@ -769,31 +769,16 @@ export default function GuidePage() {
             </svg>
             Commencer
           </button>
-          <button
-            onClick={handlePillVideos}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white text-[#191919] text-[13px] font-medium rounded-lg border border-[#E6E6E4] hover:bg-[#FBFBFA] transition-colors cursor-pointer"
-          >
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
+          <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#F7F7F5] text-[#BBB] text-[13px] font-medium rounded-lg border border-[#EFEFEF] cursor-default">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18" />
               <line x1="7" y1="2" x2="7" y2="22" />
               <line x1="17" y1="2" x2="17" y2="22" />
               <line x1="2" y1="12" x2="22" y2="12" />
-              <line x1="2" y1="7" x2="7" y2="7" />
-              <line x1="2" y1="17" x2="7" y2="17" />
-              <line x1="17" y1="7" x2="22" y2="7" />
-              <line x1="17" y1="17" x2="22" y2="17" />
             </svg>
-            Tutoriels vid&eacute;o
-          </button>
+            Tutoriels vidéo
+            <span className="text-[9px] font-bold text-[#4F46E5] bg-[#EEF2FF] px-1.5 py-0.5 rounded-full uppercase">Soon</span>
+          </span>
         </div>
       </motion.div>
 
@@ -981,50 +966,27 @@ export default function GuidePage() {
             </div>
           </div>
 
-          {/* ── Video Tutorials ── */}
+          {/* ── Video Tutorials — Coming Soon ── */}
           <div ref={videosRef} className="mb-12">
-            <h2 className="text-[18px] font-bold text-[#191919] mb-1">
-              Tutoriels vid&eacute;o
-            </h2>
+            <div className="flex items-center gap-2.5 mb-1">
+              <h2 className="text-[18px] font-bold text-[#191919]">
+                Tutoriels vidéo
+              </h2>
+              <span className="text-[9px] font-bold text-[#4F46E5] bg-[#EEF2FF] px-2 py-0.5 rounded-full uppercase">Bientôt</span>
+            </div>
             <p className="text-[13px] text-[#8A8A88] mb-5">
               Apprenez visuellement en quelques minutes.
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {VIDEOS.map((video, i) => (
-                <motion.div
-                  key={video.title}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: 0.05 * i }}
-                  className="bg-white border border-[#E6E6E4] rounded-xl overflow-hidden hover:border-[#D1D5DB] hover:shadow-sm transition-all group cursor-pointer"
-                >
-                  {/* Video placeholder */}
-                  <div className="relative bg-[#F7F7F5] aspect-video flex items-center justify-center">
-                    <div className="w-12 h-12 rounded-full bg-white/90 shadow-sm flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="#4F46E5"
-                        stroke="none"
-                      >
-                        <polygon points="6 3 20 12 6 21" />
-                      </svg>
-                    </div>
-                    <span className="absolute bottom-2 right-2 text-[11px] font-medium text-[#5A5A58] bg-white/80 backdrop-blur-sm px-2 py-0.5 rounded">
-                      {video.duration}
-                    </span>
-                  </div>
-                  <div className="p-3.5">
-                    <span className="text-[10px] font-semibold text-[#4F46E5] uppercase tracking-wider">
-                      {video.category}
-                    </span>
-                    <h4 className="text-[13px] font-medium text-[#191919] mt-0.5">
-                      {video.title}
-                    </h4>
-                  </div>
-                </motion.div>
-              ))}
+            <div className="bg-[#FAFAF9] border border-[#E6E6E4] border-dashed rounded-xl py-12 flex flex-col items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-[#EEF2FF] flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="5 3 19 12 5 21 5 3" />
+                </svg>
+              </div>
+              <p className="text-[14px] font-semibold text-[#191919]">Des tutoriels vidéo arrivent bientôt</p>
+              <p className="text-[12px] text-[#8A8A88] max-w-sm text-center">
+                Guides pas-à-pas en vidéo pour maîtriser chaque fonctionnalité de Jestly. Restez à l&apos;écoute !
+              </p>
             </div>
           </div>
 
