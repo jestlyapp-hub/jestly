@@ -171,7 +171,7 @@ function AccountMenu({ user, open, onClose, triggerRef }: {
               <MenuLink href="/parametres" icon={<Settings size={15} strokeWidth={1.7} />} label="Paramètres" onClick={onClose} />
               <MenuLink href="/support" icon={<Headphones size={15} strokeWidth={1.7} />} label="Support" onClick={onClose} />
               <MenuLink href="/guide" icon={<HelpCircle size={15} strokeWidth={1.7} />} label="Guide" onClick={onClose} />
-              <MenuButton icon={<MessageCircle size={15} strokeWidth={1.7} />} label="Discord" onClick={() => { window.open("https://discord.gg/jestly", "_blank"); onClose(); }} external />
+              <MenuButton icon={<MessageCircle size={15} strokeWidth={1.7} />} label="Discord" onClick={() => { window.open("https://discord.gg/hnfkDJQKUU", "_blank"); onClose(); }} external />
             </div>
 
             {/* ── Déconnexion ── */}
