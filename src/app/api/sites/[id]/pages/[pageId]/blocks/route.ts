@@ -12,6 +12,7 @@ export async function GET(
   if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
   // Ownership check
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: site } = await (supabase.from("sites") as any)
     .select("id")
     .eq("id", siteId)
@@ -29,7 +30,7 @@ export async function GET(
   return NextResponse.json(data);
 }
 
-// POST /api/sites/[id]/pages/[pageId]/blocks — bulk upsert blocks
+// POST /api/sites/[id]/pages/[pageId]/blocks — save blocks (upsert-then-prune)
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string; pageId: string }> }
@@ -40,6 +41,7 @@ export async function POST(
   if (!user) return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
 
   // Ownership check
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: site } = await (supabase.from("sites") as any)
     .select("id")
     .eq("id", siteId)
@@ -53,21 +55,22 @@ export async function POST(
     return NextResponse.json({ error: "Le tableau blocks est requis" }, { status: 400 });
   }
 
-  // Delete existing blocks and re-insert (simpler than individual upserts for ordering)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { error: deleteError } = await (supabase.from("site_blocks") as any)
-    .delete()
-    .eq("page_id", pageId);
-
-  if (deleteError) {
-    return NextResponse.json({ error: deleteError.message }, { status: 500 });
-  }
+  // ── Stratégie upsert-then-prune ──
+  // 1. Upsert tous les blocs envoyés (crée ou met à jour)
+  // 2. Supprime uniquement les blocs qui ne sont plus dans la liste
+  // Avantage : si l'upsert échoue, les anciens blocs restent intacts
 
   if (blocks.length === 0) {
+    // Cas spécial : page vidée volontairement
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: deleteError } = await (supabase.from("site_blocks") as any)
+      .delete()
+      .eq("page_id", pageId);
+    if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 });
     return NextResponse.json([]);
   }
 
-  const blocksToInsert = blocks.map((block: Record<string, unknown>, index: number) => ({
+  const blocksToUpsert = blocks.map((block: Record<string, unknown>, index: number) => ({
     id: block.id as string | undefined,
     page_id: pageId,
     type: block.type,
@@ -78,11 +81,25 @@ export async function POST(
     visible: block.visible !== false,
   }));
 
+  // Étape 1 : Upsert (safe — les anciens blocs ne sont pas touchés tant que ça réussit)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("site_blocks") as any)
-    .upsert(blocksToInsert, { onConflict: "id" })
+    .upsert(blocksToUpsert, { onConflict: "id" })
     .select();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Étape 2 : Prune — supprimer les blocs qui ne sont plus dans la liste
+  // Seulement après que l'upsert ait réussi
+  const survivingIds = (data || []).map((b: { id: string }) => b.id);
+
+  if (survivingIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from("site_blocks") as any)
+      .delete()
+      .eq("page_id", pageId)
+      .not("id", "in", `(${survivingIds.join(",")})`);
+  }
+
   return NextResponse.json(data);
 }

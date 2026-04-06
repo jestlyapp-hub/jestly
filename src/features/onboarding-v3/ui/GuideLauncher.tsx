@@ -43,7 +43,7 @@ export default function GuideLauncher() {
   }, []);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {showModal && (
         <div ref={modalRef}>
           <motion.div

@@ -21,7 +21,7 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
   const activePage = state.site.pages.find((p) => p.id === pageId);
   const suggestions = activePage ? suggestNextBlocks(activePage.blocks) : [];
   const suggestedEntries = suggestions
-    .map((type) => blockRegistry.find((b) => b.type === type))
+    .map((type) => blockRegistry.find((b) => b.type === type && !b.soon))
     .filter(Boolean) as typeof blockRegistry;
 
   const handleHover = useCallback((type: BlockType | null) => {
@@ -44,6 +44,9 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
       b.description.toLowerCase().includes(search.toLowerCase());
     return matchCategory && matchSearch;
   });
+
+  // Blocs disponibles (non-soon) pour le compteur
+  const availableBlocks = blockRegistry.filter((b) => !b.soon);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -75,10 +78,10 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
               }`}
             >
               Tous les blocs
-              <span className="ml-1 text-[10px] opacity-50">{blockRegistry.length}</span>
+              <span className="ml-1 text-[10px] opacity-50">{availableBlocks.length}</span>
             </button>
             {blockCategories.map((cat) => {
-              const count = blockRegistry.filter((b) => b.category === cat.id).length;
+              const count = blockRegistry.filter((b) => b.category === cat.id && !b.soon).length;
               return (
                 <button
                   key={cat.id}
@@ -146,31 +149,43 @@ export default function AddBlockModal({ onClose, pageId }: { onClose: () => void
               </div>
             ) : (
               <div data-guide="block-catalog" className="grid grid-cols-3 gap-2.5">
-                {filtered.map((entry) => (
-                  <button
-                    key={entry.type}
-                    onClick={() => {
-                      const v = getVariantsForBlock(entry.type);
-                      if (v.length > 0) { setSelectedType(entry.type); } else { handleAdd(entry.type); }
-                    }}
-                    onMouseEnter={() => handleHover(entry.type)}
-                    onMouseLeave={() => handleHover(null)}
-                    className={`group flex flex-col p-3 rounded-xl border transition-all text-left ${
-                      hoveredType === entry.type
-                        ? "border-[#4F46E5] bg-[#EEF2FF]/40 shadow-sm"
-                        : "border-[#E6E6E4] hover:border-[#4F46E5]/40"
-                    }`}
-                  >
-                    {/* Miniature */}
-                    <div className="w-full h-14 bg-[#F7F7F5] rounded-lg p-2 mb-2 flex items-center justify-center overflow-hidden">
-                      <div className="w-full">
-                        <BlockThumbnail type={entry.type} />
+                {filtered.map((entry) => {
+                  const isSoon = !!entry.soon;
+                  return (
+                    <button
+                      key={entry.type}
+                      disabled={isSoon}
+                      onClick={() => {
+                        if (isSoon) return;
+                        const v = getVariantsForBlock(entry.type);
+                        if (v.length > 0) { setSelectedType(entry.type); } else { handleAdd(entry.type); }
+                      }}
+                      onMouseEnter={() => !isSoon && handleHover(entry.type)}
+                      onMouseLeave={() => !isSoon && handleHover(null)}
+                      className={`group flex flex-col p-3 rounded-xl border transition-all text-left ${
+                        isSoon
+                          ? "border-[#E6E6E4] bg-[#FAFAFA] opacity-50 cursor-default"
+                          : hoveredType === entry.type
+                            ? "border-[#4F46E5] bg-[#EEF2FF]/40 shadow-sm"
+                            : "border-[#E6E6E4] hover:border-[#4F46E5]/40"
+                      }`}
+                    >
+                      {/* Miniature */}
+                      <div className="w-full h-14 bg-[#F7F7F5] rounded-lg p-2 mb-2 flex items-center justify-center overflow-hidden">
+                        <div className="w-full">
+                          <BlockThumbnail type={entry.type} />
+                        </div>
                       </div>
-                    </div>
-                    <div className="text-[12px] font-semibold text-[#191919] mb-0.5">{entry.name}</div>
-                    <div className="text-[10px] text-[#999] leading-snug line-clamp-2">{entry.description}</div>
-                  </button>
-                ))}
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <span className="text-[12px] font-semibold text-[#191919]">{entry.name}</span>
+                        {isSoon && (
+                          <span className="text-[8px] font-bold uppercase tracking-wider text-[#A8A29E] bg-[#F0F0EE] px-1.5 py-[1px] rounded-full">Bientôt</span>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-[#999] leading-snug line-clamp-2">{entry.description}</div>
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>

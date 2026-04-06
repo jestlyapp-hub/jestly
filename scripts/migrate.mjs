@@ -150,6 +150,10 @@ async function main() {
     "056_orders_sort_position.sql",
     "057_task_attachments.sql",
     "058_order_status_before_paid.sql",
+    "059_subscription_plans.sql",
+    "060_onboarding_questionnaire.sql",
+    "061_unique_constraints.sql",
+    "062_notifications.sql",
   ];
 
   const migrationsDir = join(__dirname, "..", "supabase", "migrations");

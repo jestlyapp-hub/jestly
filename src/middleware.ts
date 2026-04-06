@@ -42,8 +42,16 @@ export async function middleware(req: NextRequest) {
     if (needsSession) {
       try {
         return await updateSession(req);
-      } catch {
-        return NextResponse.next();
+      } catch (err) {
+        console.error("[middleware] updateSession failed:", err instanceof Error ? err.message : err);
+        // API routes : 401 explicite au lieu de laisser passer sans auth
+        if (url.pathname.startsWith("/api/")) {
+          return NextResponse.json({ error: "Session invalide" }, { status: 401 });
+        }
+        // Pages protégées : redirect login plutôt que laisser passer sans session
+        const loginUrl = req.nextUrl.clone();
+        loginUrl.pathname = "/login";
+        return NextResponse.redirect(loginUrl);
       }
     }
     return NextResponse.next();

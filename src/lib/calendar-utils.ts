@@ -1,5 +1,15 @@
 import type { Order } from "@/types";
 
+/* ─── Custom Category (from DB) ─── */
+
+export interface CustomCategory {
+  id: string;
+  name: string;
+  color: string;
+  icon?: string;
+  position: number;
+}
+
 /* ─── Event Categories ─── */
 
 export type EventCategory =
@@ -14,7 +24,8 @@ export type EventCategory =
   | "personnel"
   | "tache"
   | "projet"
-  | "facture";
+  | "facture"
+  | "custom";
 
 export type EventPriority = "low" | "medium" | "high" | "urgent";
 
@@ -32,6 +43,8 @@ export interface CalendarEvent {
   source: "manual" | "order" | "task" | "project" | "invoice";
   /** Custom hex color (overrides category default) */
   color?: string;
+  /** FK to calendar_categories */
+  categoryId?: string;
   /** FK to clients table */
   clientId?: string;
   clientName?: string;
@@ -61,7 +74,7 @@ export interface CategoryConfig {
   border: string;
 }
 
-export const CATEGORY_CONFIG: Record<EventCategory, CategoryConfig> = {
+export const CATEGORY_CONFIG: Record<string, CategoryConfig> = {
   deadline:  { label: "Deadline",   bg: "bg-red-50",     text: "text-red-600",     dot: "bg-red-500",     border: "border-red-200" },
   livraison: { label: "Livraison",  bg: "bg-emerald-50", text: "text-emerald-600", dot: "bg-emerald-500", border: "border-emerald-200" },
   appel:     { label: "Appel",      bg: "bg-blue-50",    text: "text-blue-600",    dot: "bg-blue-500",    border: "border-blue-200" },
@@ -74,6 +87,7 @@ export const CATEGORY_CONFIG: Record<EventCategory, CategoryConfig> = {
   tache:     { label: "Tâche",      bg: "bg-purple-50",  text: "text-purple-600",  dot: "bg-purple-500",  border: "border-purple-200" },
   projet:    { label: "Projet",     bg: "bg-teal-50",    text: "text-teal-600",    dot: "bg-teal-500",    border: "border-teal-200" },
   facture:   { label: "Facture",    bg: "bg-pink-50",    text: "text-pink-600",    dot: "bg-pink-500",    border: "border-pink-200" },
+  custom:    { label: "Personnalisée", bg: "bg-indigo-50", text: "text-indigo-600", dot: "bg-indigo-500", border: "border-indigo-200" },
 };
 
 export const ALL_CATEGORIES: EventCategory[] = [
@@ -89,7 +103,7 @@ export const PRIORITY_CONFIG: Record<EventPriority, { label: string; color: stri
 
 /* ─── Solid Colors for Event Blocks ─── */
 
-export const CATEGORY_SOLID: Record<EventCategory, string> = {
+export const CATEGORY_SOLID: Record<string, string> = {
   deadline:  "#EF4444",
   livraison: "#10B981",
   appel:     "#3B82F6",
@@ -102,6 +116,7 @@ export const CATEGORY_SOLID: Record<EventCategory, string> = {
   tache:     "#9333EA",
   projet:    "#14B8A6",
   facture:   "#EC4899",
+  custom:    "#6366F1",
 };
 
 /** Curated palette for custom event color picker */
@@ -111,10 +126,23 @@ export const EVENT_PALETTE = [
   "#EC4899", "#64748B",
 ];
 
-/** Get the display color for an event (custom color > category default) */
-export function getEventDisplayColor(event: CalendarEvent): string {
+/** Get the display color for an event (custom color > custom category > built-in category) */
+export function getEventDisplayColor(event: CalendarEvent, customCategories?: CustomCategory[]): string {
   if (event.color) return event.color;
-  return CATEGORY_SOLID[event.category];
+  if (event.categoryId && customCategories) {
+    const custom = customCategories.find((c) => c.id === event.categoryId);
+    if (custom) return custom.color;
+  }
+  return CATEGORY_SOLID[event.category] || "#6366F1";
+}
+
+/** Get category label for display */
+export function getCategoryLabel(event: CalendarEvent, customCategories?: CustomCategory[]): string {
+  if (event.categoryId && customCategories) {
+    const custom = customCategories.find((c) => c.id === event.categoryId);
+    if (custom) return custom.name;
+  }
+  return CATEGORY_CONFIG[event.category]?.label || event.category;
 }
 
 /* ─── Order → CalendarEvent ─── */

@@ -26,27 +26,33 @@ interface DayViewProps {
   onSelectEvent: (event: CalendarEvent) => void;
   onCreateEvent: (date: string, startTime?: string, endTime?: string) => void;
   onMoveEvent?: (eventId: string, newDate: string, newStartTime: string) => void;
+  onResizeEvent?: (eventId: string, newStartTime: string, newEndTime: string) => void;
 }
 
 type InteractionMode =
   | null
   | { type: "drag"; eventId: string; hoverTime: string }
-  | { type: "select"; startTime: string; endTime: string };
+  | { type: "select"; startTime: string; endTime: string }
+  | { type: "resize"; eventId: string; edge: "top" | "bottom"; startTime: string; endTime: string };
 
-export default function DayView({ date, events, onSelectEvent, onCreateEvent, onMoveEvent }: DayViewProps) {
+export default function DayView({ date, events, onSelectEvent, onCreateEvent, onMoveEvent, onResizeEvent }: DayViewProps) {
   const dateStr = toDateStr(date);
   const timeSlots = useMemo(() => generateTimeSlots(START_HOUR, END_HOUR - 1), []);
   const [currentTimeTop, setCurrentTimeTop] = useState<number | null>(null);
   const [interaction, setInteraction] = useState<InteractionMode>(null);
   const today = isToday(date);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const pointerStart = useRef<{
     x: number; y: number;
-    target: "event" | "slot";
+    target: "event" | "slot" | "resize-top" | "resize-bottom";
     eventId?: string;
     time: string;
+    origStart?: string;
+    origEnd?: string;
   } | null>(null);
   const hasMoved = useRef(false);
+  const didResize = useRef(false);
 
   useEffect(() => {
     function update() {
@@ -66,8 +72,22 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
   const orderEvents = dayEvents.filter((e) => e.allDay && e.source === "order");
   const timedEvents = dayEvents.filter((e) => !e.allDay && e.startTime);
 
-  const getSlotFromPoint = useCallback((clientX: number, clientY: number): string | null => {
-    const el = document.elementFromPoint(clientX, clientY);
+  /** Convert pixel Y to time string (15min snap) */
+  const yToTime = useCallback((clientY: number): string | null => {
+    if (!gridRef.current) return null;
+    const rect = gridRef.current.getBoundingClientRect();
+    const relY = clientY - rect.top;
+    const pctY = relY / rect.height;
+    const totalMin = pctY * HOUR_RANGE * 60;
+    const snapped = Math.round(totalMin / 15) * 15;
+    const clamped = Math.max(0, Math.min(HOUR_RANGE * 60 - 15, snapped));
+    const h = Math.floor(clamped / 60);
+    const m = clamped % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  }, []);
+
+  const getSlotFromPoint = useCallback((_clientX: number, clientY: number): string | null => {
+    const el = document.elementFromPoint(_clientX, clientY);
     if (!el) return null;
     const slotEl = (el as HTMLElement).closest("[data-slot-time]") as HTMLElement | null;
     return slotEl?.dataset.slotTime || null;
@@ -75,13 +95,16 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
 
   const handlePointerDown = useCallback((
     e: React.PointerEvent,
-    target: "event" | "slot",
+    target: "event" | "slot" | "resize-top" | "resize-bottom",
     time: string,
-    eventId?: string
+    eventId?: string,
+    origStart?: string,
+    origEnd?: string,
   ) => {
     if (e.button !== 0) return;
-    pointerStart.current = { x: e.clientX, y: e.clientY, target, eventId, time };
+    pointerStart.current = { x: e.clientX, y: e.clientY, target, eventId, time, origStart, origEnd };
     hasMoved.current = false;
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   }, []);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
@@ -89,26 +112,61 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
     if (Math.abs(e.clientX - pointerStart.current.x) + Math.abs(e.clientY - pointerStart.current.y) < 5) return;
     hasMoved.current = true;
 
+    const ps = pointerStart.current;
+
+    if (ps.target === "resize-top" || ps.target === "resize-bottom") {
+      const time = yToTime(e.clientY);
+      if (!time || !ps.origStart || !ps.origEnd) return;
+      let newStart = ps.origStart;
+      let newEnd = ps.origEnd;
+      if (ps.target === "resize-top") {
+        newStart = time < ps.origEnd ? time : ps.origEnd;
+        if (newStart >= newEnd) {
+          const [eH, eM] = newEnd.split(":").map(Number);
+          const minStart = (eH * 60 + eM) - 15;
+          const h = Math.floor(Math.max(0, minStart) / 60);
+          const m = Math.max(0, minStart) % 60;
+          newStart = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+        }
+      } else {
+        newEnd = time > ps.origStart ? time : ps.origStart;
+        if (newEnd <= newStart) {
+          const [sH, sM] = newStart.split(":").map(Number);
+          const minEnd = (sH * 60 + sM) + 15;
+          const h = Math.floor(Math.min(HOUR_RANGE * 60, minEnd) / 60);
+          const m = minEnd % 60;
+          newEnd = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+        }
+      }
+      setInteraction({ type: "resize", eventId: ps.eventId!, edge: ps.target === "resize-top" ? "top" : "bottom", startTime: newStart, endTime: newEnd });
+      return;
+    }
+
     const slot = getSlotFromPoint(e.clientX, e.clientY);
     if (!slot) return;
 
-    if (pointerStart.current.target === "event" && pointerStart.current.eventId) {
-      setInteraction({ type: "drag", eventId: pointerStart.current.eventId, hoverTime: slot });
-    } else if (pointerStart.current.target === "slot") {
-      const [sH] = pointerStart.current.time.split(":").map(Number);
+    if (ps.target === "event" && ps.eventId) {
+      setInteraction({ type: "drag", eventId: ps.eventId, hoverTime: slot });
+    } else if (ps.target === "slot") {
+      const [sH] = ps.time.split(":").map(Number);
       const [eH] = slot.split(":").map(Number);
       if (eH >= sH) {
-        setInteraction({ type: "select", startTime: pointerStart.current.time, endTime: addOneHour(slot) });
+        setInteraction({ type: "select", startTime: ps.time, endTime: addOneHour(slot) });
       } else {
-        setInteraction({ type: "select", startTime: slot, endTime: addOneHour(pointerStart.current.time) });
+        setInteraction({ type: "select", startTime: slot, endTime: addOneHour(ps.time) });
       }
     }
-  }, [getSlotFromPoint]);
+  }, [getSlotFromPoint, yToTime]);
 
   const handlePointerUp = useCallback(() => {
     if (!pointerStart.current) return;
 
-    if (pointerStart.current.target === "event") {
+    if (pointerStart.current.target === "resize-top" || pointerStart.current.target === "resize-bottom") {
+      didResize.current = true;
+      if (hasMoved.current && interaction?.type === "resize" && onResizeEvent) {
+        onResizeEvent(interaction.eventId, interaction.startTime, interaction.endTime);
+      }
+    } else if (pointerStart.current.target === "event") {
       if (hasMoved.current && interaction?.type === "drag" && onMoveEvent) {
         const evt = events.find(ev => ev.id === interaction.eventId);
         if (evt && evt.source === "manual") {
@@ -129,7 +187,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
     setInteraction(null);
     pointerStart.current = null;
     hasMoved.current = false;
-  }, [interaction, events, dateStr, onSelectEvent, onCreateEvent, onMoveEvent]);
+  }, [interaction, events, dateStr, onSelectEvent, onCreateEvent, onMoveEvent, onResizeEvent]);
 
   const pct = (hour: number) => ((hour - START_HOUR) / HOUR_RANGE) * 100;
 
@@ -193,7 +251,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
         onPointerUp={handlePointerUp}
         style={{ userSelect: interaction ? "none" : undefined }}
       >
-        <div className="absolute inset-0 grid grid-cols-[56px_1fr]">
+        <div ref={gridRef} className="absolute inset-0 grid grid-cols-[56px_1fr]">
           {/* Time labels */}
           <div className="relative bg-[#FAFAF9]">
             {timeSlots.map((slot) => {
@@ -265,17 +323,19 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
               </div>
             )}
 
-            {/* Events — left-accent premium cards */}
+            {/* Events — left-accent premium cards with resize handles */}
             {timedEvents.map((evt) => {
               const accentColor = getEventDisplayColor(evt);
-              const topPct = getEventTopPercent(evt.startTime!, START_HOUR, END_HOUR);
-              const heightPct = evt.endTime
-                ? getEventHeightPercent(evt.startTime!, evt.endTime, START_HOUR, END_HOUR)
-                : (30 / (HOUR_RANGE * 60)) * 100;
+              const isResizing = interaction?.type === "resize" && interaction.eventId === evt.id;
+              const displayStart = isResizing ? interaction.startTime : evt.startTime!;
+              const displayEnd = isResizing ? interaction.endTime : (evt.endTime || addOneHour(evt.startTime!));
+              const topPct = getEventTopPercent(displayStart, START_HOUR, END_HOUR);
+              const heightPct = getEventHeightPercent(displayStart, displayEnd, START_HOUR, END_HOUR);
 
               const isDragging = interaction?.type === "drag" && interaction.eventId === evt.id;
               if (isDragging) return null;
               const isOrder = evt.source === "order";
+              const isManual = evt.source === "manual";
 
               return (
                 <div
@@ -287,6 +347,7 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                   }}
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (didResize.current) { didResize.current = false; return; }
                     if (!hasMoved.current) onSelectEvent(evt);
                   }}
                   className={`absolute left-3 right-4 z-10 rounded-[6px] overflow-hidden transition-all text-left group ${
@@ -300,12 +361,25 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                     borderLeft: `3px solid ${accentColor}`,
                   }}
                 >
+                  {/* Resize handle — top */}
+                  {isManual && (
+                    <div
+                      className="absolute top-0 left-0 right-0 h-[8px] cursor-n-resize z-20 group/handle"
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        handlePointerDown(e, "resize-top", evt.startTime!, evt.id, evt.startTime!, evt.endTime || addOneHour(evt.startTime!));
+                      }}
+                    >
+                      <div className="mx-auto mt-[2px] w-8 h-[3px] rounded-full bg-white/40 opacity-0 group-hover/handle:opacity-100 group-hover:opacity-60 transition-opacity" />
+                    </div>
+                  )}
+
                   <div className="px-3 py-1 h-full">
                     <div className="text-[12px] font-bold truncate text-white drop-shadow-sm">
                       {evt.title}
                     </div>
                     <div className="text-[10px] font-semibold truncate text-white/80">
-                      {evt.startTime}–{evt.endTime || "..."}
+                      {displayStart}–{displayEnd}
                     </div>
                     {heightPct > 5 && evt.clientName && (
                       <div className="text-[10px] font-semibold mt-0.5 truncate text-white/65">
@@ -313,6 +387,19 @@ export default function DayView({ date, events, onSelectEvent, onCreateEvent, on
                       </div>
                     )}
                   </div>
+
+                  {/* Resize handle — bottom */}
+                  {isManual && (
+                    <div
+                      className="absolute bottom-0 left-0 right-0 h-[8px] cursor-s-resize z-20 group/handle"
+                      onPointerDown={(e) => {
+                        e.stopPropagation();
+                        handlePointerDown(e, "resize-bottom", evt.endTime || addOneHour(evt.startTime!), evt.id, evt.startTime!, evt.endTime || addOneHour(evt.startTime!));
+                      }}
+                    >
+                      <div className="mx-auto mb-[2px] w-8 h-[3px] rounded-full bg-white/40 opacity-0 group-hover/handle:opacity-100 group-hover:opacity-60 transition-opacity" />
+                    </div>
+                  )}
                 </div>
               );
             })}

@@ -506,7 +506,7 @@ export default function GlobalSearch() {
     <>
       <SearchTrigger onClick={openModal} />
 
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0 }}

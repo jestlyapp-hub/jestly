@@ -6,17 +6,18 @@ import { Search, Loader2 } from "lucide-react";
 import { useApi } from "@/lib/hooks/use-api";
 
 import type {
-  ProfileData, SettingsForm, SettingsFormActions,
+  ProfileData, SettingsForm, SettingsFormActions, SectionId,
 } from "./components/shared";
 import {
-  SECTIONS, SEARCH_INDEX, SaveBar, CompletionWidget,
+  SECTIONS, ENABLED_SECTIONS, isEnabledSection,
+  SEARCH_INDEX, SaveBar, CompletionWidget, ComingSoonPlaceholder,
 } from "./components/shared";
 
 import { AccountSection } from "./components/AccountSection";
 import { WorkspaceSection } from "./components/WorkspaceSection";
 import { PreferencesSection } from "./components/PreferencesSection";
 import { BillingSection } from "./components/BillingSection";
-import { SubscriptionSection } from "./components/SubscriptionSection";
+// SubscriptionSection sera réactivée quand Stripe billing sera prêt
 import { IntegrationsSection } from "./components/IntegrationsSection";
 import { NotificationsSection } from "./components/NotificationsSection";
 import { SecuritySection } from "./components/SecuritySection";
@@ -41,9 +42,8 @@ function buildForm(p: ProfileData): SettingsForm {
   };
 }
 
-function scrollToSection(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
+/** Durée pendant laquelle l'observer est verrouillé après un clic sidebar (ms) */
+const SCROLL_LOCK_MS = 800;
 
 /* ══════════════════════════════════════════════════════════════════════
    PAGE
@@ -59,9 +59,19 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  /* ── Active section (IntersectionObserver) ── */
-  const [activeSection, setActiveSection] = useState<string>("compte");
+  /* ── Active section — piloté par id stable, jamais par index ── */
+  const [activeSection, setActiveSection] = useState<SectionId>("compte");
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const scrollLockRef = useRef(false);
+
+  /** Navigation par clic sidebar : set immédiat + scroll + verrouillage observer */
+  const navigateToSection = useCallback((id: SectionId) => {
+    if (!isEnabledSection(id)) return;
+    setActiveSection(id);
+    scrollLockRef.current = true;
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => { scrollLockRef.current = false; }, SCROLL_LOCK_MS);
+  }, []);
 
   /* ── Search ── */
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,21 +87,25 @@ export default function SettingsPage() {
     if (profile && !form) setForm(buildForm(profile));
   }, [profile, form]);
 
-  /* ── IntersectionObserver for sidebar active state ── */
+  /* ── IntersectionObserver — scroll manuel uniquement, verrouillé pendant scroll programmatique ── */
   useEffect(() => {
     if (observerRef.current) observerRef.current.disconnect();
 
     const observer = new IntersectionObserver(
       entries => {
+        if (scrollLockRef.current) return; // ignore pendant un scroll programmatique
         const visible = entries
           .filter(e => e.isIntersecting)
           .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
-        if (visible.length > 0) setActiveSection(visible[0].target.id);
+        const topId = visible[0]?.target.id;
+        if (topId && isEnabledSection(topId)) {
+          setActiveSection(topId);
+        }
       },
       { rootMargin: "-80px 0px -60% 0px", threshold: 0.1 }
     );
 
-    SECTIONS.forEach(s => {
+    ENABLED_SECTIONS.forEach(s => {
       const el = document.getElementById(s.id);
       if (el) observer.observe(el);
     });
@@ -240,7 +254,7 @@ export default function SettingsPage() {
               {searchResults.map(r => (
                 <button
                   key={r.section}
-                  onClick={() => { scrollToSection(r.section); setSearchQuery(""); }}
+                  onClick={() => { if (isEnabledSection(r.section)) navigateToSection(r.section); setSearchQuery(""); }}
                   className="w-full text-left px-4 py-2.5 text-[13px] text-[#57534E] hover:bg-[#F7F7F5] transition-colors"
                 >
                   {r.label}
@@ -258,12 +272,33 @@ export default function SettingsPage() {
           <div className="sticky top-24 space-y-0.5">
             {SECTIONS.map(s => {
               const Icon = s.icon;
+
+              /* Section désactivée (soon) — rendu non-interactif, jamais active */
+              if (!s.enabled) {
+                return (
+                  <div
+                    key={s.id}
+                    aria-disabled="true"
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium text-[#C4C4C2] cursor-default select-none"
+                  >
+                    <Icon size={15} className="text-[#D6D3D1]" />
+                    <span className="flex-1">{s.label}</span>
+                    {s.soon && (
+                      <span className="text-[9px] font-semibold text-[#7C3AED]/70 bg-[#F0EEFF] px-1.5 py-0.5 rounded-full leading-none">
+                        Soon
+                      </span>
+                    )}
+                  </div>
+                );
+              }
+
               const isActive = activeSection === s.id;
               const sectionDirty = dirtySections.has(s.id);
+
               return (
                 <button
                   key={s.id}
-                  onClick={() => scrollToSection(s.id)}
+                  onClick={() => navigateToSection(s.id)}
                   className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-medium transition-colors text-left ${
                     isActive
                       ? "bg-[#F0EEFF] text-[#7C3AED]"
@@ -283,7 +318,7 @@ export default function SettingsPage() {
 
         {/* Main content */}
         <div className="flex-1 min-w-0 space-y-6">
-          <CompletionWidget profile={profile} form={form} onNavigate={scrollToSection} />
+          <CompletionWidget profile={profile} form={form} onNavigate={navigateToSection} />
 
           <motion.div
             initial={{ opacity: 0, y: 8 }}
@@ -295,7 +330,7 @@ export default function SettingsPage() {
             <WorkspaceSection form={form} actions={actions} dirty={dirtySections.has("workspace")} />
             <PreferencesSection form={form} actions={actions} dirty={dirtySections.has("preferences")} />
             <BillingSection form={form} actions={actions} dirty={dirtySections.has("facturation")} />
-            {/* SubscriptionSection masquée en bêta full free */}
+            <ComingSoonPlaceholder label="Abonnement" />
             <IntegrationsSection profile={profile} />
             <NotificationsSection form={form} actions={actions} dirty={dirtySections.has("notifications")} />
             <SecuritySection profile={profile} />

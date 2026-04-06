@@ -118,19 +118,52 @@ export interface SettingsFormActions {
    ══════════════════════════════════════════════════════════════════════ */
 
 export const SECTIONS = [
-  { id: "compte", label: "Compte", icon: User },
-  { id: "workspace", label: "Workspace", icon: Building2 },
-  { id: "preferences", label: "Préférences", icon: SlidersHorizontal },
-  { id: "facturation", label: "Facturation", icon: Receipt },
-  { id: "abonnement", label: "Abonnement", icon: CreditCard },
-  { id: "integrations", label: "Intégrations", icon: Puzzle },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "securite", label: "Sécurité", icon: ShieldCheck },
-  { id: "donnees", label: "Données", icon: Database },
-  { id: "danger", label: "Zone dangereuse", icon: AlertTriangle },
+  { id: "compte", label: "Compte", icon: User, enabled: true, soon: false },
+  { id: "workspace", label: "Workspace", icon: Building2, enabled: true, soon: false },
+  { id: "preferences", label: "Préférences", icon: SlidersHorizontal, enabled: true, soon: false },
+  { id: "facturation", label: "Facturation", icon: Receipt, enabled: true, soon: false },
+  { id: "abonnement", label: "Abonnement", icon: CreditCard, enabled: false, soon: true },
+  { id: "integrations", label: "Intégrations", icon: Puzzle, enabled: true, soon: false },
+  { id: "notifications", label: "Notifications", icon: Bell, enabled: true, soon: false },
+  { id: "securite", label: "Sécurité", icon: ShieldCheck, enabled: true, soon: false },
+  { id: "donnees", label: "Données", icon: Database, enabled: true, soon: false },
+  { id: "danger", label: "Zone dangereuse", icon: AlertTriangle, enabled: true, soon: false },
 ] as const;
 
 export type SectionId = typeof SECTIONS[number]["id"];
+
+/** Sections navigables (enabled === true) — utilisé par observer + sidebar + search */
+export const ENABLED_SECTIONS = SECTIONS.filter(s => s.enabled);
+
+/** Set d'ids activables — pour validation rapide */
+const enabledIds = new Set<string>(ENABLED_SECTIONS.map(s => s.id));
+
+/** Vérifie qu'un id est une section activable */
+export function isEnabledSection(id: string): id is SectionId {
+  return enabledIds.has(id);
+}
+
+/** Placeholder pour les sections "coming soon" — PAS d'id DOM pour ne pas interférer avec l'observer */
+export function ComingSoonPlaceholder({ label }: { label: string }) {
+  return (
+    <div className="scroll-mt-24">
+      <div className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden">
+        <div className="px-8 py-12 flex flex-col items-center justify-center text-center">
+          <div className="w-10 h-10 rounded-full bg-[#F0EEFF] flex items-center justify-center mb-3">
+            <CreditCard size={18} className="text-[#7C3AED]" />
+          </div>
+          <h3 className="text-[15px] font-semibold text-[#191919]">{label}</h3>
+          <p className="text-[13px] text-[#A8A29E] mt-1.5 max-w-xs">
+            La gestion des abonnements et plans sera bientôt disponible.
+          </p>
+          <span className="mt-3 text-[11px] font-medium text-[#7C3AED] bg-[#F0EEFF] px-3 py-1 rounded-full">
+            Bientôt disponible
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export const TIMEZONES = [
   "Europe/Paris", "Europe/London", "Europe/Berlin", "Europe/Madrid",

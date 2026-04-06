@@ -107,10 +107,15 @@ function isTableMissingError(error: { code?: string; message?: string }): boolea
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rowToEvent(row: any): CalendarEvent {
+  // Resolve color: event.color > joined category color > legacy CATEGORY_SOLID fallback
+  const catData = row.calendar_categories;
+  const resolvedColor = row.color || catData?.color || undefined;
+
   return {
     id: row.id,
     title: row.title || "Sans titre",
-    category: (row.category || "personnel") as EventCategory,
+    category: (row.category_id ? "custom" : row.category || "personnel") as EventCategory,
+    categoryId: row.category_id || undefined,
     date: typeof row.date === "string" ? row.date.substring(0, 10) : row.date,
     startTime: row.start_time || undefined,
     endTime: row.end_time || undefined,
@@ -118,7 +123,7 @@ function rowToEvent(row: any): CalendarEvent {
     notes: row.notes || undefined,
     priority: (row.priority || "medium") as EventPriority,
     source: "manual" as const,
-    color: row.color || undefined,
+    color: resolvedColor,
     clientId: row.client_id || undefined,
     clientName: row.client_name || undefined,
     clientEmail: row.client_email || undefined,
@@ -143,6 +148,7 @@ function buildInsertPayload(userId: string, body: any) {
     client_name: body.clientName || null,
     client_email: body.clientEmail || null,
     order_id: body.orderId || null,
+    category_id: body.categoryId || null,
   };
 }
 
@@ -164,9 +170,9 @@ export async function GET(req: NextRequest) {
   // ── Parallel queries for all 5 sources ──
   /* eslint-disable @typescript-eslint/no-explicit-any */
   const [calendarResult, ordersResult, tasksResult, projectsResult, invoicesResult] = await Promise.allSettled([
-    // 1. Manual calendar events
+    // 1. Manual calendar events (join calendar_categories for color)
     (supabase.from("calendar_events") as any)
-      .select("*")
+      .select("*, calendar_categories(color, name)")
       .eq("user_id", user.id)
       .gte("date", rangeStart)
       .lte("date", rangeEnd)
@@ -321,7 +327,7 @@ export async function POST(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let result = await (supabase.from("calendar_events") as any)
     .insert(payload)
-    .select()
+    .select("*, calendar_categories(color, name)")
     .single();
 
   // If table missing → auto-migrate and retry
@@ -335,7 +341,7 @@ export async function POST(req: NextRequest) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         result = await (supabase.from("calendar_events") as any)
           .insert(payload)
-          .select()
+          .select("*, calendar_categories(color, name)")
           .single();
         if (!result.error) break;
         console.warn(`[calendar POST] Retry after ${delay}ms still failed:`, result.error.message);
@@ -379,7 +385,7 @@ export async function PATCH(req: NextRequest) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const dbUpdates: Record<string, any> = {};
   if (updates.title !== undefined) dbUpdates.title = updates.title;
-  if (updates.category !== undefined) dbUpdates.category = updates.category;
+  if (updates.category !== undefined) dbUpdates.category = updates.categoryId ? "custom" : updates.category;
   if (updates.date !== undefined) dbUpdates.date = updates.date;
   if (updates.startTime !== undefined) dbUpdates.start_time = updates.startTime || null;
   if (updates.endTime !== undefined) dbUpdates.end_time = updates.endTime || null;
@@ -390,6 +396,7 @@ export async function PATCH(req: NextRequest) {
   if (updates.clientId !== undefined) dbUpdates.client_id = updates.clientId || null;
   if (updates.clientName !== undefined) dbUpdates.client_name = updates.clientName || null;
   if (updates.clientEmail !== undefined) dbUpdates.client_email = updates.clientEmail || null;
+  if (updates.categoryId !== undefined) dbUpdates.category_id = updates.categoryId || null;
 
   if (Object.keys(dbUpdates).length === 0) {
     return NextResponse.json({ error: "No updates provided", code: "VALIDATION" }, { status: 400 });
@@ -400,7 +407,7 @@ export async function PATCH(req: NextRequest) {
     .update(dbUpdates)
     .eq("id", id)
     .eq("user_id", user.id)
-    .select()
+    .select("*, calendar_categories(color, name)")
     .single();
 
   if (error) {

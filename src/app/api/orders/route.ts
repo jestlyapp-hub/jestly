@@ -221,6 +221,17 @@ export async function POST(req: NextRequest) {
 
     await insertItems(data.id);
 
+    // 🔔 Notification — nouvelle commande (fire-and-forget)
+    import("@/lib/notifications/triggers").then(({ triggerOrderNew }) =>
+      triggerOrderNew({
+        userId: user.id,
+        orderId: data.id,
+        orderTitle: title,
+        clientName: data.clients?.name,
+        amount: data.amount,
+      }).catch(() => {})
+    );
+
     // Re-fetch to include freshly inserted items
     if (items) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

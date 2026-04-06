@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import GlobalSearch from "@/components/layout/GlobalSearch";
 import MobileNav from "@/components/layout/MobileNav";
+import NotificationPanel from "@/components/dashboard/NotificationPanel";
 
 /* Mapping pathname → label pour le breadcrumb */
 const pageLabels: Record<string, string> = {
@@ -43,7 +44,9 @@ export default function Topbar() {
         <GlobalSearch />
       </div>
 
-      <div className="flex items-center gap-2" />
+      <div className="flex items-center gap-2">
+        <NotificationPanel />
+      </div>
     </header>
   );
 }

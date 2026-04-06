@@ -98,7 +98,7 @@ export default function QuickActions() {
       </button>
 
       {/* Popover */}
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div
             initial={{ opacity: 0, y: 8, scale: 0.95 }}

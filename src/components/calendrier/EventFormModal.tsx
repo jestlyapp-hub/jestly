@@ -4,15 +4,12 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi } from "@/lib/hooks/use-api";
 import {
-  ALL_CATEGORIES,
-  CATEGORY_CONFIG,
   PRIORITY_CONFIG,
   EVENT_PALETTE,
-  CATEGORY_SOLID,
   toDateStr,
   type CalendarEvent,
-  type EventCategory,
   type EventPriority,
+  type CustomCategory,
 } from "@/lib/calendar-utils";
 
 interface Client {
@@ -25,10 +22,14 @@ interface EventFormModalProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (event: Partial<CalendarEvent>) => void | Promise<void>;
+  onDelete?: (eventId: string) => void | Promise<void>;
+  onSaveCategory?: (cat: { id?: string; name: string; color: string }) => Promise<void>;
+  onDeleteCategory?: (id: string) => Promise<void>;
   initialEvent?: CalendarEvent | null;
   defaultDate?: string;
   defaultStartTime?: string;
   defaultEndTime?: string;
+  customCategories?: CustomCategory[];
 }
 
 const TIME_OPTIONS: string[] = [];
@@ -41,15 +42,18 @@ export default function EventFormModal({
   open,
   onClose,
   onSubmit,
+  onDelete,
+  onSaveCategory,
+  onDeleteCategory,
   initialEvent,
   defaultDate,
   defaultStartTime,
   defaultEndTime,
+  customCategories = [],
 }: EventFormModalProps) {
   const isEditing = !!initialEvent;
 
   const [title, setTitle] = useState("");
-  const [category, setCategory] = useState<EventCategory>("appel");
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -57,12 +61,24 @@ export default function EventFormModal({
   const [notes, setNotes] = useState("");
   const [priority, setPriority] = useState<EventPriority>("medium");
   const [color, setColor] = useState<string>("");
+  const [categoryId, setCategoryId] = useState<string>("");
   const [clientId, setClientId] = useState<string>("");
   const [clientName, setClientName] = useState("");
   const [clientSearch, setClientSearch] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+  // ─── Inline category management ───
+  const [catMode, setCatMode] = useState<"idle" | "add" | "edit">("idle");
+  const [catEditId, setCatEditId] = useState<string | null>(null);
+  const [catName, setCatName] = useState("");
+  const [catColor, setCatColor] = useState("#6366F1");
+  const [catSaving, setCatSaving] = useState(false);
+  const [catContextId, setCatContextId] = useState<string | null>(null);
+  const [catDeleteConfirmId, setCatDeleteConfirmId] = useState<string | null>(null);
+  const catContextRef = useRef<HTMLDivElement>(null);
 
   const startPickerRef = useRef<HTMLDivElement>(null);
   const endPickerRef = useRef<HTMLDivElement>(null);
@@ -89,7 +105,7 @@ export default function EventFormModal({
     if (open) {
       if (initialEvent) {
         setTitle(initialEvent.title);
-        setCategory(initialEvent.category);
+        setCategoryId(initialEvent.categoryId || "");
         setDate(initialEvent.date);
         setStartTime(initialEvent.startTime || "");
         setEndTime(initialEvent.endTime || "");
@@ -102,7 +118,7 @@ export default function EventFormModal({
         setClientSearch(initialEvent.clientName || "");
       } else {
         setTitle("");
-        setCategory("appel");
+        setCategoryId(customCategories.length > 0 ? customCategories[0].id : "");
         setDate(defaultDate || todayStr);
         setStartTime(defaultStartTime || "");
         setEndTime(defaultEndTime || (defaultStartTime ? addOneHour(defaultStartTime) : ""));
@@ -117,8 +133,25 @@ export default function EventFormModal({
       setShowClientDropdown(false);
       setShowStartPicker(false);
       setShowEndPicker(false);
+      setShowDeleteConfirm(false);
+      setCatMode("idle");
+      setCatEditId(null);
+      setCatContextId(null);
+      setCatDeleteConfirmId(null);
     }
   }, [open, initialEvent, defaultDate, defaultStartTime, defaultEndTime, todayStr]);
+
+  // Close category context menu on outside click
+  useEffect(() => {
+    if (!catContextId) return;
+    function handleClick(e: MouseEvent) {
+      if (catContextRef.current && !catContextRef.current.contains(e.target as Node)) {
+        setCatContextId(null);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [catContextId]);
 
   // Escape key → fermer la modal
   useEffect(() => {
@@ -168,7 +201,8 @@ export default function EventFormModal({
       await onSubmit({
         id: initialEvent?.id,
         title: title.trim(),
-        category,
+        category: "custom",
+        categoryId: categoryId || undefined,
         date,
         startTime: allDay ? undefined : startTime || undefined,
         endTime: allDay ? undefined : endTime || undefined,
@@ -188,7 +222,8 @@ export default function EventFormModal({
     }
   }
 
-  const previewColor = color || CATEGORY_SOLID[category];
+  const selectedCat = customCategories.find((c) => c.id === categoryId);
+  const previewColor = color || selectedCat?.color || "#6366F1";
   const canSubmit = title.trim() && date;
 
   return (
@@ -264,36 +299,187 @@ export default function EventFormModal({
                     <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
                       Catégorie
                     </label>
-                    <div className="flex flex-wrap gap-1.5">
-                      {ALL_CATEGORIES.filter((c) => c !== "deadline").map((cat) => {
-                        const config = CATEGORY_CONFIG[cat];
-                        const selected = category === cat;
+                    <div className="flex flex-wrap gap-1.5 items-center">
+                      {customCategories.map((cc) => {
+                        const selected = categoryId === cc.id;
                         return (
-                          <button
-                            key={cat}
-                            type="button"
-                            onClick={() => {
-                              setCategory(cat);
-                              if (!color) setColor("");
-                            }}
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                              selected
-                                ? "text-white shadow-sm"
-                                : "bg-[#F4F4F2] text-[#888] hover:bg-[#EEEEED] hover:text-[#666]"
-                            }`}
-                            style={selected ? { backgroundColor: CATEGORY_SOLID[cat] } : undefined}
-                          >
-                            {!selected && (
-                              <span
-                                className="w-2 h-2 rounded-full"
-                                style={{ backgroundColor: CATEGORY_SOLID[cat] }}
-                              />
+                          <div key={cc.id} className="relative">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCategoryId(cc.id);
+                                if (!color) setColor("");
+                                setCatContextId(null);
+                              }}
+                              onContextMenu={(e) => {
+                                e.preventDefault();
+                                if (onSaveCategory) setCatContextId(catContextId === cc.id ? null : cc.id);
+                              }}
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                                selected
+                                  ? "text-white shadow-sm"
+                                  : "bg-[#F4F4F2] text-[#888] hover:bg-[#EEEEED] hover:text-[#666]"
+                              }`}
+                              style={selected ? { backgroundColor: cc.color } : undefined}
+                            >
+                              {!selected && (
+                                <span
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: cc.color }}
+                                />
+                              )}
+                              {cc.name}
+                            </button>
+
+                            {/* Context menu */}
+                            {catContextId === cc.id && (
+                              <div
+                                ref={catContextRef}
+                                className="absolute top-full left-0 mt-1 bg-white border border-[#E2E2E0] rounded-lg shadow-xl z-40 py-1 min-w-[130px]"
+                              >
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCatMode("edit");
+                                    setCatEditId(cc.id);
+                                    setCatName(cc.name);
+                                    setCatColor(cc.color);
+                                    setCatContextId(null);
+                                  }}
+                                  className="w-full text-left px-3 py-1.5 text-[11px] font-semibold text-[#555] hover:bg-[#F7F7F5] transition-colors cursor-pointer flex items-center gap-2"
+                                >
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                  Modifier
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setCatDeleteConfirmId(cc.id);
+                                    setCatContextId(null);
+                                  }}
+                                  className="w-full text-left px-3 py-1.5 text-[11px] font-semibold text-red-500 hover:bg-red-50 transition-colors cursor-pointer flex items-center gap-2"
+                                >
+                                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+                                  Supprimer
+                                </button>
+                              </div>
                             )}
-                            {config.label}
-                          </button>
+
+                            {/* Delete confirm inline */}
+                            {catDeleteConfirmId === cc.id && (
+                              <div className="absolute top-full left-0 mt-1 bg-white border border-red-200 rounded-lg shadow-xl z-40 p-2.5 min-w-[180px]">
+                                <p className="text-[11px] font-semibold text-red-600 mb-2">Supprimer « {cc.name} » ?</p>
+                                <div className="flex gap-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => setCatDeleteConfirmId(null)}
+                                    className="flex-1 px-2 py-1 rounded-md text-[10px] font-bold text-[#666] border border-[#E2E2E0] hover:bg-[#F7F7F5] cursor-pointer"
+                                  >
+                                    Non
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      if (onDeleteCategory) {
+                                        await onDeleteCategory(cc.id);
+                                        if (categoryId === cc.id) setCategoryId("");
+                                      }
+                                      setCatDeleteConfirmId(null);
+                                    }}
+                                    className="flex-1 px-2 py-1 rounded-md text-[10px] font-bold text-white bg-red-500 hover:bg-red-600 cursor-pointer"
+                                  >
+                                    Supprimer
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         );
                       })}
+
+                      {/* Add category button */}
+                      {onSaveCategory && catMode === "idle" && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setCatMode("add");
+                            setCatEditId(null);
+                            setCatName("");
+                            setCatColor("#6366F1");
+                          }}
+                          className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-bold bg-[#F4F4F2] text-[#999] hover:bg-[#EEEEED] hover:text-[#666] transition-all cursor-pointer border border-dashed border-[#D8D8D6]"
+                          title="Ajouter une catégorie"
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
+
+                    {/* Inline category form (add/edit) */}
+                    {catMode !== "idle" && onSaveCategory && (
+                      <div className="mt-2 bg-[#FAFAF9] rounded-lg border border-[#E6E6E4] p-3 space-y-2.5">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={catName}
+                            onChange={(e) => setCatName(e.target.value)}
+                            placeholder="Nom de la catégorie"
+                            autoFocus
+                            className="flex-1 bg-white border border-[#E6E6E4] rounded-md px-2.5 py-1.5 text-[12px] font-medium text-[#191919] placeholder-[#C0C0BE] focus:outline-none focus:border-[#4F46E5]/40 focus:ring-1 focus:ring-[#4F46E5]/10"
+                          />
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          {EVENT_PALETTE.map((c) => (
+                            <button
+                              key={c}
+                              type="button"
+                              onClick={() => setCatColor(c)}
+                              className={`w-5 h-5 rounded-full transition-all cursor-pointer ${
+                                catColor === c ? "ring-2 ring-offset-1 ring-[#191919]/30 scale-110" : "hover:scale-110"
+                              }`}
+                              style={{ backgroundColor: c }}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => { setCatMode("idle"); setCatEditId(null); }}
+                            className="px-2.5 py-1 rounded-md text-[10px] font-bold text-[#666] border border-[#E2E2E0] hover:bg-white cursor-pointer"
+                          >
+                            Annuler
+                          </button>
+                          <button
+                            type="button"
+                            disabled={!catName.trim() || catSaving}
+                            onClick={async () => {
+                              if (!catName.trim()) return;
+                              setCatSaving(true);
+                              try {
+                                await onSaveCategory({
+                                  id: catEditId || undefined,
+                                  name: catName.trim(),
+                                  color: catColor,
+                                });
+                                setCatMode("idle");
+                                setCatEditId(null);
+                              } finally {
+                                setCatSaving(false);
+                              }
+                            }}
+                            className={`px-2.5 py-1 rounded-md text-[10px] font-bold text-white cursor-pointer transition-all ${
+                              catName.trim() && !catSaving ? "hover:brightness-110" : "opacity-40 cursor-not-allowed"
+                            }`}
+                            style={{ backgroundColor: catColor }}
+                          >
+                            {catSaving ? "..." : catEditId ? "Enregistrer" : "Créer"}
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div>
@@ -457,73 +643,72 @@ export default function EventFormModal({
                 {/* Separator */}
                 <div className="h-px bg-[#F0F0EE]" />
 
-                {/* Priority + Client row */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
-                      Priorite
-                    </label>
-                    <div className="flex gap-1">
-                      {(Object.keys(PRIORITY_CONFIG) as EventPriority[]).map((p) => {
-                        const config = PRIORITY_CONFIG[p];
-                        const selected = priority === p;
-                        return (
-                          <button
-                            key={p}
-                            type="button"
-                            onClick={() => setPriority(p)}
-                            className={`flex-1 flex items-center justify-center gap-1 px-1.5 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${
-                              selected
-                                ? "border-[#4F46E5] bg-[#4F46E5]/[0.06] text-[#4F46E5]"
-                                : "border-[#E6E6E4] bg-[#FAFAF9] text-[#888] hover:bg-[#F4F4F2]"
-                            }`}
-                          >
-                            <span
-                              className="w-1.5 h-1.5 rounded-full"
-                              style={{ backgroundColor: config.color }}
-                            />
-                            {config.label}
-                          </button>
-                        );
-                      })}
-                    </div>
+                {/* Priority */}
+                <div>
+                  <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
+                    Priorité
+                  </label>
+                  <div className="flex gap-1.5">
+                    {(Object.keys(PRIORITY_CONFIG) as EventPriority[]).map((p) => {
+                      const config = PRIORITY_CONFIG[p];
+                      const selected = priority === p;
+                      return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setPriority(p)}
+                          className={`flex-1 flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-[11px] font-bold transition-all cursor-pointer border ${
+                            selected
+                              ? "border-[#4F46E5] bg-[#4F46E5]/[0.06] text-[#4F46E5]"
+                              : "border-[#E6E6E4] bg-[#FAFAF9] text-[#888] hover:bg-[#F4F4F2]"
+                          }`}
+                        >
+                          <span
+                            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: config.color }}
+                          />
+                          {config.label}
+                        </button>
+                      );
+                    })}
                   </div>
+                </div>
 
-                  <div className="relative">
-                    <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
-                      Client
-                    </label>
-                    <input
-                      type="text"
-                      value={clientSearch}
-                      onChange={(e) => {
-                        setClientSearch(e.target.value);
-                        setClientName(e.target.value);
-                        setClientId("");
-                        setShowClientDropdown(true);
-                      }}
-                      onFocus={() => setShowClientDropdown(true)}
-                      placeholder="Rechercher..."
-                      className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#191919] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
-                    />
-                    {showClientDropdown && filteredClients.length > 0 && (
-                      <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E2E2E0] rounded-xl shadow-xl z-20 max-h-[150px] overflow-y-auto py-1">
-                        {filteredClients.slice(0, 8).map((c) => (
-                          <button
-                            key={c.id}
-                            type="button"
-                            onClick={() => handleSelectClient(c)}
-                            className={`w-full text-left px-3.5 py-2 text-[12px] hover:bg-[#F7F7F5] transition-colors cursor-pointer ${
-                              clientId === c.id ? "bg-[#4F46E5]/[0.04]" : ""
-                            }`}
-                          >
-                            <div className="font-bold text-[#191919]">{c.name}</div>
-                            <div className="text-[10px] text-[#999] font-medium">{c.email}</div>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                {/* Client */}
+                <div className="relative">
+                  <label className="block text-[11px] font-bold text-[#A0A09E] uppercase tracking-widest mb-1.5">
+                    Client
+                  </label>
+                  <input
+                    type="text"
+                    value={clientSearch}
+                    onChange={(e) => {
+                      setClientSearch(e.target.value);
+                      setClientName(e.target.value);
+                      setClientId("");
+                      setShowClientDropdown(true);
+                    }}
+                    onFocus={() => setShowClientDropdown(true)}
+                    placeholder="Rechercher un client..."
+                    className="w-full bg-[#FAFAF9] border border-[#E6E6E4] rounded-lg px-3.5 py-2.5 text-[13px] font-medium text-[#191919] placeholder-[#C0C0BE] focus:outline-none focus:bg-white focus:border-[#4F46E5]/40 focus:ring-2 focus:ring-[#4F46E5]/10 transition-all"
+                  />
+                  {showClientDropdown && filteredClients.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 mt-1.5 bg-white border border-[#E2E2E0] rounded-xl shadow-xl z-20 max-h-[150px] overflow-y-auto py-1">
+                      {filteredClients.slice(0, 8).map((c) => (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => handleSelectClient(c)}
+                          className={`w-full text-left px-3.5 py-2 text-[12px] hover:bg-[#F7F7F5] transition-colors cursor-pointer ${
+                            clientId === c.id ? "bg-[#4F46E5]/[0.04]" : ""
+                          }`}
+                        >
+                          <div className="font-bold text-[#191919]">{c.name}</div>
+                          <div className="text-[10px] text-[#999] font-medium">{c.email}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Notes */}
@@ -541,26 +726,65 @@ export default function EventFormModal({
                 </div>
 
                 {/* Footer actions */}
-                <div className="flex gap-2.5 pt-2 border-t border-[#F0F0EE]">
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="flex-1 px-4 py-2.5 rounded-lg border border-[#E2E2E0] text-[12px] font-bold text-[#666] hover:bg-[#F7F7F5] hover:text-[#444] transition-all cursor-pointer"
-                  >
-                    Annuler
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={!canSubmit || saving}
-                    className={`flex-1 text-white rounded-lg px-4 py-2.5 text-[12px] font-bold transition-all cursor-pointer ${
-                      canSubmit && !saving
-                        ? "hover:brightness-110 shadow-sm"
-                        : "opacity-35 cursor-not-allowed"
-                    }`}
-                    style={{ backgroundColor: previewColor }}
-                  >
-                    {saving ? "Enregistrement..." : isEditing ? "Enregistrer" : "Créer l'événement"}
-                  </button>
+                <div className="space-y-2.5 pt-2 border-t border-[#F0F0EE]">
+                  <div className="flex gap-2.5">
+                    <button
+                      type="button"
+                      onClick={onClose}
+                      className="flex-1 px-4 py-2.5 rounded-lg border border-[#E2E2E0] text-[12px] font-bold text-[#666] hover:bg-[#F7F7F5] hover:text-[#444] transition-all cursor-pointer"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={!canSubmit || saving}
+                      className={`flex-1 text-white rounded-lg px-4 py-2.5 text-[12px] font-bold transition-all cursor-pointer ${
+                        canSubmit && !saving
+                          ? "hover:brightness-110 shadow-sm"
+                          : "opacity-35 cursor-not-allowed"
+                      }`}
+                      style={{ backgroundColor: previewColor }}
+                    >
+                      {saving ? "Enregistrement..." : isEditing ? "Enregistrer" : "Créer l'événement"}
+                    </button>
+                  </div>
+
+                  {/* Delete button — only when editing */}
+                  {isEditing && onDelete && (
+                    <>
+                      {!showDeleteConfirm ? (
+                        <button
+                          type="button"
+                          onClick={() => setShowDeleteConfirm(true)}
+                          className="w-full px-4 py-2 rounded-lg text-[12px] font-bold text-red-500 hover:bg-red-50 hover:text-red-600 transition-all cursor-pointer"
+                        >
+                          Supprimer cet événement
+                        </button>
+                      ) : (
+                        <div className="flex gap-2 bg-red-50 rounded-lg p-3">
+                          <span className="flex-1 text-[12px] font-semibold text-red-600">
+                            Confirmer la suppression ?
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowDeleteConfirm(false)}
+                            className="px-3 py-1 rounded-md text-[11px] font-bold text-[#666] hover:bg-white transition-all cursor-pointer"
+                          >
+                            Non
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (initialEvent) onDelete(initialEvent.id);
+                            }}
+                            className="px-3 py-1 rounded-md text-[11px] font-bold text-white bg-red-500 hover:bg-red-600 transition-all cursor-pointer"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
               </form>
             </div>

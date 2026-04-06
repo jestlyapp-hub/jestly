@@ -145,7 +145,7 @@ function CreateMenu() {
         <Plus size={15} strokeWidth={2} />
         Créer
       </button>
-      <AnimatePresence>
+      <AnimatePresence initial={false}>
         {open && (
           <motion.div className="absolute right-0 top-full mt-2 bg-white border border-[#E6E6E4] rounded-xl shadow-lg p-1.5 z-50 min-w-[200px]" initial={{ opacity: 0, scale: 0.95, y: -4 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: -4 }} transition={{ duration: 0.15 }}>
             {items.map((item) => (

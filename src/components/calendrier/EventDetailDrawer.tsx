@@ -8,8 +8,10 @@ import {
   CATEGORY_CONFIG,
   PRIORITY_CONFIG,
   getEventDisplayColor,
+  getCategoryLabel,
   formatDateFr,
   type CalendarEvent,
+  type CustomCategory,
 } from "@/lib/calendar-utils";
 
 interface EventDetailDrawerProps {
@@ -18,14 +20,16 @@ interface EventDetailDrawerProps {
   onClose: () => void;
   onEdit: (event: CalendarEvent) => void;
   onDelete: (eventId: string) => void;
+  customCategories?: CustomCategory[];
 }
 
-export default function EventDetailDrawer({ event, open, onClose, onEdit, onDelete }: EventDetailDrawerProps) {
+export default function EventDetailDrawer({ event, open, onClose, onEdit, onDelete, customCategories = [] }: EventDetailDrawerProps) {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   if (!event) return null;
 
-  const cat = CATEGORY_CONFIG[event.category];
+  const cat = CATEGORY_CONFIG[event.category] || CATEGORY_CONFIG.custom;
+  const categoryLabel = getCategoryLabel(event, customCategories);
   const priority = PRIORITY_CONFIG[event.priority];
   const isOrder = event.source === "order";
   const isTask = event.source === "task";
@@ -39,14 +43,14 @@ export default function EventDetailDrawer({ event, open, onClose, onEdit, onDele
     <SlidePanel open={open} onClose={onClose} title="Détail de l'événement">
       <div className="space-y-6">
         {/* Color bar */}
-        <div className="h-2 -mx-6 -mt-6 rounded-t-lg" style={{ backgroundColor: getEventDisplayColor(event) }} />
+        <div className="h-2 -mx-6 -mt-6 rounded-t-lg" style={{ backgroundColor: getEventDisplayColor(event, customCategories) }} />
 
         {/* ─── Identity ─── */}
         <section>
           <div className="flex items-start gap-3 mb-3">
             <div
               className="w-3 h-3 rounded-full mt-1.5 flex-shrink-0"
-              style={{ backgroundColor: getEventDisplayColor(event) }}
+              style={{ backgroundColor: getEventDisplayColor(event, customCategories) }}
             />
             <div className="flex-1 min-w-0">
               <h3 className="text-[16px] font-semibold text-[#191919] leading-tight break-words">
@@ -57,9 +61,9 @@ export default function EventDetailDrawer({ event, open, onClose, onEdit, onDele
           <div className="flex items-center gap-2 flex-wrap">
             <span
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold text-white"
-              style={{ backgroundColor: getEventDisplayColor(event) }}
+              style={{ backgroundColor: getEventDisplayColor(event, customCategories) }}
             >
-              {cat.label}
+              {categoryLabel}
             </span>
             <span
               className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#F7F7F5] text-[#666]"

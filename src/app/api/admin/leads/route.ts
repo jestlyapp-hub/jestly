@@ -6,6 +6,7 @@ import {
   sanitizeSearchTerm,
   validateSort,
   validatePagination,
+  validateUuid,
   checkAdminRateLimit,
   ADMIN_ACTIONS,
 } from "@/lib/admin";
@@ -70,8 +71,11 @@ export async function GET(req: NextRequest) {
     query = query.eq("quality_tier", qualityTier);
   }
 
-  // Filter by campaign
+  // Filter by campaign — UUID validé pour éviter toute injection PostgREST
   if (campaignId) {
+    if (!validateUuid(campaignId)) {
+      return NextResponse.json({ error: "campaign_id invalide" }, { status: 400 });
+    }
     query = query.or(
       `campaign_id.eq.${campaignId},first_touch_campaign_id.eq.${campaignId},last_touch_campaign_id.eq.${campaignId}`,
     );

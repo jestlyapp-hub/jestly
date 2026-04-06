@@ -43,7 +43,7 @@ export default function GuideSuccessToast() {
   }, [isActive, step?.id, step]);
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {toast && (
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.95 }}

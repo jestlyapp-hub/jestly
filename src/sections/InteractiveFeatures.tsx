@@ -1,551 +1,125 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useRef, useCallback } from "react";
+import Link from "next/link";
 import {
   motion,
   useMotionValue,
   useSpring,
   useTransform,
-  AnimatePresence,
 } from "framer-motion";
 import SectionShell from "@/components/landing/SectionShell";
 
 /* ═══════════════════════════════════════════════════════════════════════
-   INTERACTIVE FEATURES GRID — Signature Section
-   DNA: Xmind hover reveals × Linear polish × Stripe animations × Apple clarity
+   FEATURE SHOWCASE — 5 features, mosaïque compacte, cliquable
    ═══════════════════════════════════════════════════════════════════════ */
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-/* ── Feature Data ── */
-interface Feature {
+interface ShowcaseFeature {
   id: string;
-  icon: string;
   title: string;
-  description: string;
-  cta: string;
-  gradient: string;
+  tagline: string;
+  label: string;
+  href: string;
+  color: string;
+  tint: string;
+  borderTint: string;
   glowColor: string;
-  borderColor: string;
+  icon: React.ReactNode;
 }
 
-const FEATURES: Feature[] = [
-  {
-    id: "portfolio",
-    icon: "M3 3h18v18H3zM3 9h18M9 21V9",
-    title: "Site web",
-    description: "Votre vitrine en ligne. Builder drag & drop, domaine personnalisé.",
-    cta: "Publier",
-    gradient: "linear-gradient(135deg, #8B5CF608 0%, #A78BFA12 100%)",
-    glowColor: "rgba(139,92,246,0.12)",
-    borderColor: "rgba(139,92,246,0.10)",
-  },
+const SHOWCASE: ShowcaseFeature[] = [
   {
     id: "crm",
-    icon: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75",
     title: "CRM clients",
-    description: "Suivi visuel, historique complet, relances auto. Zéro client perdu.",
-    cta: "Gérer",
-    gradient: "linear-gradient(135deg, #10B98108 0%, #14C39A12 100%)",
-    glowColor: "rgba(16,185,129,0.12)",
-    borderColor: "rgba(16,185,129,0.10)",
+    tagline: "Centralisez vos clients et échanges",
+    label: "CRM",
+    href: "/fonctionnalites/crm",
+    color: "#10B981",
+    tint: "rgba(16,185,129,0.05)",
+    borderTint: "rgba(16,185,129,0.12)",
+    glowColor: "rgba(16,185,129,0.10)",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" />
+      </svg>
+    ),
   },
   {
-    id: "invoicing",
-    icon: "M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z",
+    id: "facturation",
     title: "Facturation",
-    description: "Factures automatiques, suivi des paiements, relances intelligentes.",
-    cta: "Facturer",
-    gradient: "linear-gradient(135deg, #FF6B3508 0%, #FF8F6512 100%)",
-    glowColor: "rgba(255,107,53,0.12)",
-    borderColor: "rgba(255,107,53,0.10)",
+    tagline: "Encaissez plus simplement",
+    label: "Facturation",
+    href: "/fonctionnalites/facturation",
+    color: "#F59E0B",
+    tint: "rgba(245,158,11,0.05)",
+    borderTint: "rgba(245,158,11,0.12)",
+    glowColor: "rgba(245,158,11,0.10)",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6" /><path d="M9 15l2 2 4-4" />
+      </svg>
+    ),
   },
   {
-    id: "analytics",
-    icon: "M18 20V10M12 20V4M6 20v-6",
-    title: "Analytics",
-    description: "Revenus, conversions, tendances. Prenez les bonnes décisions.",
-    cta: "Analyser",
-    gradient: "linear-gradient(135deg, #3B82F608 0%, #60A5FA12 100%)",
-    glowColor: "rgba(59,130,246,0.12)",
-    borderColor: "rgba(59,130,246,0.10)",
+    id: "site-web",
+    title: "Site & Portfolio",
+    tagline: "Présentez votre travail et convertissez",
+    label: "Site web",
+    href: "/fonctionnalites/site-vitrine",
+    color: "#8B5CF6",
+    tint: "rgba(139,92,246,0.05)",
+    borderTint: "rgba(139,92,246,0.12)",
+    glowColor: "rgba(139,92,246,0.10)",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18" /><path d="M9 21V9" />
+      </svg>
+    ),
   },
   {
     id: "commandes",
-    icon: "M9 5H2v7l6.29 6.29a1 1 0 0 0 1.42 0l5.58-5.58a1 1 0 0 0 0-1.42zM6 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2",
-    title: "Commandes",
-    description: "Pipeline complet du brief à la livraison. Statuts, deadlines, CA.",
-    cta: "Suivre",
-    gradient: "linear-gradient(135deg, #F59E0B08 0%, #FBBF2412 100%)",
-    glowColor: "rgba(245,158,11,0.12)",
-    borderColor: "rgba(245,158,11,0.10)",
+    title: "Projets",
+    tagline: "Pilotez vos projets sans friction",
+    label: "Projets",
+    href: "/fonctionnalites/commandes",
+    color: "#3B82F6",
+    tint: "rgba(59,130,246,0.05)",
+    borderTint: "rgba(59,130,246,0.12)",
+    glowColor: "rgba(59,130,246,0.10)",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><path d="M22 4L12 14.01l-3-3" />
+      </svg>
+    ),
   },
   {
-    id: "agenda",
-    icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2z",
-    title: "Agenda",
-    description: "Planning, rendez-vous et deadlines synchronisés. Rien n'est oublié.",
-    cta: "Planifier",
-    gradient: "linear-gradient(135deg, #4C8DFF08 0%, #60A5FA12 100%)",
-    glowColor: "rgba(76,141,255,0.12)",
-    borderColor: "rgba(76,141,255,0.10)",
+    id: "analytics",
+    title: "Analytics",
+    tagline: "Gardez une vue claire de votre activité",
+    label: "Analytics",
+    href: "/fonctionnalites/analytics",
+    color: "#7C3AED",
+    tint: "rgba(124,58,237,0.05)",
+    borderTint: "rgba(124,58,237,0.12)",
+    glowColor: "rgba(124,58,237,0.10)",
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" />
+      </svg>
+    ),
   },
 ];
 
-/* ═══════════════════════════════════════════════════════════════════════
-   ANIMATED PREVIEWS — One per feature
-   Each renders a mini UI mockup that animates on hover
-   ═══════════════════════════════════════════════════════════════════════ */
+/* ── Showcase Card ── */
 
-/* ── 1. Invoicing: Invoice appearing with counter ── */
-function InvoicingPreview({ active }: { active: boolean }) {
-  const [count, setCount] = useState(0);
-  const [paid, setPaid] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  useEffect(() => {
-    if (active) {
-      setCount(0);
-      setPaid(false);
-      const target = 1247;
-      const steps = 30;
-      const stepVal = target / steps;
-      let current = 0;
-      intervalRef.current = setInterval(() => {
-        current += stepVal;
-        if (current >= target) {
-          setCount(target);
-          if (intervalRef.current) clearInterval(intervalRef.current);
-          setTimeout(() => setPaid(true), 300);
-        } else {
-          setCount(Math.floor(current));
-        }
-      }, 35);
-    } else {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      setCount(0);
-      setPaid(false);
-    }
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-  }, [active]);
-
-  return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <motion.div
-        className="w-[85%] rounded-xl overflow-hidden"
-        style={{
-          background: "white",
-          boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
-          border: "1px solid rgba(0,0,0,0.06)",
-        }}
-        initial={{ opacity: 0, y: 16, scale: 0.95 }}
-        animate={active ? { opacity: 1, y: 0, scale: 1 } : { opacity: 0, y: 16, scale: 0.95 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      >
-        {/* Invoice header */}
-        <div className="px-3 py-2 flex items-center justify-between" style={{ borderBottom: "1px solid #F0F0EE" }}>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded" style={{ background: "#7C5CFF" }} />
-            <span className="text-[8px] font-bold" style={{ color: "#111118" }}>FACTURE</span>
-          </div>
-          <span className="text-[7px] font-medium" style={{ color: "#8A8FA3" }}>#JES-0042</span>
-        </div>
-
-        {/* Invoice body */}
-        <div className="px-3 py-2.5 space-y-1.5">
-          <div className="flex justify-between items-center">
-            <span className="text-[8px]" style={{ color: "#8A8FA3" }}>Refonte site</span>
-            <span className="text-[8px]" style={{ color: "#8A8FA3" }}>800 €</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-[8px]" style={{ color: "#8A8FA3" }}>Logo + charte</span>
-            <span className="text-[8px]" style={{ color: "#8A8FA3" }}>447 €</span>
-          </div>
-          <div className="h-px my-1" style={{ background: "#F0F0EE" }} />
-          <div className="flex justify-between items-center">
-            <span className="text-[9px] font-bold" style={{ color: "#111118" }}>Total</span>
-            <motion.span
-              className="text-[11px] font-extrabold tabular-nums"
-              style={{ color: "#7C5CFF" }}
-            >
-              {count.toLocaleString("fr-FR")} €
-            </motion.span>
-          </div>
-        </div>
-
-        {/* Status bar */}
-        <div className="px-3 py-2" style={{ background: paid ? "#ECFDF5" : "#F7F7F5", borderTop: "1px solid #F0F0EE" }}>
-          <AnimatePresence mode="wait">
-            {paid ? (
-              <motion.div
-                key="paid"
-                className="flex items-center gap-1.5"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ type: "spring", damping: 15, stiffness: 300 }}
-              >
-                <motion.div
-                  className="w-3.5 h-3.5 rounded-full flex items-center justify-center"
-                  style={{ background: "#10B981" }}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", damping: 12, stiffness: 400, delay: 0.1 }}
-                >
-                  <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6L9 17l-5-5" />
-                  </svg>
-                </motion.div>
-                <span className="text-[8px] font-bold" style={{ color: "#059669" }}>Payé</span>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="pending"
-                className="flex items-center gap-1.5"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ background: "#F59E0B" }} />
-                <span className="text-[8px] font-medium" style={{ color: "#92400E" }}>En attente</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ── 3. CRM: Kanban cards moving ── */
-function CrmPreview({ active }: { active: boolean }) {
-  const columns = [
-    { label: "Lead", color: "#F59E0B" },
-    { label: "Prospect", color: "#3B82F6" },
-    { label: "Client", color: "#10B981" },
-  ];
-
-  return (
-    <div className="relative w-full h-full flex items-end gap-1.5 px-1 pb-1">
-      {columns.map((col, ci) => (
-        <div key={col.label} className="flex-1 flex flex-col items-stretch">
-          {/* Column header */}
-          <div className="flex items-center gap-1 mb-1.5 px-1">
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: col.color }} />
-            <span className="text-[7px] font-bold uppercase tracking-wider" style={{ color: "#8A8FA3" }}>
-              {col.label}
-            </span>
-          </div>
-          {/* Cards */}
-          <div className="space-y-1">
-            {ci === 0 && (
-              <>
-                {/* Card that moves */}
-                <motion.div
-                  className="rounded-lg px-2 py-1.5"
-                  style={{
-                    background: "white",
-                    border: "1px solid #F0F0EE",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
-                  }}
-                  animate={active ? {
-                    x: [0, 0, "calc(100% + 6px)", "calc(200% + 12px)"],
-                    scale: [1, 1.06, 1.06, 1],
-                    boxShadow: [
-                      "0 1px 3px rgba(0,0,0,0.04)",
-                      "0 4px 16px rgba(124,92,255,0.15)",
-                      "0 4px 16px rgba(124,92,255,0.15)",
-                      "0 1px 3px rgba(0,0,0,0.04)",
-                    ],
-                  } : {}}
-                  transition={{
-                    duration: 2.8,
-                    times: [0, 0.15, 0.55, 1],
-                    ease: [0.22, 1, 0.36, 1],
-                    repeat: Infinity,
-                    repeatDelay: 1.5,
-                  }}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-4 rounded-full flex items-center justify-center text-[6px] font-bold text-white" style={{ background: "#7C5CFF" }}>S</div>
-                    <div>
-                      <div className="text-[7px] font-semibold" style={{ color: "#111118" }}>Studio Créa</div>
-                      <div className="text-[6px]" style={{ color: "#8A8FA3" }}>Design UX/UI</div>
-                    </div>
-                  </div>
-                </motion.div>
-                {/* Static card */}
-                <div
-                  className="rounded-lg px-2 py-1.5"
-                  style={{ background: "white", border: "1px solid #F0F0EE" }}
-                >
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-4 h-4 rounded-full flex items-center justify-center text-[6px] font-bold text-white" style={{ background: "#3B82F6" }}>M</div>
-                    <div>
-                      <div className="text-[7px] font-semibold" style={{ color: "#111118" }}>Maison B.</div>
-                      <div className="text-[6px]" style={{ color: "#8A8FA3" }}>Branding</div>
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-            {ci === 1 && (
-              <div
-                className="rounded-lg px-2 py-1.5"
-                style={{ background: "white", border: "1px solid #F0F0EE" }}
-              >
-                <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 rounded-full flex items-center justify-center text-[6px] font-bold text-white" style={{ background: "#10B981" }}>L</div>
-                  <div>
-                    <div className="text-[7px] font-semibold" style={{ color: "#111118" }}>La Forge</div>
-                    <div className="text-[6px]" style={{ color: "#8A8FA3" }}>Web dev</div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {ci === 2 && (
-              <div
-                className="rounded-lg px-2 py-1.5"
-                style={{ background: "white", border: "1px solid #F0F0EE" }}
-              >
-                <div className="flex items-center gap-1.5">
-                  <div className="w-4 h-4 rounded-full flex items-center justify-center text-[6px] font-bold text-white" style={{ background: "#F59E0B" }}>A</div>
-                  <div>
-                    <div className="text-[7px] font-semibold" style={{ color: "#111118" }}>Agence X</div>
-                    <div className="text-[6px]" style={{ color: "#8A8FA3" }}>Motion</div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/* ── 4. Portfolio: Mini site with auto-scroll ── */
-function PortfolioPreview({ active }: { active: boolean }) {
-  return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      <motion.div
-        className="w-[88%] rounded-xl overflow-hidden"
-        style={{
-          background: "white",
-          boxShadow: "0 2px 16px rgba(0,0,0,0.06)",
-          border: "1px solid rgba(0,0,0,0.06)",
-        }}
-        initial={{ opacity: 0.5 }}
-        animate={active ? { opacity: 1 } : { opacity: 0.5 }}
-        transition={{ duration: 0.4 }}
-      >
-        {/* Browser chrome */}
-        <div className="flex items-center gap-1 px-2 py-1.5" style={{ background: "#FAFAFA", borderBottom: "1px solid #F0F0EE" }}>
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#FF5F57" }} />
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#FEBC2E" }} />
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#28C840" }} />
-          <div className="flex-1 mx-2 h-3 rounded-full" style={{ background: "#F0F0EE" }}>
-            <div className="px-1.5 text-[5px] font-medium leading-[12px]" style={{ color: "#B0B3C0" }}>julie.jestly.fr</div>
-          </div>
-        </div>
-        {/* Site content that scrolls */}
-        <div className="h-[85px] overflow-hidden relative">
-          <motion.div
-            animate={active ? { y: [0, -60, -60, 0] } : { y: 0 }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", times: [0, 0.35, 0.65, 1] }}
-          >
-            {/* Hero block */}
-            <div className="px-3 py-3">
-              <div className="w-[60%] h-2 rounded-full mb-1.5" style={{ background: "#111118" }} />
-              <div className="w-[40%] h-1.5 rounded-full" style={{ background: "#E0E0E0" }} />
-            </div>
-            {/* Portfolio grid */}
-            <div className="px-3 grid grid-cols-3 gap-1">
-              {["#7C5CFF", "#FF6B35", "#3B82F6", "#10B981", "#F59E0B", "#8B5CF6"].map((c, i) => (
-                <motion.div
-                  key={i}
-                  className="rounded-md aspect-square"
-                  style={{ background: c, opacity: 0.2 }}
-                  animate={active ? { opacity: [0.15, 0.4, 0.15] } : { opacity: 0.15 }}
-                  transition={{ duration: 2, delay: i * 0.15, repeat: Infinity }}
-                />
-              ))}
-            </div>
-            {/* CTA section */}
-            <div className="px-3 py-3 flex items-center justify-center">
-              <motion.div
-                className="px-3 py-1 rounded-full text-[6px] font-bold text-white"
-                style={{ background: "#7C5CFF" }}
-                animate={active ? { scale: [1, 1.08, 1] } : {}}
-                transition={{ duration: 1.5, repeat: Infinity }}
-              >
-                Voir portfolio
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-/* ── 5. Analytics: Animated chart bars ── */
-function AnalyticsPreview({ active }: { active: boolean }) {
-  const bars = [
-    { h: "35%", delay: 0 },
-    { h: "55%", delay: 0.08 },
-    { h: "45%", delay: 0.16 },
-    { h: "70%", delay: 0.24 },
-    { h: "60%", delay: 0.32 },
-    { h: "85%", delay: 0.40 },
-    { h: "75%", delay: 0.48 },
-  ];
-
-  return (
-    <div className="relative w-full h-full flex flex-col px-2 pb-1">
-      {/* Top stats */}
-      <div className="flex items-center justify-between px-1 py-1.5">
-        <div>
-          <div className="text-[7px] font-medium" style={{ color: "#8A8FA3" }}>Revenus</div>
-          <motion.div
-            className="text-[12px] font-extrabold tabular-nums"
-            style={{ color: "#111118" }}
-            animate={active ? { opacity: [0, 1] } : { opacity: 0.4 }}
-            transition={{ duration: 0.6 }}
-          >
-            4 230 €
-          </motion.div>
-        </div>
-        <motion.div
-          className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[7px] font-bold"
-          style={{ background: "#ECFDF5", color: "#059669" }}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={active ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
-          transition={{ delay: 0.8, type: "spring", damping: 15 }}
-        >
-          <svg width="6" height="6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 19V5M5 12l7-7 7 7" />
-          </svg>
-          +32%
-        </motion.div>
-      </div>
-
-      {/* Bar chart */}
-      <div className="flex-1 flex items-end gap-[3px] px-1">
-        {bars.map((b, i) => (
-          <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
-            <motion.div
-              className="w-full rounded-t-sm"
-              style={{
-                background: i === bars.length - 1
-                  ? "linear-gradient(to top, #7C5CFF, #9F7BFF)"
-                  : "linear-gradient(to top, rgba(124,92,255,0.2), rgba(124,92,255,0.35))",
-              }}
-              initial={{ height: "0%" }}
-              animate={active ? { height: b.h } : { height: "0%" }}
-              transition={{ duration: 0.6, delay: b.delay, ease: [0.22, 1, 0.36, 1] }}
-            />
-          </div>
-        ))}
-      </div>
-
-      {/* X-axis labels */}
-      <div className="flex items-center justify-between px-1 mt-1">
-        {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => (
-          <span key={i} className="text-[6px] font-medium flex-1 text-center" style={{ color: "#C4C7D4" }}>{d}</span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   PREVIEW SELECTOR
-   ═══════════════════════════════════════════════════════════════════════ */
-
-function CommandesPreview({ active }: { active: boolean }) {
-  const items = [
-    { title: "Logo Pack", status: "Livré", color: "#10B981", bg: "#D1FAE5" },
-    { title: "Vidéo Edit", status: "En cours", color: "#F59E0B", bg: "#FEF3C7" },
-    { title: "Brand Kit", status: "À faire", color: "#9CA3AF", bg: "#F3F4F6" },
-  ];
-  return (
-    <div className="w-full h-full flex flex-col justify-center gap-[6px] px-1">
-      {items.map((o, i) => (
-        <motion.div
-          key={o.title}
-          className="flex items-center justify-between px-3 py-2 rounded-lg"
-          style={{ background: "#FAFAFA" }}
-          initial={{ opacity: 0, x: -12 }}
-          animate={active ? { opacity: 1, x: 0 } : { opacity: 0, x: -12 }}
-          transition={{ duration: 0.5, delay: i * 0.12, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <span className="text-[10px] font-medium" style={{ color: "#333" }}>{o.title}</span>
-          <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded" style={{ background: o.bg, color: o.color }}>{o.status}</span>
-        </motion.div>
-      ))}
-    </div>
-  );
-}
-
-function AgendaPreview({ active }: { active: boolean }) {
-  const days = Array.from({ length: 10 }, (_, i) => i + 14);
-  return (
-    <div className="w-full h-full flex flex-col justify-center gap-2 px-1">
-      <div className="grid grid-cols-5 gap-1">
-        {days.map((d, i) => (
-          <motion.div
-            key={d}
-            className="aspect-square rounded text-[8px] flex items-center justify-center font-medium"
-            style={{
-              background: d === 17 ? "#4C8DFF" : "#EAF3FF",
-              color: d === 17 ? "white" : "#4C8DFF",
-            }}
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={active ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.6 }}
-            transition={{ duration: 0.35, delay: i * 0.04, ease: [0.22, 1, 0.36, 1] }}
-          >
-            {d}
-          </motion.div>
-        ))}
-      </div>
-      <motion.div
-        className="px-2.5 py-1.5 rounded-lg"
-        style={{ background: "#EAF3FF" }}
-        initial={{ opacity: 0, y: 8 }}
-        animate={active ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
-        transition={{ duration: 0.5, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-      >
-        <span className="text-[10px] font-semibold" style={{ color: "#4C8DFF" }}>Call client — 14h</span>
-      </motion.div>
-    </div>
-  );
-}
-
-function AnimatedPreview({ featureId, active }: { featureId: string; active: boolean }) {
-  switch (featureId) {
-    case "invoicing": return <InvoicingPreview active={active} />;
-    case "crm": return <CrmPreview active={active} />;
-    case "portfolio": return <PortfolioPreview active={active} />;
-    case "analytics": return <AnalyticsPreview active={active} />;
-    case "commandes": return <CommandesPreview active={active} />;
-    case "agenda": return <AgendaPreview active={active} />;
-    default: return null;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   FEATURE CARD — 3D tilt + glow + animated preview
-   ═══════════════════════════════════════════════════════════════════════ */
-
-function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
-  const [hovered, setHovered] = useState(false);
+function ShowcaseCard({ f, index, large = false }: { f: ShowcaseFeature; index: number; large?: boolean }) {
   const cardRef = useRef<HTMLDivElement>(null);
-
-  // 3D tilt
   const mouseX = useMotionValue(0.5);
   const mouseY = useMotionValue(0.5);
-  const rotateX = useSpring(useTransform(mouseY, [0, 1], [4, -4]), { damping: 30, stiffness: 200 });
-  const rotateY = useSpring(useTransform(mouseX, [0, 1], [-4, 4]), { damping: 30, stiffness: 200 });
+  const rotateX = useSpring(useTransform(mouseY, [0, 1], [3, -3]), { damping: 30, stiffness: 200 });
+  const rotateY = useSpring(useTransform(mouseX, [0, 1], [-3, 3]), { damping: 30, stiffness: 200 });
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (!cardRef.current) return;
@@ -555,7 +129,6 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
   }, [mouseX, mouseY]);
 
   const handleMouseLeave = useCallback(() => {
-    setHovered(false);
     mouseX.set(0.5);
     mouseY.set(0.5);
   }, [mouseX, mouseY]);
@@ -563,123 +136,112 @@ function FeatureCard({ feature, index }: { feature: Feature; index: number }) {
   return (
     <motion.div
       ref={cardRef}
-      className="relative group cursor-pointer"
-      style={{
-        perspective: 800,
-        transformStyle: "preserve-3d",
-      }}
-      initial={{ opacity: 0, y: 40 }}
+      className={large ? "md:col-span-2 md:row-span-2" : ""}
+      style={{ perspective: 800 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.6, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-      onMouseEnter={() => setHovered(true)}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay: index * 0.08, ease }}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <motion.div
-        className="relative rounded-3xl overflow-hidden h-full"
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-          background: feature.gradient,
-          border: `1px solid ${feature.borderColor}`,
-        }}
-        animate={{
-          scale: hovered ? 1.03 : 1,
-          boxShadow: hovered
-            ? `0 20px 60px ${feature.glowColor}, 0 0 0 1px ${feature.borderColor}`
-            : `0 4px 20px rgba(0,0,0,0.04), 0 0 0 1px ${feature.borderColor}`,
-        }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-      >
-        {/* Glow overlay on hover */}
+      <Link href={f.href} className="block h-full">
         <motion.div
-          className="absolute inset-0 pointer-events-none"
+          className={`group relative rounded-[20px] overflow-hidden h-full cursor-pointer ${
+            large ? "p-8 sm:p-10" : "p-6"
+          }`}
           style={{
-            background: `radial-gradient(600px circle at ${hovered ? "50%" : "50%"} ${hovered ? "30%" : "50%"}, ${feature.glowColor}, transparent 70%)`,
+            rotateX,
+            rotateY,
+            transformStyle: "preserve-3d",
+            background: `linear-gradient(160deg, ${f.tint}, rgba(255,255,255,0.97))`,
+            border: `1px solid ${f.borderTint}`,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
           }}
-          animate={{ opacity: hovered ? 1 : 0 }}
-          transition={{ duration: 0.4 }}
-        />
-
-        {/* Content */}
-        <div className="relative z-10 p-6 sm:p-7 flex flex-col h-full">
-          {/* Icon + text */}
-          <div className="mb-4">
-            <motion.div
-              className="w-10 h-10 rounded-2xl flex items-center justify-center mb-3"
-              style={{
-                background: `linear-gradient(135deg, ${feature.glowColor.replace("0.12", "0.15").replace("0.15", "0.18")}, transparent)`,
-                border: `1px solid ${feature.borderColor}`,
-              }}
-              animate={hovered ? { scale: 1.08, rotate: 3 } : { scale: 1, rotate: 0 }}
-              transition={{ type: "spring", damping: 20 }}
-            >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={feature.glowColor.includes("124,92") ? "#7C5CFF" : feature.glowColor.includes("255,107") ? "#FF6B35" : feature.glowColor.includes("16,185") ? "#10B981" : feature.glowColor.includes("139,92") ? "#8B5CF6" : feature.glowColor.includes("59,130") ? "#3B82F6" : "#F59E0B"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d={feature.icon} />
-              </svg>
-            </motion.div>
-
-            <h3 className="text-[16px] sm:text-[17px] font-bold mb-1.5" style={{ color: "#111118" }}>
-              {feature.title}
-            </h3>
-            <p className="text-[13px] leading-relaxed" style={{ color: "#66697A" }}>
-              {feature.description}
-            </p>
-          </div>
-
-          {/* Animated preview area */}
+          whileHover={{
+            y: -4,
+            boxShadow: `0 20px 50px ${f.glowColor}, 0 8px 20px rgba(0,0,0,0.03)`,
+            borderColor: `${f.color}30`,
+          }}
+          transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        >
+          {/* Glow au hover */}
           <div
-            className="flex-1 min-h-[130px] rounded-2xl overflow-hidden relative"
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none rounded-[20px]"
+            style={{ background: `radial-gradient(ellipse at 30% 0%, ${f.color}08 0%, transparent 60%)` }}
+          />
+
+          {/* Label tag */}
+          <div
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-semibold mb-4 relative z-10 transition-colors duration-300"
             style={{
-              background: "rgba(255,255,255,0.6)",
-              border: "1px solid rgba(0,0,0,0.04)",
-              backdropFilter: "blur(8px)",
+              background: `${f.color}0C`,
+              color: f.color,
+              border: `1px solid ${f.color}18`,
             }}
           >
-            <AnimatedPreview featureId={feature.id} active={hovered} />
+            {f.icon}
+            {f.label}
           </div>
 
-          {/* CTA */}
-          <motion.div
-            className="mt-4 flex items-center gap-1.5"
-            animate={hovered ? { x: 4 } : { x: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+          {/* Titre */}
+          <h3
+            className={`font-bold relative z-10 mb-2 transition-colors duration-300 group-hover:text-[#18181B] ${
+              large ? "text-[22px] sm:text-[26px]" : "text-[16px] sm:text-[17px]"
+            }`}
+            style={{ color: "#18181B" }}
           >
-            <span className="text-[12px] font-semibold" style={{ color: "#7C5CFF" }}>
-              {feature.cta}
+            {f.title}
+          </h3>
+
+          {/* Tagline */}
+          <p
+            className={`relative z-10 leading-[1.6] ${
+              large ? "text-[15px] max-w-[340px]" : "text-[13px]"
+            }`}
+            style={{ color: "#9CA3AF" }}
+          >
+            {f.tagline}
+          </p>
+
+          {/* CTA arrow */}
+          <div className="mt-4 flex items-center gap-1.5 relative z-10">
+            <span className="text-[12px] font-semibold transition-colors duration-300" style={{ color: f.color }}>
+              Découvrir
             </span>
-            <motion.svg
+            <svg
               width="14"
               height="14"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#7C5CFF"
+              stroke={f.color}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              animate={hovered ? { x: [0, 3, 0] } : {}}
-              transition={{ duration: 1, repeat: Infinity }}
+              className="transition-transform duration-300 group-hover:translate-x-1"
             >
               <path d="M5 12h14M12 5l7 7-7 7" />
-            </motion.svg>
-          </motion.div>
-        </div>
-      </motion.div>
+            </svg>
+          </div>
+        </motion.div>
+      </Link>
     </motion.div>
   );
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SECTION — INTERACTIVE FEATURES GRID
+   SECTION — FEATURE SHOWCASE GALLERY
    ═══════════════════════════════════════════════════════════════════════ */
 
 export default function InteractiveFeatures() {
   return (
-    <SectionShell atmosphere="system" maxWidth="max-w-7xl">
+    <SectionShell atmosphere="system">
+      <div className="relative py-16 sm:py-20 overflow-hidden">
+        {/* Glow background */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[400px] pointer-events-none" style={{ background: "radial-gradient(ellipse, rgba(124,92,255,0.03) 0%, transparent 70%)" }} />
+
         {/* Header */}
-        <div className="text-center mb-16 sm:mb-20">
+        <div className="text-center mb-12 sm:mb-14 relative z-10">
           <motion.div
             className="mb-5"
             initial={{ opacity: 0, y: 16 }}
@@ -688,58 +250,57 @@ export default function InteractiveFeatures() {
             transition={{ duration: 0.6, ease }}
           >
             <span
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[12px] font-semibold"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-semibold"
               style={{
                 background: "rgba(124,92,255,0.08)",
                 color: "#7C5CFF",
                 border: "1px solid rgba(124,92,255,0.12)",
               }}
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
               </svg>
-              Tout-en-un
+              Plateforme tout-en-un
             </span>
           </motion.div>
 
           <motion.h2
-            className="text-[28px] sm:text-[36px] md:text-[44px] lg:text-[52px] font-extrabold leading-[1.08] tracking-[-0.03em] mb-5"
-            style={{ color: "#111118" }}
-            initial={{ opacity: 0, y: 30 }}
+            className="text-[28px] sm:text-[38px] md:text-[44px] font-extrabold leading-[1.1] tracking-tight mb-4"
+            style={{ color: "#18181B" }}
+            initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.7, delay: 0.1, ease }}
+            transition={{ duration: 0.6, delay: 0.1, ease }}
           >
-            Tout ce dont vous avez besoin,
-            <br />
-            <span
-              className="bg-clip-text text-transparent"
-              style={{ backgroundImage: "linear-gradient(135deg, #7C5CFF 0%, #9F7BFF 50%, #6F5BFF 100%)" }}
-            >
-              en un seul endroit
+            Tout votre business freelance,{" "}
+            <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #7C5CFF, #A78BFA)" }}>
+              un seul cockpit.
             </span>
           </motion.h2>
 
           <motion.p
-            className="text-[15px] sm:text-[17px] leading-relaxed max-w-xl mx-auto"
-            style={{ color: "#66697A" }}
+            className="text-[15px] sm:text-[17px] leading-relaxed max-w-[500px] mx-auto"
+            style={{ color: "#6B7280" }}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2, ease }}
+            transition={{ duration: 0.5, delay: 0.2, ease }}
           >
-            Gérez votre business freelance avec une plateforme
-            <br className="hidden sm:block" />
-            pensée pour aller vite. Survolez pour découvrir.
+            CRM, facturation, portfolio, gestion de projets et analytics — explorez chaque module.
           </motion.p>
         </div>
 
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 max-w-4xl mx-auto">
-          {FEATURES.map((feature, i) => (
-            <FeatureCard key={feature.id} feature={feature} index={i} />
+        {/* Mosaïque : 1 grande carte + 4 secondaires */}
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 sm:gap-5 max-w-[960px] mx-auto auto-rows-fr">
+          {/* Grande carte CRM — span 2 cols × 2 rows */}
+          <ShowcaseCard f={SHOWCASE[0]} index={0} large />
+
+          {/* 4 cartes secondaires */}
+          {SHOWCASE.slice(1).map((f, i) => (
+            <ShowcaseCard key={f.id} f={f} index={i + 1} />
           ))}
         </div>
+      </div>
     </SectionShell>
   );
 }

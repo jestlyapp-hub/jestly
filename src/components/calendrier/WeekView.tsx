@@ -26,27 +26,33 @@ interface WeekViewProps {
   onSelectEvent: (event: CalendarEvent) => void;
   onCreateEvent: (date: string, startTime?: string, endTime?: string) => void;
   onMoveEvent?: (eventId: string, newDate: string, newStartTime: string) => void;
+  onResizeEvent?: (eventId: string, newStartTime: string, newEndTime: string) => void;
 }
 
 type InteractionMode =
   | null
   | { type: "drag"; eventId: string; hoverDate: string; hoverTime: string }
-  | { type: "select"; date: string; startTime: string; endTime: string };
+  | { type: "select"; date: string; startTime: string; endTime: string }
+  | { type: "resize"; eventId: string; edge: "top" | "bottom"; date: string; startTime: string; endTime: string };
 
-export default function WeekView({ date, events, onSelectEvent, onCreateEvent, onMoveEvent }: WeekViewProps) {
+export default function WeekView({ date, events, onSelectEvent, onCreateEvent, onMoveEvent, onResizeEvent }: WeekViewProps) {
   const weekDays = useMemo(() => getWeekDays(date), [date]);
   const timeSlots = useMemo(() => generateTimeSlots(START_HOUR, END_HOUR - 1), []);
   const [currentTimeTop, setCurrentTimeTop] = useState<number | null>(null);
   const [interaction, setInteraction] = useState<InteractionMode>(null);
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const pointerStart = useRef<{
     x: number; y: number;
-    target: "event" | "slot";
+    target: "event" | "slot" | "resize-top" | "resize-bottom";
     eventId?: string;
     date: string;
     time: string;
+    origStart?: string;
+    origEnd?: string;
   } | null>(null);
   const hasMoved = useRef(false);
+  const didResize = useRef(false);
 
   useEffect(() => {
     function update() {
@@ -86,6 +92,20 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     return { manualAllDayByDate: manual, ordersByDate: orders };
   }, [events]);
 
+  /** Convert pixel Y to time string (15min snap) */
+  const yToTime = useCallback((clientY: number): string | null => {
+    if (!gridRef.current) return null;
+    const rect = gridRef.current.getBoundingClientRect();
+    const relY = clientY - rect.top;
+    const pct = relY / rect.height;
+    const totalMin = pct * HOUR_RANGE * 60;
+    const snapped = Math.round(totalMin / 15) * 15;
+    const clamped = Math.max(0, Math.min(HOUR_RANGE * 60 - 15, snapped));
+    const h = Math.floor(clamped / 60);
+    const m = clamped % 60;
+    return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+  }, []);
+
   const getSlotFromPoint = useCallback((clientX: number, clientY: number): { date: string; time: string } | null => {
     const el = document.elementFromPoint(clientX, clientY);
     if (!el) return null;
@@ -96,13 +116,15 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
 
   const handlePointerDown = useCallback((
     e: React.PointerEvent,
-    target: "event" | "slot",
+    target: "event" | "slot" | "resize-top" | "resize-bottom",
     targetDate: string,
     targetTime: string,
-    eventId?: string
+    eventId?: string,
+    origStart?: string,
+    origEnd?: string,
   ) => {
     if (e.button !== 0) return;
-    pointerStart.current = { x: e.clientX, y: e.clientY, target, eventId, date: targetDate, time: targetTime };
+    pointerStart.current = { x: e.clientX, y: e.clientY, target, eventId, date: targetDate, time: targetTime, origStart, origEnd };
     hasMoved.current = false;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   }, []);
@@ -114,28 +136,64 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     if (Math.abs(dx) + Math.abs(dy) < 5) return;
     hasMoved.current = true;
 
+    const ps = pointerStart.current;
+
+    if (ps.target === "resize-top" || ps.target === "resize-bottom") {
+      const time = yToTime(e.clientY);
+      if (!time || !ps.origStart || !ps.origEnd) return;
+      let newStart = ps.origStart;
+      let newEnd = ps.origEnd;
+      if (ps.target === "resize-top") {
+        newStart = time < ps.origEnd ? time : ps.origEnd;
+        if (newStart >= newEnd) {
+          // Minimum 15 min
+          const [eH, eM] = newEnd.split(":").map(Number);
+          const minStart = (eH * 60 + eM) - 15;
+          const h = Math.floor(Math.max(0, minStart) / 60);
+          const m = Math.max(0, minStart) % 60;
+          newStart = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+        }
+      } else {
+        newEnd = time > ps.origStart ? time : ps.origStart;
+        if (newEnd <= newStart) {
+          const [sH, sM] = newStart.split(":").map(Number);
+          const minEnd = (sH * 60 + sM) + 15;
+          const h = Math.floor(Math.min(HOUR_RANGE * 60, minEnd) / 60);
+          const m = minEnd % 60;
+          newEnd = `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
+        }
+      }
+      setInteraction({ type: "resize", eventId: ps.eventId!, edge: ps.target === "resize-top" ? "top" : "bottom", date: ps.date, startTime: newStart, endTime: newEnd });
+      return;
+    }
+
     const slot = getSlotFromPoint(e.clientX, e.clientY);
     if (!slot) return;
 
-    if (pointerStart.current.target === "event" && pointerStart.current.eventId) {
-      setInteraction({ type: "drag", eventId: pointerStart.current.eventId, hoverDate: slot.date, hoverTime: slot.time });
-    } else if (pointerStart.current.target === "slot") {
-      const startTime = pointerStart.current.time;
+    if (ps.target === "event" && ps.eventId) {
+      setInteraction({ type: "drag", eventId: ps.eventId, hoverDate: slot.date, hoverTime: slot.time });
+    } else if (ps.target === "slot") {
+      const startTime = ps.time;
       const endTime = slot.time;
       const [sH] = startTime.split(":").map(Number);
       const [eH] = endTime.split(":").map(Number);
       if (eH >= sH) {
-        setInteraction({ type: "select", date: pointerStart.current.date, startTime, endTime: addOneHour(endTime) });
+        setInteraction({ type: "select", date: ps.date, startTime, endTime: addOneHour(endTime) });
       } else {
-        setInteraction({ type: "select", date: pointerStart.current.date, startTime: endTime, endTime: addOneHour(startTime) });
+        setInteraction({ type: "select", date: ps.date, startTime: endTime, endTime: addOneHour(startTime) });
       }
     }
-  }, [getSlotFromPoint]);
+  }, [getSlotFromPoint, yToTime]);
 
   const handlePointerUp = useCallback(() => {
     if (!pointerStart.current) return;
 
-    if (pointerStart.current.target === "event") {
+    if (pointerStart.current.target === "resize-top" || pointerStart.current.target === "resize-bottom") {
+      didResize.current = true;
+      if (hasMoved.current && interaction?.type === "resize" && onResizeEvent) {
+        onResizeEvent(interaction.eventId, interaction.startTime, interaction.endTime);
+      }
+    } else if (pointerStart.current.target === "event") {
       if (hasMoved.current && interaction?.type === "drag" && onMoveEvent) {
         const evt = events.find(ev => ev.id === interaction.eventId);
         if (evt && evt.source === "manual") {
@@ -156,7 +214,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
     setInteraction(null);
     pointerStart.current = null;
     hasMoved.current = false;
-  }, [interaction, events, onSelectEvent, onCreateEvent, onMoveEvent]);
+  }, [interaction, events, onSelectEvent, onCreateEvent, onMoveEvent, onResizeEvent]);
 
   const hasAllDay = weekDays.some((d) => {
     const ds = toDateStr(d);
@@ -242,7 +300,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
         onPointerUp={handlePointerUp}
         style={{ userSelect: interaction ? "none" : undefined }}
       >
-        <div className="absolute inset-0 grid grid-cols-[48px_repeat(7,1fr)]">
+        <div ref={gridRef} className="absolute inset-0 grid grid-cols-[48px_repeat(7,1fr)]">
           {/* Time labels column */}
           <div className="relative bg-[#FAFAF9]">
             {timeSlots.map((slot) => {
@@ -337,17 +395,19 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                   </div>
                 )}
 
-                {/* Events — left-accent premium cards */}
+                {/* Events — left-accent premium cards with resize handles */}
                 {dayEvents.map((evt) => {
                   const accentColor = getEventDisplayColor(evt);
-                  const topPct = getEventTopPercent(evt.startTime!, START_HOUR, END_HOUR);
-                  const heightPct = evt.endTime
-                    ? getEventHeightPercent(evt.startTime!, evt.endTime, START_HOUR, END_HOUR)
-                    : (30 / (HOUR_RANGE * 60)) * 100;
+                  const isResizing = interaction?.type === "resize" && interaction.eventId === evt.id;
+                  const displayStart = isResizing ? interaction.startTime : evt.startTime!;
+                  const displayEnd = isResizing ? interaction.endTime : (evt.endTime || addOneHour(evt.startTime!));
+                  const topPct = getEventTopPercent(displayStart, START_HOUR, END_HOUR);
+                  const heightPct = getEventHeightPercent(displayStart, displayEnd, START_HOUR, END_HOUR);
 
                   const isDragging = interaction?.type === "drag" && interaction.eventId === evt.id;
                   if (isDragging) return null;
                   const isOrder = evt.source === "order";
+                  const isManual = evt.source === "manual";
 
                   return (
                     <div
@@ -359,6 +419,7 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                       }}
                       onClick={(e) => {
                         e.stopPropagation();
+                        if (didResize.current) { didResize.current = false; return; }
                         if (!hasMoved.current) onSelectEvent(evt);
                       }}
                       className={`absolute left-[3px] right-[3px] z-10 rounded-[5px] overflow-hidden transition-all text-left group ${
@@ -372,16 +433,42 @@ export default function WeekView({ date, events, onSelectEvent, onCreateEvent, o
                         borderLeft: `3px solid ${accentColor}`,
                       }}
                     >
+                      {/* Resize handle — top */}
+                      {isManual && (
+                        <div
+                          className="absolute top-0 left-0 right-0 h-[6px] cursor-n-resize z-20 group/handle"
+                          onPointerDown={(e) => {
+                            e.stopPropagation();
+                            handlePointerDown(e, "resize-top", dateStr, evt.startTime!, evt.id, evt.startTime!, evt.endTime || addOneHour(evt.startTime!));
+                          }}
+                        >
+                          <div className="mx-auto mt-[1px] w-5 h-[3px] rounded-full bg-white/40 opacity-0 group-hover/handle:opacity-100 group-hover:opacity-60 transition-opacity" />
+                        </div>
+                      )}
+
                       <div className="px-1.5 py-[2px] h-full">
                         <div className="text-[9px] font-bold truncate leading-tight text-white drop-shadow-sm">
                           {evt.title}
                         </div>
                         {heightPct > 3 && (
                           <div className="text-[8px] font-semibold truncate text-white/80">
-                            {evt.startTime}{evt.endTime ? `–${evt.endTime}` : ""}
+                            {displayStart}–{displayEnd}
                           </div>
                         )}
                       </div>
+
+                      {/* Resize handle — bottom */}
+                      {isManual && (
+                        <div
+                          className="absolute bottom-0 left-0 right-0 h-[6px] cursor-s-resize z-20 group/handle"
+                          onPointerDown={(e) => {
+                            e.stopPropagation();
+                            handlePointerDown(e, "resize-bottom", dateStr, evt.endTime || addOneHour(evt.startTime!), evt.id, evt.startTime!, evt.endTime || addOneHour(evt.startTime!));
+                          }}
+                        >
+                          <div className="mx-auto mb-[1px] w-5 h-[3px] rounded-full bg-white/40 opacity-0 group-hover/handle:opacity-100 group-hover:opacity-60 transition-opacity" />
+                        </div>
+                      )}
                     </div>
                   );
                 })}

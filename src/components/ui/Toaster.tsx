@@ -158,7 +158,7 @@ export default function Toaster() {
       aria-label="Notifications"
       className="fixed top-4 right-4 z-[9999] pointer-events-none flex flex-col gap-2.5 items-end"
     >
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence initial={false} mode="popLayout">
         {toasts.map((t) => (
           <ToastItem
             key={t.id}

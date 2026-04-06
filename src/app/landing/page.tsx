@@ -400,46 +400,146 @@ function Hero() {
    SECTION 2 — PROBLEM + SOLUTION (MERGED)
    ═══════════════════════════════════════════════════════════════════════ */
 const FEATURES = [
-  { icon: "M1 4h22v16H1zM1 10h22", title: "Paiements simplifiés", description: "Encaissez en ligne, suivez vos paiements, relancez automatiquement.", color: "#22C55E" },
-  { icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8", title: "CRM intégré", description: "Centralisez prospects, clients et historique d'échanges.", color: "#EC4899" },
-  { icon: "M4 4h16v16H4zM4 12h16M12 4v16", title: "Portfolio pro", description: "Présentez vos projets et convertissez les visiteurs en clients.", color: "#A855F7" },
-  { icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 14l2 2 4-4", title: "Facturation auto", description: "Devis, factures, relances. Conformes et générés en 2 clics.", color: "#F59E0B" },
-  { icon: "M9 5H2v7l6.29 6.29a1 1 0 001.42 0l5.58-5.58a1 1 0 000-1.42z", title: "Suivi projets", description: "Suivi visuel de la demande initiale à la livraison.", color: "#3B82F6" },
-  { icon: "M3 3v18h18M7 16l4-8 4 4 5-9", title: "Analytics", description: "Revenus, croissance, performances : pilotez avec des chiffres.", color: "#7C3AED" },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="5" width="20" height="14" rx="2" /><path d="M2 10h20" /></svg>
+    ),
+    title: "Paiements simplifiés",
+    description: "Encaissez en ligne, suivez vos paiements, relancez automatiquement.",
+    color: "#22C55E",
+    tint: "rgba(34,197,94,0.04)",
+    borderTint: "rgba(34,197,94,0.10)",
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>
+    ),
+    title: "CRM intégré",
+    description: "Centralisez prospects, clients et historique d'échanges.",
+    color: "#EC4899",
+    tint: "rgba(236,72,153,0.04)",
+    borderTint: "rgba(236,72,153,0.10)",
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 12h18M12 3v18" /></svg>
+    ),
+    title: "Portfolio pro",
+    description: "Présentez vos projets et convertissez les visiteurs en clients.",
+    color: "#A855F7",
+    tint: "rgba(168,85,247,0.04)",
+    borderTint: "rgba(168,85,247,0.10)",
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><path d="M14 2v6h6" /><path d="M9 15l2 2 4-4" /></svg>
+    ),
+    title: "Facturation auto",
+    description: "Devis, factures, relances. Conformes et générés en 2 clics.",
+    color: "#F59E0B",
+    tint: "rgba(245,158,11,0.04)",
+    borderTint: "rgba(245,158,11,0.10)",
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><path d="M22 4L12 14.01l-3-3" /></svg>
+    ),
+    title: "Suivi projets",
+    description: "Suivi visuel de la demande initiale à la livraison.",
+    color: "#3B82F6",
+    tint: "rgba(59,130,246,0.04)",
+    borderTint: "rgba(59,130,246,0.10)",
+  },
+  {
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M18 20V10" /><path d="M12 20V4" /><path d="M6 20v-6" /></svg>
+    ),
+    title: "Analytics",
+    description: "Revenus, croissance, performances : pilotez avec des chiffres.",
+    color: "#7C3AED",
+    tint: "rgba(124,58,237,0.04)",
+    borderTint: "rgba(124,58,237,0.10)",
+  },
 ];
+
+function FeatureCard({ f, i }: { f: typeof FEATURES[number]; i: number }) {
+  return (
+    <motion.div
+      className="group relative rounded-[20px] px-6 pt-9 pb-8 text-center cursor-default"
+      style={{
+        background: `linear-gradient(170deg, ${f.tint}, rgba(255,255,255,0.95))`,
+        border: `1px solid ${f.borderTint}`,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.02), 0 1px 2px rgba(0,0,0,0.02)",
+      }}
+      initial={{ opacity: 0, y: 24 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ delay: i * 0.07, duration: 0.5, ease }}
+      whileHover={{
+        y: -5,
+        boxShadow: `0 20px 40px ${f.color}10, 0 8px 16px rgba(0,0,0,0.03)`,
+        borderColor: `${f.color}25`,
+      }}
+    >
+      {/* Glow subtil au hover */}
+      <div
+        className="absolute inset-0 rounded-[20px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse at 50% -20%, ${f.color}0A 0%, transparent 65%)`,
+        }}
+      />
+
+      {/* Icon container */}
+      <div className="relative mx-auto mb-6 w-[52px] h-[52px]">
+        <div
+          className="w-full h-full rounded-[14px] flex items-center justify-center transition-all duration-300 group-hover:scale-[1.08] group-hover:shadow-lg"
+          style={{
+            background: `linear-gradient(145deg, ${f.color}12, ${f.color}06)`,
+            border: `1px solid ${f.color}15`,
+            boxShadow: `0 2px 8px ${f.color}0A`,
+            color: f.color,
+          }}
+        >
+          {f.icon}
+        </div>
+      </div>
+
+      {/* Titre */}
+      <h3 className="text-[15px] font-semibold mb-2.5 relative" style={{ color: "#18181B" }}>
+        {f.title}
+      </h3>
+
+      {/* Description */}
+      <p className="text-[13px] leading-[1.65] relative max-w-[210px] mx-auto" style={{ color: "#9CA3AF" }}>
+        {f.description}
+      </p>
+    </motion.div>
+  );
+}
 
 function ProblemSolutionSection() {
   return (
     <SectionShell atmosphere="system" id="features">
-      <div className="py-14 sm:py-16">
-        <motion.div className="text-center mb-10" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, ease }}>
-          <h2 className="text-[28px] sm:text-[40px] font-bold leading-tight text-[#111118]">
+      <div className="py-16 sm:py-20">
+        <motion.div
+          className="text-center mb-14"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease }}
+        >
+          <h2 className="text-[28px] sm:text-[42px] font-bold leading-[1.15] text-[#18181B]">
             Arrêtez de jongler entre{" "}
             <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #7C5CFF, #A78BFA)" }}>10 outils.</span>
           </h2>
-          <p className="text-[15px] sm:text-[17px] mt-3 max-w-[480px] mx-auto" style={{ color: "#6B7280" }}>
+          <p className="text-[15px] sm:text-[17px] mt-4 max-w-[480px] mx-auto" style={{ color: "#6B7280" }}>
             Clients, paiements, projets, CRM... tout est dispersé. Jestly centralise tout.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 max-w-[920px] mx-auto">
           {FEATURES.map((f, i) => (
-            <motion.div
-              key={f.title}
-              className="rounded-2xl p-5 cursor-default"
-              style={{ background: "rgba(255,255,255,0.85)", border: "1px solid #EEEFF2" }}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.05, duration: 0.4, ease }}
-              whileHover={{ y: -3, boxShadow: `0 12px 32px ${f.color}12` }}
-            >
-              <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: `${f.color}10` }}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={f.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={f.icon} /></svg>
-              </div>
-              <div className="text-[14px] font-semibold mb-1" style={{ color: "#111118" }}>{f.title}</div>
-              <div className="text-[13px] leading-relaxed" style={{ color: "#8A8FA3" }}>{f.description}</div>
-            </motion.div>
+            <FeatureCard key={f.title} f={f} i={i} />
           ))}
         </div>
       </div>
@@ -448,52 +548,189 @@ function ProblemSolutionSection() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SECTION 3 — SOCIAL PROOF (COMPACT)
+   SECTION 3 — SOCIAL PROOF (PREMIUM)
    ═══════════════════════════════════════════════════════════════════════ */
 const METRICS = [
-  { value: "3h", label: "gagnées / semaine", color: "#7C5CFF" },
-  { value: "x2", label: "mieux organisé", color: "#22C55E" },
-  { value: "100%", label: "centralisé", color: "#3B82F6" },
+  {
+    value: "5h",
+    label: "gagnées par semaine",
+    sub: "en moyenne par freelance",
+    color: "#7C5CFF",
+    tint: "rgba(124,92,255,0.06)",
+    borderTint: "rgba(124,92,255,0.12)",
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" /></svg>,
+  },
+  {
+    value: "6",
+    label: "outils remplacés",
+    sub: "un seul cockpit freelance",
+    color: "#22C55E",
+    tint: "rgba(34,197,94,0.06)",
+    borderTint: "rgba(34,197,94,0.12)",
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><path d="M22 4L12 14.01l-3-3" /></svg>,
+  },
+  {
+    value: "100%",
+    label: "centralisé",
+    sub: "clients, projets, paiements",
+    color: "#3B82F6",
+    tint: "rgba(59,130,246,0.06)",
+    borderTint: "rgba(59,130,246,0.12)",
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>,
+  },
 ];
 
 const TESTIMONIALS = [
-  { name: "Clara Dubois", role: "Directrice artistique, Paris", initials: "CD", color: "#EC4899", quote: "Avant Jestly, je passais plus de temps à gérer l'admin qu'à créer. Maintenant tout est centralisé : clients, factures, portfolio. Je me concentre enfin sur mon métier." },
-  { name: "Lucas Martin", role: "Dev freelance, Lyon", initials: "LM", color: "#3B82F6", quote: "J'avais une stack de 6 outils pour gérer mon business. Jestly a tout remplacé. Suivi, CRM, facturation : un seul endroit. J'ai retrouvé le temps de coder." },
+  {
+    name: "Clara Dubois",
+    role: "Directrice artistique",
+    location: "Paris",
+    initials: "CD",
+    color: "#EC4899",
+    tint: "rgba(236,72,153,0.04)",
+    borderTint: "rgba(236,72,153,0.10)",
+    quote: "Avant Jestly, je passais plus de temps à gérer l'admin qu'à créer. Maintenant tout est centralisé — clients, factures, portfolio. Je me concentre enfin sur mon métier de directrice artistique.",
+  },
+  {
+    name: "Lucas Martin",
+    role: "Développeur freelance",
+    location: "Lyon",
+    initials: "LM",
+    color: "#3B82F6",
+    tint: "rgba(59,130,246,0.04)",
+    borderTint: "rgba(59,130,246,0.10)",
+    quote: "J'avais une stack de 6 outils pour gérer mon activité. Jestly a tout remplacé en une seule plateforme. Suivi de projets, CRM, facturation : un seul endroit. J'ai retrouvé le temps de coder.",
+  },
 ];
+
+function StatCard({ m, i }: { m: typeof METRICS[number]; i: number }) {
+  return (
+    <motion.div
+      className="group relative text-center rounded-[18px] px-5 py-6 sm:py-7"
+      style={{
+        background: `linear-gradient(160deg, ${m.tint}, rgba(255,255,255,0.96))`,
+        border: `1px solid ${m.borderTint}`,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+      }}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: i * 0.08, duration: 0.5, ease }}
+      whileHover={{ y: -3, boxShadow: `0 12px 30px ${m.color}10` }}
+    >
+      <div className="flex items-center justify-center mb-3" style={{ color: m.color }}>
+        {m.icon}
+      </div>
+      <div className="text-[32px] sm:text-[38px] font-extrabold leading-none" style={{ color: m.color }}>
+        {m.value}
+      </div>
+      <div className="text-[13px] font-semibold mt-2" style={{ color: "#18181B" }}>
+        {m.label}
+      </div>
+      <div className="text-[11px] mt-1" style={{ color: "#9CA3AF" }}>
+        {m.sub}
+      </div>
+    </motion.div>
+  );
+}
+
+function TestimonialCard({ t, i }: { t: typeof TESTIMONIALS[number]; i: number }) {
+  return (
+    <motion.div
+      className="group relative rounded-[20px] p-6 sm:p-7"
+      style={{
+        background: `linear-gradient(170deg, ${t.tint}, rgba(255,255,255,0.96))`,
+        border: `1px solid ${t.borderTint}`,
+        boxShadow: "0 1px 3px rgba(0,0,0,0.02)",
+      }}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: 0.1 + i * 0.08, duration: 0.5, ease }}
+      whileHover={{ y: -3, boxShadow: `0 12px 30px ${t.color}0C` }}
+    >
+      {/* Guillemet décoratif */}
+      <div className="text-[40px] leading-none font-serif mb-2 select-none" style={{ color: `${t.color}20` }}>"</div>
+
+      <blockquote className="text-[14px] sm:text-[15px] leading-[1.7] mb-6" style={{ color: "#3F3F46" }}>
+        {t.quote}
+      </blockquote>
+
+      <div className="flex items-center gap-3.5">
+        {/* Avatar premium */}
+        <div
+          className="w-10 h-10 rounded-[12px] flex items-center justify-center text-[12px] font-bold text-white flex-shrink-0"
+          style={{ background: `linear-gradient(135deg, ${t.color}, #7C5CFF)` }}
+        >
+          {t.initials}
+        </div>
+        <div>
+          <div className="text-[13px] font-semibold" style={{ color: "#18181B" }}>{t.name}</div>
+          <div className="text-[12px]" style={{ color: "#9CA3AF" }}>
+            {t.role} · {t.location}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 function SocialProofSection() {
   return (
     <SectionShell atmosphere="editorial">
-      <div className="py-14 sm:py-16">
-        <motion.div className="text-center mb-10" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, ease }}>
-          <h2 className="text-[28px] sm:text-[40px] font-bold leading-tight text-[#111118]">
-            Ils ont{" "}
-            <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #7C5CFF, #A78BFA)" }}>simplifié leur activité.</span>
+      <div className="relative py-16 sm:py-20 overflow-hidden">
+        {/* Glow de fond subtil */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full pointer-events-none" style={{ background: "radial-gradient(ellipse, rgba(124,92,255,0.04) 0%, transparent 70%)" }} />
+
+        {/* Header */}
+        <motion.div
+          className="relative text-center mb-12 sm:mb-14"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, ease }}
+        >
+          {/* Badge */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium mb-5" style={{ background: "rgba(124,92,255,0.08)", color: "#7C5CFF", border: "1px solid rgba(124,92,255,0.12)" }}>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><path d="M22 4L12 14.01l-3-3" /></svg>
+            Pensé pour les freelances créatifs
+          </div>
+
+          <h2 className="text-[28px] sm:text-[42px] font-bold leading-[1.15] text-[#18181B]">
+            Moins d&apos;outils. Plus de clarté.{" "}
+            <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #7C5CFF, #A78BFA)" }}>Plus de business.</span>
           </h2>
+          <p className="text-[15px] sm:text-[17px] mt-4 max-w-[520px] mx-auto" style={{ color: "#6B7280" }}>
+            CRM, facturation, portfolio, gestion de projets — les freelances qui utilisent Jestly gagnent en moyenne 5 heures par semaine et pilotent toute leur activité depuis un seul endroit.
+          </p>
         </motion.div>
 
-        {/* 3 Metrics */}
-        <div className="grid grid-cols-3 gap-3 max-w-[600px] mx-auto mb-10">
+        {/* Stats */}
+        <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-[720px] mx-auto mb-12 sm:mb-14">
           {METRICS.map((m, i) => (
-            <motion.div key={m.label} className="text-center rounded-2xl p-4" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid #EEEFF2" }} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06, duration: 0.4, ease }}>
-              <div className="text-[26px] sm:text-[30px] font-bold" style={{ color: m.color }}>{m.value}</div>
-              <div className="text-[11px] font-medium mt-0.5" style={{ color: "#8A8FA3" }}>{m.label}</div>
-            </motion.div>
+            <StatCard key={m.label} m={m} i={i} />
           ))}
         </div>
 
-        {/* 2 Testimonials */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-[760px] mx-auto">
+        {/* Témoignages */}
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 max-w-[800px] mx-auto">
           {TESTIMONIALS.map((t, i) => (
-            <motion.div key={t.name} className="rounded-2xl p-5" style={{ background: "rgba(255,255,255,0.85)", border: "1px solid #EEEFF2" }} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06, duration: 0.4, ease }}>
-              <p className="text-[13px] leading-relaxed mb-4" style={{ color: "#57534E" }}>"{t.quote}"</p>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl flex items-center justify-center text-[10px] font-bold text-white" style={{ background: `linear-gradient(135deg, ${t.color}, #7C5CFF)` }}>{t.initials}</div>
-                <div><div className="text-[12px] font-semibold text-[#111118]">{t.name}</div><div className="text-[10px]" style={{ color: "#8A8FA3" }}>{t.role}</div></div>
-              </div>
-            </motion.div>
+            <TestimonialCard key={t.name} t={t} i={i} />
           ))}
         </div>
+
+        {/* Ligne de réassurance */}
+        <motion.div
+          className="relative text-center mt-10 sm:mt-12"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          <p className="text-[13px] font-medium" style={{ color: "#9CA3AF" }}>
+            Gratuit pour démarrer · Aucune carte requise · Prêt en 2 minutes
+          </p>
+        </motion.div>
       </div>
     </SectionShell>
   );

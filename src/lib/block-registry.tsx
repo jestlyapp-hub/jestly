@@ -14,6 +14,8 @@ export interface BlockRegistryEntry {
   supportsProjects?: boolean;
   /** This block captures leads via form submission */
   capturesLeads?: boolean;
+  /** Block temporarily disabled — shown as "Bientôt" in the builder */
+  soon?: boolean;
 }
 
 export const blockCategories: { id: BlockCategory; label: string }[] = [
@@ -43,7 +45,7 @@ export const blockRegistry: BlockRegistryEntry[] = [
   { type: "testimonials", name: "Témoignages", description: "Avis clients avec avatar et rôle", category: "social" },
   { type: "timeline-process", name: "Timeline", description: "Processus en étapes numérotées", category: "content" },
   { type: "faq-accordion", name: "FAQ", description: "Questions/réponses en accordéon", category: "content" },
-  { type: "video", name: "Vidéo", description: "Intégration vidéo avec légende", category: "media" },
+  { type: "video", name: "Vidéo", description: "Intégration vidéo avec légende", category: "media", soon: true },
   { type: "full-image", name: "Image pleine", description: "Image en pleine largeur avec overlay", category: "media" },
   { type: "why-me", name: "Pourquoi moi", description: "Arguments différenciants en grille", category: "content" },
   { type: "centered-cta", name: "CTA centré", description: "Appel à l'action centré avec bouton", category: "conversion" },
@@ -63,7 +65,7 @@ export const blockRegistry: BlockRegistryEntry[] = [
   { type: "comparison-table", name: "Comparaison", description: "Tableau comparatif d'offres", category: "conversion", supportsProducts: true },
   { type: "contact-form", name: "Contact avancé", description: "Formulaire de contact complet", category: "contact", capturesLeads: true },
   { type: "blog-preview", name: "Blog", description: "Aperçu d'articles récents", category: "content" },
-  { type: "video-text-split", name: "Vidéo + Texte", description: "Split vidéo et texte en 2 colonnes", category: "media" },
+  { type: "video-text-split", name: "Vidéo + Texte", description: "Split vidéo et texte en 2 colonnes", category: "media", soon: true },
   { type: "before-after", name: "Avant / Après", description: "Slider comparatif avant/après", category: "media" },
   { type: "service-cards", name: "Service cards", description: "Cartes services avec icône, prix et CTA", category: "vente", supportsProducts: true },
   { type: "lead-magnet", name: "Lead Magnet", description: "Téléchargement en échange d'un email", category: "conversion", capturesLeads: true },
@@ -82,7 +84,7 @@ export const blockRegistry: BlockRegistryEntry[] = [
   { type: "cta-banner", name: "CTA Banner", description: "Bannière CTA premium avec gradient et double bouton", category: "conversion" },
   { type: "contact-premium", name: "Contact Premium", description: "Formulaire contact premium dark avec champs stylisés", category: "contact", capturesLeads: true },
   { type: "footer-block", name: "Footer Premium", description: "Footer multi-colonnes premium avec socials", category: "footer" },
-  { type: "video-showcase", name: "Vidéo Showcase", description: "Showcase vidéo cinématique avec stats", category: "media" },
+  { type: "video-showcase", name: "Vidéo Showcase", description: "Showcase vidéo cinématique avec stats", category: "media", soon: true },
   { type: "tech-stack", name: "Tech Stack", description: "Grille technologies / intégrations par catégorie", category: "content" },
   { type: "before-after-pro", name: "Avant/Après Pro", description: "Comparaison avant/après premium multi-items", category: "media" },
   // ─── 50 new blocks ───
@@ -90,7 +92,7 @@ export const blockRegistry: BlockRegistryEntry[] = [
   { type: "hero-minimal-service", name: "Hero Service Minimal", description: "Hero service centré avec preuves et CTA", category: "hero" },
   { type: "hero-dark-saas", name: "Hero SaaS Dark", description: "Hero produit SaaS avec features flottantes", category: "hero" },
   { type: "hero-creator-brand", name: "Hero Personal Brand", description: "Hero créateur avec photo, credentials et social proof", category: "hero" },
-  { type: "hero-video-showreel", name: "Hero Showreel Video", description: "Hero immersif pour monteurs et réalisateurs", category: "hero" },
+  { type: "hero-video-showreel", name: "Hero Showreel Video", description: "Hero immersif pour monteurs et réalisateurs", category: "hero", soon: true },
   { type: "projects-grid-cases", name: "Projets Case Studies", description: "Grille 2x2 de projets avec résultats", category: "portfolio", supportsProjects: true },
   { type: "projects-horizontal", name: "Projets Horizontal", description: "Carrousel horizontal de projets créatifs", category: "portfolio", supportsProjects: true },
   { type: "project-before-after", name: "Projet Avant/Après", description: "Transformations clients avec résultats", category: "portfolio", supportsProjects: true },
@@ -108,7 +110,7 @@ export const blockRegistry: BlockRegistryEntry[] = [
   { type: "pricing-custom-quote", name: "Tarif Sur Devis", description: "Offre premium sur devis personnalisé", category: "conversion", supportsProducts: true },
   { type: "pricing-mini-faq", name: "Tarifs + FAQ", description: "Mini pricing avec FAQ rassurante", category: "conversion", supportsProducts: true },
   { type: "testimonials-3dark", name: "Témoignages 3 Cartes", description: "3 témoignages premium en cartes", category: "social" },
-  { type: "testimonials-video", name: "Témoignages Vidéo", description: "Témoignages clients en format vidéo", category: "social" },
+  { type: "testimonials-video", name: "Témoignages Vidéo", description: "Témoignages clients en format vidéo", category: "social", soon: true },
   { type: "results-logos-quotes", name: "Logos + Citations", description: "Logos clients et citations sélectionnées", category: "social" },
   { type: "numbers-impact", name: "Chiffres d'Impact", description: "Stats et métriques de performance", category: "social" },
   { type: "results-timeline", name: "Timeline Résultats", description: "Progression de résultats sur 90 jours", category: "social" },
@@ -125,7 +127,7 @@ export const blockRegistry: BlockRegistryEntry[] = [
   { type: "form-contact-simple", name: "Contact Simple", description: "Formulaire de contact 3 champs", category: "contact", capturesLeads: true },
   { type: "form-quote-request", name: "Demande de Devis", description: "Formulaire devis avancé avec projet", category: "contact", capturesLeads: true },
   { type: "form-newsletter-lead", name: "Newsletter / Lead", description: "Capture email newsletter légère", category: "contact", capturesLeads: true },
-  { type: "media-featured-video", name: "Vidéo Vedette", description: "Section vidéo principale avec secondaires", category: "media" },
+  { type: "media-featured-video", name: "Vidéo Vedette", description: "Section vidéo principale avec secondaires", category: "media", soon: true },
   { type: "gallery-3up-strip", name: "Galerie 3 Images", description: "Bande de 3 images avec légendes", category: "media" },
   { type: "gallery-stacked-storyboard", name: "Galerie Storyboard", description: "Séquence d'images narratives empilées", category: "media" },
   { type: "content-feature-article", name: "Article Vedette", description: "Article mis en avant avec image et CTA", category: "content" },

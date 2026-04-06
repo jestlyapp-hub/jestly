@@ -48,7 +48,7 @@ export default function MissionSuccessModal() {
     : null;
 
   return (
-    <AnimatePresence>
+    <AnimatePresence initial={false}>
       {visible && (
         <div ref={modalRef} className="fixed inset-0 z-[90] flex items-center justify-center">
           {/* Backdrop */}
