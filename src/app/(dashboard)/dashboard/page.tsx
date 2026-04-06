@@ -1,9 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { useTrack } from "@/lib/hooks/use-track";
-import { usePreferences } from "@/lib/hooks/use-preferences";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi } from "@/lib/hooks/use-api";
 import { ProductEvents } from "@/lib/product-events";
@@ -593,20 +591,6 @@ function WelcomeBlock() {
 export default function DashboardPage() {
   const { data, loading, error, mutate } = useApi<DashboardData>("/api/dashboard/stats");
   const track = useTrack();
-  const router = useRouter();
-  const { preferences, loading: prefsLoading } = usePreferences();
-
-  // Redirect to preferred home page if not dashboard
-  const [redirectChecked, setRedirectChecked] = useState(false);
-  useEffect(() => {
-    if (!prefsLoading && !redirectChecked) {
-      setRedirectChecked(true);
-      const page = preferences.defaultPage;
-      if (page && page !== "dashboard" && ["commandes", "clients", "facturation", "taches", "calendrier", "analytics"].includes(page)) {
-        router.replace(`/${page}`);
-      }
-    }
-  }, [prefsLoading, preferences.defaultPage, redirectChecked, router]);
 
   // Track page view au montage
   useEffect(() => {
