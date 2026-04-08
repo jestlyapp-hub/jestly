@@ -32,13 +32,18 @@ export async function signUp(formData: FormData) {
 
   const email = (formData.get("email") as string)?.trim().toLowerCase();
   const password = formData.get("password") as string;
+  const acceptedTerms = formData.get("accept-terms");
 
   if (!email || !password) {
     return { error: "Email et mot de passe requis." };
   }
 
-  if (password.length < 6) {
-    return { error: "Le mot de passe doit contenir au moins 6 caractères." };
+  if (password.length < 8) {
+    return { error: "Le mot de passe doit contenir au moins 8 caractères." };
+  }
+
+  if (!acceptedTerms) {
+    return { error: "Vous devez accepter les CGU et la politique de confidentialité." };
   }
 
   const { data, error } = await supabase.auth.signUp({

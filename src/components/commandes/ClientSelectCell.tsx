@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { getNotionColor } from "@/lib/notion-colors";
+import { normalizeForSearch, sortClientsByName } from "./ClientCombobox";
 
 interface ClientOption {
   id: string;
@@ -61,11 +62,15 @@ export default function ClientSelectCell({ currentName, currentId, clients, onCo
     };
   }, [open]);
 
-  const filtered = clients.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.email.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = (() => {
+    const sorted = sortClientsByName(clients);
+    const q = normalizeForSearch(search);
+    if (!q) return sorted;
+    return sorted.filter((c) => {
+      const hay = `${normalizeForSearch(c.name)} ${normalizeForSearch(c.email)}`;
+      return hay.includes(q);
+    });
+  })();
 
   const select = (id: string) => {
     if (id !== currentId) onCommit(id);

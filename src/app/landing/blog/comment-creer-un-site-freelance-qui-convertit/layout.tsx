@@ -1,21 +1,13 @@
-import type { Metadata } from "next";
+import { buildBlogMetadata, BlogArticleJsonLd } from "@/lib/seo/blog-metadata";
 
-export const metadata: Metadata = {
-  title: "Comment créer un site freelance qui convertit — Blog Jestly",
-  description:
-    "Votre site est votre vitrine. Découvrez comment le structurer pour rassurer, clarifier et convertir vos prospects.",
-  openGraph: {
-    title: "Comment créer un site freelance qui convertit — Blog Jestly",
-    description:
-      "Votre site est votre vitrine. Découvrez comment le structurer pour rassurer, clarifier et convertir vos prospects.",
-    siteName: "Jestly",
-  },
-};
+const SLUG = "comment-creer-un-site-freelance-qui-convertit";
+export const metadata = buildBlogMetadata(SLUG);
 
-export default function ArticleLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function ArticleLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <BlogArticleJsonLd slug={SLUG} />
+      {children}
+    </>
+  );
 }

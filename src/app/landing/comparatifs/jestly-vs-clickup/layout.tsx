@@ -1,21 +1,13 @@
-import type { Metadata } from "next";
+import { buildComparatifMetadata, ComparatifJsonLd } from "@/lib/seo/comparatifs-metadata";
 
-export const metadata: Metadata = {
-  title: "Jestly vs ClickUp — Comparatif",
-  description:
-    "Pourquoi Jestly est plus adapté qu'ClickUp pour un freelance solo.",
-  openGraph: {
-    title: "Jestly vs ClickUp — Comparatif",
-    description:
-      "Pourquoi Jestly est plus adapté qu'ClickUp pour un freelance solo.",
-    siteName: "Jestly",
-  },
-};
+const SLUG = "jestly-vs-clickup";
+export const metadata = buildComparatifMetadata(SLUG);
 
-export default function JestlyVsClickupLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function CompLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <ComparatifJsonLd slug={SLUG} />
+      {children}
+    </>
+  );
 }

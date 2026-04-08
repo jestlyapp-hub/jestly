@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
 import LineItemsEditor, { type LineItemDraft } from "./LineItemsEditor";
+import ClientCombobox from "./ClientCombobox";
 
 interface ClientOption {
   id: string;
@@ -339,16 +340,13 @@ export default function CreateOrderDrawer({
                 </div>
 
                 {mode === "existing" ? (
-                  <select
+                  <ClientCombobox
                     value={clientId}
-                    onChange={(e) => setClientId(e.target.value)}
-                    className={`${INPUT} cursor-pointer`}
-                  >
-                    <option value="">Sélectionner un client...</option>
-                    {clients.map((c) => (
-                      <option key={c.id} value={c.id}>{c.name} ({c.email})</option>
-                    ))}
-                  </select>
+                    options={clients}
+                    onChange={setClientId}
+                    placeholder="Rechercher ou sélectionner un client…"
+                    loading={!rawClients}
+                  />
                 ) : (
                   <div className="space-y-2">
                     <input type="text" placeholder="Nom du client" value={newClientName} onChange={(e) => setNewClientName(e.target.value)} className={INPUT} />

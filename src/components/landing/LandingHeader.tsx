@@ -215,9 +215,9 @@ export default function LandingHeader() {
           <nav className="hidden lg:flex items-center relative">
             {NAV_ITEMS.map((item) => (
               item.href && !item.menu ? (
-                <Link key={item.label} href={item.href} className="relative z-10 px-4 py-2 text-[13px] font-medium transition-colors duration-200 text-[#4b5563] hover:text-[#7c3aed]" onClick={() => setActiveMenu(null)}>{item.label}</Link>
+                <Link key={item.label} href={item.href} className="relative z-10 inline-flex items-center min-h-[44px] px-4 py-2 text-[13px] font-medium transition-colors duration-200 text-[#4b5563] hover:text-[#7c3aed] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/40 rounded-md" onClick={() => setActiveMenu(null)}>{item.label}</Link>
               ) : (
-                <button key={item.label} className={`relative z-10 px-4 py-2 text-[13px] font-medium transition-colors duration-200 flex items-center gap-1 ${activeMenu === item.menu && item.menu ? "text-[#7c3aed]" : "text-[#4b5563] hover:text-[#7c3aed]"}`} onMouseEnter={() => item.menu ? handleEnterNav(item.menu) : setActiveMenu(null)} onClick={() => { if (item.menu) setActiveMenu(activeMenu === item.menu ? null : item.menu); }}>
+                <button key={item.label} aria-haspopup="menu" aria-expanded={activeMenu === item.menu} className={`relative z-10 inline-flex items-center min-h-[44px] px-4 py-2 text-[13px] font-medium transition-colors duration-200 gap-1 rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/40 ${activeMenu === item.menu && item.menu ? "text-[#7c3aed]" : "text-[#4b5563] hover:text-[#7c3aed]"}`} onMouseEnter={() => item.menu ? handleEnterNav(item.menu) : setActiveMenu(null)} onClick={() => { if (item.menu) setActiveMenu(activeMenu === item.menu ? null : item.menu); }}>
                   {item.label}
                   {item.menu && (<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" className="transition-transform duration-200" style={{ transform: activeMenu === item.menu ? "rotate(180deg)" : "rotate(0deg)" }}><path d="M6 9l6 6 6-6" /></svg>)}
                 </button>
@@ -232,8 +232,8 @@ export default function LandingHeader() {
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              className="lg:hidden flex items-center justify-center w-9 h-9 rounded-md text-[#4b5563] hover:text-[#7c3aed] transition-colors cursor-pointer"
               aria-label="Ouvrir le menu"
+              className="lg:hidden flex items-center justify-center w-11 h-11 rounded-md text-[#4b5563] hover:text-[#7c3aed] transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7c3aed]/40"
             >
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 6h18M3 12h18M3 18h18" /></svg>
             </button>

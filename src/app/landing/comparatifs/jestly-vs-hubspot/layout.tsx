@@ -1,21 +1,13 @@
-import type { Metadata } from "next";
+import { buildComparatifMetadata, ComparatifJsonLd } from "@/lib/seo/comparatifs-metadata";
 
-export const metadata: Metadata = {
-  title: "Jestly vs HubSpot — Comparatif",
-  description:
-    "Un CRM pensé freelance, pas un outil enterprise complexe et cher.",
-  openGraph: {
-    title: "Jestly vs HubSpot — Comparatif",
-    description:
-      "Un CRM pensé freelance, pas un outil enterprise complexe et cher.",
-    siteName: "Jestly",
-  },
-};
+const SLUG = "jestly-vs-hubspot";
+export const metadata = buildComparatifMetadata(SLUG);
 
-export default function JestlyVsHubspotLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function CompLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <ComparatifJsonLd slug={SLUG} />
+      {children}
+    </>
+  );
 }

@@ -39,7 +39,8 @@ export default function SignupPage() {
     const pw = fd.get("password") as string;
     const pw2 = fd.get("confirm-password") as string;
     if (pw !== pw2) { setError("Les mots de passe ne correspondent pas."); setLoading(false); return; }
-    if (pw.length < 6) { setError("Le mot de passe doit contenir au moins 6 caractères."); setLoading(false); return; }
+    if (pw.length < 8) { setError("Le mot de passe doit contenir au moins 8 caractères."); setLoading(false); return; }
+    if (!fd.get("accept-terms")) { setError("Vous devez accepter les CGU et la politique de confidentialité."); setLoading(false); return; }
 
     // Clear previous account data from localStorage (guide, preferences)
     localStorage.removeItem("jestly_guide_v3");
@@ -183,12 +184,27 @@ export default function SignupPage() {
         </div>
         <div className="relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C4CC" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg></div>
-          <input type="password" name="password" required autoComplete="new-password" placeholder="Mot de passe (6+ caractères)" className={inputCls} style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
+          <input type="password" name="password" required minLength={8} autoComplete="new-password" placeholder="Mot de passe (8+ caractères)" className={inputCls} style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
         </div>
         <div className="relative">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C4C4CC" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /></svg></div>
           <input type="password" name="confirm-password" required autoComplete="new-password" placeholder="Confirmer le mot de passe" className={inputCls} style={inputStyle} onFocus={focusIn} onBlur={focusOut} />
         </div>
+
+        <label className="flex items-start gap-2.5 text-[12px] text-[#66697A] leading-relaxed cursor-pointer select-none">
+          <input
+            type="checkbox"
+            name="accept-terms"
+            required
+            className="mt-[2px] w-4 h-4 rounded border-[#D4D4DC] text-[#7C3AED] focus:ring-2 focus:ring-[#7C3AED]/30 cursor-pointer"
+          />
+          <span>
+            J&apos;accepte les{" "}
+            <Link href="/cgu" className="text-[#7C3AED] font-semibold hover:underline">CGU</Link>
+            {" "}et la{" "}
+            <Link href="/confidentialite" className="text-[#7C3AED] font-semibold hover:underline">politique de confidentialité</Link>.
+          </span>
+        </label>
 
         {error && <motion.div className="rounded-xl px-4 py-3 text-[13px] font-medium" style={{ background: "rgba(239,68,68,0.06)", color: "#DC2626", border: "1px solid rgba(239,68,68,0.1)" }} initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }}>{error}</motion.div>}
 

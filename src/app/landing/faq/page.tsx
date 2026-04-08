@@ -1,135 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import SectionShell from "@/components/landing/SectionShell";
 import TextSwapButton from "@/components/ui/TextSwapButton";
+import { FAQ_CATEGORIES, type FaqQA } from "./faq-data";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 /* ═══════════════════════════════════════════════════════════════════════
-   FAQ data
-   ═══════════════════════════════════════════════════════════════════════ */
-interface FaqItem {
-  question: string;
-  answer: string;
-}
-
-interface FaqCategory {
-  title: string;
-  items: FaqItem[];
-}
-
-const FAQ_CATEGORIES: FaqCategory[] = [
-  {
-    title: "Général",
-    items: [
-      {
-        question: "Qu\u2019est-ce que Jestly exactement ?",
-        answer:
-          "Jestly est un SaaS tout-en-un conçu pour les freelances créatifs. Il regroupe site web, CRM, agenda, facturation, commandes, analytics, portfolio, paiements et briefs dans un seul outil — pour remplacer une dizaine d\u2019abonnements séparés.",
-      },
-      {
-        question: "À qui s\u2019adresse Jestly ?",
-        answer:
-          "Jestly est pensé pour les freelances créatifs : vidéastes, designers, développeurs, consultants, petites agences. Tout professionnel indépendant qui veut centraliser sa gestion sans complexité.",
-      },
-      {
-        question: "Comment démarrer avec Jestly ?",
-        answer:
-          "Créez votre compte gratuitement en 30 secondes. Aucune carte bancaire n\u2019est requise. Vous accédez immédiatement au tableau de bord et pouvez commencer à configurer votre espace.",
-      },
-      {
-        question: "Jestly est-il gratuit ?",
-        answer:
-          "Oui, Jestly propose un plan gratuit (Free) qui inclut jusqu\u2019à 10 commandes par mois et l\u2019accès à toutes les fonctionnalités essentielles. Le plan Pro à 4,99\u00a0\u20ac/mois débloque l\u2019usage illimité.",
-      },
-    ],
-  },
-  {
-    title: "Abonnements",
-    items: [
-      {
-        question: "Quels sont les plans disponibles ?",
-        answer:
-          "Deux plans : Free (10 commandes/mois, fonctionnalités essentielles) et Pro (4,99\u00a0\u20ac/mois, usage illimité, domaine personnalisé, priorité support). Pas de plan entreprise complexe — on garde les choses simples.",
-      },
-      {
-        question: "Comment passer au plan Pro ?",
-        answer:
-          "Depuis votre tableau de bord, rendez-vous dans Paramètres > Abonnement et cliquez sur « Passer au Pro ». Le paiement est géré via Stripe, sécurisé et instantané.",
-      },
-      {
-        question: "Puis-je revenir au plan Free ?",
-        answer:
-          "Absolument. Vous pouvez rétrograder à tout moment depuis vos paramètres. Votre abonnement Pro reste actif jusqu\u2019à la fin de la période payée, puis vous repassez en Free.",
-      },
-      {
-        question: "Y a-t-il un engagement ?",
-        answer:
-          "Aucun engagement. L\u2019abonnement Pro est mensuel et résiliable à tout moment, sans frais ni justification.",
-      },
-    ],
-  },
-  {
-    title: "Fonctionnalités",
-    items: [
-      {
-        question: "Quelles fonctionnalités sont incluses ?",
-        answer:
-          "Site web personnalisable, CRM clients, agenda, facturation (devis + factures), gestion des commandes, analytics, portfolio, paiements en ligne et briefs clients. Tout est inclus dès le plan Free.",
-      },
-      {
-        question: "Jestly s\u2019intègre-t-il avec d\u2019autres outils ?",
-        answer:
-          "Jestly est conçu pour être autonome et remplacer votre stack. Les paiements passent par Stripe. D\u2019autres intégrations (Notion, Google Calendar, Zapier) sont prévues sur la roadmap.",
-      },
-      {
-        question: "Y a-t-il une application mobile ?",
-        answer:
-          "Jestly est entièrement responsive et fonctionne parfaitement sur mobile via votre navigateur. Une application native est envisagée à terme.",
-      },
-      {
-        question: "Puis-je personnaliser mon site ?",
-        answer:
-          "Oui, le builder de site intégré vous permet de choisir vos couleurs, polices, blocs de contenu et mise en page. Votre site est accessible sur un sous-domaine prenom.jestly.fr ou votre propre domaine (Pro).",
-      },
-    ],
-  },
-  {
-    title: "Sécurité & données",
-    items: [
-      {
-        question: "Où sont hébergées mes données ?",
-        answer:
-          "Vos données sont hébergées sur Supabase (infrastructure AWS) avec des serveurs en Europe. Les sauvegardes sont automatiques et quotidiennes.",
-      },
-      {
-        question: "Jestly est-il conforme au RGPD ?",
-        answer:
-          "Oui. Jestly respecte le RGPD : vos données vous appartiennent, aucune revente à des tiers, droit d\u2019accès et de suppression à tout moment. Notre politique de confidentialité détaille nos engagements.",
-      },
-      {
-        question: "Puis-je exporter mes données ?",
-        answer:
-          "Oui, vous pouvez exporter vos clients, commandes, factures et contacts au format CSV depuis votre tableau de bord à tout moment.",
-      },
-    ],
-  },
-];
-
-/* ═══════════════════════════════════════════════════════════════════════
-   Accordion item
+   Accordion item (accessible)
+   - button avec aria-expanded / aria-controls
+   - panneau avec role="region" + id unique
+   - clavier : Enter/Space natifs, Escape gérés plus haut
    ═══════════════════════════════════════════════════════════════════════ */
 function AccordionItem({
   item,
   isOpen,
   onToggle,
 }: {
-  item: FaqItem;
+  item: FaqQA;
   isOpen: boolean;
   onToggle: () => void;
 }) {
+  const uid = useId();
+  const btnId = `faq-btn-${uid}`;
+  const panelId = `faq-panel-${uid}`;
+
   return (
     <div
       className="rounded-xl overflow-hidden transition-shadow duration-300"
@@ -140,14 +37,14 @@ function AccordionItem({
       }}
     >
       <button
+        id={btnId}
         type="button"
         onClick={onToggle}
-        className="w-full flex items-center justify-between gap-4 px-5 py-4 text-left cursor-pointer"
+        aria-expanded={isOpen}
+        aria-controls={panelId}
+        className="w-full min-h-[56px] flex items-center justify-between gap-4 px-5 py-4 text-left cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/40 focus-visible:ring-offset-2 rounded-xl"
       >
-        <span
-          className="text-sm font-medium"
-          style={{ color: "#111118" }}
-        >
+        <span className="text-[15px] font-semibold text-[#111118]">
           {item.question}
         </span>
         <motion.svg
@@ -155,13 +52,14 @@ function AccordionItem({
           height="18"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#A8A8B0"
-          strokeWidth="2"
+          stroke="#6B6F80"
+          strokeWidth="2.2"
           strokeLinecap="round"
           strokeLinejoin="round"
           animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.3, ease }}
           className="flex-shrink-0"
+          aria-hidden
         >
           <path d="M6 9l6 6 6-6" />
         </motion.svg>
@@ -170,14 +68,17 @@ function AccordionItem({
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
+            id={panelId}
+            role="region"
+            aria-labelledby={btnId}
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.3, ease }}
             className="overflow-hidden"
           >
-            <div className="px-5 pb-4">
-              <p className="text-sm leading-relaxed" style={{ color: "#6B6F80" }}>
+            <div className="px-5 pb-5">
+              <p className="text-[14px] leading-relaxed text-[#4B4F60]">
                 {item.answer}
               </p>
             </div>
@@ -192,25 +93,17 @@ function AccordionItem({
    Page
    ═══════════════════════════════════════════════════════════════════════ */
 export default function FaqPage() {
-  const [openIndex, setOpenIndex] = useState<string | null>(null);
-
-  const toggleItem = (key: string) => {
-    setOpenIndex((prev) => (prev === key ? null : key));
-  };
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  const toggle = (key: string) => setOpenKey((prev) => (prev === key ? null : key));
 
   return (
-    <div
+    <main
+      id="main"
       className="min-h-screen"
-      style={{
-        background:
-          "linear-gradient(180deg, #F8F8FC 0%, #F4F3FA 100%)",
-      }}
+      style={{ background: "linear-gradient(180deg, #F8F8FC 0%, #F4F3FA 100%)" }}
     >
       {/* Radial violet glows */}
-      <div
-        className="pointer-events-none fixed inset-0 z-0"
-        aria-hidden
-      >
+      <div className="pointer-events-none fixed inset-0 z-0" aria-hidden>
         <div
           className="absolute"
           style={{
@@ -219,8 +112,7 @@ export default function FaqPage() {
             width: 650,
             height: 650,
             borderRadius: "50%",
-            background:
-              "radial-gradient(circle, rgba(124,92,255,0.07), transparent 70%)",
+            background: "radial-gradient(circle, rgba(124,92,255,0.07), transparent 70%)",
           }}
         />
         <div
@@ -231,8 +123,7 @@ export default function FaqPage() {
             width: 550,
             height: 550,
             borderRadius: "50%",
-            background:
-              "radial-gradient(circle, rgba(139,92,246,0.05), transparent 70%)",
+            background: "radial-gradient(circle, rgba(139,92,246,0.05), transparent 70%)",
           }}
         />
       </div>
@@ -248,7 +139,7 @@ export default function FaqPage() {
             <span
               className="inline-block text-xs font-semibold tracking-widest uppercase px-4 py-1.5 rounded-full mb-6"
               style={{
-                color: "#7C5CFF",
+                color: "#6D28D9",
                 background: "rgba(124,92,255,0.08)",
                 border: "1px solid rgba(124,92,255,0.15)",
               }}
@@ -258,8 +149,7 @@ export default function FaqPage() {
           </motion.div>
 
           <motion.h1
-            className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6"
-            style={{ color: "#111118" }}
+            className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-[-0.03em] leading-[1.05] mb-5 text-[#111118]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1, ease }}
@@ -277,39 +167,34 @@ export default function FaqPage() {
           </motion.h1>
 
           <motion.p
-            className="text-lg max-w-2xl mx-auto"
-            style={{ color: "#6B6F80" }}
+            className="text-[17px] max-w-2xl mx-auto leading-relaxed text-[#4B4F60]"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2, ease }}
           >
-            Tout ce que vous devez savoir sur Jestly. Si votre question n&apos;est pas ici,
-            n&apos;hésitez pas à nous contacter.
+            Tout ce que vous devez savoir sur Jestly : bêta gratuite, fonctionnalités,
+            sécurité, support et démarrage. Si votre question n&apos;est pas ici, écrivez-nous.
           </motion.p>
         </div>
       </SectionShell>
 
-      {/* ── FAQ categories ── */}
+      {/* ── Categories ── */}
       <SectionShell atmosphere="calm" className="relative z-10">
         <div className="max-w-3xl mx-auto space-y-12">
           {FAQ_CATEGORIES.map((cat, catIdx) => (
-            <motion.div
+            <motion.section
               key={cat.title}
+              aria-label={cat.title}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-40px" }}
-              transition={{ duration: 0.5, delay: catIdx * 0.1, ease }}
+              transition={{ duration: 0.5, delay: catIdx * 0.08, ease }}
             >
-              <h2
-                className="text-lg font-bold mb-4 flex items-center gap-2"
-                style={{ color: "#111118" }}
-              >
+              <h2 className="text-[18px] font-bold text-[#111118] mb-4 flex items-center gap-2">
                 <span
                   className="w-1.5 h-5 rounded-full"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #7C5CFF, #A78BFA)",
-                  }}
+                  style={{ background: "linear-gradient(135deg, #7C5CFF, #A78BFA)" }}
+                  aria-hidden
                 />
                 {cat.title}
               </h2>
@@ -320,13 +205,13 @@ export default function FaqPage() {
                     <AccordionItem
                       key={key}
                       item={item}
-                      isOpen={openIndex === key}
-                      onToggle={() => toggleItem(key)}
+                      isOpen={openKey === key}
+                      onToggle={() => toggle(key)}
                     />
                   );
                 })}
               </div>
-            </motion.div>
+            </motion.section>
           ))}
         </div>
       </SectionShell>
@@ -334,25 +219,23 @@ export default function FaqPage() {
       {/* ── CTA ── */}
       <SectionShell atmosphere="elevated" className="relative z-10">
         <motion.div
-          className="text-center"
+          className="text-center max-w-xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, ease }}
         >
-          <h2
-            className="text-2xl sm:text-3xl font-bold mb-4"
-            style={{ color: "#111118" }}
-          >
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-[-0.02em] mb-4 text-[#111118]">
             Encore une question ?
           </h2>
-          <p className="text-base mb-8" style={{ color: "#6B6F80" }}>
-            Notre équipe répond en moins de 24h. Sinon, essayez par vous-même — c&apos;est gratuit.
+          <p className="text-[15px] mb-8 text-[#4B4F60] leading-relaxed">
+            L&apos;équipe répond généralement sous 24 h ouvrées. Sinon, essayez par
+            vous-même — la bêta est gratuite, sans carte bancaire.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <TextSwapButton
-              label="Commencer gratuitement"
-              href="/register"
+              label="Créer mon compte gratuit"
+              href="/signup"
               variant="primary"
               size="lg"
             />
@@ -365,6 +248,6 @@ export default function FaqPage() {
           </div>
         </motion.div>
       </SectionShell>
-    </div>
+    </main>
   );
 }

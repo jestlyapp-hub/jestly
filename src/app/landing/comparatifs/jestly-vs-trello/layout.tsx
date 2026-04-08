@@ -1,21 +1,13 @@
-import type { Metadata } from "next";
+import { buildComparatifMetadata, ComparatifJsonLd } from "@/lib/seo/comparatifs-metadata";
 
-export const metadata: Metadata = {
-  title: "Jestly vs Trello — Comparatif",
-  description:
-    "Pourquoi Jestly est une meilleure alternative à Trello pour gérer un business freelance.",
-  openGraph: {
-    title: "Jestly vs Trello — Comparatif",
-    description:
-      "Pourquoi Jestly est une meilleure alternative à Trello pour gérer un business freelance.",
-    siteName: "Jestly",
-  },
-};
+const SLUG = "jestly-vs-trello";
+export const metadata = buildComparatifMetadata(SLUG);
 
-export default function JestlyVsTrelloLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function CompLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <ComparatifJsonLd slug={SLUG} />
+      {children}
+    </>
+  );
 }

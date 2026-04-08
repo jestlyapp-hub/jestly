@@ -24,7 +24,8 @@ import CustomCell from "@/components/commandes/CustomCell";
 import AddColumnButton from "@/components/commandes/AddColumnButton";
 import ColumnHeaderMenu from "@/components/commandes/ColumnHeaderMenu";
 import BulkToolbar from "@/components/commandes/BulkToolbar";
-import TimeNavigator from "@/components/commandes/TimeNavigator";
+import PeriodFilterDropdown from "@/components/facturation/PeriodFilterDropdown";
+import { type PeriodFilter, PERIOD_ALL, isoDatePart } from "@/lib/period-filter";
 import { toast } from "@/lib/hooks/use-toast";
 import { formatDateFR, isOverdue, isOrderOverdue, isActiveProductionStatus } from "@/lib/notion-colors";
 import { NEXT_STATUS, PREV_STATUS, STATUS_LABELS, LEGACY_SEEDED_KEYS } from "@/lib/kanban-config";
@@ -32,13 +33,6 @@ import SelectableCheckbox from "@/components/ui/SelectableCheckbox";
 import PipelineSummaryCards from "@/components/ui/PipelineSummaryCards";
 import { isInteractiveClick } from "@/lib/interactive-click";
 import { computeOrdersPipelineSummary } from "@/lib/business-metrics";
-import {
-  type TimeGranularity,
-  getTimeWindow,
-  filterOrdersByPeriod,
-  getCurrentPeriodRef,
-  formatPeriodLabel,
-} from "@/lib/time-navigation";
 
 /* ─── Notion-style color palette for select options ─── */
 const OPTION_COLORS = ["violet", "blue", "cyan", "emerald", "amber", "orange", "rose", "pink", "indigo", "teal"];
@@ -105,7 +99,7 @@ export default function CommandesPage() {
   const router = useRouter();
   const tabFromUrl = searchParams.get("tab") as TabKey | null;
   const searchFromUrl = searchParams.get("q");
-  const [activeTab, setActiveTabLocal] = useState<TabKey>(tabFromUrl && ["todo", "in_progress", "delivered", "paid", "all"].includes(tabFromUrl) ? tabFromUrl : "todo");
+  const [activeTab, setActiveTabLocal] = useState<TabKey>(tabFromUrl && ["todo", "in_progress", "delivered", "paid", "all"].includes(tabFromUrl) ? tabFromUrl : "all");
 
   const updateUrl = useCallback((updates: Record<string, string | null>) => {
     const url = new URL(window.location.href);
@@ -118,25 +112,24 @@ export default function CommandesPage() {
 
   const setActiveTab = (tab: TabKey) => {
     setActiveTabLocal(tab);
-    updateUrl({ tab: tab === "todo" ? null : tab });
+    updateUrl({ tab: tab === "all" ? null : tab });
   };
   const [search, setSearch] = useState(searchFromUrl ?? "");
 
-  /* ─── Time navigation state (persisted in localStorage) ─── */
-  const [timeGranularity, setTimeGranularity] = useState<TimeGranularity>(() => {
-    if (typeof window === "undefined") return "month";
-    return (localStorage.getItem("jestly_time_granularity") as TimeGranularity) || "month";
-  });
-  const [periodRef, setPeriodRef] = useState<Date>(() => getCurrentPeriodRef());
+  /* ─── Filtre période (deadline) — même système que Facturation ───
+   * Source unique : PeriodFilter (label + range YYYY-MM-DD inclusif).
+   * Défaut : PERIOD_ALL → aucune commande masquée à l'arrivée sur la page.
+   * Champ filtré : `deadline` (vs `createdAt` côté Facturation).
+   */
+  const [filterPeriod, setFilterPeriod] = useState<PeriodFilter>(PERIOD_ALL);
 
-  const handleGranularityChange = useCallback((g: TimeGranularity) => {
-    setTimeGranularity(g);
-    localStorage.setItem("jestly_time_granularity", g);
-  }, []);
-
-  const handlePeriodChange = useCallback((ref: Date) => {
-    setPeriodRef(ref);
-  }, []);
+  /* ─── Reset filtres centralisé (source unique de vérité) ─── */
+  const resetAllFilters = useCallback(() => {
+    setActiveTabLocal("all");
+    setSearch("");
+    setFilterPeriod(PERIOD_ALL);
+    updateUrl({ tab: null, q: null });
+  }, [updateUrl]);
 
   // Persister la recherche dans l'URL (debounce)
   const searchTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -231,16 +224,22 @@ export default function CommandesPage() {
     return null;
   };
 
-  /* ─── Time-filtered orders (première étape du pipeline) ─── */
-  const timeWindow = useMemo(
-    () => getTimeWindow(timeGranularity, periodRef),
-    [timeGranularity, periodRef],
-  );
-
-  const periodOrders = useMemo(
-    () => filterOrdersByPeriod(orders, timeWindow),
-    [orders, timeWindow],
-  );
+  /* ─── Période → Commandes (filtre deadline) ───
+   * Identique à Facturation : bornes inclusives YYYY-MM-DD, timezone-agnostique
+   * via isoDatePart (évite le bug de conversion UTC ±1 jour).
+   * Différence unique avec Facturation : on filtre sur `deadline` au lieu de `createdAt`.
+   * Une commande sans deadline est exclue dès qu'un range est actif (comportement
+   * miroir de Facturation, qui exclut tout item sans date de référence).
+   */
+  const periodOrders = useMemo(() => {
+    if (!filterPeriod.range) return orders;
+    const { start, end } = filterPeriod.range;
+    return orders.filter((o) => {
+      const d = isoDatePart(o.deadline);
+      if (!d) return false;
+      return d >= start && d <= end;
+    });
+  }, [orders, filterPeriod]);
 
   /* Compteurs d'onglets basés sur la période active */
   const counts = useMemo(() => {
@@ -287,6 +286,32 @@ export default function CommandesPage() {
     list = [...list].sort((a, b) => (a.sortPosition ?? 0) - (b.sortPosition ?? 0));
     return list;
   }, [periodOrders, activeTab, search]);
+
+  /* ─── Debug filtres + toast anti-piège ───
+   * Si l'utilisateur a des données mais que tous les filtres réunis renvoient 0,
+   * on affiche un toast persistant avec un bouton « Voir toutes » pour éviter
+   * la sensation que les données ont été supprimées.
+   */
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "production") {
+      console.debug("[commandes] filtres", {
+        dateField: "deadline",
+        period: filterPeriod.label,
+        range: filterPeriod.range,
+        tab: activeTab,
+        search: search.trim() || null,
+        total: orders.length,
+        afterPeriod: periodOrders.length,
+        afterAll: filtered.length,
+      });
+    }
+    if (orders.length > 0 && filtered.length === 0) {
+      toast.info(
+        `${orders.length} commande${orders.length > 1 ? "s" : ""} masquée${orders.length > 1 ? "s" : ""} par vos filtres — utilisez « Voir toutes les commandes »`,
+        { id: "orders-filter-trap", duration: 8000 },
+      );
+    }
+  }, [orders.length, periodOrders.length, filtered.length, activeTab, search, filterPeriod, resetAllFilters]);
 
   /* ─── Multi-select ─── */
 
@@ -759,12 +784,10 @@ export default function CommandesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.05 }}
       >
-        <TimeNavigator
-          granularity={timeGranularity}
-          periodRef={periodRef}
-          onGranularityChange={handleGranularityChange}
-          onPeriodChange={handlePeriodChange}
-        />
+        <div className="flex items-center gap-2">
+          <PeriodFilterDropdown value={filterPeriod} onChange={setFilterPeriod} />
+          <span className="text-[11px] text-[#8A8A88]">Filtre sur la deadline</span>
+        </div>
       </motion.div>
 
       {/* ═══ CONTROL BAR ═══ */}
@@ -974,18 +997,40 @@ export default function CommandesPage() {
                       <div className="text-[#C0C0BE] mb-2">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="mx-auto"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                       </div>
-                      <p className="text-[14px] text-[#8A8A88] font-medium">
-                        {search
-                          ? "Aucune commande trouvée"
-                          : `Aucune commande pour ${formatPeriodLabel(timeGranularity, periodRef).toLowerCase()}`}
-                      </p>
-                      <p className="text-[12px] text-[#B0B0AE] mt-1">
-                        {search
-                          ? "Essayez un autre terme de recherche."
-                          : orders.length > 0
-                            ? "Naviguez vers une autre période ou créez une commande."
-                            : "Créez votre première commande pour commencer."}
-                      </p>
+                      {(() => {
+                        const hasData = orders.length > 0;
+                        const filtersActive = hasData && (activeTab !== "all" || search.trim().length > 0 || periodOrders.length < orders.length);
+                        if (!hasData) {
+                          return (
+                            <>
+                              <p className="text-[14px] text-[#8A8A88] font-medium">Aucune commande pour le moment</p>
+                              <p className="text-[12px] text-[#B0B0AE] mt-1">Créez votre première commande pour commencer.</p>
+                            </>
+                          );
+                        }
+                        if (filtersActive) {
+                          return (
+                            <>
+                              <p className="text-[14px] text-[#8A8A88] font-medium">
+                                {orders.length} commande{orders.length > 1 ? "s" : ""} masquée{orders.length > 1 ? "s" : ""} par vos filtres
+                              </p>
+                              <p className="text-[12px] text-[#B0B0AE] mt-1">
+                                Onglet « {activeTab === "all" ? "Toutes" : activeTab} », deadline « {filterPeriod.label.toLowerCase()} »{search.trim() ? `, recherche « ${search.trim() } »` : ""}.
+                              </p>
+                              <button
+                                type="button"
+                                onClick={resetAllFilters}
+                                className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-[#4F46E5] bg-[#EEF2FF] border border-[#E6E6E4] rounded-md hover:bg-[#E0E7FF] transition-colors"
+                              >
+                                Voir toutes les commandes
+                              </button>
+                            </>
+                          );
+                        }
+                        return (
+                          <p className="text-[14px] text-[#8A8A88] font-medium">Aucune commande à afficher</p>
+                        );
+                      })()}
                     </td>
                   </tr>
                 )}

@@ -1,21 +1,13 @@
-import type { Metadata } from "next";
+import { buildComparatifMetadata, ComparatifJsonLd } from "@/lib/seo/comparatifs-metadata";
 
-export const metadata: Metadata = {
-  title: "Jestly vs Google Sheets — Comparatif",
-  description:
-    "Arrêtez de gérer votre business dans un tableur. Jestly est fait pour ça.",
-  openGraph: {
-    title: "Jestly vs Google Sheets — Comparatif",
-    description:
-      "Arrêtez de gérer votre business dans un tableur. Jestly est fait pour ça.",
-    siteName: "Jestly",
-  },
-};
+const SLUG = "jestly-vs-google-sheets";
+export const metadata = buildComparatifMetadata(SLUG);
 
-export default function JestlyVsGoogleSheetsLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function CompLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <ComparatifJsonLd slug={SLUG} />
+      {children}
+    </>
+  );
 }

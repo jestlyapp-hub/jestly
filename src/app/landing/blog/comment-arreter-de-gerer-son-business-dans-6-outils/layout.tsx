@@ -1,21 +1,13 @@
-import type { Metadata } from "next";
+import { buildBlogMetadata, BlogArticleJsonLd } from "@/lib/seo/blog-metadata";
 
-export const metadata: Metadata = {
-  title: "Comment arrêter de gérer son business dans 6 outils — Blog Jestly",
-  description:
-    "Notion, Trello, Google Sheets, Agenda... Découvrez comment centraliser votre activité freelance et gagner en clarté.",
-  openGraph: {
-    title: "Comment arrêter de gérer son business dans 6 outils — Blog Jestly",
-    description:
-      "Notion, Trello, Google Sheets, Agenda... Découvrez comment centraliser votre activité freelance et gagner en clarté.",
-    siteName: "Jestly",
-  },
-};
+const SLUG = "comment-arreter-de-gerer-son-business-dans-6-outils";
+export const metadata = buildBlogMetadata(SLUG);
 
-export default function ArticleLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function ArticleLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <BlogArticleJsonLd slug={SLUG} />
+      {children}
+    </>
+  );
 }

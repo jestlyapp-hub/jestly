@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import TextSwapButton from "@/components/ui/TextSwapButton";
+import { HelpSearch } from "@/components/help-center/HelpSearch";
+import { getAllParcours, getPopularArticles } from "@/lib/help-center/queries";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -21,6 +23,7 @@ const startGuides = [
     ),
     title: "Créer votre compte et configurer Jestly",
     description: "Inscription, paramétrage initial, premiers pas.",
+    slug: "creer-compte-configurer",
   },
   {
     icon: (
@@ -31,6 +34,7 @@ const startGuides = [
     ),
     title: "Ajouter votre première commande",
     description: "Créez, suivez et livrez un projet de A à Z.",
+    slug: "premiere-commande",
   },
   {
     icon: (
@@ -42,6 +46,7 @@ const startGuides = [
     ),
     title: "Personnaliser votre site vitrine",
     description: "Activez et configurez votre site en quelques minutes.",
+    slug: "personnaliser-site",
   },
 ];
 
@@ -56,6 +61,7 @@ const helpCategories = [
     title: "Commandes & projets",
     count: 6,
     description: "Créer, suivre, livrer et archiver vos commandes.",
+    slug: "commandes-projets",
   },
   {
     icon: (
@@ -69,6 +75,7 @@ const helpCategories = [
     title: "Clients & CRM",
     count: 5,
     description: "Gérer vos contacts, notes et historique.",
+    slug: "clients-crm",
   },
   {
     icon: (
@@ -83,6 +90,7 @@ const helpCategories = [
     title: "Facturation",
     count: 4,
     description: "Devis, factures, exports et paiements.",
+    slug: "facturation",
   },
   {
     icon: (
@@ -95,6 +103,7 @@ const helpCategories = [
     title: "Site vitrine & portfolio",
     count: 5,
     description: "Personnalisation, pages, SEO et domaine.",
+    slug: "site-vitrine",
   },
   {
     icon: (
@@ -108,6 +117,7 @@ const helpCategories = [
     title: "Calendrier & tâches",
     count: 4,
     description: "Planification, deadlines, sous-tâches.",
+    slug: "calendrier-taches",
   },
   {
     icon: (
@@ -119,36 +129,46 @@ const helpCategories = [
     title: "Mon compte & paramètres",
     count: 3,
     description: "Profil, abonnement, sécurité.",
+    slug: "compte-parametres",
   },
 ];
 
 const faqItems = [
   {
     question: "Comment créer mon premier projet ?",
+    slug: "creer-premier-projet",
+    // aligné avec data.ts
     answer:
       "Rendez-vous dans le menu « Commandes » de votre tableau de bord, puis cliquez sur « Nouvelle commande ». Remplissez les informations du client, la description du projet, la date d\u2019échéance et le prix. Votre commande apparaît directement dans votre pipeline.",
   },
   {
     question: "Comment envoyer une facture ?",
+    slug: "envoyer-une-facture",
     answer:
       "Depuis le module « Facturation », cliquez sur « Nouvelle facture ». Sélectionnez le client et la commande associée, vérifiez les montants puis envoyez directement par e-mail. Vous pouvez aussi télécharger le PDF.",
   },
   {
     question: "Comment connecter mon domaine ?",
+    slug: "connecter-son-domaine",
     answer:
       "Avec le plan Business, allez dans « Paramètres > Domaine ». Entrez votre nom de domaine personnalisé et configurez le CNAME indiqué chez votre registrar. La propagation prend généralement quelques minutes.",
   },
   {
     question: "Comment exporter mes données ?",
+    slug: "exporter-ses-factures",
     answer:
       "Chaque module (commandes, clients, factures) dispose d\u2019un bouton d\u2019export en haut à droite. Vous pouvez exporter en CSV ou PDF selon le module. Vos données vous appartiennent.",
   },
   {
     question: "Comment contacter le support ?",
+    slug: "contacter-le-support",
     answer:
       "Vous pouvez nous écrire via la page /contact ou directement par e-mail à support@jestly.fr. Nous répondons sous 24 heures en jours ouvrés.",
   },
 ];
+
+const popularArticles = getPopularArticles(6);
+const recommendedParcours = getAllParcours();
 
 export default function CentreAidePage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null);
@@ -251,53 +271,109 @@ export default function CentreAidePage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, ease, delay: 0.2 }}
-              style={{ maxWidth: 520, margin: "0 auto" }}
             >
-              <div
-                style={{
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="#A8A8B0"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  style={{
-                    position: "absolute",
-                    left: 16,
-                    pointerEvents: "none",
-                  }}
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="M21 21l-4.35-4.35" />
-                </svg>
-                <input
-                  type="text"
-                  placeholder="Rechercher un article, un guide..."
-                  disabled
-                  style={{
-                    width: "100%",
-                    height: 52,
-                    paddingLeft: 48,
-                    paddingRight: 20,
-                    borderRadius: 16,
-                    border: "1px solid #EEEDF2",
-                    background: "#fff",
-                    fontSize: 15,
-                    color: "#A8A8B0",
-                    outline: "none",
-                    cursor: "not-allowed",
-                  }}
-                />
-              </div>
+              <HelpSearch />
             </motion.div>
+          </div>
+        </section>
+
+        {/* ── Parcours recommandés ── */}
+        <section className="pb-20 px-4">
+          <div className="max-w-5xl mx-auto">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.7, ease }}
+              style={{
+                fontSize: "clamp(1.3rem, 3vw, 1.75rem)",
+                fontWeight: 700,
+                color: "#111118",
+                textAlign: "center",
+                marginBottom: 10,
+              }}
+            >
+              🚀 Parcours recommandés
+            </motion.h2>
+            <p
+              style={{
+                textAlign: "center",
+                color: "#6B6F80",
+                fontSize: 15,
+                marginBottom: 32,
+              }}
+            >
+              Des séquences de guides pour progresser pas à pas sur un objectif précis.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recommendedParcours.map((p, i) => (
+                <motion.div
+                  key={p.slug}
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{ duration: 0.5, ease, delay: i * 0.08 }}
+                >
+                  <Link
+                    href={`/centre-aide/guide/${p.guideSlugs[0]}`}
+                    style={{ textDecoration: "none" }}
+                  >
+                    <div
+                      style={{
+                        background: "#fff",
+                        border: "1px solid #EEEDF2",
+                        borderRadius: 20,
+                        padding: "24px 24px",
+                        height: "100%",
+                        transition: "box-shadow 0.3s ease, border-color 0.3s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow =
+                          "0 8px 30px rgba(124,92,255,0.08)";
+                        e.currentTarget.style.borderColor =
+                          "rgba(124,92,255,0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = "none";
+                        e.currentTarget.style.borderColor = "#EEEDF2";
+                      }}
+                    >
+                      <div style={{ fontSize: 28, marginBottom: 10 }}>{p.icon}</div>
+                      <div
+                        style={{
+                          fontSize: 16,
+                          fontWeight: 700,
+                          color: "#111118",
+                          marginBottom: 6,
+                        }}
+                      >
+                        {p.title}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: "#6B6F80",
+                          lineHeight: 1.6,
+                          marginBottom: 12,
+                        }}
+                      >
+                        {p.description}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: "#7C5CFF",
+                        }}
+                      >
+                        {p.guideSlugs.length} guide
+                        {p.guideSlugs.length > 1 ? "s" : ""} · Commencer →
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -328,7 +404,7 @@ export default function CentreAidePage() {
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.5, ease, delay: i * 0.08 }}
                 >
-                  <Link href="#" style={{ textDecoration: "none" }}>
+                  <Link href={`/centre-aide/guide/${guide.slug}`} style={{ textDecoration: "none" }}>
                     <div
                       style={{
                         background: "#fff",
@@ -421,7 +497,7 @@ export default function CentreAidePage() {
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.5, ease, delay: i * 0.07 }}
                 >
-                  <Link href="#" style={{ textDecoration: "none" }}>
+                  <Link href={`/centre-aide/categorie/${cat.slug}`} style={{ textDecoration: "none" }}>
                     <div
                       style={{
                         background: "#fff",
@@ -500,6 +576,86 @@ export default function CentreAidePage() {
                       >
                         {cat.description}
                       </p>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Articles populaires ── */}
+        <section className="pb-20 px-4">
+          <div className="max-w-5xl mx-auto">
+            <motion.h2
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.7, ease }}
+              style={{
+                fontSize: "clamp(1.3rem, 3vw, 1.75rem)",
+                fontWeight: 700,
+                color: "#111118",
+                textAlign: "center",
+                marginBottom: 32,
+              }}
+            >
+              Articles populaires
+            </motion.h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {popularArticles.map((a, i) => (
+                <motion.div
+                  key={a.slug}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ duration: 0.5, ease, delay: i * 0.05 }}
+                >
+                  <Link
+                    href={`/centre-aide/article/${a.slug}`}
+                    style={{ textDecoration: "none" }}
+                  >
+                    <div
+                      style={{
+                        background: "#fff",
+                        border: "1px solid #EEEDF2",
+                        borderRadius: 16,
+                        padding: "20px 22px",
+                        height: "100%",
+                        transition:
+                          "box-shadow 0.3s ease, border-color 0.3s ease",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.boxShadow =
+                          "0 8px 30px rgba(124,92,255,0.08)";
+                        e.currentTarget.style.borderColor =
+                          "rgba(124,92,255,0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.boxShadow = "none";
+                        e.currentTarget.style.borderColor = "#EEEDF2";
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontSize: 15,
+                          fontWeight: 700,
+                          color: "#111118",
+                          marginBottom: 6,
+                          lineHeight: 1.4,
+                        }}
+                      >
+                        {a.title}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 13,
+                          color: "#6B6F80",
+                          lineHeight: 1.6,
+                        }}
+                      >
+                        {a.excerpt}
+                      </div>
                     </div>
                   </Link>
                 </motion.div>
@@ -598,6 +754,19 @@ export default function CentreAidePage() {
                       }}
                     >
                       {item.answer}
+                      <div style={{ marginTop: 12 }}>
+                        <Link
+                          href={`/centre-aide/article/${item.slug}`}
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 600,
+                            color: "#7C5CFF",
+                            textDecoration: "none",
+                          }}
+                        >
+                          Lire l&apos;article complet →
+                        </Link>
+                      </div>
                     </div>
                   )}
                 </motion.div>

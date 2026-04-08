@@ -1,21 +1,13 @@
-import type { Metadata } from "next";
+import { buildBlogMetadata, BlogArticleJsonLd } from "@/lib/seo/blog-metadata";
 
-export const metadata: Metadata = {
-  title: "La méthode pour suivre ses clients sans CRM complexe — Blog Jestly",
-  description:
-    "Pas besoin d'un CRM enterprise. Découvrez comment suivre vos clients simplement et efficacement en freelance.",
-  openGraph: {
-    title: "La méthode pour suivre ses clients sans CRM complexe — Blog Jestly",
-    description:
-      "Pas besoin d'un CRM enterprise. Découvrez comment suivre vos clients simplement et efficacement en freelance.",
-    siteName: "Jestly",
-  },
-};
+const SLUG = "la-methode-pour-suivre-ses-clients-sans-crm-complexe";
+export const metadata = buildBlogMetadata(SLUG);
 
-export default function ArticleLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function ArticleLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <BlogArticleJsonLd slug={SLUG} />
+      {children}
+    </>
+  );
 }

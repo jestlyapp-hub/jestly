@@ -1,21 +1,13 @@
-import type { Metadata } from "next";
+import { buildComparatifMetadata, ComparatifJsonLd } from "@/lib/seo/comparatifs-metadata";
 
-export const metadata: Metadata = {
-  title: "Jestly vs Notion — Comparatif",
-  description:
-    "Pourquoi Jestly est une meilleure alternative à Notion pour les freelances créatifs.",
-  openGraph: {
-    title: "Jestly vs Notion — Comparatif",
-    description:
-      "Pourquoi Jestly est une meilleure alternative à Notion pour les freelances créatifs.",
-    siteName: "Jestly",
-  },
-};
+const SLUG = "jestly-vs-notion";
+export const metadata = buildComparatifMetadata(SLUG);
 
-export default function JestlyVsNotionLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function CompLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <>
+      <ComparatifJsonLd slug={SLUG} />
+      {children}
+    </>
+  );
 }

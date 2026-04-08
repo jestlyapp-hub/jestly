@@ -1,21 +1,28 @@
-import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo/build-metadata";
+import JsonLd from "@/components/seo/JsonLd";
+import { FAQ_QUESTIONS_FLAT } from "./faq-data";
 
-export const metadata: Metadata = {
-  title: "FAQ — Jestly",
+export const metadata = buildMetadata({
+  title: "FAQ Jestly — Questions fréquentes sur le cockpit freelance",
   description:
-    "Toutes les réponses à vos questions sur Jestly : abonnements, fonctionnalités, sécurité et données.",
-  openGraph: {
-    title: "FAQ — Jestly",
-    description:
-      "Toutes les réponses à vos questions sur Jestly : abonnements, fonctionnalités, sécurité et données.",
-    siteName: "Jestly",
-  },
-};
+    "Toutes les réponses sur Jestly : tarifs, bêta gratuite, sécurité, RGPD, fonctionnalités, support, démarrage et alternatives à Notion / Trello.",
+  path: "/faq",
+});
 
-export default function FaqLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return children;
+export default function FaqLayout({ children }: { children: React.ReactNode }) {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQ_QUESTIONS_FLAT.map((q) => ({
+      "@type": "Question",
+      name: q.question,
+      acceptedAnswer: { "@type": "Answer", text: q.answer },
+    })),
+  };
+  return (
+    <>
+      <JsonLd data={data} />
+      {children}
+    </>
+  );
 }
