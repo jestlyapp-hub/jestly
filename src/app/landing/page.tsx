@@ -777,46 +777,77 @@ function FinalCTA() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   SEO CONTENT — Texte indexable pour "logiciel gestion freelance"
+   EVERYTHING SECTION — Premium "tout-en-un" showcase
+   SEO keywords preserved in semantic HTML, but visually elegant.
    ═══════════════════════════════════════════════════════════════════════ */
+
+const MODULES = [
+  { label: "Facturation", desc: "Devis, factures, relances", href: "/fonctionnalites/facturation", icon: "M9 14l6-6M9 8h.01M15 14h.01M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z", color: "#22C55E" },
+  { label: "CRM", desc: "Prospects et clients", href: "/fonctionnalites/crm", icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8z", color: "#EC4899" },
+  { label: "Commandes", desc: "Briefs, statuts, deadlines", href: "/fonctionnalites/commandes", icon: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 012-2h2a2 2 0 012 2M9 5h6", color: "#F59E0B" },
+  { label: "Site vitrine", desc: "Portfolio et présence pro", href: "/fonctionnalites/site-vitrine", icon: "M3 9h18M9 21V9M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z", color: "#FF8A3D" },
+  { label: "Agenda", desc: "Rendez-vous et deadlines", href: "/fonctionnalites/calendrier", icon: "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z", color: "#3B82F6" },
+  { label: "Analytics", desc: "Revenus et activité", href: "/fonctionnalites/analytics", icon: "M3 3v18h18M7 16l4-4 4 4 6-6", color: "#7C3AED" },
+] as const;
+
 function SeoTextSection() {
   return (
     <SectionShell>
-      <div className="max-w-3xl mx-auto py-16 sm:py-20 px-6">
-        <h2 className="text-[22px] sm:text-[28px] font-bold leading-tight tracking-[-0.02em] mb-6" style={{ color: "#111118" }}>
-          Le logiciel de gestion freelance qui remplace vos 10 outils
-        </h2>
-        <div className="space-y-4 text-[15px] leading-[1.75]" style={{ color: "#4B5563" }}>
-          <p>
-            En tant que freelance, vous jonglez chaque jour entre plusieurs outils : un tableur pour vos devis, un logiciel de facturation, un CRM improvisé dans Notion, un outil de gestion de projet, Google Agenda pour vos rendez-vous et encore un autre outil pour votre site web. Chaque outil a son propre abonnement, sa propre logique et ses propres données. Rien n'est connecté.
-          </p>
-          <p>
-            Jestly est le logiciel de gestion freelance tout-en-un qui réunit tout au même endroit. Facturation conforme avec devis et factures automatisés. CRM simple pour centraliser vos prospects et clients. Gestion de commandes avec suivi de statut et deadlines. Site vitrine professionnel créé en quelques minutes. Agenda intégré. Analytics pour piloter votre chiffre d'affaires.
-          </p>
-          <p>
-            Contrairement aux solutions généralistes comme Notion ou Trello, Jestly est conçu spécifiquement pour le métier de freelance. Chaque module est pensé pour les cas d'usage réels : créer une facture depuis une commande, suivre un prospect jusqu'à la signature, visualiser votre trésorerie du mois. Pas de configuration complexe, pas de templates à adapter — tout fonctionne dès l'inscription.
-          </p>
-          <p>
-            Que vous soyez designer, développeur, vidéaste, consultant ou créateur de contenu, Jestly s'adapte à votre métier. L'interface est inspirée de Notion : minimaliste, rapide, sans friction. Et pendant toute la phase bêta, l'accès est 100 % gratuit avec toutes les fonctionnalités incluses. Aucune carte bancaire requise, aucun engagement.
-          </p>
-        </div>
+      <div className="py-20 sm:py-28 px-6">
+        <div className="max-w-[1100px] mx-auto">
+          {/* ── Header ── */}
+          <div className="text-center mb-14 sm:mb-18">
+            <span className="inline-block text-[11px] font-bold uppercase tracking-[0.15em] px-3 py-1.5 rounded-full mb-5" style={{ color: "#7C5CFF", background: "rgba(124,92,255,0.06)", border: "1px solid rgba(124,92,255,0.1)" }}>
+              Tout-en-un
+            </span>
 
-        <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[
-            { label: "Facturation", href: "/fonctionnalites/facturation", desc: "Devis, factures et relances automatisées" },
-            { label: "CRM", href: "/fonctionnalites/crm", desc: "Prospects et clients centralisés" },
-            { label: "Site vitrine", href: "/fonctionnalites/site-vitrine", desc: "Votre site freelance en 2 minutes" },
-          ].map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="group block rounded-xl p-5 transition-all hover:-translate-y-0.5"
-              style={{ background: "#FAFAFF", border: "1px solid #E5E7EB" }}
-            >
-              <div className="text-[14px] font-semibold mb-1 group-hover:text-[#7C5CFF] transition-colors" style={{ color: "#111118" }}>{link.label}</div>
-              <div className="text-[12px] leading-relaxed" style={{ color: "#9CA3AF" }}>{link.desc}</div>
-            </a>
-          ))}
+            <h2 className="text-[30px] sm:text-[40px] md:text-[48px] font-extrabold leading-[1.08] tracking-[-0.035em] mb-5" style={{ color: "#111118" }}>
+              Un seul outil.{" "}
+              <span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #7C5CFF 0%, #A78BFA 100%)" }}>
+                Zéro compromis.
+              </span>
+            </h2>
+
+            <p className="text-[16px] sm:text-[18px] leading-relaxed max-w-2xl mx-auto" style={{ color: "#6B7280" }}>
+              Facturation, CRM, commandes, site vitrine, agenda et analytics — réunis dans un logiciel de gestion freelance pensé pour votre métier.
+            </p>
+          </div>
+
+          {/* ── Module grid ── */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-w-[900px] mx-auto">
+            {MODULES.map((mod) => (
+              <a
+                key={mod.label}
+                href={mod.href}
+                className="group relative rounded-2xl p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1"
+                style={{ background: "#FFFFFF", border: "1px solid #E5E7EB", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}
+              >
+                {/* Icon */}
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-4 transition-transform duration-300 group-hover:scale-110" style={{ background: `${mod.color}0A` }}>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke={mod.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d={mod.icon} />
+                  </svg>
+                </div>
+
+                {/* Text */}
+                <div className="text-[14px] sm:text-[15px] font-semibold mb-1 transition-colors group-hover:text-[#7C5CFF]" style={{ color: "#111118" }}>
+                  {mod.label}
+                </div>
+                <div className="text-[12px] sm:text-[13px] leading-relaxed" style={{ color: "#9CA3AF" }}>
+                  {mod.desc}
+                </div>
+
+                {/* Hover glow */}
+                <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" style={{ boxShadow: `0 8px 30px ${mod.color}12` }} />
+              </a>
+            ))}
+          </div>
+
+          {/* ── SEO micro-paragraph (light, not a wall) ── */}
+          <p className="text-center text-[13px] sm:text-[14px] leading-relaxed max-w-xl mx-auto mt-12" style={{ color: "#A8A8B0" }}>
+            Conçu pour les freelances créatifs — designers, développeurs, vidéastes, consultants.
+            Un seul cockpit connecté, prêt dès l'inscription, gratuit pendant la bêta.
+          </p>
         </div>
       </div>
     </SectionShell>
