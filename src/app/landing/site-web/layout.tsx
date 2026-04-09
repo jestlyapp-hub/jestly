@@ -1,9 +1,9 @@
 import { buildMetadata } from "@/lib/seo/build-metadata";
 
 export const metadata = buildMetadata({
-  title: "Site vitrine pour freelance — Créez votre site en 2 min | Jestly",
+  title: "Créer un portfolio freelance et site vitrine en 2 min | Jestly",
   description:
-    "Le site vitrine intégré de Jestly : portfolio, formulaire de contact, prise de commandes et paiements en ligne. Sans code, sans abonnement séparé.",
+    "Créez votre portfolio freelance et site vitrine professionnel en quelques minutes. Portfolio, formulaire de contact, prise de commandes et paiements intégrés. Sans code.",
   path: "/fonctionnalites/site-vitrine",
 });
 

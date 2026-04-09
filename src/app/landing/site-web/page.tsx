@@ -2,11 +2,13 @@
 
 import FeaturePageLayout from "@/components/landing/FeaturePageLayout";
 import type { FeaturePageData } from "@/components/landing/FeaturePageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: FeaturePageData = {
-  badge: "Site web",
-  title: "Créez un site freelance",
-  titleGradient: "propre, rapide et connecté.",
+  badge: "Portfolio & site vitrine",
+  title: "Créez votre portfolio freelance",
+  titleGradient: "et site vitrine en minutes.",
   subtitle:
     "Votre vitrine pro intégrée à votre activité. Pas besoin d'un outil de plus — votre site vit dans Jestly, relié à votre CRM, vos commandes et vos paiements.",
   videoLabel: "Voir le builder en action",
@@ -111,6 +113,63 @@ const DATA: FeaturePageData = {
     "Plus propre qu'un Carrd, plus connecté qu'un WordPress. Votre vitrine freelance, enfin intégrée.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Pourquoi créer un portfolio freelance professionnel ?",
+    paragraphs: [
+      "En freelance, votre portfolio est votre meilleur commercial. Avant de vous contacter, un prospect veut voir ce que vous avez déjà réalisé. Un portfolio bien construit montre votre expertise, votre style et votre fiabilité en quelques secondes. Sans portfolio, vous dépendez uniquement du bouche-à-oreille et des réseaux sociaux pour décrocher des missions.",
+      "Le problème, c'est que créer un site vitrine freelance prend du temps. WordPress demande de la maintenance, Wix ou Squarespace ajoutent un abonnement supplémentaire, et votre portfolio vit déconnecté du reste de votre activité. Avec Jestly, votre site vitrine est intégré à votre espace de travail : vos projets, vos services, vos témoignages et votre formulaire de contact sont alimentés par les mêmes données que votre CRM et votre facturation.",
+    ],
+  },
+  {
+    heading: "Un site vitrine connecté à toute votre activité",
+    paragraphs: [
+      "La différence entre un portfolio Jestly et un site classique ? Tout est connecté. Quand vous terminez un projet et le marquez comme livré dans vos commandes, il peut alimenter votre portfolio. Quand un visiteur remplit votre formulaire de contact, le lead est automatiquement ajouté à votre CRM. Quand quelqu'un passe commande via votre site, elle apparaît dans votre tableau de bord.",
+      "Votre site n'est pas un outil isolé — c'est la vitrine de tout votre business freelance. Services, tarifs, portfolio, témoignages et formulaire de contact : tout est mis à jour depuis un seul endroit, sans copier-coller entre cinq outils différents.",
+    ],
+  },
+  {
+    heading: "Comment créer un portfolio freelance qui convertit ?",
+    paragraphs: [
+      "Un bon portfolio freelance ne se contente pas de montrer de jolis visuels. Il doit raconter une histoire, montrer des résultats et faciliter le passage à l'action. Voici les éléments essentiels : une présentation claire de qui vous êtes et ce que vous faites, vos meilleurs projets avec contexte et résultats, vos services avec des tarifs transparents, des témoignages clients, et un formulaire de contact simple.",
+      "Jestly inclut tous ces blocs dans son builder de site. Vous les assemblez en quelques minutes, sans toucher une ligne de code. Le design est professionnel par défaut — responsive, rapide, optimisé. Et votre site vit sous votre propre sous-domaine jestly.fr, ou votre domaine personnalisé.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Comment créer un portfolio freelance gratuitement ?",
+    answer: "Avec Jestly, vous pouvez créer un portfolio freelance professionnel gratuitement pendant la bêta. Inscrivez-vous, choisissez vos blocs (présentation, services, portfolio, témoignages, contact), personnalisez les couleurs et le contenu, et publiez. Aucune compétence technique requise.",
+  },
+  {
+    question: "Quels éléments inclure dans un portfolio freelance ?",
+    answer: "Un portfolio efficace contient : une présentation de votre expertise, vos meilleurs projets avec visuels et résultats, vos services et tarifs, des témoignages clients, et un moyen de vous contacter facilement. Jestly inclut tous ces blocs dans son builder.",
+  },
+  {
+    question: "Jestly remplace-t-il Wix ou Squarespace pour les freelances ?",
+    answer: "Oui, pour les freelances. Contrairement à Wix ou Squarespace qui sont des outils de site isolés, Jestly intègre votre site vitrine à votre CRM, facturation et gestion de commandes. Un seul outil au lieu de trois ou quatre abonnements séparés.",
+  },
+  {
+    question: "Puis-je utiliser mon propre nom de domaine ?",
+    answer: "Votre site est publié sur un sous-domaine jestly.fr par défaut (votrenom.jestly.fr). Le domaine personnalisé est prévu dans la roadmap. En attendant, le sous-domaine est professionnel et indexable par Google.",
+  },
+  {
+    question: "Le site Jestly est-il optimisé pour le SEO et le mobile ?",
+    answer: "Oui, les sites Jestly sont responsive (adaptés mobile, tablette et desktop) et leur HTML est rendu côté serveur, ce qui les rend crawlables par Google. Les métadonnées de base sont générées automatiquement.",
+  },
+];
+
 export default function SiteWebPage() {
-  return <FeaturePageLayout data={DATA} />;
+  return (
+    <>
+      <FeaturePageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection
+        title="Questions fréquentes sur le portfolio freelance"
+        items={FAQ_ITEMS}
+        accentColor="#FF8A3D"
+      />
+    </>
+  );
 }

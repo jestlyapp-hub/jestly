@@ -2,11 +2,13 @@
 
 import FeaturePageLayout from "@/components/landing/FeaturePageLayout";
 import type { FeaturePageData } from "@/components/landing/FeaturePageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: FeaturePageData = {
-  badge: "Briefs & Produits",
-  title: "Créez un brief, associez-le à un produit,",
-  titleGradient: "recevez tout automatiquement.",
+  badge: "Brief client freelance",
+  title: "Brief client structuré",
+  titleGradient: "pour des projets réussis.",
   subtitle:
     "Fini les allers-retours par email. Le client achète, remplit le brief, et vous avez toutes les infos pour travailler — dès la première seconde.",
   videoLabel: "Créer un brief et l'associer à un produit",
@@ -111,6 +113,41 @@ const DATA: FeaturePageData = {
     "Créez vos briefs une fois, associez-les à vos offres, et recevez des commandes complètes — sans jamais relancer.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Pourquoi structurer vos briefs clients ?",
+    paragraphs: [
+      "Le brief est le fondement de tout projet freelance réussi. Quand le brief est flou, les allers-retours se multiplient, les délais explosent et la relation client se détériore. Un brief structuré pose les bonnes questions dès le départ : objectifs, contraintes, livrables attendus, délais, références visuelles.",
+      "Jestly permet de créer des questionnaires de brief personnalisés et de les associer à vos produits ou services. Quand un client passe commande, il remplit le brief directement — et vous avez toutes les informations nécessaires pour commencer à travailler sans poser de questions supplémentaires.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Comment créer un bon brief client en freelance ?",
+    answer: "Un bon brief pose les questions essentielles avant le début du projet : objectifs, public cible, contraintes techniques, livrables, délais, références visuelles. Jestly permet de créer des questionnaires de brief structurés que vos clients remplissent lors de la commande.",
+  },
+  {
+    question: "Le brief est-il envoyé automatiquement au client ?",
+    answer: "Oui, quand vous associez un brief à un produit ou service, le client le remplit automatiquement lors de sa commande via votre site Jestly. Vous recevez les réponses structurées, prêtes à exploiter.",
+  },
+  {
+    question: "Puis-je personnaliser les questions du brief ?",
+    answer: "Absolument. Vous créez vos propres champs : texte libre, choix multiples, upload de fichiers, dates. Chaque service peut avoir son propre questionnaire adapté à vos besoins spécifiques.",
+  },
+];
+
 export default function BriefsPage() {
-  return <FeaturePageLayout data={DATA} />;
+  return (
+    <>
+      <FeaturePageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection
+        title="Questions fréquentes sur le brief client freelance"
+        items={FAQ_ITEMS}
+        accentColor="#F97316"
+      />
+    </>
+  );
 }

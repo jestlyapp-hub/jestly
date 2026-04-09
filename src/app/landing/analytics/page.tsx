@@ -2,11 +2,13 @@
 
 import FeaturePageLayout from "@/components/landing/FeaturePageLayout";
 import type { FeaturePageData } from "@/components/landing/FeaturePageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: FeaturePageData = {
-  badge: "Analytics",
-  title: "Suivez vos performances et revenus",
-  titleGradient: "en temps réel.",
+  badge: "Tableau de bord freelance",
+  title: "Tableau de bord freelance",
+  titleGradient: "pour piloter votre activité.",
   subtitle:
     "Fini de naviguer à l'aveugle. Jestly transforme vos données en tableaux de bord lisibles — revenus, activité, tendances — pour décider avec clarté.",
   videoLabel: "Explorer les analytics",
@@ -111,6 +113,52 @@ const DATA: FeaturePageData = {
     "Tableaux de bord conçus pour les freelances. Lisibles, utiles, à jour — sans formule Excel.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Pourquoi un tableau de bord quand on est freelance ?",
+    paragraphs: [
+      "La plupart des freelances naviguent à l'aveugle. Combien avez-vous facturé ce mois-ci ? Quel client génère le plus de revenus ? Votre activité est-elle en croissance ? Sans tableau de bord, ces questions restent sans réponse, et vos décisions se prennent au feeling plutôt qu'avec des données.",
+      "Jestly Analytics transforme vos données d'activité en indicateurs lisibles. Revenus mensuels, commandes en cours, clients actifs, paiements en attente — tout est affiché dans un dashboard clair, mis à jour en temps réel. Vous pilotez votre activité freelance avec la même clarté qu'une entreprise structurée.",
+    ],
+  },
+  {
+    heading: "Des métriques pensées pour les freelances",
+    paragraphs: [
+      "Pas de vanity metrics ni de tableaux complexes. Jestly affiche les chiffres qui comptent pour un freelance : chiffre d'affaires (mensuel, trimestriel, annuel), nombre de commandes actives, taux de paiement, répartition par client et par service. Vous identifiez en un regard ce qui fonctionne et ce qui doit être ajusté.",
+      "Les analytics sont alimentés automatiquement par vos commandes, factures et paiements. Zéro saisie manuelle, zéro formule Excel. Quand une facture est payée, le dashboard se met à jour. Quand une commande est créée, votre volume d'activité reflète la réalité instantanément.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Quels indicateurs suivre quand on est freelance ?",
+    answer: "Les indicateurs essentiels sont : le chiffre d'affaires mensuel, le nombre de commandes en cours, le délai moyen de paiement, le nombre de clients actifs et la répartition des revenus par service. Jestly calcule et affiche tous ces indicateurs automatiquement.",
+  },
+  {
+    question: "Les analytics de Jestly remplacent-ils un tableur Excel ?",
+    answer: "Oui, pour le suivi d'activité freelance. Jestly agrège automatiquement vos données de commandes, factures et paiements — sans formules à maintenir. Vous gagnez du temps et évitez les erreurs de saisie.",
+  },
+  {
+    question: "Les données sont-elles mises à jour en temps réel ?",
+    answer: "Oui, le tableau de bord se met à jour dès qu'une commande est créée, une facture envoyée ou un paiement reçu. Aucune action manuelle nécessaire.",
+  },
+  {
+    question: "Puis-je exporter mes données analytics ?",
+    answer: "Oui, Jestly permet d'exporter vos rapports en CSV et PDF. Idéal pour votre comptable ou pour vos bilans d'activité trimestriels.",
+  },
+];
+
 export default function AnalyticsPage() {
-  return <FeaturePageLayout data={DATA} />;
+  return (
+    <>
+      <FeaturePageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection
+        title="Questions fréquentes sur le suivi d'activité freelance"
+        items={FAQ_ITEMS}
+        accentColor="#7C3AED"
+      />
+    </>
+  );
 }

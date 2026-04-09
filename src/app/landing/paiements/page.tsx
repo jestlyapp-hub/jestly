@@ -2,11 +2,13 @@
 
 import FeaturePageLayout from "@/components/landing/FeaturePageLayout";
 import type { FeaturePageData } from "@/components/landing/FeaturePageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: FeaturePageData = {
-  badge: "Paiements",
-  title: "Encaissez simplement",
-  titleGradient: "avec une expérience plus fluide.",
+  badge: "Suivi des paiements",
+  title: "Suivi des paiements freelance",
+  titleGradient: "clair et en temps réel.",
   subtitle:
     "Suivez chaque paiement reçu, en attente ou en retard — directement relié à vos factures et clients. Plus de flou sur qui a payé quoi.",
   videoLabel: "Voir le suivi des paiements",
@@ -111,6 +113,41 @@ const DATA: FeaturePageData = {
     "Un suivi de paiements relié à vos factures et clients. Zéro tableur, zéro doute.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Pourquoi suivre ses paiements est essentiel en freelance",
+    paragraphs: [
+      "En freelance, être payé à temps est la base de votre stabilité financière. Pourtant, les retards de paiement sont monnaie courante : factures oubliées par le client, statuts flous, et vous qui hésitez à relancer. Sans suivi structuré, vous perdez de la trésorerie et de la sérénité.",
+      "Jestly relie chaque paiement à sa facture et à son client. Vous voyez en un instant ce qui est payé, ce qui est en attente et ce qui est en retard. Les relances sont facilitées, votre trésorerie est visible, et vous reprenez le contrôle de vos encaissements.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Comment suivre ses paiements freelance efficacement ?",
+    answer: "L'idéal est d'utiliser un outil qui relie chaque paiement à sa facture et son client. Jestly affiche le statut de chaque paiement en temps réel : reçu, en attente ou en retard. Plus besoin de vérifier votre compte bancaire manuellement.",
+  },
+  {
+    question: "Jestly gère-t-il les relances de paiement ?",
+    answer: "Oui, quand une facture est en retard, Jestly vous permet de suivre les échéances et de déclencher des relances. Le suivi des paiements est relié à votre facturation — tout est connecté.",
+  },
+  {
+    question: "Puis-je voir ma trésorerie en temps réel ?",
+    answer: "Le tableau de bord financier de Jestly affiche vos encaissements du mois, les montants en attente et les factures en retard. Vous avez une vue claire de votre trésorerie freelance à tout moment.",
+  },
+];
+
 export default function PaiementsPage() {
-  return <FeaturePageLayout data={DATA} />;
+  return (
+    <>
+      <FeaturePageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection
+        title="Questions fréquentes sur les paiements freelance"
+        items={FAQ_ITEMS}
+        accentColor="#10B981"
+      />
+    </>
+  );
 }

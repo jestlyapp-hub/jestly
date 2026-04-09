@@ -2,11 +2,13 @@
 
 import FeaturePageLayout from "@/components/landing/FeaturePageLayout";
 import type { FeaturePageData } from "@/components/landing/FeaturePageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: FeaturePageData = {
-  badge: "Commandes",
-  title: "Gérez vos commandes et briefs",
-  titleGradient: "dans un seul flux clair.",
+  badge: "Gestion de commandes",
+  title: "Gestion de commandes freelance",
+  titleGradient: "structurée et efficace.",
   subtitle:
     "Transformez chaque demande client en commande structurée — avec brief, statut, livrables et suivi. Plus de briefs perdus dans les messages.",
   videoLabel: "Découvrir la gestion de commandes",
@@ -111,6 +113,52 @@ const DATA: FeaturePageData = {
     "Un flux clair de la demande à la livraison. Vos clients verront la différence.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Pourquoi structurer la gestion de vos commandes freelance ?",
+    paragraphs: [
+      "En freelance, chaque commande client est un projet à part entière. Le brief arrive par email, les fichiers par WeTransfer, les retours par DM Instagram, et la validation par texto. Résultat : vous passez plus de temps à chercher les informations qu'à produire. Sans système de gestion de commandes structuré, le chaos s'installe et votre professionnalisme en souffre.",
+      "Jestly centralise tout le cycle de vie d'une commande : de la demande initiale au livrable final. Chaque commande a son brief, son statut, sa deadline, ses fichiers et son client associé. En un coup d'œil, vous savez exactement ce qui est en cours, ce qui est en retard et ce qui attend votre validation.",
+    ],
+  },
+  {
+    heading: "Du brief au livrable : un flux de travail clair",
+    paragraphs: [
+      "Avec Jestly, le processus est simple. Vous créez une commande, y associez un client, renseignez le brief et la deadline. Le statut évolue au fil du projet : nouveau, en cours, en révision, livré, payé. À chaque étape, vous et votre client savez où en est le projet. Les allers-retours sont réduits parce que le brief est clair dès le départ.",
+      "Le vrai gain, c'est la connexion avec le reste de votre activité. Une commande livrée peut générer une facture en un clic. Le client est déjà dans votre CRM. La deadline apparaît dans votre agenda. Tout est relié sans ressaisie — c'est la puissance d'un outil de gestion freelance intégré.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Comment organiser ses commandes quand on est freelance ?",
+    answer: "L'idéal est d'utiliser un outil de gestion qui centralise chaque commande avec son brief, son statut et sa deadline. Jestly propose exactement cela : un flux structuré de la demande à la livraison, connecté à votre facturation et votre CRM.",
+  },
+  {
+    question: "Jestly remplace-t-il Trello ou Notion pour gérer ses projets ?",
+    answer: "Pour la gestion de commandes freelance, oui. Trello et Notion sont des outils généralistes qui nécessitent beaucoup de configuration. Jestly est pensé pour le workflow freelance : commande → brief → production → livraison → facturation, avec tout relié automatiquement.",
+  },
+  {
+    question: "Puis-je gérer plusieurs commandes en même temps ?",
+    answer: "Oui, Jestly gère les commandes multiples avec des statuts distincts, des deadlines et des priorités. Vous pouvez créer plusieurs commandes en lot et les suivre dans un tableau de bord centralisé.",
+  },
+  {
+    question: "Les commandes sont-elles reliées à la facturation ?",
+    answer: "Absolument. Chaque commande est reliée à un client et peut générer une facture. Quand le projet est livré et validé, vous facturez en un clic depuis la commande — le montant, le client et les détails sont déjà renseignés.",
+  },
+];
+
 export default function CommandesPage() {
-  return <FeaturePageLayout data={DATA} />;
+  return (
+    <>
+      <FeaturePageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection
+        title="Questions fréquentes sur la gestion de commandes freelance"
+        items={FAQ_ITEMS}
+        accentColor="#F59E0B"
+      />
+    </>
+  );
 }

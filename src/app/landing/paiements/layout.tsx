@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Paiements freelance | Jestly",
+  title: "Suivi des paiements freelance — Encaissements et relances | Jestly",
   description:
-    "Suivez chaque paiement reçu, en attente ou en retard — directement relié à vos factures et clients. Plus de flou sur qui a payé quoi.",
+    "Suivez chaque paiement freelance en temps réel : reçu, en attente, en retard. Relié à vos factures et clients. Plus de flou sur qui a payé quoi.",
+  alternates: { canonical: "https://jestly.fr/fonctionnalites/paiements" },
   openGraph: {
-    title: "Paiements freelance | Jestly",
+    title: "Suivi des paiements freelance — Encaissements et relances | Jestly",
     description:
       "Des paiements suivis avec sérénité, reliés à vos factures et clients.",
     url: "https://jestly.fr/fonctionnalites/paiements",

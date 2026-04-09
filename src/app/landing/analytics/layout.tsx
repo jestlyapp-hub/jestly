@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Analytics business freelance | Jestly",
+  title: "Tableau de bord freelance — Suivi activité et revenus | Jestly",
   description:
-    "Suivez vos performances et revenus en temps réel. Tableaux de bord lisibles pour décider avec clarté.",
+    "Pilotez votre activité freelance avec un tableau de bord clair : revenus, commandes, clients actifs, tendances. Décidez avec des données, pas au feeling.",
+  alternates: { canonical: "https://jestly.fr/fonctionnalites/analytics" },
   openGraph: {
-    title: "Analytics business freelance | Jestly",
+    title: "Tableau de bord freelance — Suivi activité et revenus | Jestly",
     description:
       "Des chiffres qui éclairent vos décisions — revenus, activité, tendances.",
     url: "https://jestly.fr/fonctionnalites/analytics",

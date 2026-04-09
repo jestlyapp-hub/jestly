@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Portfolio professionnel freelance | Jestly",
+  title: "Créer un portfolio freelance professionnel en ligne | Jestly",
   description:
-    "Présentez vos meilleurs projets avec une mise en scène premium. Votre portfolio vit dans votre site Jestly et impressionne vos prospects.",
+    "Créez un portfolio freelance professionnel intégré à votre site vitrine. Présentez vos projets, attirez des clients et convertissez vos visiteurs. Sans code.",
+  alternates: { canonical: "https://jestly.fr/fonctionnalites/portfolio" },
   openGraph: {
-    title: "Portfolio professionnel freelance | Jestly",
+    title: "Créer un portfolio freelance professionnel en ligne | Jestly",
     description:
       "Un portfolio qui fait le travail pour vous — intégré à votre site Jestly.",
     url: "https://jestly.fr/fonctionnalites/portfolio",
