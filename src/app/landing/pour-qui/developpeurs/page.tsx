@@ -2,6 +2,8 @@
 
 import PersonaPageLayout from "@/components/landing/PersonaPageLayout";
 import type { PersonaPageData } from "@/components/landing/PersonaPageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: PersonaPageData = {
   persona: "developpeurs",
@@ -76,6 +78,37 @@ const DATA: PersonaPageData = {
   ctaSubtitle: "Gratuit pour commencer. Zéro config. Prêt en 2 minutes. Votre business mérite mieux qu'un Google Doc.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Un outil de gestion pensé pour les développeurs freelances",
+    paragraphs: [
+      "En tant que développeur freelance, votre zone de productivité, c'est votre éditeur de code. Pas un tableur de facturation ni un CRM surdimensionné. Pourtant, gérer vos clients, suivre vos projets, envoyer des factures conformes et maintenir un site pro fait partie du job.",
+      "Jestly centralise toute la couche business : CRM léger, gestion de commandes avec statuts, facturation conforme, site vitrine et analytics. Zéro config, prêt dès l'inscription. Moins de temps sur l'admin, plus de temps à coder.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Quel outil de gestion pour un développeur freelance ?",
+    answer: "Jestly est idéal pour les devs freelances : CRM, commandes, facturation et site vitrine en un seul outil. Pas de config complexe, pas de maintenance.",
+  },
+  {
+    question: "Jestly remplace-t-il Notion pour gérer mes projets ?",
+    answer: "Pour la gestion commerciale, oui. Jestly gère le cycle complet : du premier contact client à la facture payée, avec tout relié automatiquement.",
+  },
+  {
+    question: "Puis-je gérer mes missions et side projects séparément ?",
+    answer: "Oui, chaque commande a son brief, son client, sa deadline et sa facturation dédiée. Vous pouvez suivre plusieurs projets en parallèle avec des statuts distincts.",
+  },
+];
+
 export default function DeveloppeursPage() {
-  return <PersonaPageLayout data={DATA} />;
+  return (
+    <>
+      <PersonaPageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection title="Questions fréquentes — Développeurs freelance" items={FAQ_ITEMS} accentColor="#3B82F6" />
+    </>
+  );
 }

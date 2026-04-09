@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import TextSwapButton from "@/components/ui/TextSwapButton";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -293,6 +295,42 @@ export default function JestlyVsNotionPage() {
           />
         </motion.section>
       </div>
+
+      <SeoContentSection blocks={[
+        {
+          heading: "Notion vs Jestly : quelle différence pour un freelance ?",
+          paragraphs: [
+            "Notion est un excellent outil de productivité personnelle et de documentation. Mais quand il s'agit de gérer une activité freelance complète — clients, commandes, factures, paiements, site vitrine — Notion atteint ses limites. Vous devez construire vos propres bases de données, créer des formules complexes, et rien n'est connecté nativement.",
+            "Jestly est conçu spécifiquement pour le workflow freelance. La facturation est conforme et automatisée, le CRM est intégré, les commandes ont des briefs structurés, et votre site vitrine est alimenté par vos données. Là où Notion vous donne des briques à assembler, Jestly vous donne un système prêt à l'emploi.",
+          ],
+        },
+        {
+          heading: "Pour qui choisir Jestly plutôt que Notion ?",
+          paragraphs: [
+            "Si vous êtes freelance et que vous utilisez Notion principalement pour gérer vos clients, suivre vos commandes et facturer, Jestly est une alternative plus adaptée. Vous gagnez du temps sur la configuration et vous bénéficiez de fonctionnalités métier natives : numérotation de factures, relances, analytics financiers, portfolio en ligne.",
+            "Notion reste pertinent pour la documentation, les wikis et la prise de notes. L'idéal pour beaucoup de freelances est d'utiliser Jestly pour la gestion commerciale et Notion pour le reste. Les deux sont complémentaires.",
+          ],
+        },
+      ]} />
+
+      <FaqSeoSection
+        title="Jestly vs Notion — Questions fréquentes"
+        items={[
+          {
+            question: "Jestly remplace-t-il complètement Notion ?",
+            answer: "Pour la gestion commerciale freelance (clients, commandes, factures, site), oui. Pour la prise de notes et la documentation, Notion reste excellent. Les deux outils sont complémentaires.",
+          },
+          {
+            question: "Notion est gratuit, pourquoi passer à Jestly ?",
+            answer: "Notion est gratuit pour un usage personnel, mais gérer une activité freelance dessus demande beaucoup de configuration. Jestly est prêt à l'emploi avec facturation conforme, CRM, commandes et site vitrine. Pendant la bêta, Jestly est aussi 100 % gratuit.",
+          },
+          {
+            question: "Puis-je importer mes données Notion dans Jestly ?",
+            answer: "L'import direct depuis Notion n'est pas encore disponible. Vous pouvez recréer vos clients et projets dans Jestly en quelques minutes — l'interface est simple et rapide.",
+          },
+        ]}
+        accentColor="#7C5CFF"
+      />
     </main>
   );
 }

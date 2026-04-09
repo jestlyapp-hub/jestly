@@ -2,6 +2,8 @@
 
 import PersonaPageLayout from "@/components/landing/PersonaPageLayout";
 import type { PersonaPageData } from "@/components/landing/PersonaPageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: PersonaPageData = {
   persona: "agences",
@@ -76,6 +78,37 @@ const DATA: PersonaPageData = {
   ctaSubtitle: "Jestly centralise tout. Un seul outil pour piloter clients, projets, factures et croissance.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Un cockpit de gestion pour les petites agences créatives",
+    paragraphs: [
+      "Vous êtes une agence de 2, 5 ou 10 personnes. Chaque membre gère plusieurs clients, plusieurs projets, plusieurs deadlines. Sans outil centralisé, les informations se perdent entre Slack, les emails et les tableurs partagés. Les briefs sont incomplets, les factures en retard, et personne ne sait exactement où en est chaque projet.",
+      "Jestly structure toute votre activité : chaque client a sa fiche complète, chaque projet a son brief et son statut, chaque facture est reliée à sa commande. L'équipe partage la même source de vérité, sans courbe d'apprentissage. L'outil scale avec vous sans devenir un ERP complexe.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Jestly est-il adapté aux agences ?",
+    answer: "Oui, Jestly convient aux petites agences créatives (2 à 10 personnes). Multi-clients, multi-projets : chaque commande a son brief, son client et son suivi. La facturation est intégrée pour simplifier la gestion financière.",
+  },
+  {
+    question: "Plusieurs personnes peuvent-elles utiliser Jestly ?",
+    answer: "Actuellement, Jestly est conçu pour un utilisateur principal par espace. La collaboration multi-utilisateurs est prévue dans la roadmap pour les agences qui ont besoin de partager l'accès.",
+  },
+  {
+    question: "Comment gérer plusieurs clients et projets simultanés ?",
+    answer: "Chaque client a sa fiche CRM, chaque projet est une commande avec brief, statuts et deadlines. Vous pouvez filtrer par client, par statut ou par période pour garder une vue claire même avec beaucoup de projets en cours.",
+  },
+];
+
 export default function AgencesPage() {
-  return <PersonaPageLayout data={DATA} />;
+  return (
+    <>
+      <PersonaPageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection title="Questions fréquentes — Agences créatives" items={FAQ_ITEMS} accentColor="#F59E0B" />
+    </>
+  );
 }

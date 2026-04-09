@@ -2,6 +2,8 @@
 
 import PersonaPageLayout from "@/components/landing/PersonaPageLayout";
 import type { PersonaPageData } from "@/components/landing/PersonaPageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: PersonaPageData = {
   persona: "consultants",
@@ -76,6 +78,37 @@ const DATA: PersonaPageData = {
   ctaSubtitle: "Gratuit pour démarrer. Prêt en 2 minutes. Aucun engagement. Votre activité mérite un vrai système.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Un outil de gestion pour consultants et coachs freelances",
+    paragraphs: [
+      "En tant que consultant, coach ou formateur freelance, votre activité repose sur la confiance et la relation client. Mais entre les propositions commerciales, le suivi des missions, la facturation et la prospection, la partie administrative mange un temps précieux que vous pourriez consacrer à vos clients.",
+      "Jestly professionnalise chaque interaction : du premier contact via votre site vitrine, au brief de mission structuré, jusqu'à la facture et le suivi de paiement. Vos clients voient un consultant organisé et fiable, vous gardez une vision claire de votre pipeline commercial.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Jestly convient-il aux consultants et coachs ?",
+    answer: "Oui, Jestly est adapté aux consultants, coachs et formateurs freelances. Le CRM vous aide à suivre vos prospects, les briefs structurent le cadrage de mission, et la facturation est intégrée au flux de travail.",
+  },
+  {
+    question: "Comment suivre mes missions de consulting avec Jestly ?",
+    answer: "Chaque mission est une commande avec son brief, son statut et sa deadline. Vous suivez la progression, gérez les livrables et facturez directement depuis Jestly. Tout l'historique client est conservé.",
+  },
+  {
+    question: "Puis-je gérer ma prospection avec le CRM de Jestly ?",
+    answer: "Oui, le CRM de Jestly permet de suivre vos prospects avec des statuts clairs (prospect, en discussion, signé). Vous ne perdez plus de leads entre les emails et les appels.",
+  },
+];
+
 export default function ConsultantsPage() {
-  return <PersonaPageLayout data={DATA} />;
+  return (
+    <>
+      <PersonaPageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection title="Questions fréquentes — Consultants freelance" items={FAQ_ITEMS} accentColor="#14B8A6" />
+    </>
+  );
 }

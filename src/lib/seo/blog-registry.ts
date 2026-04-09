@@ -90,6 +90,36 @@ export const BLOG_ARTICLES: BlogArticleMeta[] = [
     readingMinutes: 7,
     author: BLOG_AUTHOR,
   },
+  {
+    slug: "comment-facturer-en-freelance-guide-complet",
+    title: "Comment facturer en freelance — Le guide complet 2026",
+    description:
+      "Tout ce qu'un freelance doit savoir sur la facturation : mentions obligatoires, numérotation, TVA, relances, outils. Guide pratique avec exemples concrets.",
+    category: "Facturation",
+    datePublished: "2026-04-09",
+    readingMinutes: 10,
+    author: BLOG_AUTHOR,
+  },
+  {
+    slug: "quel-crm-choisir-quand-on-est-freelance",
+    title: "Quel CRM choisir quand on est freelance ?",
+    description:
+      "Comparatif des CRM adaptés aux freelances : HubSpot, Notion, Jestly. Comment choisir le bon outil pour suivre vos clients sans usine à gaz.",
+    category: "CRM",
+    datePublished: "2026-04-07",
+    readingMinutes: 8,
+    author: BLOG_AUTHOR,
+  },
+  {
+    slug: "comment-creer-un-portfolio-freelance",
+    title: "Comment créer un portfolio freelance qui attire des clients",
+    description:
+      "Guide pratique pour créer un portfolio freelance professionnel : structure, contenu, outils, erreurs à éviter. Attirer des clients avec votre travail.",
+    category: "Site vitrine",
+    datePublished: "2026-04-05",
+    readingMinutes: 9,
+    author: BLOG_AUTHOR,
+  },
 ];
 
 export function getBlogArticle(slug: string): BlogArticleMeta | undefined {

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import TextSwapButton from "@/components/ui/TextSwapButton";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
@@ -283,6 +285,42 @@ export default function JestlyVsHubSpotPage() {
           />
         </motion.section>
       </div>
+
+      <SeoContentSection blocks={[
+        {
+          heading: "HubSpot vs Jestly : quel CRM pour un freelance ?",
+          paragraphs: [
+            "HubSpot est un CRM puissant conçu pour les équipes commerciales B2B : pipelines complexes, séquences d'emails automatisées, scoring de leads. Pour un freelance qui gère 10 à 50 clients, c'est un canon pour tuer une mouche. L'interface est dense, la courbe d'apprentissage est raide, et les fonctionnalités premium coûtent cher.",
+            "Jestly propose un CRM pensé pour les freelances : simple, connecté à votre facturation et vos commandes, sans superflu. Chaque contact a sa fiche avec l'historique complet. Quand vous créez une commande, le client est déjà associé. Quand vous facturez, le CRM se met à jour. Pas de pipeline à configurer, pas de workflow à construire.",
+          ],
+        },
+        {
+          heading: "Au-delà du CRM : un outil complet vs un outil spécialisé",
+          paragraphs: [
+            "La vraie différence : HubSpot est un CRM pur. Pour facturer, gérer des commandes, avoir un site vitrine ou suivre vos paiements, vous avez besoin d'autres outils. Jestly intègre tout cela nativement. Votre CRM, votre facturation, vos commandes, votre site et vos analytics vivent au même endroit.",
+            "Pour un freelance, remplacer 5 outils par un seul est un gain de temps et d'argent considérable. Jestly est gratuit pendant la bêta — HubSpot gratuit est limité et les plans payants commencent à 45 €/mois.",
+          ],
+        },
+      ]} />
+
+      <FaqSeoSection
+        title="Jestly vs HubSpot — Questions fréquentes"
+        items={[
+          {
+            question: "HubSpot est-il trop complexe pour un freelance ?",
+            answer: "Pour la plupart des freelances, oui. HubSpot est conçu pour des équipes commerciales avec des pipelines, des séquences et du scoring. Un freelance a besoin d'un CRM simple pour suivre ses clients et relancer ses prospects — exactement ce que propose Jestly.",
+          },
+          {
+            question: "Jestly remplace-t-il HubSpot pour la gestion clients ?",
+            answer: "Pour les freelances, oui. Jestly offre un CRM adapté + facturation + commandes + site vitrine en un seul outil. HubSpot reste plus adapté aux entreprises avec des équipes commerciales.",
+          },
+          {
+            question: "Le CRM gratuit de HubSpot suffit-il pour un freelance ?",
+            answer: "Le CRM gratuit de HubSpot offre les basiques, mais il ne gère pas la facturation, les commandes ni le site vitrine. Jestly regroupe tout dans un seul outil, gratuit pendant la bêta avec toutes les fonctionnalités.",
+          },
+        ]}
+        accentColor="#F97316"
+      />
     </main>
   );
 }

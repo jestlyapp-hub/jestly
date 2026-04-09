@@ -74,6 +74,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     route("/blog/gagner-3-heures-par-semaine-en-automatisant-sa-gestion", 0.7),
     route("/blog/comment-creer-un-site-freelance-qui-convertit", 0.7),
     route("/blog/le-guide-complet-du-brief-client-reussi", 0.7),
+    route("/blog/comment-facturer-en-freelance-guide-complet", 0.8),
+    route("/blog/quel-crm-choisir-quand-on-est-freelance", 0.8),
+    route("/blog/comment-creer-un-portfolio-freelance", 0.8),
 
     // ── Légal ──
     route("/mentions-legales", 0.3, "yearly"),

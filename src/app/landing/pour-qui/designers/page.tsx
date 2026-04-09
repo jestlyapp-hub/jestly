@@ -2,6 +2,8 @@
 
 import PersonaPageLayout from "@/components/landing/PersonaPageLayout";
 import type { PersonaPageData } from "@/components/landing/PersonaPageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: PersonaPageData = {
   persona: "designers",
@@ -77,6 +79,43 @@ const DATA: PersonaPageData = {
   ctaSubtitle: "Essayez Jestly gratuitement. Premier outil de gestion aussi beau que vos maquettes.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Pourquoi les designers freelances ont besoin d'un outil dédié",
+    paragraphs: [
+      "En tant que designer freelance, vous passez vos journées à créer des visuels soignés pour vos clients — mais côté gestion, c'est souvent le chaos. Les briefs arrivent par DM, les devis sont faits sur Google Docs, les factures sur un outil séparé, et votre portfolio vit sur Behance ou un site WordPress que vous n'avez pas mis à jour depuis six mois.",
+      "Jestly réunit tout dans un seul espace : votre portfolio en ligne, votre CRM clients, vos commandes avec briefs structurés, votre facturation et vos analytics. Chaque module est pensé pour le workflow créatif : du premier contact client jusqu'au paiement final.",
+    ],
+  },
+  {
+    heading: "Portfolio, briefs et facturation dans un seul outil",
+    paragraphs: [
+      "Votre site vitrine Jestly présente vos réalisations avec une mise en scène premium. Quand un prospect vous contacte via le formulaire, il atterrit dans votre CRM. Quand il commande, il remplit un brief structuré avec ses besoins (style, couleurs, formats, deadlines). Quand vous livrez, la facture est générée en un clic. Pas de copier-coller entre cinq outils, pas de données perdues.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Quel outil de gestion pour un designer freelance ?",
+    answer: "Jestly est conçu pour les designers freelances qui veulent centraliser portfolio, briefs clients, facturation et CRM en un seul endroit. Contrairement à Notion ou Trello, tout est connecté : du brief à la facture.",
+  },
+  {
+    question: "Comment présenter mon portfolio de designer en ligne ?",
+    answer: "Avec Jestly, vous créez un site vitrine professionnel en quelques minutes. Ajoutez vos projets, personnalisez les couleurs à votre branding, et publiez. Le portfolio est intégré à votre espace de gestion — pas besoin de Behance ou d'un site séparé.",
+  },
+  {
+    question: "Jestly gère-t-il les briefs créatifs ?",
+    answer: "Oui, vous créez des questionnaires de brief personnalisés : style souhaité, références visuelles, formats, deadlines. Le client remplit le brief lors de sa commande, et vous avez toutes les informations pour commencer.",
+  },
+];
+
 export default function DesignersPage() {
-  return <PersonaPageLayout data={DATA} />;
+  return (
+    <>
+      <PersonaPageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection title="Questions fréquentes — Designers freelance" items={FAQ_ITEMS} accentColor="#A855F7" />
+    </>
+  );
 }

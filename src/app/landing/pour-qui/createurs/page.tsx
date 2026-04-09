@@ -2,6 +2,8 @@
 
 import PersonaPageLayout from "@/components/landing/PersonaPageLayout";
 import type { PersonaPageData } from "@/components/landing/PersonaPageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: PersonaPageData = {
   persona: "createurs",
@@ -76,6 +78,37 @@ const DATA: PersonaPageData = {
   ctaSubtitle: "Jestly est gratuit pour commencer. Pas de carte bancaire, pas d'engagement. Votre business mérite un vrai cockpit.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Le tout-en-un pour les créateurs de contenu freelances",
+    paragraphs: [
+      "Monteurs vidéo, photographes, vidéastes, motion designers — vous créez du contenu pour vos clients mais votre propre gestion est souvent chaotique. Les briefs arrivent par DM, les devis par email, les paiements sont suivis dans un tableur, et votre portfolio est dispersé entre Instagram et Behance.",
+      "Jestly regroupe tout : un portfolio pour montrer votre travail, un CRM pour suivre vos prospects, une gestion de commandes avec briefs structurés, et une facturation intégrée. Vos clients voient un processus professionnel de bout en bout.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Jestly convient-il aux monteurs vidéo et photographes ?",
+    answer: "Oui, Jestly est conçu pour tous les créateurs de contenu freelances. Le système de briefs permet de recueillir les besoins précis (format, durée, style) et le portfolio met en valeur vos réalisations visuelles.",
+  },
+  {
+    question: "Comment gérer mes commandes de contenu avec Jestly ?",
+    answer: "Chaque commande a son brief, son statut, sa deadline et ses fichiers associés. Vous suivez la progression de chaque projet et générez la facture en un clic à la livraison.",
+  },
+  {
+    question: "Puis-je montrer mon travail via Jestly ?",
+    answer: "Oui, le site vitrine intégré inclut un portfolio professionnel. Vos meilleurs projets sont présentés avec une mise en scène premium, directement reliés à votre activité.",
+  },
+];
+
 export default function CreateursPage() {
-  return <PersonaPageLayout data={DATA} />;
+  return (
+    <>
+      <PersonaPageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection title="Questions fréquentes — Créateurs de contenu" items={FAQ_ITEMS} accentColor="#F43F5E" />
+    </>
+  );
 }
