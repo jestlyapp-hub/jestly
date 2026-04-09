@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Facturation freelance simplifiée | Jestly",
+  title: "Logiciel de facturation freelance simple et complet | Jestly",
   description:
-    "Créez, envoyez et suivez vos devis et factures depuis le même espace que vos clients et commandes. Plus de jonglage entre cinq outils.",
+    "Logiciel de facturation freelance tout-en-un : créez devis et factures, automatisez vos relances, suivez vos paiements. Conforme, gratuit en bêta. Essayez Jestly.",
+  alternates: { canonical: "https://jestly.fr/fonctionnalites/facturation" },
   openGraph: {
-    title: "Facturation freelance simplifiée | Jestly",
+    title: "Logiciel de facturation freelance simple et complet | Jestly",
     description:
-      "Pilotez devis, factures et relances sans vous éparpiller.",
+      "Créez devis et factures en quelques secondes, automatisez vos relances clients et suivez vos paiements. Le meilleur outil de facturation freelance.",
     url: "https://jestly.fr/fonctionnalites/facturation",
   },
 };

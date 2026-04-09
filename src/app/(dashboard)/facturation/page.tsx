@@ -3,6 +3,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import { useGlobalPeriod } from "@/lib/stores/period-store";
 import type { BillingItemStatus, Order } from "@/types";
 import { isOrderDelivered, billingToOrderStatus } from "@/lib/billing-utils";
 import { orderRecordToOrder } from "@/lib/adapters";
@@ -104,7 +105,7 @@ export default function FacturationPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [search, setSearch] = useState("");
   const [filterClient, setFilterClient] = useState("");
-  const [filterPeriod, setFilterPeriod] = useState<PeriodFilter>(PERIOD_ALL);
+  const [filterPeriod, setFilterPeriod] = useGlobalPeriod();
   const [filterCategory, setFilterCategory] = useState("");
   const [filterUnexported, setFilterUnexported] = useState(false);
 

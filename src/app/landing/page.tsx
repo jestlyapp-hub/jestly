@@ -370,12 +370,12 @@ function Hero() {
 
       <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
         <motion.h1 className="mb-5" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.7, ease }}>
-          <span className="block text-[38px] sm:text-[48px] md:text-[58px] lg:text-[68px] font-extrabold leading-[1.06] tracking-[-0.035em] text-[#111118]">Centralisez</span>
-          <span className="block text-[38px] sm:text-[48px] md:text-[58px] lg:text-[68px] font-extrabold leading-[1.06] tracking-[-0.035em] bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #7C5CFF 0%, #A78BFA 100%)" }}>votre business freelance.</span>
+          <span className="block text-[38px] sm:text-[48px] md:text-[58px] lg:text-[68px] font-extrabold leading-[1.06] tracking-[-0.035em] text-[#111118]">Le logiciel de gestion</span>
+          <span className="block text-[38px] sm:text-[48px] md:text-[58px] lg:text-[68px] font-extrabold leading-[1.06] tracking-[-0.035em] bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(135deg, #7C5CFF 0%, #A78BFA 100%)" }}>freelance tout-en-un.</span>
         </motion.h1>
 
         <motion.p className="text-[16px] sm:text-[18px] leading-relaxed max-w-xl mx-auto mb-8" style={{ color: "#6B6F80" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6, ease }}>
-          Tout au même endroit : clients, facturation, CRM, site et agenda.
+          Facturation, CRM, commandes, site vitrine, agenda et analytics. Un seul outil pour piloter votre activité freelance.
         </motion.p>
 
         <motion.div className="flex flex-col sm:flex-row items-center justify-center gap-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.5, ease }}>
@@ -777,6 +777,53 @@ function FinalCTA() {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   SEO CONTENT — Texte indexable pour "logiciel gestion freelance"
+   ═══════════════════════════════════════════════════════════════════════ */
+function SeoTextSection() {
+  return (
+    <SectionShell>
+      <div className="max-w-3xl mx-auto py-16 sm:py-20 px-6">
+        <h2 className="text-[22px] sm:text-[28px] font-bold leading-tight tracking-[-0.02em] mb-6" style={{ color: "#111118" }}>
+          Le logiciel de gestion freelance qui remplace vos 10 outils
+        </h2>
+        <div className="space-y-4 text-[15px] leading-[1.75]" style={{ color: "#4B5563" }}>
+          <p>
+            En tant que freelance, vous jonglez chaque jour entre plusieurs outils : un tableur pour vos devis, un logiciel de facturation, un CRM improvisé dans Notion, un outil de gestion de projet, Google Agenda pour vos rendez-vous et encore un autre outil pour votre site web. Chaque outil a son propre abonnement, sa propre logique et ses propres données. Rien n'est connecté.
+          </p>
+          <p>
+            Jestly est le logiciel de gestion freelance tout-en-un qui réunit tout au même endroit. Facturation conforme avec devis et factures automatisés. CRM simple pour centraliser vos prospects et clients. Gestion de commandes avec suivi de statut et deadlines. Site vitrine professionnel créé en quelques minutes. Agenda intégré. Analytics pour piloter votre chiffre d'affaires.
+          </p>
+          <p>
+            Contrairement aux solutions généralistes comme Notion ou Trello, Jestly est conçu spécifiquement pour le métier de freelance. Chaque module est pensé pour les cas d'usage réels : créer une facture depuis une commande, suivre un prospect jusqu'à la signature, visualiser votre trésorerie du mois. Pas de configuration complexe, pas de templates à adapter — tout fonctionne dès l'inscription.
+          </p>
+          <p>
+            Que vous soyez designer, développeur, vidéaste, consultant ou créateur de contenu, Jestly s'adapte à votre métier. L'interface est inspirée de Notion : minimaliste, rapide, sans friction. Et pendant toute la phase bêta, l'accès est 100 % gratuit avec toutes les fonctionnalités incluses. Aucune carte bancaire requise, aucun engagement.
+          </p>
+        </div>
+
+        <div className="mt-10 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[
+            { label: "Facturation", href: "/fonctionnalites/facturation", desc: "Devis, factures et relances automatisées" },
+            { label: "CRM", href: "/fonctionnalites/crm", desc: "Prospects et clients centralisés" },
+            { label: "Site vitrine", href: "/fonctionnalites/site-vitrine", desc: "Votre site freelance en 2 minutes" },
+          ].map((link) => (
+            <a
+              key={link.label}
+              href={link.href}
+              className="group block rounded-xl p-5 transition-all hover:-translate-y-0.5"
+              style={{ background: "#FAFAFF", border: "1px solid #E5E7EB" }}
+            >
+              <div className="text-[14px] font-semibold mb-1 group-hover:text-[#7C5CFF] transition-colors" style={{ color: "#111118" }}>{link.label}</div>
+              <div className="text-[12px] leading-relaxed" style={{ color: "#9CA3AF" }}>{link.desc}</div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </SectionShell>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    PAGE
    ═══════════════════════════════════════════════════════════════════════ */
 export default function LandingPage() {
@@ -790,6 +837,7 @@ export default function LandingPage() {
         <ProblemSolutionSection />
         <SocialProofSection />
         <DemosSoon />
+        <SeoTextSection />
         <FinalCTA />
       </main>
     </div>

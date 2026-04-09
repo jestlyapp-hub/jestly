@@ -6,8 +6,7 @@ import { useTrack } from "@/lib/hooks/use-track";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
-import { useSubscription } from "@/lib/hooks/use-subscription";
-import { QuotaBar } from "@/components/ui/UpgradeGate";
+import { useGlobalPeriod } from "@/lib/stores/period-store";
 import { useColumns } from "@/lib/hooks/use-columns";
 import { orderRecordToOrder } from "@/lib/adapters";
 import type { Order, FieldOption, BoardField } from "@/types";
@@ -94,7 +93,6 @@ function fmtEur(n: number): string {
 
 export default function CommandesPage() {
   const track = useTrack();
-  const { canCreate: canCreateResource } = useSubscription();
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabFromUrl = searchParams.get("tab") as TabKey | null;
@@ -121,7 +119,7 @@ export default function CommandesPage() {
    * Défaut : PERIOD_ALL → aucune commande masquée à l'arrivée sur la page.
    * Champ filtré : `deadline` (vs `createdAt` côté Facturation).
    */
-  const [filterPeriod, setFilterPeriod] = useState<PeriodFilter>(PERIOD_ALL);
+  const [filterPeriod, setFilterPeriod] = useGlobalPeriod();
 
   /* ─── Reset filtres centralisé (source unique de vérité) ─── */
   const resetAllFilters = useCallback(() => {
@@ -1069,7 +1067,17 @@ export default function CommandesPage() {
       <CreateOrderDrawer
         open={createOpen}
         onClose={() => setCreateOpen(false)}
-        onCreated={() => { mutate(); track("order_created"); if (orders.length === 0) track("first_order_created"); }}
+        onCreated={(data) => {
+          // Mise à jour optimiste : injecter les nouvelles commandes immédiatement
+          if (data) {
+            const newOrders = Array.isArray(data) ? data : [data];
+            setRawOrders((prev) => [...newOrders, ...(prev ?? [])]);
+          }
+          // Re-fetch en arrière-plan pour synchroniser avec le serveur
+          mutate();
+          track("order_created");
+          if (orders.length === 0) track("first_order_created");
+        }}
       />
 
     </div>

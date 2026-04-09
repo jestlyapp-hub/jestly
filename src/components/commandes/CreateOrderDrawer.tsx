@@ -40,7 +40,7 @@ export default function CreateOrderDrawer({
 }: {
   open: boolean;
   onClose: () => void;
-  onCreated: () => void;
+  onCreated: (data?: unknown) => void;
 }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: rawClients } = useApi<any[]>(open ? "/api/clients" : null);
@@ -281,7 +281,7 @@ export default function CreateOrderDrawer({
       toast.success(created > 1 ? `${created} commandes créées` : "Commande créée");
 
       reset();
-      onCreated();
+      onCreated(result);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur");

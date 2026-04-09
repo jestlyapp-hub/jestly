@@ -19,8 +19,8 @@ import {
   Image,
 } from "lucide-react";
 
-// ── Period filter (shared with Facturation) ──
-import { type PeriodFilter, PERIOD_ALL, buildShortcutPresets } from "@/lib/period-filter";
+// ── Period filter (global — partagé avec toutes les pages) ──
+import { useGlobalPeriod } from "@/lib/stores/period-store";
 import PeriodFilterDropdown from "@/components/facturation/PeriodFilterDropdown";
 
 // ── Extracted components ──
@@ -44,19 +44,8 @@ const TABS = [
 // ═══════════════════════════════════════
 // MAIN COMPONENT
 // ═══════════════════════════════════════
-// Preset par défaut : 30 derniers jours
-const DEFAULT_PERIOD: PeriodFilter = (() => {
-  const presets = buildShortcutPresets();
-  const last30 = presets.find(p => p.id === "last30");
-  if (last30) {
-    const r = last30.range();
-    return { label: last30.label, range: r };
-  }
-  return PERIOD_ALL;
-})();
-
 export default function AnalyticsPage() {
-  const [period, setPeriod] = useState<PeriodFilter>(DEFAULT_PERIOD);
+  const [period, setPeriod] = useGlobalPeriod();
   const [activeTab, setActiveTab] = useState("overview");
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);

@@ -3,26 +3,26 @@ import "./globals.css";
 import { DEFAULT_OG, SITE_NAME, SITE_URL } from "@/lib/seo/build-metadata";
 
 export const metadata: Metadata = {
-  title: "Jestly — Le cockpit du freelance moderne",
+  title: "Logiciel de gestion freelance tout-en-un | Jestly",
   description:
-    "Plateforme tout-en-un pour vendre, gérer et scaler votre activité freelance. Commandes, facturation, CRM, site vitrine, agenda.",
+    "Jestly est le logiciel de gestion freelance tout-en-un : facturation, CRM, commandes, site vitrine, agenda et analytics. Remplacez 10 outils par un seul cockpit. Gratuit en bêta.",
   metadataBase: new URL(SITE_URL),
   alternates: { canonical: SITE_URL },
   openGraph: {
-    title: "Jestly — Le cockpit du freelance moderne",
+    title: "Logiciel de gestion freelance tout-en-un | Jestly",
     description:
-      "Commandes, facturation, CRM, site vitrine, agenda et analytics. Un seul outil remplace vos 10 abonnements.",
+      "Facturation, CRM, commandes, site vitrine, agenda et analytics. Un seul logiciel freelance remplace vos 10 abonnements.",
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: "fr_FR",
     type: "website",
-    images: [{ url: DEFAULT_OG, width: 1200, height: 630, alt: "Jestly — Cockpit freelance" }],
+    images: [{ url: DEFAULT_OG, width: 1200, height: 630, alt: "Jestly — Logiciel de gestion freelance tout-en-un" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Jestly — Le cockpit du freelance moderne",
+    title: "Logiciel de gestion freelance tout-en-un | Jestly",
     description:
-      "Commandes, facturation, CRM, site vitrine, agenda et analytics. Un seul outil remplace vos 10 abonnements.",
+      "Facturation, CRM, commandes, site vitrine, agenda et analytics. Un seul logiciel freelance remplace vos 10 abonnements.",
     images: [DEFAULT_OG],
   },
   robots: { index: true, follow: true },

@@ -2,11 +2,13 @@
 
 import FeaturePageLayout from "@/components/landing/FeaturePageLayout";
 import type { FeaturePageData } from "@/components/landing/FeaturePageLayout";
+import SeoContentSection from "@/components/seo/SeoContentSection";
+import FaqSeoSection from "@/components/seo/FaqSeoSection";
 
 const DATA: FeaturePageData = {
-  badge: "CRM clients",
-  title: "Centralisez vos prospects et clients",
-  titleGradient: "sans friction.",
+  badge: "CRM freelance",
+  title: "CRM pour freelance",
+  titleGradient: "simple et efficace.",
   subtitle:
     "Fini les contacts éparpillés entre DMs, mails et tableurs. Jestly regroupe vos prospects, clients actifs et historique dans un seul espace clair.",
   videoLabel: "Découvrir le CRM en action",
@@ -111,6 +113,71 @@ const DATA: FeaturePageData = {
     "Un CRM qui ne ressemble pas à un tableur. Conçu pour les freelances qui veulent avancer sans friction.",
 };
 
+const SEO_BLOCKS = [
+  {
+    heading: "Pourquoi un CRM quand on est freelance ?",
+    paragraphs: [
+      "Quand on est freelance, on pense rarement à s'équiper d'un CRM. Les contacts s'accumulent dans les DMs Instagram, les conversations email, les groupes WhatsApp et quelques fichiers Excel. Résultat : des prospects oubliés, des relances manquées, et du chiffre d'affaires qui s'évapore sans même qu'on s'en rende compte.",
+      "Un CRM pour freelance résout ce problème en centralisant tous vos contacts — prospects, clients actifs et anciens clients — dans un seul espace structuré. Chaque contact a sa fiche avec son historique complet : commandes passées, factures, notes, préférences. Vous savez exactement où vous en êtes avec chaque client, sans effort de mémoire.",
+      "Mais la plupart des CRM du marché (HubSpot, Salesforce, Pipedrive) sont conçus pour des équipes commerciales avec des pipelines complexes. Trop de fonctionnalités, trop de configuration, trop cher. Jestly propose un CRM pensé spécifiquement pour les freelances : simple, connecté à votre facturation et vos commandes, sans superflu.",
+    ],
+  },
+  {
+    heading: "Centralisez vos prospects et clients en un seul endroit",
+    paragraphs: [
+      "Le CRM de Jestly fonctionne comme un carnet d'adresses intelligent. Chaque prospect qui vous contacte — via votre site Jestly, par email ou via les réseaux — est enregistré avec ses informations essentielles. Vous attribuez un statut clair : prospect, en discussion, signé, terminé. En un coup d'œil, vous voyez exactement combien de prospects sont dans votre pipeline et combien de clients actifs vous suivez.",
+      "La force de Jestly, c'est que votre CRM ne vit pas en silo. Quand vous créez une commande pour un client, elle apparaît automatiquement dans sa fiche. Quand vous envoyez une facture, le statut de paiement est visible directement. Quand un prospect vous contacte via votre site vitrine Jestly, il est automatiquement ajouté à votre CRM. Zéro ressaisie, zéro perte d'information.",
+    ],
+  },
+  {
+    heading: "Suivez vos relances sans effort",
+    paragraphs: [
+      "La relance est souvent la partie la plus inconfortable du métier de freelance. On hésite, on repousse, et finalement le prospect est parti voir ailleurs. Un bon CRM freelance vous aide à structurer vos relances : vous voyez en un regard quels prospects n'ont pas donné de nouvelles, quels clients ont une facture en attente, et quels anciens clients pourraient être recontactés.",
+      "Jestly rend les relances visibles et naturelles. Pas de workflow complexe à configurer : un simple système de statuts et de dates de suivi vous permet de ne jamais laisser un contact sans réponse. Le but n'est pas de transformer votre relation client en machine automatisée, mais de vous donner la visibilité nécessaire pour agir au bon moment.",
+    ],
+  },
+  {
+    heading: "Un CRM connecté à tout votre écosystème freelance",
+    paragraphs: [
+      "C'est la différence fondamentale entre Jestly et un CRM classique. Chez Jestly, le CRM n'est pas un outil isolé : il est connecté à votre facturation, vos commandes, votre site vitrine et vos analytics. Quand vous consultez la fiche d'un client, vous voyez son historique complet : toutes les commandes, toutes les factures, le chiffre d'affaires généré, les projets en cours.",
+      "Cette vision à 360° vous permet de prendre de meilleures décisions commerciales. Vous identifiez vos meilleurs clients, vous repérez ceux qui ont besoin d'attention, et vous pilotez votre activité avec des données concrètes plutôt qu'avec votre mémoire. Le tout dans une interface épurée, inspirée de Notion, sans la complexité d'un CRM d'entreprise.",
+    ],
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    question: "Ai-je vraiment besoin d'un CRM en freelance ?",
+    answer: "Dès que vous gérez plus de 5 à 10 clients simultanément, un CRM devient indispensable pour ne pas perdre de prospects et maintenir une relation professionnelle. Sans CRM, les contacts s'éparpillent entre les emails, DMs et fichiers — et les oublis coûtent cher. Jestly propose un CRM simple pensé pour les freelances, pas un outil d'entreprise surdimensionné.",
+  },
+  {
+    question: "Quelle est la différence entre Jestly et HubSpot pour un freelance ?",
+    answer: "HubSpot est un CRM puissant conçu pour des équipes commerciales avec des pipelines complexes. Pour un freelance, c'est souvent surdimensionné et coûteux. Jestly est conçu spécifiquement pour les freelances : CRM simple + facturation + commandes + site vitrine en un seul outil, sans complexité inutile.",
+  },
+  {
+    question: "Comment ajouter des clients dans le CRM Jestly ?",
+    answer: "Vous pouvez ajouter des clients manuellement en un clic, ou ils sont créés automatiquement quand quelqu'un passe commande via votre site vitrine Jestly. Chaque client a sa fiche complète avec ses coordonnées, son historique de commandes et ses factures.",
+  },
+  {
+    question: "Le CRM de Jestly est-il gratuit ?",
+    answer: "Oui, pendant la bêta, toutes les fonctionnalités de Jestly sont gratuites et illimitées : CRM complet, facturation, commandes, site vitrine, agenda et analytics. Aucune carte bancaire requise.",
+  },
+  {
+    question: "Puis-je importer mes contacts existants dans Jestly ?",
+    answer: "Vous pouvez créer vos contacts manuellement ou les ajouter au fil de l'eau lors de vos commandes. L'import CSV est prévu dans la roadmap. En attendant, chaque nouveau contact créé dans une commande ou via votre site est automatiquement ajouté au CRM.",
+  },
+];
+
 export default function CrmPage() {
-  return <FeaturePageLayout data={DATA} />;
+  return (
+    <>
+      <FeaturePageLayout data={DATA} />
+      <SeoContentSection blocks={SEO_BLOCKS} />
+      <FaqSeoSection
+        title="Questions fréquentes sur le CRM freelance"
+        items={FAQ_ITEMS}
+        accentColor="#EC4899"
+      />
+    </>
+  );
 }
