@@ -17,7 +17,9 @@ import type {
   RevenueMonthPoint,
   DashboardRevenueData,
 } from "@/lib/dashboard/types";
-import WorkloadSnapshot from "@/components/dashboard/WorkloadSnapshot";
+import dynamic from "next/dynamic";
+const WorkloadSnapshot = dynamic(() => import("@/components/dashboard/WorkloadSnapshot"), { ssr: false });
+const QuickStartBusiness = dynamic(() => import("@/components/dashboard/QuickStartBusiness"), { ssr: false });
 import { GraduationCap, ArrowRight, Sparkles } from "lucide-react";
 import {
   DollarSign,
@@ -168,7 +170,7 @@ function KpiCard({ label, value, sub, change, icon: Icon, sparkData, color, dela
 }) {
   const pos = (change ?? 0) >= 0;
   return (
-    <motion.div className="bg-white rounded-xl border border-[#E6E6E4] p-4 hover:shadow-sm transition-all" {...fadeUp(delay)}>
+    <motion.div className="bg-white rounded-xl border border-[#E6E6E4] p-4 hover:shadow-sm transition-all" whileHover={{ y: -2, transition: { duration: 0.2 } }} {...fadeUp(delay)}>
       <div className="flex items-center justify-between mb-3">
         <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${color}`}>
           <Icon size={15} strokeWidth={1.8} />
@@ -197,7 +199,7 @@ function Card({ title, action, children, delay = 0, className = "" }: {
   title: string; action?: { label: string; href: string }; children: React.ReactNode; delay?: number; className?: string;
 }) {
   return (
-    <motion.div className={`bg-white rounded-xl border border-[#E6E6E4] overflow-hidden flex flex-col ${className}`} {...fadeUp(delay)}>
+    <motion.div className={`bg-white rounded-xl border border-[#E6E6E4] overflow-hidden flex flex-col ${className}`} whileHover={{ y: -1, transition: { duration: 0.2 } }} {...fadeUp(delay)}>
       <div className="flex items-center justify-between px-5 py-3 border-b border-[#F0F0EE]">
         <h2 className="text-[13px] font-semibold text-[#191919]">{title}</h2>
         {action && (
@@ -517,7 +519,7 @@ function RevenueChart({ revenueData }: { revenueData: DashboardRevenueData }) {
 // SKELETON
 // ═══════════════════════════════════════
 function Sk({ className = "" }: { className?: string }) {
-  return <div className={`bg-[#F7F7F5] rounded-xl animate-pulse ${className}`} />;
+  return <div className={`rounded-xl skeleton-shimmer ${className}`} />;
 }
 
 // ═══════════════════════════════════════
@@ -683,8 +685,8 @@ export default function DashboardPage() {
         <CreateMenu />
       </motion.div>
 
-      {/* ════════════════════════ WELCOME BLOCK (new accounts) ════════════════════════ */}
-      {isEmptyAccount && <WelcomeBlock />}
+      {/* ════════════════════════ QUICK START (new accounts) ════════════════════════ */}
+      {isEmptyAccount && <QuickStartBusiness onComplete={mutate} />}
 
       {/* ════════════════════════ ALERT BANNER ════════════════════════ */}
       {safeData.overdueOrders > 0 && (

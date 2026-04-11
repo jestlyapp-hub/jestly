@@ -5,6 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import { toast } from "@/lib/hooks/use-toast";
+import AnimatedButton from "@/components/ui/AnimatedButton";
 import DatabaseError, { detectErrorVariant } from "@/components/ui/DatabaseError";
 import type { Project, ProjectType, ProjectStatus, ProjectPriority } from "@/types";
 
@@ -224,7 +226,9 @@ function CreateProjectModal({
       onClose();
       onCreated(res.id);
     } catch (err: any) {
-      setError(err?.message || "Erreur lors de la création du projet");
+      const msg = err?.message || "Erreur lors de la création du projet";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSaving(false);
     }
@@ -340,9 +344,9 @@ function CreateProjectModal({
                   <button onClick={() => { onClose(); resetForm(); }} className="px-4 py-2.5 text-[13px] font-medium text-[#5A5A58] hover:bg-[#F7F7F5] rounded-lg transition-colors cursor-pointer">
                     Annuler
                   </button>
-                  <button onClick={handleSubmit} disabled={saving || !form.name.trim()} className="px-5 py-2.5 text-[13px] font-semibold text-white bg-[#4F46E5] hover:bg-[#4338CA] rounded-lg transition-colors disabled:opacity-50 cursor-pointer">
+                  <AnimatedButton onClick={handleSubmit} disabled={!form.name.trim()} loading={saving}>
                     {saving ? "Création..." : "Créer le projet"}
-                  </button>
+                  </AnimatedButton>
                 </div>
               </div>
             </div>
@@ -414,6 +418,7 @@ export default function ProjetsPage() {
   }, [projects, search, filterStatus, filterType, filterClient, sortKey]);
 
   const handleCreated = (id: string) => {
+    toast.success("Projet créé");
     mutate();
     router.push(`/projets/${id}`);
   };

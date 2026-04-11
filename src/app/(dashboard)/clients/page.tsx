@@ -12,9 +12,9 @@ import EmptyState from "@/components/ui/EmptyState";
 
 const CreateClientDrawer = dynamic(() => import("@/components/clients/CreateClientDrawer"), { ssr: false });
 const EditClientSheet = dynamic(() => import("@/components/clients/EditClientSheet"), { ssr: false });
-import ArchiveClientDialog from "@/components/clients/ArchiveClientDialog";
-import DeleteClientDialog from "@/components/clients/DeleteClientDialog";
-import RestoreClientDialog from "@/components/clients/RestoreClientDialog";
+const ArchiveClientDialog = dynamic(() => import("@/components/clients/ArchiveClientDialog"), { ssr: false });
+const DeleteClientDialog = dynamic(() => import("@/components/clients/DeleteClientDialog"), { ssr: false });
+const RestoreClientDialog = dynamic(() => import("@/components/clients/RestoreClientDialog"), { ssr: false });
 import SelectableCheckbox from "@/components/ui/SelectableCheckbox";
 
 // ---------------------------------------------------------------------------
@@ -151,7 +151,7 @@ export default function ClientsPage() {
     return `/api/clients?${params.toString()}`;
   }, [tab, search, sortKey, sortOrder]);
 
-  const { data: clients, loading, validating, error, mutate } = useApi<ClientRow[]>(apiUrl);
+  const { data: clients, loading, validating, error, mutate, setData: setClients } = useApi<ClientRow[]>(apiUrl);
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -771,7 +771,9 @@ export default function ClientsPage() {
         open={!!archiveClient}
         onClose={() => setArchiveClient(null)}
         onArchived={() => {
+          const id = archiveClient?.id;
           setArchiveClient(null);
+          if (id) setClients((prev) => prev?.map((c) => c.id === id ? { ...c, status: "archived" as const, archived_at: new Date().toISOString() } : c) ?? null);
           mutate();
         }}
       />
@@ -781,7 +783,9 @@ export default function ClientsPage() {
         open={!!deleteClient}
         onClose={() => setDeleteClient(null)}
         onDeleted={() => {
+          const id = deleteClient?.id;
           setDeleteClient(null);
+          if (id) setClients((prev) => prev?.filter((c) => c.id !== id) ?? null);
           mutate();
         }}
       />
@@ -791,7 +795,9 @@ export default function ClientsPage() {
         open={!!restoreClient}
         onClose={() => setRestoreClient(null)}
         onRestored={() => {
+          const id = restoreClient?.id;
           setRestoreClient(null);
+          if (id) setClients((prev) => prev?.map((c) => c.id === id ? { ...c, status: "active" as const, archived_at: null } : c) ?? null);
           mutate();
         }}
       />

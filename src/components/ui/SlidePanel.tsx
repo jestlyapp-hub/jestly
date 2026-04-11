@@ -17,10 +17,11 @@ export default function SlidePanel({ open, onClose, title, children }: SlidePane
         <>
           {/* Overlay */}
           <motion.div
-            className="fixed inset-0 bg-black/10 z-40"
+            className="fixed inset-0 bg-black/10 backdrop-blur-[2px] z-40"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
             onClick={onClose}
           />
 

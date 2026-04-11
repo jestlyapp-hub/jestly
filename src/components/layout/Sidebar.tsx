@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { signOut } from "@/lib/auth/actions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -57,6 +57,7 @@ const navGroups: NavGroup[] = [
       { label: "Commandes", href: "/commandes", icon: <ShoppingBag size={18} strokeWidth={1.7} /> },
       { label: "Clients", href: "/clients", icon: <Users size={18} strokeWidth={1.7} /> },
       { label: "Facturation", href: "/facturation", icon: <FileText size={18} strokeWidth={1.7} /> },
+      { label: "Abonnements", href: "/abonnements", icon: <CreditCard size={18} strokeWidth={1.7} /> },
     ],
   },
   {
@@ -247,11 +248,17 @@ function MenuButton({ icon, label, onClick, external, disabled, hint }: {
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const track = useTrack();
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+
+  // Prefetch au hover — précharge la page pour navigation instantanée
+  const handlePrefetch = useCallback((href: string) => {
+    router.prefetch(href);
+  }, [router]);
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -328,6 +335,7 @@ export default function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onMouseEnter={() => handlePrefetch(item.href)}
                     className={`group/item flex items-center gap-3 px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 ${
                       active
                         ? "bg-[#F0EEFF] text-[#6D28D9]"
@@ -368,6 +376,7 @@ export default function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onMouseEnter={() => handlePrefetch(item.href)}
                     className={`group/item flex items-center gap-3 px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 ${
                       active
                         ? "bg-[#F0EEFF] text-[#6D28D9]"
@@ -399,6 +408,7 @@ export default function Sidebar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onMouseEnter={() => handlePrefetch(item.href)}
                   className={`group/item flex items-center gap-3 px-3 py-[7px] rounded-lg text-[13px] font-medium transition-all duration-150 ${
                     active
                       ? "bg-[#F0EEFF] text-[#6D28D9]"

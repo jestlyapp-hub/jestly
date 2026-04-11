@@ -129,12 +129,12 @@ export function MetricToggle({ options, active, onChange }: {
   );
 }
 
-// ── Skeleton ──
+// ── Skeleton (shimmer dynamique) ──
 export function CardSkeleton({ h = "h-24" }: { h?: string }) {
-  return <div className={`${h} bg-white rounded-xl border border-[#E6E6E4] animate-pulse`} />;
+  return <div className={`${h} rounded-xl border border-[#E6E6E4] skeleton-shimmer`} />;
 }
 export function ChartSkeleton({ h = "h-[300px]" }: { h?: string }) {
-  return <div className={`${h} bg-[#F7F7F5] rounded-lg animate-pulse`} />;
+  return <div className={`${h} rounded-lg skeleton-shimmer`} />;
 }
 
 // ── Empty state ──

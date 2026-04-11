@@ -7,6 +7,7 @@ import ProductEventTracker from "@/components/ProductEventTracker";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import GuideRoot from "@/features/onboarding-v3/ui/GuideRoot";
 import { PreferencesProvider } from "@/lib/hooks/use-preferences";
+import SWRProvider from "@/components/providers/SWRProvider";
 
 export default async function DashboardLayout({
   children,
@@ -58,6 +59,7 @@ export default async function DashboardLayout({
   }
 
   return (
+    <SWRProvider>
     <PreferencesProvider>
     <GuideRoot>
       <div className="flex h-screen bg-[#F7F7F5] overflow-hidden">
@@ -75,5 +77,6 @@ export default async function DashboardLayout({
       </div>
     </GuideRoot>
     </PreferencesProvider>
+    </SWRProvider>
   );
 }

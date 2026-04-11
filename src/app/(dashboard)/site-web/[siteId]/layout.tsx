@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import SiteWebNav from "@/components/site-web/SiteWebNav";
 import { SiteProvider } from "@/lib/contexts/site-context";
+import PublishBanner from "@/components/site-web/PublishBanner";
 
 // UUID v4 pattern (with or without dashes)
 const UUID_RE = /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
@@ -29,6 +30,7 @@ export default function SiteIdLayout({ children }: { children: React.ReactNode }
     <>
       <SiteWebNav />
       <SiteProvider siteId={siteId}>
+        <PublishBanner />
         {children}
       </SiteProvider>
     </>

@@ -452,14 +452,18 @@ export default function GlobalSearch() {
     };
   }, [openModal]);
 
-  // Navigate to result
+  // Navigate to result (Shift+Enter → nouvel onglet)
   const navigateTo = useCallback(
-    (result: SearchResult, position: number) => {
+    (result: SearchResult, position: number, newTab = false) => {
       saveRecentItem(result);
       if (query.length >= 2) saveRecentSearch(query);
       logClick(result, position);
       closeModal();
-      router.push(result.href);
+      if (newTab) {
+        window.open(result.href, "_blank");
+      } else {
+        router.push(result.href);
+      }
     },
     [router, query, closeModal, logClick]
   );
@@ -471,7 +475,7 @@ export default function GlobalSearch() {
     if (el) el.scrollIntoView({ block: "nearest" });
   }, [selectedIndex]);
 
-  // Keyboard navigation
+  // Keyboard navigation (↑↓ Enter Shift+Enter Escape)
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Escape") {
       e.preventDefault();
@@ -480,17 +484,21 @@ export default function GlobalSearch() {
     }
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev < flatResults.length - 1 ? prev + 1 : 0));
+      setSelectedIndex((prev) => (prev < navigableItems.length - 1 ? prev + 1 : 0));
       return;
     }
     if (e.key === "ArrowUp") {
       e.preventDefault();
-      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : flatResults.length - 1));
+      setSelectedIndex((prev) => (prev > 0 ? prev - 1 : navigableItems.length - 1));
       return;
     }
-    if (e.key === "Enter" && flatResults[selectedIndex]) {
+    if (e.key === "Enter" && navigableItems[selectedIndex]) {
       e.preventDefault();
-      navigateTo(flatResults[selectedIndex], selectedIndex);
+      navigateTo(navigableItems[selectedIndex], selectedIndex, e.shiftKey);
+    }
+    // Tab trap — empêche de sortir du modal
+    if (e.key === "Tab") {
+      e.preventDefault();
     }
   }
 
@@ -501,6 +509,10 @@ export default function GlobalSearch() {
   const showQuickAccess = isOpen && !hasQuery && results.length === 0;
   const showResults = isOpen && flatResults.length > 0;
   const showEmpty = isOpen && hasQuery && flatResults.length === 0 && !isLoading;
+
+  // Navigable items: flatResults for search, recentItems for quick access
+  const quickAccessItems = recentItems.slice(0, 6);
+  const navigableItems = flatResults.length > 0 ? flatResults : (showQuickAccess ? quickAccessItems : []);
 
   return (
     <>
@@ -587,11 +599,11 @@ export default function GlobalSearch() {
                 {isLoading && flatResults.length === 0 && (
                   <div className="px-4 py-3 space-y-2.5">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="flex items-center gap-3 animate-pulse">
-                        <div className="w-8 h-8 rounded-lg bg-[#F3F3F1]" />
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg skeleton-shimmer" />
                         <div className="flex-1 space-y-1.5">
-                          <div className="h-3.5 rounded bg-[#F3F3F1]" style={{ width: `${100 + i * 20}px` }} />
-                          <div className="h-2.5 rounded bg-[#F7F7F5]" style={{ width: `${140 + i * 15}px` }} />
+                          <div className="h-3.5 rounded skeleton-shimmer" style={{ width: `${100 + i * 20}px` }} />
+                          <div className="h-2.5 rounded skeleton-shimmer" style={{ width: `${140 + i * 15}px` }} />
                         </div>
                       </div>
                     ))}
@@ -762,6 +774,11 @@ export default function GlobalSearch() {
                   <div className="flex items-center gap-1">
                     <kbd className="text-[9px] text-[#BBB] bg-[#F7F7F5] border border-[#E6E6E4] rounded px-1 py-0.5 font-mono">&crarr;</kbd>
                     <span className="text-[10px] text-[#CCC] ml-0.5">ouvrir</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <kbd className="text-[9px] text-[#BBB] bg-[#F7F7F5] border border-[#E6E6E4] rounded px-1 py-0.5 font-mono">⇧</kbd>
+                    <kbd className="text-[9px] text-[#BBB] bg-[#F7F7F5] border border-[#E6E6E4] rounded px-1 py-0.5 font-mono">&crarr;</kbd>
+                    <span className="text-[10px] text-[#CCC] ml-0.5">nouvel onglet</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <kbd className="text-[9px] text-[#BBB] bg-[#F7F7F5] border border-[#E6E6E4] rounded px-1 py-0.5 font-mono">esc</kbd>

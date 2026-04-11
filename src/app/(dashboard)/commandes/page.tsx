@@ -32,6 +32,7 @@ import SelectableCheckbox from "@/components/ui/SelectableCheckbox";
 import PipelineSummaryCards from "@/components/ui/PipelineSummaryCards";
 import { isInteractiveClick } from "@/lib/interactive-click";
 import { computeOrdersPipelineSummary } from "@/lib/business-metrics";
+import { useHighlightNew } from "@/lib/hooks/use-highlight-new";
 
 /* ─── Notion-style color palette for select options ─── */
 const OPTION_COLORS = ["violet", "blue", "cyan", "emerald", "amber", "orange", "rose", "pink", "indigo", "teal"];
@@ -143,6 +144,9 @@ export default function CommandesPage() {
 
   // Track page view au montage
   useEffect(() => { track("commandes_page_viewed"); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  /* ─── Highlight nouvelles commandes ─── */
+  const { markNew, isNew } = useHighlightNew();
 
   /* ─── Data: single source of truth via useApi + setData ─── */
 
@@ -611,23 +615,23 @@ export default function CommandesPage() {
         {/* Header skeleton */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <div className="h-8 w-48 bg-[#F7F7F5] rounded-lg animate-pulse mb-2" />
-            <div className="h-4 w-72 bg-[#F7F7F5] rounded animate-pulse" />
+            <div className="h-8 w-48 skeleton-shimmer mb-2" />
+            <div className="h-4 w-72 skeleton-shimmer" />
           </div>
-          <div className="h-10 w-44 bg-[#F7F7F5] rounded-lg animate-pulse" />
+          <div className="h-10 w-44 skeleton-shimmer" />
         </div>
         {/* Stats skeleton */}
         <div className="flex gap-3 mb-6">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-10 w-32 bg-[#F7F7F5] rounded-lg animate-pulse" />
+            <div key={i} className="h-10 w-32 skeleton-shimmer" />
           ))}
         </div>
         {/* Toolbar skeleton */}
-        <div className="h-12 bg-[#F7F7F5] rounded-lg animate-pulse mb-4" />
+        <div className="h-12 skeleton-shimmer mb-4" />
         {/* Table skeleton */}
         <div className="bg-white rounded-xl border border-[#E6E6E4] overflow-hidden">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="h-14 border-b border-[#F8F8FA] animate-pulse bg-[#FEFEFE]" />
+            <div key={i} className="h-14 border-b border-[#F8F8FA] skeleton-shimmer" />
           ))}
         </div>
       </div>
@@ -910,6 +914,7 @@ export default function CommandesPage() {
                         disabled={!isDragEnabled}
                         onClick={(e) => { if (!isInteractiveClick(e)) setSelectedId(order.id); }}
                         className={`group border-b border-[#F5F5F3] last:border-b-0 transition-colors cursor-pointer ${
+                          isNew(order.id) ? "highlight-new" :
                           isSelected
                             ? "bg-[#EEF2FF] hover:bg-[#E8EDFF]"
                             : "hover:bg-[#FAFAF9]"
@@ -1072,6 +1077,8 @@ export default function CommandesPage() {
           if (data) {
             const newOrders = Array.isArray(data) ? data : [data];
             setRawOrders((prev) => [...newOrders, ...(prev ?? [])]);
+            // Highlight glow sur les nouvelles lignes
+            markNew(newOrders.map((o: any) => o.id));
           }
           // Re-fetch en arrière-plan pour synchroniser avec le serveur
           mutate();

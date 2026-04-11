@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import SlidePanel from "@/components/ui/SlidePanel";
+import AnimatedButton from "@/components/ui/AnimatedButton";
+import { toast } from "@/lib/hooks/use-toast";
 
 interface CreateClientDrawerProps {
   open: boolean;
@@ -116,9 +118,11 @@ export default function CreateClientDrawer({ open, onClose, onCreated }: CreateC
       setDuplicateId(null);
       setShowAdvanced(false);
 
+      toast.success("Client créé");
       onCreated(data.id);
     } catch {
       setError("Erreur réseau. Réessayez.");
+      toast.error("Erreur lors de la création du client");
     } finally {
       setSaving(false);
     }
@@ -374,13 +378,14 @@ export default function CreateClientDrawer({ open, onClose, onCreated }: CreateC
 
         {/* Submit */}
         <div className="pt-2">
-          <button
+          <AnimatedButton
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className="w-full px-4 py-2.5 bg-[#4F46E5] text-white text-[13px] font-medium rounded-lg hover:bg-[#4338CA] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            loading={saving}
+            className="w-full"
           >
             {saving ? "Création en cours..." : "Créer le client"}
-          </button>
+          </AnimatedButton>
         </div>
       </div>
     </SlidePanel>

@@ -1,16 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { BuilderProvider } from "@/lib/site-builder-context";
 import { ProductProvider } from "@/lib/product-context";
 import type { Product } from "@/types";
 import { dbToProduct } from "@/lib/adapters";
 import BuilderToolbar from "@/components/site-web/builder/BuilderToolbar";
-import BuilderPageList from "@/components/site-web/builder/BuilderPageList";
-import BuilderCanvas from "@/components/site-web/builder/BuilderCanvas";
-import BuilderPropertyPanel from "@/components/site-web/builder/BuilderPropertyPanel";
-import ThemeEditorPanel from "@/components/site-web/builder/ThemeEditorPanel";
-import NavFooterEditorPanel from "@/components/site-web/builder/NavFooterEditorPanel";
+const BuilderPageList = dynamic(() => import("@/components/site-web/builder/BuilderPageList"), { ssr: false });
+const BuilderCanvas = dynamic(() => import("@/components/site-web/builder/BuilderCanvas"), { ssr: false });
+const BuilderPropertyPanel = dynamic(() => import("@/components/site-web/builder/BuilderPropertyPanel"), { ssr: false });
+const ThemeEditorPanel = dynamic(() => import("@/components/site-web/builder/ThemeEditorPanel"), { ssr: false });
+const NavFooterEditorPanel = dynamic(() => import("@/components/site-web/builder/NavFooterEditorPanel"), { ssr: false });
 import GuideBridge from "@/features/onboarding-v3/missions/GuideBridge";
 
 type RightPanel = "inspector" | "theme" | "nav";

@@ -15,9 +15,7 @@ interface UseApiResult<T> {
   setData: Dispatch<SetStateAction<T | null>>;
 }
 
-/**
- * Global fetcher for SWR — throws on non-2xx with the server's error message.
- */
+// Fetcher global défini dans SWRProvider — fallback local pour usage hors provider
 const fetcher = async (url: string) => {
   const res = await fetch(url);
   if (!res.ok) {
@@ -60,18 +58,7 @@ export function useApi<T>(url: string | null, fallback?: T): UseApiResult<T> {
     fetcher,
     {
       fallbackData: fallback as T | undefined,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      dedupingInterval: 5000,
-      keepPreviousData: true,
-      // On error with fallback: still surface data so the UI doesn't break
-      onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
-        // Don't retry more than 2 times
-        if (retryCount >= 2) return;
-        // Don't retry on 4xx errors (client errors)
-        if (error?.status >= 400 && error?.status < 500) return;
-        setTimeout(() => revalidate({ retryCount }), 3000);
-      },
+      // Le reste hérite du SWRProvider global (dedupingInterval, keepPreviousData, etc.)
     },
   );
 
@@ -123,15 +110,21 @@ export async function apiFetch<T = unknown>(
   options: { method?: string; body?: unknown } = {}
 ): Promise<T> {
   const method = options.method || (options.body ? "POST" : "GET");
+  const headers: Record<string, string> = {};
+  if (options.body) headers["Content-Type"] = "application/json";
   const res = await fetch(url, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `HTTP ${res.status}`);
+    const msg = body.error || `HTTP ${res.status}`;
+    if (process.env.NODE_ENV === "development") {
+      console.error(`[apiFetch] ${method} ${url} → ${res.status}`, body);
+    }
+    throw new Error(msg);
   }
 
   return res.json();

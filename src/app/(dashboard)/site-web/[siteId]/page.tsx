@@ -132,7 +132,19 @@ export default function SiteWebDashboard() {
                 </a>
               </>
             ) : hasSubdomain && !published ? (
-              <span className="text-[12px] text-[#B0B0AE] italic px-3 py-1.5">Publiez pour obtenir le lien</span>
+              <button
+                onClick={async () => {
+                  try {
+                    const res = await fetch(`/api/sites/${siteId}/publish`, { method: "POST" });
+                    if (!res.ok) throw new Error();
+                    window.location.reload();
+                  } catch {}
+                }}
+                className="text-[12px] font-semibold text-white bg-emerald-500 hover:bg-emerald-600 px-4 py-1.5 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" /></svg>
+                Publier
+              </button>
             ) : null}
           </div>
         </div>

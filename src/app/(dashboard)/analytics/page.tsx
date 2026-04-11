@@ -162,8 +162,8 @@ export default function AnalyticsPage() {
     return (
       <div className="max-w-[1200px] mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <div className="h-8 w-40 bg-[#F7F7F5] rounded-lg animate-pulse" />
-          <div className="h-9 w-64 bg-[#F7F7F5] rounded-lg animate-pulse" />
+          <div className="h-8 w-40 skeleton-shimmer" />
+          <div className="h-9 w-64 skeleton-shimmer" />
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
           {[0, 1, 2, 3, 4, 5, 6, 7].map((i) => <CardSkeleton key={i} />)}

@@ -3,12 +3,14 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import { toast } from "@/lib/hooks/use-toast";
 import { useGlobalPeriod } from "@/lib/stores/period-store";
 import type { BillingItemStatus, Order } from "@/types";
 import { isOrderDelivered, billingToOrderStatus } from "@/lib/billing-utils";
 import { orderRecordToOrder } from "@/lib/adapters";
-import OrderDrawer from "@/components/commandes/OrderDrawer";
+import dynamic from "next/dynamic";
 import type { BillingAction } from "@/components/commandes/OrderDrawer";
+const OrderDrawer = dynamic(() => import("@/components/commandes/OrderDrawer"), { ssr: false });
 import {
   Plus,
   TrendingUp,
@@ -59,11 +61,11 @@ import PeriodFilterDropdown from "@/components/facturation/PeriodFilterDropdown"
 import { downloadCsv, downloadPdf } from "@/components/facturation/billing-export";
 import { KpiCard, EmptyState, SummaryBar } from "@/components/facturation/BillingKpiCards";
 import { ItemRow, GroupedView } from "@/components/facturation/BillingTable";
-import DetailDrawer from "@/components/facturation/BillingDetailDrawer";
-import ManualItemDrawer from "@/components/facturation/BillingDrawer";
-import MonthlyCloseDrawer from "@/components/facturation/PeriodClosureSection";
-import ExportsDrawer from "@/components/facturation/ExportsDrawer";
-import ArchivesDrawer from "@/components/facturation/ArchivesDrawer";
+const DetailDrawer = dynamic(() => import("@/components/facturation/BillingDetailDrawer"), { ssr: false });
+const ManualItemDrawer = dynamic(() => import("@/components/facturation/BillingDrawer"), { ssr: false });
+const MonthlyCloseDrawer = dynamic(() => import("@/components/facturation/PeriodClosureSection"), { ssr: false });
+const ExportsDrawer = dynamic(() => import("@/components/facturation/ExportsDrawer"), { ssr: false });
+const ArchivesDrawer = dynamic(() => import("@/components/facturation/ArchivesDrawer"), { ssr: false });
 
 /* ══════════════════════════════════════════════════════════════════════
    MAIN PAGE
@@ -363,10 +365,13 @@ export default function FacturationPage() {
       const method = id ? "PATCH" : "POST";
       const url = id ? `/api/billing/items/${id}` : "/api/billing/items";
       const res = await fetch(url, { method, headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-      if (!res.ok) return;
+      if (!res.ok) { toast.error("Erreur lors de la sauvegarde"); return; }
+      toast.success(id ? "Élément mis à jour" : "Élément créé");
       setShowCreate(false);
       setEditItem(null);
       await refreshAll();
+    } catch {
+      toast.error("Erreur réseau");
     } finally {
       setMutating(false);
     }
@@ -388,7 +393,10 @@ export default function FacturationPage() {
         if (newStatus === "paid") updates.paid_at = new Date().toISOString().slice(0, 10);
         await fetch(`/api/billing/items/${item.billingItemId || item.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(updates) });
       }
+      toast.success("Statut mis à jour");
       await refreshAll();
+    } catch {
+      toast.error("Erreur lors du changement de statut");
     } finally {
       setMutating(false);
     }
@@ -445,19 +453,25 @@ export default function FacturationPage() {
   const handleExportCsv = useCallback(async () => {
     if (filteredItems.length === 0) return;
     setExporting(true);
-    const meta = downloadCsv(filteredItems);
-    await persistExport(meta);
-    await refreshAll();
-    setExporting(false);
+    try {
+      const meta = downloadCsv(filteredItems);
+      await persistExport(meta);
+      await refreshAll();
+      toast.success("Export CSV généré");
+    } catch { toast.error("Erreur lors de l'export"); }
+    finally { setExporting(false); }
   }, [filteredItems, persistExport, refreshAll]);
 
   const handleExportPdf = useCallback(async () => {
     if (filteredItems.length === 0) return;
     setExporting(true);
-    const meta = await downloadPdf(filteredItems);
-    await persistExport(meta);
-    await refreshAll();
-    setExporting(false);
+    try {
+      const meta = await downloadPdf(filteredItems);
+      await persistExport(meta);
+      await refreshAll();
+      toast.success("Export PDF généré");
+    } catch { toast.error("Erreur lors de l'export"); }
+    finally { setExporting(false); }
   }, [filteredItems, persistExport, refreshAll]);
 
   const handleClosePeriod = useCallback(async (year: number, month: number, notes?: string) => {
@@ -466,7 +480,9 @@ export default function FacturationPage() {
     try {
       await fetch("/api/billing/closures", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ year, month, notes }) });
       await mutateClosures();
-    } finally { setMutating(false); }
+      toast.success("Période clôturée");
+    } catch { toast.error("Erreur lors de la clôture"); }
+    finally { setMutating(false); }
   }, [mutateClosures, mutating]);
 
   const handleReopenPeriod = useCallback(async (closureId: string) => {
@@ -475,7 +491,9 @@ export default function FacturationPage() {
     try {
       await fetch(`/api/billing/closures/${closureId}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "reopened" }) });
       await mutateClosures();
-    } finally { setMutating(false); }
+      toast.success("Période réouverte");
+    } catch { toast.error("Erreur lors de la réouverture"); }
+    finally { setMutating(false); }
   }, [mutateClosures, mutating]);
 
   const clearFilters = useCallback(() => {

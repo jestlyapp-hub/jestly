@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
+import AnimatedButton from "@/components/ui/AnimatedButton";
 import LineItemsEditor, { type LineItemDraft } from "./LineItemsEditor";
 import ClientCombobox from "./ClientCombobox";
 
@@ -638,10 +639,10 @@ export default function CreateOrderDrawer({
 
             {/* Footer — sticky */}
             <div className="px-6 py-4 border-t border-[#E6E6E4] flex-shrink-0">
-              <button
+              <AnimatedButton
                 onClick={handleSubmit}
-                disabled={saving}
-                className="w-full bg-[#4F46E5] text-white text-[13px] font-semibold py-2.5 rounded-lg hover:bg-[#4338CA] transition-colors disabled:opacity-50 cursor-pointer"
+                loading={saving}
+                className="w-full"
               >
                 {(() => {
                   if (saving) return "Création...";
@@ -652,7 +653,7 @@ export default function CreateOrderDrawer({
                   if (quantity > 1) return `Créer ${quantity} commandes`;
                   return "Créer la commande";
                 })()}
-              </button>
+              </AnimatedButton>
             </div>
           </motion.div>
         </>

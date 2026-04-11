@@ -60,14 +60,17 @@ export function buildContext(account: AccountState): OnboardingContext {
 // Empty array = no prerequisites (can always start).
 
 export const CHAPTER_PREREQUISITES: Record<string, (keyof OnboardingContext)[]> = {
-  create_site: [],
-  site:        ["siteExists"],
-  brief:       ["siteExists"],
-  product:     ["siteExists"],
-  builder:     ["siteExists", "productExists"],
-  publish:     ["siteExists"],
-  orders:      ["siteExists"],
-  clients:     ["siteExists"],
+  // Business first — aucun prérequis
+  clients:       [],
+  orders:        [],
+  dashboard_wow: [],
+  // Site — prérequis progressifs
+  create_site:   [],
+  site:          ["siteExists"],
+  brief:         ["siteExists"],
+  product:       ["siteExists"],
+  builder:       ["siteExists", "productExists"],
+  publish:       ["siteExists"],
 };
 
 // ── Redirect map ─────────────────────────────────────────────────

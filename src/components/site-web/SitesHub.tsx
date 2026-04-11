@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
+import { useApi } from "@/lib/hooks/use-api";
+import { toast } from "@/lib/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   isSitePublished,
   canOpenPublicSite,
@@ -130,9 +132,10 @@ function StatusBadge({ status, maintenance }: { status: string; maintenance?: bo
 
 /* ── Site Card ── */
 
-function SiteCard({ site }: { site: SiteSummary }) {
+function SiteCard({ site, onPublished }: { site: SiteSummary; onPublished?: () => void }) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
+  const [publishing, setPublishing] = useState(false);
   const published = isSitePublished(site);
   const publicUrl = getSitePublicUrl(site);
   const displayUrl = getSiteDisplayUrl(site);
@@ -145,6 +148,23 @@ function SiteCard({ site }: { site: SiteSummary }) {
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   };
+
+  const handleQuickPublish = useCallback(async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (publishing) return;
+    setPublishing(true);
+    try {
+      const res = await fetch(`/api/sites/${site.id}/publish`, { method: "POST" });
+      if (!res.ok) throw new Error("Échec publication");
+      toast.success("Site publié !");
+      onPublished?.();
+    } catch {
+      toast.error("Erreur lors de la publication");
+    } finally {
+      setPublishing(false);
+    }
+  }, [publishing, site.id, onPublished]);
 
   return (
     <motion.div
@@ -224,9 +244,19 @@ function SiteCard({ site }: { site: SiteSummary }) {
               </a>
             </>
           ) : (
-            <span className="p-2 text-[#C0C0BE]" title="Publiez le site pour obtenir un lien">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><polyline points="15 3 21 3 21 9" /><line x1="10" y1="14" x2="21" y2="3" /></svg>
-            </span>
+            <button
+              onClick={handleQuickPublish}
+              disabled={publishing}
+              title="Publier le site"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-[12px] font-semibold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {publishing ? (
+                <div className="w-3.5 h-3.5 border-2 border-emerald-300 border-t-emerald-600 rounded-full animate-spin" />
+              ) : (
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" /></svg>
+              )}
+              Publier
+            </button>
           )}
         </div>
       </div>
@@ -293,32 +323,14 @@ function EmptyState() {
 /* ═══ Hub principal ═══ */
 
 export default function SitesHub() {
-  const [sites, setSites] = useState<SiteSummary[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch("/api/sites")
-      .then(async (res) => {
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          throw new Error(body.error || `HTTP ${res.status}`);
-        }
-        return res.json();
-      })
-      .then((data) => setSites(data))
-      .catch((err) => {
-        console.error("[SitesHub] Erreur chargement sites:", err.message);
-        setError(err.message);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const { data: rawSites, loading, error, mutate } = useApi<SiteSummary[]>("/api/sites", []);
+  const sites = rawSites ?? [];
 
   if (loading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-[300px] bg-[#F7F7F5] rounded-xl animate-pulse" />
+          <div key={i} className="h-[300px] rounded-xl skeleton-shimmer" />
         ))}
       </div>
     );
@@ -359,7 +371,7 @@ export default function SitesHub() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {sites.map((site, i) => (
           <motion.div key={site.id} transition={{ delay: i * 0.05 }}>
-            <SiteCard site={site} />
+            <SiteCard site={site} onPublished={mutate} />
           </motion.div>
         ))}
         <CreateSiteCard />

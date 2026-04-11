@@ -308,6 +308,50 @@ function validateBriefLinkedToProduct(): ValidatorResult {
   return { valid: false };
 }
 
+// ═══════════════════════════════════════════════════════════════════
+// QUICK START BUSINESS — Validators
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Quick Start: Client created.
+ * Polls /api/clients to check if at least one client exists.
+ */
+async function validateQsClientCreated(): Promise<ValidatorResult> {
+  try {
+    const res = await fetch("/api/clients");
+    if (!res.ok) return { valid: false };
+    const data = await res.json();
+    const hasClients = Array.isArray(data) && data.length > 0;
+    if (hasClients) {
+      log("qs_client_created: client found");
+      trackProductEvent("quickstart_client_created", "onboarding");
+    }
+    return { valid: hasClients, message: hasClients ? "Client créé" : undefined };
+  } catch {
+    return { valid: false };
+  }
+}
+
+/**
+ * Quick Start: Order created.
+ * Polls /api/orders to check if at least one order exists.
+ */
+async function validateQsOrderCreated(): Promise<ValidatorResult> {
+  try {
+    const res = await fetch("/api/orders");
+    if (!res.ok) return { valid: false };
+    const data = await res.json();
+    const hasOrders = Array.isArray(data) && data.length > 0;
+    if (hasOrders) {
+      log("qs_order_created: order found");
+      trackProductEvent("quickstart_order_created", "onboarding");
+    }
+    return { valid: hasOrders, message: hasOrders ? "Commande créée" : undefined };
+  } catch {
+    return { valid: false };
+  }
+}
+
 // ── Validator Registry ───────────────────────────────────────────
 
 export const missionValidators: Record<string, Validator> = {
@@ -320,6 +364,9 @@ export const missionValidators: Record<string, Validator> = {
   block_selected_in_builder: validateBlockSelectedInBuilder,
   brief_tab_or_linked: validateBriefTabOrLinked,
   brief_linked_to_product: validateBriefLinkedToProduct,
+  // Quick Start Business
+  qs_client_created: validateQsClientCreated,
+  qs_order_created: validateQsOrderCreated,
 };
 
 /**
