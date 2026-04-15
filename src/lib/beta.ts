@@ -17,7 +17,8 @@
  * Fonctionne côté client ET côté serveur (NEXT_PUBLIC_).
  */
 export function isBetaOpenAccess(): boolean {
-  return process.env.NEXT_PUBLIC_BETA_OPEN_ACCESS === "true";
+  // Toutes les limitations sont désactivées : accès illimité en permanence.
+  return true;
 }
 
 /**

@@ -15,17 +15,10 @@ import {
   type ResourceKey,
   type FeatureKey,
   type ResourceUsage,
-  PLANS,
   normalizePlanId,
   resolveEntitlements,
   currentMonthBounds,
-  minimumPlanFor,
-  minimumPlanForLimit,
-  RESOURCE_LABELS,
-  FEATURE_LABELS,
-  formatLimit,
 } from "./plans";
-import { isBetaOpenAccess } from "./beta";
 
 export interface GuardResult {
   allowed: boolean;
@@ -102,36 +95,11 @@ export async function checkResourceQuota(
   resource: ResourceKey,
   context?: { siteId?: string },
 ): Promise<GuardResult> {
-  // Mode bêta : toutes les ressources sont autorisées
-  if (isBetaOpenAccess()) {
-    const planId = await getUserPlan(supabase, userId);
-    return { allowed: true, planId };
-  }
-
+  // Toutes les limitations sont désactivées : accès illimité pour toutes les ressources.
+  void resource;
+  void context;
   const planId = await getUserPlan(supabase, userId);
-  const plan = PLANS[planId];
-  const limit = plan.limits[resource];
-
-  // Illimité → toujours autorisé
-  if (limit === -1) return { allowed: true, planId };
-
-  const current = await countUsage(supabase, userId, resource, context);
-
-  if (current < limit) {
-    return { allowed: true, planId };
-  }
-
-  const needed = current + 1;
-  const upgradeTo = minimumPlanForLimit(resource, needed);
-  const upgradeLabel = PLANS[upgradeTo].name;
-  const resourceLabel = RESOURCE_LABELS[resource];
-
-  return {
-    allowed: false,
-    planId,
-    error: `Limite atteinte : ${current}/${limit} ${resourceLabel}. Passez au plan ${upgradeLabel} pour continuer.`,
-    upgrade: { plan: upgradeTo, label: upgradeLabel },
-  };
+  return { allowed: true, planId };
 }
 
 /**
@@ -142,29 +110,10 @@ export async function checkFeatureAccess(
   userId: string,
   feature: FeatureKey,
 ): Promise<GuardResult> {
-  // Mode bêta : toutes les features sont accessibles
-  if (isBetaOpenAccess()) {
-    const planId = await getUserPlan(supabase, userId);
-    return { allowed: true, planId };
-  }
-
+  // Toutes les limitations sont désactivées : accès illimité à toutes les features.
+  void feature;
   const planId = await getUserPlan(supabase, userId);
-  const plan = PLANS[planId];
-
-  if (plan.features.has(feature)) {
-    return { allowed: true, planId };
-  }
-
-  const upgradeTo = minimumPlanFor(feature);
-  const upgradeLabel = PLANS[upgradeTo].name;
-  const featureLabel = FEATURE_LABELS[feature];
-
-  return {
-    allowed: false,
-    planId,
-    error: `${featureLabel} est disponible à partir du plan ${upgradeLabel}.`,
-    upgrade: { plan: upgradeTo, label: upgradeLabel },
-  };
+  return { allowed: true, planId };
 }
 
 /**
