@@ -226,18 +226,16 @@ export default function CommandesPage() {
     return null;
   };
 
-  /* ─── Période → Commandes (filtre deadline) ───
-   * Identique à Facturation : bornes inclusives YYYY-MM-DD, timezone-agnostique
-   * via isoDatePart (évite le bug de conversion UTC ±1 jour).
-   * Différence unique avec Facturation : on filtre sur `deadline` au lieu de `createdAt`.
-   * Une commande sans deadline est exclue dès qu'un range est actif (comportement
-   * miroir de Facturation, qui exclut tout item sans date de référence).
+  /* ─── Période → Commandes (filtre deadline, fallback date de création) ───
+   * Bornes inclusives YYYY-MM-DD, timezone-agnostique via isoDatePart.
+   * On filtre sur `deadline` ; si absente, on retombe sur `date` (date de création)
+   * afin que les commandes sans échéance restent visibles dans leur mois de création.
    */
   const periodOrders = useMemo(() => {
     if (!filterPeriod.range) return orders;
     const { start, end } = filterPeriod.range;
     return orders.filter((o) => {
-      const d = isoDatePart(o.deadline);
+      const d = isoDatePart(o.deadline) ?? isoDatePart(o.date);
       if (!d) return false;
       return d >= start && d <= end;
     });
