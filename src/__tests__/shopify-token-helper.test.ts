@@ -71,4 +71,21 @@ describe("getShopifyToken (client_credentials)", () => {
     expect(b).toBe(OK);
     expect((global.fetch as unknown as { mock: { calls: unknown[] } }).mock.calls.length).toBe(1);
   });
+
+  it("caches per shop_domain (two shops → two distinct tokens, multi-tenant)", async () => {
+    const override2 = { ...override, shopDomain: "other-shop.myshopify.com", clientId: "ffffffffffffffffffffffffffffffff" };
+    mockFetchSeries([
+      jsonResponse({ access_token: "shpat_shop_A", expires_in: 86399 }),
+      jsonResponse({ access_token: "shpat_shop_B", expires_in: 86399 }),
+    ]);
+    const a = await getShopifyToken(override);
+    const b = await getShopifyToken(override2);
+    expect(a).toBe("shpat_shop_A");
+    expect(b).toBe("shpat_shop_B");
+    expect((global.fetch as unknown as { mock: { calls: unknown[] } }).mock.calls.length).toBe(2);
+  });
+
+  it("throws ShopifyAuthError when no override is passed (no env fallback)", async () => {
+    await expect(getShopifyToken()).rejects.toThrow(ShopifyAuthError);
+  });
 });
