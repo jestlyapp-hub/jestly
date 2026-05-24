@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { requireAdmin, adminUserIdConfigured } from "@/lib/admin";
-import { isStripeConnected } from "@/lib/stripe";
 import { isSentryAdminConfigured } from "@/lib/sentry-admin";
 
 // GET — Statut sécurité dynamique pour /admin/security
@@ -36,7 +35,6 @@ export async function GET() {
     cache_no_store: true,
     security_headers: true,
     admin_user_id: adminUserIdSet,
-    stripe_webhooks: isStripeConnected(),
     sentry: isSentryAdminConfigured(),
   };
 

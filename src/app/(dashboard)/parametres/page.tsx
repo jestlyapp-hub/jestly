@@ -17,7 +17,6 @@ import { AccountSection } from "./components/AccountSection";
 import { WorkspaceSection } from "./components/WorkspaceSection";
 import { PreferencesSection } from "./components/PreferencesSection";
 import { BillingSection } from "./components/BillingSection";
-// SubscriptionSection sera réactivée quand Stripe billing sera prêt
 import { IntegrationsSection } from "./components/IntegrationsSection";
 import { NotificationsSection } from "./components/NotificationsSection";
 import { SecuritySection } from "./components/SecuritySection";

@@ -29,12 +29,6 @@ export async function GET() {
     };
   }
 
-  // Check Stripe env
-  checks.stripe = {
-    ok: !!process.env.STRIPE_SECRET_KEY,
-    ...(process.env.STRIPE_SECRET_KEY ? {} : { error: "STRIPE_SECRET_KEY missing" }),
-  };
-
   // Check Resend env
   checks.resend = {
     ok: !!process.env.RESEND_API_KEY,
@@ -48,8 +42,8 @@ export async function GET() {
     ...(hasSentry ? {} : { error: "SENTRY_DSN not configured (optional)" }),
   };
 
-  // Only critical services (DB, Stripe, Resend) affect health status
-  const criticalOk = checks.database.ok && checks.stripe.ok && checks.resend.ok;
+  // Only critical services (DB, Resend) affect health status
+  const criticalOk = checks.database.ok && checks.resend.ok;
   const responseTime = Date.now() - start;
 
   if (!criticalOk) {
