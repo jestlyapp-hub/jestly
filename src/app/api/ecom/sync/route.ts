@@ -7,9 +7,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getActiveShopifyIntegration, decryptIntegration } from "@/lib/shopify/integration";
+import {
+  getActiveShopifyIntegration,
+  decryptIntegration,
+  toLegacyIntegration,
+  type IntegrationRowV2,
+} from "@/lib/shopify/integration";
 import { deltaSync } from "@/lib/shopify/sync";
-import type { IntegrationRow } from "@/lib/shopify/types";
 
 export const maxDuration = 60;
 
@@ -24,7 +28,7 @@ export async function POST() {
   }
 
   try {
-    await deltaSync(integration);
+    await deltaSync(toLegacyIntegration(integration));
     return NextResponse.json({ ok: true, synced_at: new Date().toISOString() });
   } catch (err) {
     return NextResponse.json({ error: (err as Error).message }, { status: 500 });
@@ -47,10 +51,10 @@ export async function GET(req: NextRequest) {
     .eq("status", "active");
 
   const results: { integration_id: string; ok: boolean; error?: string }[] = [];
-  for (const row of (rows ?? []) as IntegrationRow[]) {
+  for (const row of (rows ?? []) as IntegrationRowV2[]) {
     try {
       const integration = decryptIntegration(row);
-      await deltaSync(integration);
+      await deltaSync(toLegacyIntegration(integration));
       results.push({ integration_id: row.id, ok: true });
     } catch (err) {
       results.push({ integration_id: row.id, ok: false, error: (err as Error).message });
