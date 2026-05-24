@@ -7,6 +7,10 @@
     {
       "path": "/api/ecom/sync",
       "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/pinterest-sync",
+      "schedule": "0 */6 * * *"
     }
   ]
 }
