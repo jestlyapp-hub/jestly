@@ -13,6 +13,7 @@ interface OrderItem {
   financial_status: string | null;
   fulfillment_status: string | null;
   source: string | null;
+  is_test?: boolean;
 }
 
 const COLOR_CLASSES: Record<string, string> = {
@@ -61,6 +62,9 @@ export default function RecentOrdersTable({ data }: { data: OrderItem[] }) {
                   <tr key={o.id} className="border-b border-[#F7F7F5] last:border-0 hover:bg-[#FBFBFA]">
                     <td className="py-2 pr-2 text-[12px] font-semibold text-[#191919]">
                       <Link href={`/ecom/orders/${o.id}`} className="hover:text-[#7C3AED]">{o.name}</Link>
+                      {o.is_test && (
+                        <span className="ml-1.5 inline-flex px-1 py-0.5 rounded bg-[#F7F7F5] text-[#8A8A88] text-[9px] font-medium border border-[#E6E6E4]">Test</span>
+                      )}
                     </td>
                     <td className="py-2 pr-2 text-[12px] text-[#8A8A88] whitespace-nowrap">{formatRelativeDate(o.created_at)}</td>
                     <td className="py-2 pr-2 text-[12px] text-[#5A5A58] truncate max-w-[180px]">{o.email ?? "—"}</td>

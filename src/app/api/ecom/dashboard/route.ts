@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { filterRealOrders, isTestOrder } from "@/lib/shopify/test-orders-filter";
 
 interface PeriodPayload {
   range: { from: string; to: string };
@@ -65,13 +66,17 @@ export async function GET(req: NextRequest) {
     previous = await buildPeriod(supabase, integration.id, prevFrom, prevTo);
   }
 
-  // Top produits (basé sur orders line_items dans la période)
+  // Top produits (basé sur orders line_items dans la période, filtre commandes test)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: ordersForProducts } = await (supabase.from("shopify_orders") as any)
-    .select("line_items")
+  const { data: ordersForProductsRaw } = await (supabase.from("shopify_orders") as any)
+    .select("name, line_items, utm_source, source_name, total_price, shipping_address")
     .eq("integration_id", integration.id)
     .gte("created_at", from)
     .lte("created_at", to + "T23:59:59");
+
+  // Exclure les commandes de test des analytics (cf lib/shopify/test-orders-filter)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ordersForProducts = filterRealOrders((ordersForProductsRaw ?? []) as any[]);
 
   const productAgg = new Map<string, { units: number; revenue: number; title: string; image_url: string | null }>();
   for (const o of (ordersForProducts ?? []) as { line_items: Array<{ product_id: string | null; title: string; quantity: number; price: number; image_url: string | null }> }[]) {
@@ -88,7 +93,7 @@ export async function GET(req: NextRequest) {
     .sort((a, b) => b.revenue - a.revenue)
     .slice(0, 10);
 
-  // Recent orders (10 dernières)
+  // Recent orders (10 dernières) — affiche tout, avec badge "Test" pour commandes exclues
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: recent_orders_raw } = await (supabase.from("shopify_orders") as any)
     .select("id, name, created_at, total_price, currency, email, financial_status, fulfillment_status, source_name, utm_source")
@@ -105,6 +110,7 @@ export async function GET(req: NextRequest) {
     financial_status: (o.financial_status as string) ?? null,
     fulfillment_status: (o.fulfillment_status as string) ?? null,
     source: (o.utm_source as string) ?? (o.source_name as string) ?? null,
+    is_test: isTestOrder({ name: o.name as string }),
   }));
 
   // Sources (sessions × revenu) — agrégation par utm_source / source_name
@@ -203,11 +209,15 @@ export async function GET(req: NextRequest) {
 // ── Helpers ──────────────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function buildPeriod(supabase: any, integrationId: string, from: string, to: string): Promise<PeriodPayload> {
-  const { data: ordersRows } = await (supabase.from("shopify_orders") as any)
-    .select("created_at, total_price")
+  const { data: ordersRowsRaw } = await (supabase.from("shopify_orders") as any)
+    .select("name, created_at, total_price")
     .eq("integration_id", integrationId)
     .gte("created_at", from)
     .lte("created_at", to + "T23:59:59");
+
+  // Filtre commandes test (#1001, #1002, #1004, #1005) — KPIs basés sur vraies commandes uniquement
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const ordersRows = filterRealOrders((ordersRowsRaw ?? []) as any[]);
 
   const { data: sessionsRows } = await (supabase.from("shopify_sessions_daily") as any)
     .select("date, sessions, sessions_that_completed_checkout")
