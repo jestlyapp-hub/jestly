@@ -28,6 +28,7 @@ interface TimelineResponse { points: Array<{ date: string; spend_cents: number; 
 interface CampaignsResponse { campaigns: CampaignRow[]; total: number }
 interface TopResponse { campaigns: CampaignRow[] }
 interface AlertsResponse { alerts: Array<{ id: string; alert_type: string; severity: "info" | "warning" | "critical"; campaign_id: string | null; campaign_name: string | null; provider: string | null; title: string; message: string; recommendation: string | null; detected_at: string; status: string }> }
+interface PinterestStatus { connected: boolean; integration?: { external_account_id: string | null; status: string } }
 
 function AdsOverviewContent() {
   const router = useRouter();
@@ -55,6 +56,7 @@ function AdsOverviewContent() {
   }, [range, sortBy, sortOrder, status, search]);
 
   const { data: overview, mutate: mutateOverview } = useApi<OverviewResponse>(`/api/ecom/ads/overview?${queryString}`);
+  const { data: pinterestStatus } = useApi<PinterestStatus>("/api/integrations/pinterest/status");
   const { data: timeline } = useApi<TimelineResponse>(`/api/ecom/ads/timeline?${queryString}`);
   const { data: topProfit } = useApi<TopResponse>(`/api/ecom/ads/top?type=profitable&limit=5&${queryString}`);
   const { data: topUnprofit } = useApi<TopResponse>(`/api/ecom/ads/top?type=unprofitable&limit=5&${queryString}`);
@@ -109,18 +111,45 @@ function AdsOverviewContent() {
   ] : [];
 
   if (overview && overview.campaigns_by_status.total === 0) {
+    // Cas 1 : aucune intégration Ads connectée
+    const adsConnected = pinterestStatus?.connected && pinterestStatus?.integration?.external_account_id;
+    if (!adsConnected) {
+      return (
+        <div className="max-w-2xl mx-auto py-16 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-[#F0EEFF] flex items-center justify-center mx-auto mb-4">
+            <Target className="text-[#7C3AED]" size={26} />
+          </div>
+          <h1 className="text-[22px] font-bold text-[#191919] mb-2">Aucune campagne</h1>
+          <p className="text-[13px] text-[#5A5A58] mb-5">
+            Connectez une régie publicitaire pour voir vos campagnes et calculer le ROAS réel basé sur vos commandes Shopify.
+          </p>
+          <Link href="/ecom/settings?tab=integrations" className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-[13px] font-semibold rounded-md">
+            Connecter Pinterest →
+          </Link>
+        </div>
+      );
+    }
+    // Cas 2 : intégration connectée mais pas encore de performance calculée
     return (
       <div className="max-w-2xl mx-auto py-16 text-center">
         <div className="w-14 h-14 rounded-2xl bg-[#F0EEFF] flex items-center justify-center mx-auto mb-4">
           <Target className="text-[#7C3AED]" size={26} />
         </div>
-        <h1 className="text-[22px] font-bold text-[#191919] mb-2">Aucune campagne</h1>
+        <h1 className="text-[22px] font-bold text-[#191919] mb-2">Calcul ROAS en attente</h1>
         <p className="text-[13px] text-[#5A5A58] mb-5">
-          Connectez une régie publicitaire pour voir vos campagnes et calculer le ROAS réel basé sur vos commandes Shopify.
+          Pinterest est connecté mais le calcul ROAS n&apos;a pas encore tourné.
+          Lance un recompute pour croiser tes métriques Ads avec tes commandes Shopify.
         </p>
-        <Link href="/ecom/settings?tab=integrations" className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-[13px] font-semibold rounded-md">
-          Connecter Pinterest →
-        </Link>
+        <button
+          onClick={handleRefresh} disabled={refreshing}
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#7C3AED] hover:bg-[#6D28D9] text-white text-[13px] font-semibold rounded-md disabled:opacity-50"
+        >
+          {refreshing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+          Lancer le calcul maintenant
+        </button>
+        <p className="text-[11px] text-[#8A8A88] mt-3">
+          Le cron auto tourne toutes les 6h30 — tu peux aussi attendre.
+        </p>
       </div>
     );
   }
