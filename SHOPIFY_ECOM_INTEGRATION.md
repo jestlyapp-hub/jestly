@@ -160,9 +160,11 @@ Connexion DB pour migrer/insérer : pattern `scripts/run-migration-063.mjs` (pac
 
 ## 9. Checklist du reste à faire
 
-- [ ] Helper token mint+cache (`src/lib/shopify/lhorlogemurale.ts`) — §3
-- [ ] Page/route `/ecom` qui consomme `shopifyAdmin(...)`
-- [ ] Route webhooks + vérif HMAC — §6
-- [ ] Souscrire les 13 topics webhooks (après déploiement de la route)
-- [ ] Ligne Supabase `integrations` avec chiffrement applicatif/Vault — §5
-- [ ] (hygiène) « Renouveler » le token `atkn_` CI/CD (collé en chat, inutilisé)
+- [x] Helper token mint+cache (`src/lib/shopify/lhorlogemurale.ts`) — §3 ✅ 2026-05-24
+- [x] Page/route `/ecom` qui consomme `shopifyAdmin(...)` ✅
+- [x] Route webhooks + vérif HMAC — §6 ✅
+- [x] Souscrire les 13 topics webhooks ✅ (13/13)
+- [x] Ligne Supabase `integrations` avec chiffrement applicatif AES-256-GCM — §5 ✅ (id `d75938b0-0e02-4c40-8a14-dbe86e0f670e`)
+- [x] Initial sync 90j (9 cmds, 18 produits, 13 clients en cache) ✅
+- [x] Filtrage fausses commandes (#1001/02/04/05) dans les analytics ✅
+- [ ] (hygiène) « Renouveler » le token `atkn_` CI/CD — manuel par Gabriel (Dev Dashboard)
