@@ -181,7 +181,7 @@ interface ProductNode {
   variants: Connection<{
     id: string; title: string; sku: string | null;
     price: string; compareAtPrice: string | null;
-    inventoryQuantity: number; inventoryManagement: string | null; position: number;
+    inventoryQuantity: number; position: number;
   }>;
 }
 
@@ -220,7 +220,7 @@ export async function syncProducts(
         price: n(v.price) ?? 0,
         compare_at_price: n(v.compareAtPrice),
         inventory_quantity: v.inventoryQuantity ?? 0,
-        inventory_management: v.inventoryManagement,
+        inventory_management: null,
         position: v.position,
       })),
       images: node.images.edges.map(({ node: i }) => ({ url: i.url, alt: i.altText })),

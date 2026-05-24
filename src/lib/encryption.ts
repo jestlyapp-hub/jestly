@@ -1,12 +1,13 @@
 /**
- * Encryption helper pour les tokens d'intégrations (Shopify, etc.).
+ * Chiffrement applicatif AES-256-GCM pour les secrets d'intégrations.
  *
- * V1 : AES-256-GCM côté Node.js avec clé en env (ENCRYPTION_MASTER_KEY).
- * Plus simple à déployer que pgsodium pour démarrer ; on pourra migrer
- * vers pgsodium en V2 si besoin du chiffrement at-rest côté DB.
+ * Format de sortie : base64(iv || authTag || ciphertext) — single string
+ * stockable en colonne `text` Postgres. Évite pgsodium (déprécié par Supabase).
  *
- * NE JAMAIS appeler ces fonctions côté client. Toujours côté server only.
+ * Clé : ENCRYPTION_KEY (32 bytes en base64) en env, sinon dérivée de
+ * ENCRYPTION_MASTER_KEY via scrypt (fallback compat). NE PAS exposer côté client.
  */
+
 import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from "node:crypto";
 
 const ALGO = "aes-256-gcm";
@@ -14,49 +15,80 @@ const IV_LENGTH = 12;
 const TAG_LENGTH = 16;
 
 function getKey(): Buffer {
-  const masterKey = process.env.ENCRYPTION_MASTER_KEY;
-  if (!masterKey) {
-    throw new Error("ENCRYPTION_MASTER_KEY manquant dans .env.local");
+  const direct = process.env.ENCRYPTION_KEY;
+  if (direct) {
+    const buf = Buffer.from(direct, "base64");
+    if (buf.length !== 32) {
+      throw new Error(`ENCRYPTION_KEY must be 32 bytes (base64). Got ${buf.length}.`);
+    }
+    return buf;
   }
-  return scryptSync(masterKey, "jestly-integrations-salt-v1", 32);
+  const master = process.env.ENCRYPTION_MASTER_KEY;
+  if (!master) {
+    throw new Error("ENCRYPTION_KEY (base64) ou ENCRYPTION_MASTER_KEY manquant dans .env.local");
+  }
+  return scryptSync(master, "jestly-integrations-salt-v1", 32);
 }
 
+/**
+ * Chiffre une string en AES-256-GCM.
+ * Retourne une seule string base64 : iv (12) || tag (16) || ciphertext.
+ */
+export function encryptToString(plaintext: string): string {
+  const key = getKey();
+  const iv = randomBytes(IV_LENGTH);
+  const cipher = createCipheriv(ALGO, key, iv);
+  const ct = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return Buffer.concat([iv, tag, ct]).toString("base64");
+}
+
+/** Déchiffre une string produite par `encryptToString`. */
+export function decryptFromString(encoded: string): string {
+  const key = getKey();
+  const buf = Buffer.from(encoded, "base64");
+  if (buf.length < IV_LENGTH + TAG_LENGTH + 1) {
+    throw new Error("Invalid encrypted payload: too short");
+  }
+  const iv = buf.subarray(0, IV_LENGTH);
+  const tag = buf.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH);
+  const ct = buf.subarray(IV_LENGTH + TAG_LENGTH);
+  const decipher = createDecipheriv(ALGO, key, iv);
+  decipher.setAuthTag(tag);
+  return Buffer.concat([decipher.update(ct), decipher.final()]).toString("utf8");
+}
+
+// ── Legacy split-payload API (gardée pour compat phase 2) ────────
 export interface EncryptedPayload {
   ciphertext: string;
   nonce: string;
 }
 
-/** Chiffre une string en AES-256-GCM. Retourne { ciphertext, nonce } en hex. */
 export function encrypt(plaintext: string): EncryptedPayload {
   const key = getKey();
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv(ALGO, key, iv);
-  const enc = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
+  const ct = Buffer.concat([cipher.update(plaintext, "utf8"), cipher.final()]);
   const tag = cipher.getAuthTag();
-  const combined = Buffer.concat([enc, tag]);
-  return {
-    ciphertext: combined.toString("hex"),
-    nonce: iv.toString("hex"),
-  };
+  const combined = Buffer.concat([ct, tag]);
+  return { ciphertext: combined.toString("hex"), nonce: iv.toString("hex") };
 }
 
-/** Déchiffre un payload chiffré par `encrypt`. Throw si invalide. */
 export function decrypt(payload: EncryptedPayload): string {
   const key = getKey();
   const iv = Buffer.from(payload.nonce, "hex");
   const combined = Buffer.from(payload.ciphertext, "hex");
-  const enc = combined.subarray(0, combined.length - TAG_LENGTH);
+  const ct = combined.subarray(0, combined.length - TAG_LENGTH);
   const tag = combined.subarray(combined.length - TAG_LENGTH);
   const decipher = createDecipheriv(ALGO, key, iv);
   decipher.setAuthTag(tag);
-  return Buffer.concat([decipher.update(enc), decipher.final()]).toString("utf8");
+  return Buffer.concat([decipher.update(ct), decipher.final()]).toString("utf8");
 }
 
-/** Helpers pour conversion bytea (Postgres) <-> hex string. */
+// ── Helpers bytea (legacy) ───────────────────────────────────────
 export function bufferToHex(buf: Buffer | Uint8Array | string | null): string | null {
   if (!buf) return null;
   if (typeof buf === "string") {
-    // Postgres bytea hex format : \x...
     return buf.startsWith("\\x") ? buf.slice(2) : buf;
   }
   return Buffer.from(buf).toString("hex");

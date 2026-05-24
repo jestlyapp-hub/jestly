@@ -106,9 +106,9 @@ export const QUERY_PRODUCTS = /* GraphQL */ `
                 id title sku
                 price compareAtPrice
                 inventoryQuantity
-                inventoryManagement
                 position
               }
+              # inventoryManagement retiré en API 2025-01
             }
           }
         }
