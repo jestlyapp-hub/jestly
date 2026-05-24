@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/notifications",
       "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/ecom/sync",
+      "schedule": "0 */4 * * *"
     }
   ]
 }

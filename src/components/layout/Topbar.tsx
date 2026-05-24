@@ -18,6 +18,12 @@ const pageLabels: Record<string, string> = {
   "/parametres": "Paramètres",
   "/calendrier": "Calendrier",
   "/taches": "Tâches",
+  "/ecom": "Tour de pilotage",
+  "/ecom/orders": "Commandes Shopify",
+  "/ecom/products": "Produits Shopify",
+  "/ecom/customers": "Clients Shopify",
+  "/ecom/analytics": "Analytics ecom",
+  "/ecom/settings": "Réglages ecom",
 };
 
 export default function Topbar() {
@@ -27,6 +33,9 @@ export default function Topbar() {
     ?? (pathname.startsWith("/clients/") ? "Fiche client" : null)
     ?? (pathname.startsWith("/taches/") ? "Tâche" : null)
     ?? (pathname.startsWith("/produits/") ? "Offre" : null)
+    ?? (pathname.startsWith("/ecom/orders/") ? "Commande Shopify" : null)
+    ?? (pathname.startsWith("/ecom/products/") ? "Produit Shopify" : null)
+    ?? (pathname.startsWith("/ecom") ? "Tour de pilotage" : null)
     ?? "Dashboard";
 
   return (

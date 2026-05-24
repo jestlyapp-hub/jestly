@@ -14,6 +14,7 @@ import {
   CalendarDays,
   CheckSquare,
   Settings,
+  Store,
   X,
   Menu,
 } from "lucide-react";
@@ -52,6 +53,12 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Tâches", href: "/taches", icon: <CheckSquare size={18} strokeWidth={1.7} /> },
       { label: "Calendrier", href: "/calendrier", icon: <CalendarDays size={18} strokeWidth={1.7} /> },
+    ],
+  },
+  {
+    title: "E-commerce",
+    items: [
+      { label: "Tour de pilotage", href: "/ecom", icon: <Store size={18} strokeWidth={1.7} /> },
     ],
   },
 ];

@@ -28,6 +28,7 @@ import {
   MessageCircle,
   Headphones,
   ChevronsUpDown,
+  Store,
 } from "lucide-react";
 // ── Navigation config ─────────────────────────────────────────────
 type NavItem = {
@@ -64,6 +65,12 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Tâches", href: "/taches", icon: <CheckSquare size={18} strokeWidth={1.7} /> },
       { label: "Calendrier", href: "/calendrier", icon: <CalendarDays size={18} strokeWidth={1.7} /> },
+    ],
+  },
+  {
+    title: "E-commerce",
+    items: [
+      { label: "Tour de pilotage", href: "/ecom", icon: <Store size={18} strokeWidth={1.7} /> },
     ],
   },
 ];

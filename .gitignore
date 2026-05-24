@@ -42,3 +42,6 @@ next-env.d.ts
 
 .vercel
 .env*.local
+
+# Handover files (contiennent token Shopify en clair)
+JESTLY_ECOM_HANDOVER.md
