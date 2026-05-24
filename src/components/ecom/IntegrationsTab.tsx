@@ -57,12 +57,29 @@ export default function IntegrationsTab() {
     }
   }, [pinterest, modalOpen]);
 
-  // Poll pinterest status pendant le sync initial
+  // Poll pinterest status pendant le sync initial.
+  // Auto-stop si succès (metrics_rows > 0 ou campaigns > 0) OU erreur OU timeout 2 min.
   useEffect(() => {
     if (!pollingPinterest) return;
     const interval = setInterval(() => refreshPinterest(), 2000);
     return () => clearInterval(interval);
   }, [pollingPinterest, refreshPinterest]);
+
+  useEffect(() => {
+    if (!pollingPinterest || !pinterest) return;
+    const syncFinished =
+      pinterest.counts.metrics_rows > 0 ||
+      pinterest.counts.campaigns > 0 ||
+      pinterest.counts.ads > 0;
+    const errored = pinterest.integration?.status === "error" || Boolean(pinterest.integration?.last_error);
+    if (syncFinished) {
+      setPollingPinterest(false);
+      toast.success(`Sync Pinterest terminé · ${pinterest.counts.campaigns} campagne(s), ${pinterest.counts.metrics_rows} métrique(s)`);
+    } else if (errored) {
+      setPollingPinterest(false);
+      toast.error("Sync Pinterest interrompu — voir détails dans la card");
+    }
+  }, [pollingPinterest, pinterest]);
 
   const handleConnectPinterest = () => {
     window.location.href = "/api/integrations/pinterest/oauth/start";
@@ -129,7 +146,9 @@ export default function IntegrationsTab() {
   );
   const pinterestPending = Boolean(pinterest?.connected && !pinterest?.integration?.external_account_id);
   const pinterestError = pinterest?.integration?.status === "error";
-  const showProgress = pinterestConnected && pinterest && pinterest.counts.metrics_rows < 1 && pinterest.integration?.last_sync_at;
+  // Barre de progression uniquement pendant le polling actif (= juste après select-account).
+  // Le polling s'auto-arrête sur succès / erreur / timeout 2 min.
+  const showProgress = pollingPinterest && pinterestConnected;
 
   return (
     <div className="space-y-4">
