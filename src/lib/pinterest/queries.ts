@@ -4,16 +4,27 @@
  */
 import { pinterestApi, pinterestCollectAll, type PinterestIntegrationRef } from "./client";
 
-/** Colonnes analytics utiles au ROAS (cf brief §3). */
+/**
+ * Colonnes analytics utiles au ROAS — noms officiels Pinterest API v5 (validés live 2026-05-24).
+ *
+ * Conversions monétaires (cf lib/pinterest/formatters.ts) :
+ * - SPEND_IN_DOLLAR : units devise compte (ex 117.88 €) → currencyUnitsToCents (×100) = cents
+ * - CPC_IN_MICRO_DOLLAR : micro-units (ex 168648 = 0,017 €) → microToCents (÷10_000) = cents
+ * - TOTAL_CHECKOUT_VALUE_IN_MICRO_DOLLAR : micro-units → microToCents = cents
+ *
+ * Pinterest a retiré CPC_IN_DOLLAR et TOTAL_CHECKOUT_VALUE_IN_DOLLAR sans deprecation :
+ * il faut absolument utiliser le suffix _IN_MICRO_DOLLAR pour ces 2 champs.
+ */
 export const ANALYTICS_COLUMNS = [
   "SPEND_IN_DOLLAR",
   "IMPRESSION_1",
   "CLICKTHROUGH_1",
   "OUTBOUND_CLICK_1",
   "CTR",
-  "CPC_IN_DOLLAR",
+  "CPC_IN_MICRO_DOLLAR",
   "TOTAL_CONVERSIONS",
-  "TOTAL_CHECKOUT_VALUE_IN_DOLLAR",
+  "TOTAL_CHECKOUT",
+  "TOTAL_CHECKOUT_VALUE_IN_MICRO_DOLLAR",
   "CHECKOUT_ROAS",
 ].join(",");
 

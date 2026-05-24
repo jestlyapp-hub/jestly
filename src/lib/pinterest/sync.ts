@@ -176,6 +176,9 @@ export async function syncAds(integration: PinterestIntegrationRef, adAccountId:
 type EntityType = "campaign" | "ad_group" | "ad";
 
 function metricRowFrom(integrationId: string, entityType: EntityType, entityId: string, m: Json) {
+  // Pinterest renvoie le CTR en ratio décimal (0.0082 = 0.82%), on multiplie par 100
+  // pour stocker en % cohérent avec notre schéma (numeric(8,4)).
+  const ctrPct = m.CTR != null ? Number(m.CTR) * 100 : null;
   return {
     integration_id: integrationId,
     entity_type: entityType,
@@ -185,10 +188,10 @@ function metricRowFrom(integrationId: string, entityType: EntityType, entityId: 
     clicks: Number(m.CLICKTHROUGH_1 ?? 0),
     outbound_clicks: Number(m.OUTBOUND_CLICK_1 ?? 0),
     spend_cents: currencyUnitsToCents(Number(m.SPEND_IN_DOLLAR ?? 0)),
-    ctr: m.CTR != null ? Number(m.CTR) : null,
-    cpc_cents: m.CPC_IN_DOLLAR != null ? currencyUnitsToCents(Number(m.CPC_IN_DOLLAR)) : null,
+    ctr: ctrPct,
+    cpc_cents: m.CPC_IN_MICRO_DOLLAR != null ? microToCents(Number(m.CPC_IN_MICRO_DOLLAR)) : null,
     conversions: Number(m.TOTAL_CONVERSIONS ?? 0),
-    conversion_value_cents: currencyUnitsToCents(Number(m.TOTAL_CHECKOUT_VALUE_IN_DOLLAR ?? 0)),
+    conversion_value_cents: microToCents(Number(m.TOTAL_CHECKOUT_VALUE_IN_MICRO_DOLLAR ?? 0)),
     pinterest_reported_roas: m.CHECKOUT_ROAS != null ? Number(m.CHECKOUT_ROAS) : null,
     raw_data: m,
   };
