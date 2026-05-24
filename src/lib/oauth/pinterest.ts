@@ -27,5 +27,8 @@ export function getPinterestOAuthConfig(): OAuthConfig {
     scopes: PINTEREST_SCOPES,
     tokenAuthStyle: "basic",
     scopeSeparator: ",",
+    // Garantit des refresh tokens renouvelables indéfiniment (60j glissants).
+    // Auto pour les apps récentes ; explicite pour les plus anciennes.
+    tokenParams: { continuous_refresh: "true" },
   };
 }

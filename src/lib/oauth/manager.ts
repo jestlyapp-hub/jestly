@@ -61,6 +61,7 @@ export async function refreshTokens(config: OAuthConfig, refreshToken: string): 
 
 async function tokenRequest(config: OAuthConfig, params: Record<string, string>): Promise<OAuthTokens> {
   const body = new URLSearchParams(params);
+  for (const [k, v] of Object.entries(config.tokenParams ?? {})) body.set(k, v);
   const headers: Record<string, string> = { "Content-Type": "application/x-www-form-urlencoded" };
   if (config.tokenAuthStyle === "basic") {
     headers["Authorization"] =

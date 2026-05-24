@@ -18,6 +18,8 @@ export interface OAuthConfig {
   scopeSeparator: " " | ",";
   /** Params additionnels pour l'URL d'autorisation (ex: Google access_type=offline). */
   authParams?: Record<string, string>;
+  /** Params additionnels pour les requêtes token (ex: Pinterest continuous_refresh=true). */
+  tokenParams?: Record<string, string>;
 }
 
 export interface OAuthTokens {
