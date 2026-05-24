@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingCart, Package, Users, BarChart3, Settings } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Users, BarChart3, Target, Settings } from "lucide-react";
 import { formatRelativeDate } from "@/lib/shopify/formatters";
 
 interface Props {
@@ -21,6 +21,7 @@ const NAV: { href: string; label: string; icon: typeof LayoutDashboard }[] = [
   { href: "/ecom/products", label: "Produits", icon: Package },
   { href: "/ecom/customers", label: "Clients", icon: Users },
   { href: "/ecom/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/ecom/ads", label: "Ads", icon: Target },
   { href: "/ecom/settings", label: "Réglages", icon: Settings },
 ];
 
