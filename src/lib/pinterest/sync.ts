@@ -56,6 +56,23 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
+/**
+ * Pinterest API v5 renvoie les timestamps en epoch secondes (number) ou string numérique.
+ * Postgres timestamptz attend une ISO string. Convertit en ISO ou retourne null.
+ */
+function toIsoTimestamp(v: unknown): string | null {
+  if (v == null || v === "") return null;
+  // Déjà une ISO string ?
+  if (typeof v === "string" && v.includes("T")) return v;
+  // Epoch en secondes (number ou string numérique)
+  const n = Number(v);
+  if (!Number.isFinite(n)) return null;
+  // Heuristique : si < 10^12, on est en secondes (sinon déjà ms)
+  const ms = n < 1e12 ? n * 1000 : n;
+  const d = new Date(ms);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
 // ── Sync ad_accounts ────────────────────────────────────────────
 export async function syncAdAccounts(integration: PinterestIntegrationRef): Promise<{ synced: number; accounts: Json[] }> {
   const accounts = await listAdAccounts(integration);
@@ -90,8 +107,8 @@ export async function syncCampaigns(integration: PinterestIntegrationRef, adAcco
     name: String(c.name ?? `Campaign ${c.id}`),
     status: c.status ?? null,
     objective_type: c.objective_type ?? null,
-    start_time: c.start_time ?? null,
-    end_time: c.end_time ?? null,
+    start_time: toIsoTimestamp(c.start_time),
+    end_time: toIsoTimestamp(c.end_time),
     daily_spend_cap_cents: c.daily_spend_cap != null ? microToCents(Number(c.daily_spend_cap)) : null,
     lifetime_spend_cap_cents: c.lifetime_spend_cap != null ? microToCents(Number(c.lifetime_spend_cap)) : null,
     raw_data: c,
