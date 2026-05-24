@@ -5,8 +5,9 @@ import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { formatRelativeDate } from "@/lib/shopify/formatters";
-import { RefreshCw, Trash2, ExternalLink, AlertTriangle } from "lucide-react";
+import { RefreshCw, Trash2, ExternalLink, AlertTriangle, KeyRound } from "lucide-react";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import SetupModalV2 from "@/components/ecom/SetupModalV2";
 
 interface SyncStateResponse {
   integration: {
@@ -22,6 +23,7 @@ export default function EcomSettingsPage() {
   const { data, mutate } = useApi<SyncStateResponse>("/api/integrations/shopify/sync-state");
   const [syncing, setSyncing] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
 
   if (!data?.integration) return <div className="text-[13px] text-[#8A8A88] py-10 text-center">Aucune intégration</div>;
 
@@ -55,6 +57,10 @@ export default function EcomSettingsPage() {
 
   return (
     <div className="max-w-3xl">
+      {reconnecting && (
+        <SetupModalV2 onConnected={() => { setReconnecting(false); mutate(); }} />
+      )}
+
       <ConfirmDialog
         open={confirmOpen}
         title="Déconnecter la boutique ?"
@@ -113,6 +119,13 @@ export default function EcomSettingsPage() {
             <ExternalLink size={12} />
             Ouvrir Shopify Admin
           </a>
+          <button
+            onClick={() => setReconnecting(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-[#E6E6E4] rounded-md text-[12px] font-medium text-[#5A5A58] hover:bg-[#FBFBFA]"
+          >
+            <KeyRound size={12} />
+            Reconnecter / mettre à jour les identifiants
+          </button>
           <button
             onClick={() => setConfirmOpen(true)}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-rose-200 text-rose-600 rounded-md text-[12px] font-medium hover:bg-rose-50"

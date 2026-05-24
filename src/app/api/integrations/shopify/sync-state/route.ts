@@ -5,13 +5,11 @@
  */
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
-import { isBetaEmail } from "@/lib/beta";
 
 export async function GET() {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
-  const is_beta = isBetaEmail(user.email);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: integration } = await (supabase.from("integrations") as any)
@@ -21,7 +19,7 @@ export async function GET() {
     .maybeSingle();
 
   if (!integration) {
-    return NextResponse.json({ connected: false, is_beta });
+    return NextResponse.json({ connected: false });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,7 +30,6 @@ export async function GET() {
 
   return NextResponse.json({
     connected: true,
-    is_beta,
     integration,
     sync_state: state ?? {
       initial_sync_completed: false,

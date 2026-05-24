@@ -1,13 +1,13 @@
 /**
- * Shopify Admin GraphQL helper pour Lhorlogemurale.
+ * Shopify Admin GraphQL helper — multi-tenant.
  *
- * Auth = client_credentials grant (Dev Dashboard app).
- * Pas de token shpat_ permanent : on mint un token de 24h à la demande,
- * cache en mémoire (module-level), refresh automatique avant expiration.
+ * Auth = client_credentials grant (Dev Dashboard app). Pas de token shpat_ permanent :
+ * mint d'un token 24h à la demande, cache mémoire (clé = shop_domain), refresh auto.
  *
- * Server-side uniquement (utilise process.env.SHOPIFY_LHORLOGEMURALE_*).
+ * Server-side uniquement. Les credentials viennent TOUJOURS d'un ShopOverride
+ * (l'intégration de l'user courant) — aucune dépendance aux env vars.
  *
- * Voir SHOPIFY_ECOM_INTEGRATION.md §3 pour le contexte.
+ * Voir SHOPIFY_ECOM_INTEGRATION.md §3.
  */
 
 import { logger } from "@/lib/logger";
@@ -56,17 +56,13 @@ interface CachedToken { token: string; exp: number }
 const tokenCache = new Map<string, CachedToken>();
 const tokenMintInflight = new Map<string, Promise<string>>();
 
-function getEnvShop(): ShopOverride {
-  const shopDomain = process.env.SHOPIFY_LHORLOGEMURALE_SHOP_DOMAIN;
-  const clientId = process.env.SHOPIFY_LHORLOGEMURALE_CLIENT_ID;
-  const clientSecret = process.env.SHOPIFY_LHORLOGEMURALE_CLIENT_SECRET;
-  const apiVersion = process.env.SHOPIFY_LHORLOGEMURALE_API_VERSION ?? DEFAULT_API_VERSION;
-  if (!shopDomain || !clientId || !clientSecret) {
+function requireShop(shop?: ShopOverride): Required<ShopOverride> {
+  if (!shop || !shop.shopDomain || !shop.clientId || !shop.clientSecret) {
     throw new ShopifyAuthError(
-      "Missing SHOPIFY_LHORLOGEMURALE_* env vars (SHOP_DOMAIN, CLIENT_ID, CLIENT_SECRET)",
+      "Shopify credentials manquants : passe un ShopOverride (intégration de l'user). Multi-tenant, aucun fallback env.",
     );
   }
-  return { shopDomain, clientId, clientSecret, apiVersion };
+  return { ...shop, apiVersion: shop.apiVersion ?? DEFAULT_API_VERSION };
 }
 
 /**
@@ -75,7 +71,7 @@ function getEnvShop(): ShopOverride {
  * Mutex inflight pour éviter 2 mints parallèles quand le cache est froid.
  */
 export async function getShopifyToken(shop?: ShopOverride): Promise<string> {
-  const cfg = shop ?? getEnvShop();
+  const cfg = requireShop(shop);
   const key = cfg.shopDomain;
 
   // Hit cache ?
@@ -166,7 +162,7 @@ export async function shopifyAdmin<T = unknown>(
   variables?: Record<string, unknown>,
   shop?: ShopOverride,
 ): Promise<T> {
-  const cfg = shop ?? getEnvShop();
+  const cfg = requireShop(shop);
 
   // Throttle si bucket presque vide
   if (shouldThrottle(cfg.shopDomain)) {

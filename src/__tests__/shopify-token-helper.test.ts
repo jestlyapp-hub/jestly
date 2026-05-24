@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { getShopifyToken, clearShopifyTokenCache, ShopifyAuthError } from "@/lib/shopify/lhorlogemurale";
+import { getShopifyToken, clearShopifyTokenCache, ShopifyAuthError } from "@/lib/shopify/admin";
 
 const OK = "shpat_test_token_value_24h_grant_response";
 

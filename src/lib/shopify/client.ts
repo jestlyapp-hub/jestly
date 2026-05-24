@@ -12,7 +12,7 @@
  * `shopifyAdmin` qui ignore le token statique passé à l'init.
  */
 
-import { shopifyAdmin, type ShopOverride, ShopifyAuthError, ShopifyGraphQLError, ShopifyRateLimitError } from "./lhorlogemurale";
+import { shopifyAdmin, type ShopOverride, ShopifyAuthError, ShopifyGraphQLError, ShopifyRateLimitError } from "./admin";
 
 export { ShopifyAuthError, ShopifyGraphQLError, ShopifyRateLimitError };
 

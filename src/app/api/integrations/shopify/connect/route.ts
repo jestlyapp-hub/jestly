@@ -6,13 +6,13 @@
  * On valide les creds en mintant un token + une query shop, puis on persiste
  * le client_secret chiffré (AES-256-GCM) dans `integrations`.
  *
- * Le token 24h n'est pas stocké : refresh à la demande par lib/shopify/lhorlogemurale.ts.
+ * Le token 24h n'est pas stocké : refresh à la demande par lib/shopify/admin.ts.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { encryptToString } from "@/lib/encryption";
-import { shopifyAdmin, ShopifyAuthError } from "@/lib/shopify/lhorlogemurale";
+import { shopifyAdmin, ShopifyAuthError } from "@/lib/shopify/admin";
 import { QUERY_SHOP_INFO } from "@/lib/shopify/queries";
 import { initialFullSync } from "@/lib/shopify/sync";
 import { z } from "zod";

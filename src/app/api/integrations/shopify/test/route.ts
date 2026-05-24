@@ -7,7 +7,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
-import { shopifyAdmin, ShopifyAuthError } from "@/lib/shopify/lhorlogemurale";
+import { shopifyAdmin, ShopifyAuthError } from "@/lib/shopify/admin";
 import { QUERY_SHOP_INFO } from "@/lib/shopify/queries";
 import { z } from "zod";
 
