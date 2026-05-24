@@ -1,80 +1,22 @@
 /**
- * Shopify Admin GraphQL client factory.
+ * Shopify Admin GraphQL client (V1 single-tenant Lhorlogemurale).
  *
- * Gère retries (exponential backoff sur 429), rate limiting cost-based,
- * et timeouts. Serveur uniquement (jamais côté client — token chiffré).
+ * Wrapper léger autour du helper `shopifyAdmin` qui gère :
+ *   - mint+cache token client_credentials (24h)
+ *   - retry exponential backoff sur 429/5xx
+ *   - cost-based throttling
+ *   - typed errors (Auth/RateLimit/GraphQL)
+ *
+ * Garde la classe ShopifyClient et createShopifyClient pour backward-compat
+ * avec le code écrit en phase 2 (sync.ts, etc.). En interne tout passe par
+ * `shopifyAdmin` qui ignore le token statique passé à l'init.
  */
-import { GraphQLClient } from "graphql-request";
-import type { DecryptedIntegration } from "./types";
 
-const SHOPIFY_API_VERSION = "2026-01";
-const MAX_RETRIES = 3;
-const BASE_DELAY_MS = 500;
+import { shopifyAdmin, type ShopOverride, ShopifyAuthError, ShopifyGraphQLError, ShopifyRateLimitError } from "./lhorlogemurale";
 
-export interface ShopifyClientOptions {
-  apiVersion?: string;
-  timeoutMs?: number;
-}
+export { ShopifyAuthError, ShopifyGraphQLError, ShopifyRateLimitError };
 
-export class ShopifyClient {
-  private client: GraphQLClient;
-  private shopDomain: string;
-
-  constructor(integration: DecryptedIntegration, opts: ShopifyClientOptions = {}) {
-    const version = opts.apiVersion ?? SHOPIFY_API_VERSION;
-    this.shopDomain = integration.shop_domain;
-    const endpoint = `https://${integration.shop_domain}/admin/api/${version}/graphql.json`;
-    this.client = new GraphQLClient(endpoint, {
-      headers: {
-        "X-Shopify-Access-Token": integration.access_token,
-        "Content-Type": "application/json",
-      },
-      // graphql-request v7 utilise fetch natif, timeout via AbortSignal si besoin
-      ...(opts.timeoutMs ? { signal: AbortSignal.timeout(opts.timeoutMs) } : {}),
-    });
-  }
-
-  get domain(): string {
-    return this.shopDomain;
-  }
-
-  /**
-   * Execute une query GraphQL avec retry automatique sur 429/5xx.
-   */
-  async request<T = unknown>(
-    query: string,
-    variables?: Record<string, unknown>,
-  ): Promise<T> {
-    let lastError: unknown = null;
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-      try {
-        const result = await this.client.request<T>(query, variables);
-        return result;
-      } catch (err: unknown) {
-        lastError = err;
-        const status = (err as { response?: { status?: number } })?.response?.status;
-        const message = (err as { message?: string })?.message ?? String(err);
-        // Retry sur 429 (rate limit) ou 5xx
-        if (status === 429 || (status && status >= 500 && status < 600)) {
-          const delay = BASE_DELAY_MS * Math.pow(2, attempt);
-          await new Promise((r) => setTimeout(r, delay));
-          continue;
-        }
-        // Auth error : ne pas retry
-        if (status === 401 || status === 403) {
-          throw new ShopifyAuthError(message, status);
-        }
-        // Autres erreurs : throw direct
-        throw new ShopifyApiError(message, status);
-      }
-    }
-    throw new ShopifyApiError(
-      `Shopify request failed after ${MAX_RETRIES} retries: ${String(lastError)}`,
-      undefined,
-    );
-  }
-}
-
+/** Erreur générique API Shopify — gardée pour compat. */
 export class ShopifyApiError extends Error {
   constructor(message: string, public status?: number) {
     super(message);
@@ -82,13 +24,51 @@ export class ShopifyApiError extends Error {
   }
 }
 
-export class ShopifyAuthError extends ShopifyApiError {
-  constructor(message: string, status?: number) {
-    super(message, status);
-    this.name = "ShopifyAuthError";
+/** Minimal "decrypted integration" shape — kept for sync.ts API compat. */
+export interface DecryptedIntegrationLike {
+  id: string;
+  user_id: string;
+  shop_domain: string;
+  /** ignoré : V1 utilise le helper client_credentials, pas un token statique. */
+  access_token?: string;
+  webhook_secret?: string | null;
+  scopes?: string[];
+  /** Si fourni, override les env vars (multi-tenant V2). */
+  shop_override?: ShopOverride;
+}
+
+export interface ShopifyClientOptions {
+  apiVersion?: string;
+}
+
+/**
+ * Client thin-wrapper.
+ * En V1 single-tenant, le shop est résolu depuis les env vars SHOPIFY_LHORLOGEMURALE_*.
+ * Le paramètre `integration` est gardé pour API compat mais seuls `shop_domain` + `shop_override`
+ * (V2) sont consultés.
+ */
+export class ShopifyClient {
+  private override?: ShopOverride;
+  public readonly domain: string;
+
+  constructor(integration: DecryptedIntegrationLike, _opts: ShopifyClientOptions = {}) {
+    this.domain = integration.shop_domain;
+    this.override = integration.shop_override;
+  }
+
+  async request<T = unknown>(query: string, variables?: Record<string, unknown>): Promise<T> {
+    try {
+      return await shopifyAdmin<T>(query, variables, this.override);
+    } catch (err) {
+      if (err instanceof ShopifyAuthError || err instanceof ShopifyGraphQLError || err instanceof ShopifyRateLimitError) {
+        throw err;
+      }
+      const message = err instanceof Error ? err.message : String(err);
+      throw new ShopifyApiError(message);
+    }
   }
 }
 
-export function createShopifyClient(integration: DecryptedIntegration): ShopifyClient {
+export function createShopifyClient(integration: DecryptedIntegrationLike): ShopifyClient {
   return new ShopifyClient(integration);
 }

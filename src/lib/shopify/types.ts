@@ -35,13 +35,23 @@ export interface IntegrationRow {
 }
 
 // ── Decrypted integration (server-side only) ─────────────────────
+// V1 finale : access_token n'est plus stocké (token éphémère 24h mint à la demande
+// par lib/shopify/lhorlogemurale.ts). On garde le champ optionnel pour backward-compat.
 export interface DecryptedIntegration {
   id: string;
   user_id: string;
   shop_domain: string;
-  access_token: string;
-  webhook_secret: string | null;
+  /** @deprecated V1 utilise client_credentials, token mint à la demande. */
+  access_token?: string;
+  webhook_secret?: string | null;
   scopes: string[];
+  /** Override des env vars SHOPIFY_LHORLOGEMURALE_* (multi-tenant V2). */
+  shop_override?: {
+    shopDomain: string;
+    clientId: string;
+    clientSecret: string;
+    apiVersion?: string;
+  };
 }
 
 // ── Order (cached) ───────────────────────────────────────────────
