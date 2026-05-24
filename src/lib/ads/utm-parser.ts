@@ -97,7 +97,7 @@ function inferSourceFromReferrer(referrer: string): string | undefined {
  */
 export function normalizeSource(source: string | null | undefined): string | null {
   if (!source) return null;
-  const s = source.toLowerCase().replace(/[_\s-]/g, "");
+  const s = source.toLowerCase().replace(/[_\s.\-/]/g, "");
   if (["pinterest", "pinterestads", "pinterestcom"].includes(s)) return "pinterest";
   if (["google", "googleads", "googleadwords", "adwords", "googlecom"].includes(s)) return "google_ads";
   if (["facebook", "meta", "metaads", "fb", "fbads", "facebookcom", "instagram", "ig"].includes(s)) return "meta_ads";
