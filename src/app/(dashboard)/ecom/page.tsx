@@ -11,6 +11,7 @@ import RecentOrdersTable from "@/components/ecom/RecentOrdersTable";
 import Funnel from "@/components/ecom/Funnel";
 import GeographyList from "@/components/ecom/GeographyList";
 import AlertsPanel from "@/components/ecom/AlertsPanel";
+import PerformanceAdsZone from "@/components/ecom/PerformanceAdsZone";
 import { formatCurrency, formatNumber, computeVariation } from "@/lib/shopify/formatters";
 
 interface DashboardData {
@@ -130,6 +131,11 @@ export default function EcomDashboardPage() {
           {data && <GeographyList data={data.countries} />}
           {data && <AlertsPanel alerts={data.alerts} />}
         </div>
+      </div>
+
+      {/* Row 4 : Performance Ads (zone dédiée, après "Commandes récentes") */}
+      <div className="mt-6">
+        <PerformanceAdsZone />
       </div>
     </div>
   );
