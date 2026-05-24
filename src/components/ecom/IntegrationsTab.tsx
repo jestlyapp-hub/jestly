@@ -99,7 +99,7 @@ export default function IntegrationsTab() {
     try {
       await apiFetch("/api/integrations/pinterest/disconnect", {
         method: "POST",
-        body: JSON.stringify({ wipe_cache: true }),
+        body: { wipe_cache: true },
       });
       toast.success("Pinterest déconnecté");
       refreshPinterest();
@@ -113,7 +113,7 @@ export default function IntegrationsTab() {
     try {
       await apiFetch("/api/integrations/shopify/disconnect", {
         method: "POST",
-        body: JSON.stringify({ integration_id: shopify?.integration?.id, wipe_cache: true }),
+        body: { integration_id: shopify?.integration?.id, wipe_cache: true },
       });
       toast.success("Shopify déconnecté");
       router.push("/ecom");

@@ -34,10 +34,10 @@ export default function SelectAdAccountModal({ open, onClose, onSelected }: Prop
     try {
       await apiFetch("/api/integrations/pinterest/select-account", {
         method: "POST",
-        body: JSON.stringify({
+        body: {
           ad_account_id: account.pinterest_ad_account_id,
           ad_account_name: account.name,
-        }),
+        },
       });
       toast.success(`${account.name} sélectionné — sync 90j en cours`);
       onSelected(account.pinterest_ad_account_id, account.name);
