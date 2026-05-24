@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/pinterest-sync",
       "schedule": "0 */6 * * *"
+    },
+    {
+      "path": "/api/cron/refresh-campaign-performance",
+      "schedule": "30 */6 * * *"
     }
   ]
 }
