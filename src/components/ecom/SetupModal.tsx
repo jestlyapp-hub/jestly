@@ -1,35 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Store, CheckCircle2, AlertCircle, Loader2, Sparkles, ShieldCheck } from "lucide-react";
-import { createBrowserClient } from "@supabase/ssr";
 import { apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
 
 interface Props {
+  /** L'user courant est-il dans la whitelist bêta (calculé server-side via sync-state) ? */
+  isBeta: boolean;
   onConnected: () => void;
 }
 
 type Step = "intro" | "connecting" | "connected";
 
-const GABRIEL_USER_ID = "ef7a948f-2fab-41da-a5aa-a9f0b558adf0";
-
-export default function SetupModal({ onConnected }: Props) {
-  const [userId, setUserId] = useState<string | null>(null);
+export default function SetupModal({ isBeta, onConnected }: Props) {
   const [step, setStep] = useState<Step>("intro");
   const [error, setError] = useState<string | null>(null);
   const [shopName, setShopName] = useState<string | null>(null);
-
-  useEffect(() => {
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
-    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
-  }, []);
-
-  const isGabriel = userId === GABRIEL_USER_ID;
 
   const handleConnectLhorloge = async () => {
     setError(null);
@@ -59,7 +47,7 @@ export default function SetupModal({ onConnected }: Props) {
         className="w-full max-w-xl bg-white border border-[#E6E6E4] rounded-2xl shadow-xl p-8"
       >
         <AnimatePresence mode="wait">
-          {step === "intro" && isGabriel && (
+          {step === "intro" && isBeta && (
             <motion.div key="intro-gabriel" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-xl bg-[#F0EEFF] flex items-center justify-center">
@@ -108,7 +96,7 @@ export default function SetupModal({ onConnected }: Props) {
             </motion.div>
           )}
 
-          {step === "intro" && userId && !isGabriel && (
+          {step === "intro" && !isBeta && (
             <motion.div key="intro-other" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-12 h-12 rounded-xl bg-[#F7F7F5] flex items-center justify-center">
@@ -129,13 +117,6 @@ export default function SetupModal({ onConnected }: Props) {
                 </p>
               </div>
             </motion.div>
-          )}
-
-          {step === "intro" && !userId && (
-            <div className="py-8 text-center">
-              <Loader2 className="mx-auto text-[#7C3AED] animate-spin mb-2" size={24} />
-              <p className="text-[12px] text-[#8A8A88]">Chargement…</p>
-            </div>
           )}
 
           {step === "connecting" && (

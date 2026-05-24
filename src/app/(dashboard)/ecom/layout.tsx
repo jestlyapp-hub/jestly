@@ -8,6 +8,7 @@ import EcomInitialSyncProgress from "@/components/ecom/EcomInitialSyncProgress";
 
 interface SyncStateResponse {
   connected: boolean;
+  is_beta?: boolean;
   integration?: {
     id: string;
     shop_domain: string;
@@ -50,7 +51,7 @@ export default function EcomLayout({ children }: { children: React.ReactNode }) 
   }
 
   if (!data?.connected) {
-    return <SetupModal onConnected={() => mutate()} />;
+    return <SetupModal isBeta={data?.is_beta ?? false} onConnected={() => mutate()} />;
   }
 
   if (data.sync_state && !data.sync_state.initial_sync_completed) {

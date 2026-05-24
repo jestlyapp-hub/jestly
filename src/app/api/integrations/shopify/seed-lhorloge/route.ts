@@ -1,21 +1,20 @@
 /**
  * POST /api/integrations/shopify/seed-lhorloge
- * Réservé à Gabriel (user_id ef7a948f-...).
+ * Réservé aux comptes en bêta privée (whitelist e-mail JESTLY_BETA_EMAILS).
  *
  * Persiste l'intégration Lhorlogemurale depuis les env vars SHOPIFY_LHORLOGEMURALE_*
- * (au lieu de demander à l'user de taper les creds). Idempotent.
+ * (au lieu de demander à l'user de taper les creds), pour l'user courant. Idempotent.
  * Déclenche l'initial sync en background.
  */
 import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { isBetaEmail } from "@/lib/beta";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { encryptToString } from "@/lib/encryption";
 import { shopifyAdmin, ShopifyAuthError } from "@/lib/shopify/lhorlogemurale";
 import { QUERY_SHOP_INFO } from "@/lib/shopify/queries";
 import { initialFullSync } from "@/lib/shopify/sync";
 import { getActiveShopifyIntegration, toLegacyIntegration } from "@/lib/shopify/integration";
-
-const GABRIEL_USER_ID = "ef7a948f-2fab-41da-a5aa-a9f0b558adf0";
 
 const SCOPES = [
   "read_orders", "read_all_orders", "read_products", "read_product_listings",
@@ -27,8 +26,8 @@ const SCOPES = [
 export async function POST() {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
-  if (auth.user.id !== GABRIEL_USER_ID) {
-    return NextResponse.json({ error: "Réservé en V1" }, { status: 403 });
+  if (!isBetaEmail(auth.user.email)) {
+    return NextResponse.json({ error: "Réservé à la bêta privée V1" }, { status: 403 });
   }
 
   const shopDomain = process.env.SHOPIFY_LHORLOGEMURALE_SHOP_DOMAIN;
@@ -61,7 +60,7 @@ export async function POST() {
   const { data: integration, error } = await (supabase.from("integrations") as any)
     .upsert(
       {
-        user_id: GABRIEL_USER_ID,
+        user_id: auth.user.id,
         provider: "shopify",
         shop_domain: shopDomain,
         secret_encrypted: secretEncrypted,
