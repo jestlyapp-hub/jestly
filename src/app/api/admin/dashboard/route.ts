@@ -17,7 +17,6 @@ export async function GET() {
     sitesRes,
     waitlistRes,
     leadsRes,
-    projectsRes,
   ] = await Promise.all([
     (sb.from("profiles") as any).select("id", { count: "exact", head: true }),
     (sb.from("orders") as any).select("id", { count: "exact", head: true }),
@@ -29,7 +28,6 @@ export async function GET() {
     (sb.from("sites") as any).select("id", { count: "exact", head: true }),
     (sb.from("waitlist") as any).select("id", { count: "exact", head: true }),
     (sb.from("leads") as any).select("id", { count: "exact", head: true }),
-    (sb.from("projects") as any).select("id", { count: "exact", head: true }),
   ]);
 
   const total_revenue = (revenueRes.data || []).reduce(
@@ -187,7 +185,6 @@ export async function GET() {
     total_sites: sitesRes.count ?? 0,
     total_waitlist: waitlistRes.count ?? 0,
     total_leads: leadsRes.count ?? 0,
-    total_projects: projectsRes.count ?? 0,
     users_this_week: usersWeekRes.count ?? 0,
     users_this_month: usersMonthRes.count ?? 0,
     orders_this_week: ordersWeekRes.count ?? 0,

@@ -54,7 +54,6 @@ interface Stats {
   client_count: number;
   product_count: number;
   site_count: number;
-  project_count: number;
   task_count: number;
   lead_count: number;
 }
@@ -93,13 +92,6 @@ interface Site {
   created_at: string;
 }
 
-interface Project {
-  id: string;
-  name: string;
-  status: string;
-  created_at: string;
-}
-
 interface AdminNote {
   id: string;
   content: string;
@@ -122,7 +114,6 @@ interface HealthSignals {
   products: number;
   clients: number;
   sites_published: number;
-  projects: number;
   profile_complete: boolean;
   account_age_days: number;
   events_7d?: number;
@@ -154,7 +145,6 @@ interface UserDetail {
   recent_clients: Client[];
   products: Product[];
   sites: Site[];
-  projects: Project[];
   admin_notes: AdminNote[];
   admin_flags: AdminFlag[];
   health: HealthData | null;
@@ -452,7 +442,6 @@ export default function AdminUserDetailPage() {
     { label: "Clients", value: stats.client_count, icon: <Users size={18} /> },
     { label: "Produits", value: stats.product_count, icon: <Package size={18} /> },
     { label: "Sites", value: stats.site_count, icon: <Globe size={18} /> },
-    { label: "Projets", value: stats.project_count, icon: <FolderKanban size={18} /> },
     { label: "Tâches", value: stats.task_count, icon: <ListTodo size={18} /> },
     { label: "Leads", value: stats.lead_count, icon: <UserPlus size={18} /> },
     ...(data.health
@@ -660,7 +649,6 @@ export default function AdminUserDetailPage() {
                 { label: "Produits", value: String(data.health.signals.products) },
                 { label: "Clients", value: String(data.health.signals.clients) },
                 { label: "Site publie", value: data.health.signals.sites_published > 0 ? "Oui" : "Non" },
-                { label: "Projets", value: String(data.health.signals.projects) },
                 { label: "Profil complet", value: data.health.signals.profile_complete ? "Oui" : "Non" },
                 { label: "Anciennete", value: `${data.health.signals.account_age_days} jours` },
               ].map((item) => (
@@ -1025,38 +1013,6 @@ export default function AdminUserDetailPage() {
         )}
       </div>
 
-      {/* ══════════════════════════════════════════════════════════
-          SECTION 7: Projets recents (bonus)
-      ══════════════════════════════════════════════════════════ */}
-      {data.projects.length > 0 && (
-        <div className="bg-white rounded-lg border border-[#E6E6E4] p-6">
-          <h2 className="text-[15px] font-semibold text-[#191919] mb-4">Projets recents</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-[13px]">
-              <thead>
-                <tr className="border-b border-[#E6E6E4]">
-                  <th className="text-left py-2 pr-4 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Nom</th>
-                  <th className="text-left py-2 pr-4 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Statut</th>
-                  <th className="text-left py-2 text-[11px] font-medium text-[#8A8A88] uppercase tracking-wide">Créé le</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.projects.map((project) => (
-                  <tr key={project.id} className="border-b border-[#EFEFEF] last:border-0 hover:bg-[#FBFBFA]">
-                    <td className="py-2.5 pr-4 font-medium text-[#191919]">{project.name}</td>
-                    <td className="py-2.5 pr-4">
-                      <span className="inline-flex px-2 py-0.5 rounded text-[11px] font-medium border bg-gray-50 text-gray-600 border-gray-200">
-                        {project.status}
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-[#8A8A88]">{formatDate(project.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -6,7 +6,7 @@
 
 type EventCategory =
   | "auth" | "onboarding" | "site" | "order" | "client"
-  | "product" | "project" | "billing" | "search" | "settings";
+  | "product" | "billing" | "search" | "settings";
 
 const sentEvents = new Set<string>();
 
@@ -75,9 +75,6 @@ export const ProductEvents = {
 
   // Products
   productCreated: (productId: string) => trackProductEvent("product.created", "product", { product_id: productId }),
-
-  // Projects
-  projectCreated: (projectId: string) => trackProductEvent("project.created", "project", { project_id: projectId }),
 
   // Billing
   invoiceCreated: () => trackProductEvent("billing.invoice_created", "billing"),

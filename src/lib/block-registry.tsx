@@ -39,7 +39,6 @@ export const blockCategories: { id: BlockCategory; label: string }[] = [
 
 export const blockRegistry: BlockRegistryEntry[] = [
   { type: "hero", name: "Hero", description: "Section d'en-tête avec titre, sous-titre et CTA", category: "hero" },
-  { type: "portfolio-grid", name: "Portfolio", description: "Grille de projets avec catégories", category: "content", supportsProjects: true },
   { type: "services-list", name: "Services", description: "Liste de prestations avec prix", category: "vente", supportsProducts: true },
   { type: "pack-premium", name: "Pack Premium", description: "Offre mise en avant avec features", category: "vente", supportsProducts: true },
   { type: "testimonials", name: "Témoignages", description: "Avis clients avec avatar et rôle", category: "social" },
@@ -78,7 +77,6 @@ export const blockRegistry: BlockRegistryEntry[] = [
   { type: "hero-split-glow", name: "Hero Split Glow", description: "Hero premium split avec glow et double CTA", category: "hero" },
   { type: "hero-centered-mesh", name: "Hero Centré Mesh", description: "Hero centré avec background mesh et logos trust", category: "hero" },
   { type: "services-premium", name: "Services Premium", description: "Cartes services dark premium avec icônes et features", category: "content", supportsProducts: true },
-  { type: "portfolio-masonry", name: "Portfolio Masonry", description: "Grille portfolio masonry avec overlay hover", category: "content", supportsProjects: true },
   { type: "pricing-modern", name: "Pricing Modern", description: "Tarifs modernes dark avec badges et features", category: "conversion", supportsProducts: true },
   { type: "testimonials-dark", name: "Témoignages Dark", description: "Témoignages premium dark avec avatars et étoiles", category: "social" },
   { type: "cta-banner", name: "CTA Banner", description: "Bannière CTA premium avec gradient et double bouton", category: "conversion" },
@@ -88,16 +86,10 @@ export const blockRegistry: BlockRegistryEntry[] = [
   { type: "tech-stack", name: "Tech Stack", description: "Grille technologies / intégrations par catégorie", category: "content" },
   { type: "before-after-pro", name: "Avant/Après Pro", description: "Comparaison avant/après premium multi-items", category: "media" },
   // ─── 50 new blocks ───
-  { type: "hero-split-portfolio", name: "Hero Portfolio Split", description: "Hero freelancer avec texte, image et stats", category: "hero" },
   { type: "hero-minimal-service", name: "Hero Service Minimal", description: "Hero service centré avec preuves et CTA", category: "hero" },
   { type: "hero-dark-saas", name: "Hero SaaS Dark", description: "Hero produit SaaS avec features flottantes", category: "hero" },
   { type: "hero-creator-brand", name: "Hero Personal Brand", description: "Hero créateur avec photo, credentials et social proof", category: "hero" },
   { type: "hero-video-showreel", name: "Hero Showreel Video", description: "Hero immersif pour monteurs et réalisateurs", category: "hero", soon: true },
-  { type: "projects-grid-cases", name: "Projets Case Studies", description: "Grille 2x2 de projets avec résultats", category: "portfolio", supportsProjects: true },
-  { type: "projects-horizontal", name: "Projets Horizontal", description: "Carrousel horizontal de projets créatifs", category: "portfolio", supportsProjects: true },
-  { type: "project-before-after", name: "Projet Avant/Après", description: "Transformations clients avec résultats", category: "portfolio", supportsProjects: true },
-  { type: "project-timeline", name: "Étude de Cas Timeline", description: "Parcours projet étape par étape", category: "portfolio", supportsProjects: true },
-  { type: "project-masonry-wall", name: "Mur de Projets", description: "Grille masonry portfolio visuel", category: "portfolio", supportsProjects: true },
   { type: "services-3card-premium", name: "Services 3 Cartes", description: "3 offres premium avec features et CTA", category: "services", supportsProducts: true },
   { type: "services-icon-grid", name: "Services Grille Icônes", description: "6 services avec icônes en grille", category: "services", supportsProducts: true },
   { type: "services-split-value", name: "Services Valeur Split", description: "Positionnement premium avec piliers", category: "services" },

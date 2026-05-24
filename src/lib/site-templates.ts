@@ -113,23 +113,6 @@ function creatorPages(): TemplatePage[] {
           visible: true,
         },
         {
-          type: "portfolio-masonry",
-          content: {
-            title: "Réalisations",
-            subtitle: "Une selection de mes meilleurs travaux.",
-            items: [
-              { imageUrl: "", title: "Gaming Thumbnails", category: "YouTube", description: "Serie de thumbnails pour chaine gaming" },
-              { imageUrl: "", title: "Brand Identity", category: "Branding", description: "Identité complète pour startup tech" },
-              { imageUrl: "", title: "Cover Art", category: "Design", description: "Pochettes et visuels pour artistes" },
-              { imageUrl: "", title: "Social Media Kit", category: "Marketing", description: "Templates pour réseaux sociaux" },
-            ],
-            columns: 2,
-          },
-          style: s(),
-          settings: {},
-          visible: true,
-        },
-        {
           type: "before-after-pro",
           content: {
             title: "Avant / Après",
@@ -622,23 +605,6 @@ function studioPages(): TemplatePage[] {
           visible: true,
         },
         {
-          type: "portfolio-masonry",
-          content: {
-            title: "Projets sélectionnés",
-            subtitle: "Une sélection de travaux récents.",
-            items: [
-              { imageUrl: "", title: "Rebranding Startup", category: "Branding", description: "Refonte complète de l'identité visuelle" },
-              { imageUrl: "", title: "App Mobile Finance", category: "UI/UX", description: "Design d'interface pour app fintech" },
-              { imageUrl: "", title: "E-commerce Luxe", category: "Web Design", description: "Boutique en ligne haut de gamme" },
-              { imageUrl: "", title: "Packaging Bio", category: "Direction artistique", description: "Gamme packaging pour marque bio" },
-            ],
-            columns: 2,
-          },
-          style: s(),
-          settings: {},
-          visible: true,
-        },
-        {
           type: "testimonials-dark",
           content: {
             title: "Ce qu'ils en disent",
@@ -789,23 +755,6 @@ function neonPages(): TemplatePage[] {
           visible: true,
         },
         {
-          type: "portfolio-masonry",
-          content: {
-            title: "Portfolio",
-            subtitle: "Mes réalisations récentes.",
-            items: [
-              { imageUrl: "", title: "Gaming Montage", category: "YouTube", description: "Serie de montages gaming viraux" },
-              { imageUrl: "", title: "Stream Pack", category: "Twitch", description: "Pack complet overlays et alertes" },
-              { imageUrl: "", title: "AI Art Collection", category: "Digital Art", description: "Collection generative premium" },
-              { imageUrl: "", title: "Music Video", category: "Video", description: "Clip musical avec VFX" },
-            ],
-            columns: 2,
-          },
-          style: s({ backgroundGradient: `linear-gradient(180deg, #0A0A14 0%, ${DARK5} 100%)` }),
-          settings: {},
-          visible: true,
-        },
-        {
           type: "testimonials-dark",
           content: {
             title: "Retours",
@@ -952,25 +901,6 @@ function editorialPages(): TemplatePage[] {
             columns: 3,
           },
           style: s({ backgroundColor: LIGHT6 }),
-          settings: {},
-          visible: true,
-        },
-        {
-          type: "portfolio-masonry",
-          content: {
-            title: "Portfolio",
-            subtitle: "Une sélection de travaux récents.",
-            items: [
-              { imageUrl: "", title: "Mariage en Provence", category: "Reportage", description: "Couverture photo d'un mariage en extérieur" },
-              { imageUrl: "", title: "Portrait Corporate", category: "Portrait", description: "Série portrait pour équipe dirigeante" },
-              { imageUrl: "", title: "Collection Automne", category: "Mode", description: "Shooting mode pour marque éthique" },
-              { imageUrl: "", title: "Gastronomie", category: "Produit", description: "Photos culinaires pour restaurant étoilé" },
-              { imageUrl: "", title: "Voyage au Japon", category: "Reportage", description: "Carnet de voyage photographique" },
-              { imageUrl: "", title: "Architecture", category: "Art", description: "Serie sur l'architecture contemporaine" },
-            ],
-            columns: 3,
-          },
-          style: s({ backgroundColor: "#F5F1EA" }),
           settings: {},
           visible: true,
         },

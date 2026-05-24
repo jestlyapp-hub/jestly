@@ -60,13 +60,6 @@ function transformDbPageToFrontend(dbPage: any): SitePage {
   };
 }
 
-/** Block types that represent portfolio/projects sections */
-const PORTFOLIO_BLOCK_TYPES: string[] = [
-  "portfolio-grid", "portfolio-masonry", "projects-grid-cases",
-  "projects-horizontal", "project-before-after", "project-timeline",
-  "project-masonry-wall",
-];
-
 /** Block types that represent sale/product sections */
 const SALE_BLOCK_TYPES: string[] = [
   "product-featured-card", "products-3card-shop", "product-bundle-compare",
@@ -90,11 +83,6 @@ const FORM_BLOCK_TYPES: string[] = [
 function migrateBlockDataBindings(block: Block): void {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const c = block.content as any;
-
-  // Portfolio blocks: default source = "manual"
-  if (PORTFOLIO_BLOCK_TYPES.includes(block.type) && c.source === undefined) {
-    c.source = "manual";
-  }
 
   // Sale blocks without mode: default to "manual"
   if (SALE_BLOCK_TYPES.includes(block.type) && c.mode === undefined) {

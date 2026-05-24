@@ -46,14 +46,12 @@ export async function GET(
     clientsRes,
     productsRes,
     sitesRes,
-    projectsRes,
     tasksRes,
     leadsRes,
     recentOrdersRes,
     recentClientsRes,
     allProductsRes,
     allSitesRes,
-    recentProjectsRes,
     notesRes,
     flagsRes,
     healthRes,
@@ -71,9 +69,6 @@ export async function GET(
     (supabase.from("sites") as any)
       .select("id", { count: "exact", head: true })
       .eq("owner_id", id),
-    (supabase.from("projects") as any)
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", id),
     (supabase.from("tasks") as any)
       .select("id", { count: "exact", head: true })
       .eq("user_id", id),
@@ -106,13 +101,6 @@ export async function GET(
       .select("id, name, slug, status, created_at")
       .eq("owner_id", id)
       .order("created_at", { ascending: false }),
-
-    // Recent projects (last 20)
-    (supabase.from("projects") as any)
-      .select("id, name, status, created_at")
-      .eq("user_id", id)
-      .order("created_at", { ascending: false })
-      .limit(20),
 
     // Admin notes
     (supabase.from("admin_account_notes") as any)
@@ -247,7 +235,6 @@ export async function GET(
       client_count: clientsRes.count || 0,
       product_count: productsRes.count || 0,
       site_count: sitesRes.count || 0,
-      project_count: projectsRes.count || 0,
       task_count: tasksRes.count || 0,
       lead_count: leadCount,
     },
@@ -255,7 +242,6 @@ export async function GET(
     recent_clients: recentClientsRes.data || [],
     products,
     sites,
-    projects: recentProjectsRes.data || [],
     admin_notes: notesRes.data || [],
     admin_flags: flagsRes.data || [],
     health: healthRes.data

@@ -25,22 +25,6 @@ const compactStyle: Partial<BlockStyle> = { paddingTop: 40, paddingBottom: 40, c
 
 export const pageTemplates: PageTemplate[] = [
   {
-    id: "portfolio-creatif",
-    name: "Portfolio créatif",
-    description: "Idéal pour photographes, designers et artistes",
-    category: "creative",
-    blocks: [
-      { type: "hero-split-portfolio", style: heroStyle, settings: { animation: "fade-up" } },
-      { type: "portfolio-masonry", style: sectionStyle, settings: { animation: "fade-in" } },
-      { type: "services-3card-premium", style: sectionStyle, settings: { animation: "fade-up" } },
-      { type: "testimonials-3dark", style: sectionStyle, settings: { animation: "fade-in" } },
-      { type: "process-4steps", style: sectionStyle, settings: { animation: "fade-up" } },
-      { type: "cta-centered-strong", style: compactStyle, settings: { animation: "scale-in" } },
-      { type: "form-contact-simple", style: sectionStyle },
-      { type: "footer-simple-premium", style: compactStyle },
-    ],
-  },
-  {
     id: "agence-studio",
     name: "Agence / Studio",
     description: "Pour agences créatives, studios et collectifs",
@@ -49,7 +33,6 @@ export const pageTemplates: PageTemplate[] = [
       { type: "hero-centered-mesh", style: heroStyle, settings: { animation: "blur-reveal" } },
       { type: "logo-cloud", style: compactStyle, settings: { animation: "fade-in" } },
       { type: "services-icon-grid", style: sectionStyle, settings: { animation: "fade-up" } },
-      { type: "projects-grid-cases", style: sectionStyle, settings: { animation: "fade-up" } },
       { type: "about-studio-values", style: sectionStyle, settings: { animation: "fade-in" } },
       { type: "testimonials-carousel", style: sectionStyle, settings: { animation: "fade-in" } },
       { type: "process-detailed-timeline", style: sectionStyle, settings: { animation: "fade-up" } },
@@ -68,7 +51,6 @@ export const pageTemplates: PageTemplate[] = [
       { type: "hero-minimal-service", style: heroStyle, settings: { animation: "fade-up" } },
       { type: "services-split-value", style: sectionStyle, settings: { animation: "fade-up" } },
       { type: "numbers-impact", style: compactStyle, settings: { animation: "fade-in" } },
-      { type: "project-before-after", style: sectionStyle, settings: { animation: "fade-up" } },
       { type: "testimonials", style: sectionStyle, settings: { animation: "fade-in" } },
       { type: "pricing-custom-quote", style: sectionStyle, settings: { animation: "fade-up" } },
       { type: "faq-2column", style: sectionStyle },

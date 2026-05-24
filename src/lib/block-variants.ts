@@ -67,30 +67,6 @@ const featureVariants: BlockVariant[] = [
 ];
 
 /* ── Portfolio Variants ── */
-const portfolioVariants: BlockVariant[] = [
-  {
-    key: "portfolio-3col",
-    name: "3 colonnes",
-    description: "Grille classique 3 colonnes",
-    style: { paddingTop: 60, paddingBottom: 60, containerWidth: "boxed" },
-    contentOverrides: { columns: 3 },
-  },
-  {
-    key: "portfolio-masonry",
-    name: "Masonry",
-    description: "Disposition en masonry",
-    style: { paddingTop: 60, paddingBottom: 60, containerWidth: "boxed" },
-    contentOverrides: { columns: 3 },
-  },
-  {
-    key: "portfolio-featured",
-    name: "Featured + grille",
-    description: "Projet mis en avant + grille",
-    style: { paddingTop: 60, paddingBottom: 60, containerWidth: "boxed" },
-    contentOverrides: { columns: 2 },
-  },
-];
-
 /* ── Pricing Variants ── */
 const pricingVariants: BlockVariant[] = [
   {
@@ -193,7 +169,6 @@ const contactVariants: BlockVariant[] = [
 const variantRegistry: BlockVariantGroup[] = [
   { blockType: "hero", variants: heroVariants },
   { blockType: "feature-grid", variants: featureVariants },
-  { blockType: "portfolio-grid", variants: portfolioVariants },
   { blockType: "pricing-table", variants: pricingVariants },
   { blockType: "pricing-table-real", variants: pricingVariants },
   { blockType: "centered-cta", variants: ctaVariants },

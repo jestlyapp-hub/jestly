@@ -296,31 +296,6 @@ async function legacySearch(supabase: any, userId: string, q: string, entityType
     } catch { /* table may not exist */ }
   }
 
-  // Projects
-  if (shouldSearch("project")) {
-    try {
-      const { data: projects } = await (supabase.from("projects") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-        .select("id, name, description, status, priority, clients(name)")
-        .eq("user_id", userId)
-        .or(`name.ilike.${pattern},description.ilike.${pattern}`)
-        .limit(5);
-
-      if (projects) {
-        for (const p of projects) {
-          results.push({
-            id: p.id,
-            type: "project",
-            title: p.name,
-            subtitle: p.clients?.name ?? "",
-            status: p.status,
-            priority: p.priority,
-            href: `/projets/${p.id}`,
-          });
-        }
-      }
-    } catch { /* table may not exist */ }
-  }
-
   // Calendar events
   if (shouldSearch("event")) {
     try {

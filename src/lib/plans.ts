@@ -47,7 +47,6 @@ export type FeatureKey =
 export type ResourceKey =
   | "sites"
   | "orders_per_month"
-  | "active_projects"
   | "pages_per_site";
 
 export interface PlanDefinition {
@@ -74,7 +73,6 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     limits: {
       sites: 1,
       orders_per_month: 15,
-      active_projects: 3,
       pages_per_site: 3,
     },
     features: new Set([]),
@@ -87,7 +85,6 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     limits: {
       sites: 3,
       orders_per_month: 50,
-      active_projects: UNLIMITED,
       pages_per_site: 10,
     },
     features: new Set<FeatureKey>([
@@ -112,7 +109,6 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     limits: {
       sites: UNLIMITED,
       orders_per_month: UNLIMITED,
-      active_projects: UNLIMITED,
       pages_per_site: UNLIMITED,
     },
     features: new Set<FeatureKey>([
@@ -162,7 +158,6 @@ export const FEATURE_LABELS: Record<FeatureKey, string> = {
 export const RESOURCE_LABELS: Record<ResourceKey, string> = {
   sites: "Sites vitrines",
   orders_per_month: "Commandes / mois",
-  active_projects: "Projets actifs",
   pages_per_site: "Pages / site",
 };
 
@@ -173,7 +168,6 @@ export const RESOURCE_LABELS: Record<ResourceKey, string> = {
 export interface ResourceUsage {
   sites: number;
   ordersThisMonth: number;
-  activeProjects: number;
   pagesForSite?: number; // contextuel, pour un site donné
 }
 
@@ -216,7 +210,6 @@ export function resolveEntitlements(planId: PlanId, usage: ResourceUsage): Entit
   const resources: Record<ResourceKey, ResourceEntitlement> = {
     sites: resolveResource("sites", usage.sites),
     orders_per_month: resolveResource("orders_per_month", usage.ordersThisMonth),
-    active_projects: resolveResource("active_projects", usage.activeProjects),
     pages_per_site: resolveResource("pages_per_site", usage.pagesForSite ?? 0),
   };
 

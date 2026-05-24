@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Globe,
   FileText,
-  Palette,
   ShoppingBag,
   Users,
   BarChart3,
@@ -51,7 +50,6 @@ const navGroups: NavGroup[] = [
   {
     title: "Workspace",
     items: [
-      { label: "Projets", href: "/projets", icon: <Palette size={18} strokeWidth={1.7} /> },
       { label: "Tâches", href: "/taches", icon: <CheckSquare size={18} strokeWidth={1.7} /> },
       { label: "Calendrier", href: "/calendrier", icon: <CalendarDays size={18} strokeWidth={1.7} /> },
     ],

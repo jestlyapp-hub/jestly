@@ -4,7 +4,6 @@ import { computeSectionStyle, computePublicContainerClass, computeButtonVars, ge
 
 const ParticleBackground = lazy(() => import("./ParticleBackground"));
 import HeroBlockPreview from "./HeroBlockPreview";
-import PortfolioGridBlockPreview from "./PortfolioGridBlockPreview";
 import ServicesListBlockPreview from "./ServicesListBlockPreview";
 import PackPremiumBlockPreview from "./PackPremiumBlockPreview";
 import TestimonialsBlockPreview from "./TestimonialsBlockPreview";
@@ -43,7 +42,6 @@ import PricingTableRealBlockPreview from "./PricingTableRealBlockPreview";
 import HeroSplitGlowBlockPreview from "./HeroSplitGlowBlockPreview";
 import HeroCenteredMeshBlockPreview from "./HeroCenteredMeshBlockPreview";
 import ServicesPremiumBlockPreview from "./ServicesPremiumBlockPreview";
-import PortfolioMasonryBlockPreview from "./PortfolioMasonryBlockPreview";
 import PricingModernBlockPreview from "./PricingModernBlockPreview";
 import TestimonialsDarkBlockPreview from "./TestimonialsDarkBlockPreview";
 import CtaBannerBlockPreview from "./CtaBannerBlockPreview";
@@ -53,16 +51,10 @@ import VideoShowcaseBlockPreview from "./VideoShowcaseBlockPreview";
 import TechStackBlockPreview from "./TechStackBlockPreview";
 import BeforeAfterProBlockPreview from "./BeforeAfterProBlockPreview";
 // ─── 50 new blocks ───
-import HeroSplitPortfolioBlockPreview from "./HeroSplitPortfolioBlockPreview";
 import HeroMinimalServiceBlockPreview from "./HeroMinimalServiceBlockPreview";
 import HeroDarkSaasBlockPreview from "./HeroDarkSaasBlockPreview";
 import HeroCreatorBrandBlockPreview from "./HeroCreatorBrandBlockPreview";
 import HeroVideoShowreelBlockPreview from "./HeroVideoShowreelBlockPreview";
-import ProjectsGridCasesBlockPreview from "./ProjectsGridCasesBlockPreview";
-import ProjectsHorizontalBlockPreview from "./ProjectsHorizontalBlockPreview";
-import ProjectBeforeAfterBlockPreview from "./ProjectBeforeAfterBlockPreview";
-import ProjectTimelineBlockPreview from "./ProjectTimelineBlockPreview";
-import ProjectMasonryWallBlockPreview from "./ProjectMasonryWallBlockPreview";
 import Services3CardPremiumBlockPreview from "./Services3CardPremiumBlockPreview";
 import ServicesIconGridBlockPreview from "./ServicesIconGridBlockPreview";
 import ServicesSplitValueBlockPreview from "./ServicesSplitValueBlockPreview";
@@ -143,7 +135,6 @@ function BlockPreviewInner({ block }: { block: Block }) {
   const content = (() => {
     switch (block.type) {
       case "hero": return <HeroBlockPreview content={block.content} />;
-      case "portfolio-grid": return <PortfolioGridBlockPreview content={block.content} />;
       case "services-list": return <ServicesListBlockPreview content={block.content} />;
       case "pack-premium": return <PackPremiumBlockPreview content={block.content} />;
       case "testimonials": return <TestimonialsBlockPreview content={block.content} />;
@@ -182,7 +173,6 @@ function BlockPreviewInner({ block }: { block: Block }) {
       case "hero-split-glow": return <HeroSplitGlowBlockPreview content={block.content} />;
       case "hero-centered-mesh": return <HeroCenteredMeshBlockPreview content={block.content} />;
       case "services-premium": return <ServicesPremiumBlockPreview content={block.content} />;
-      case "portfolio-masonry": return <PortfolioMasonryBlockPreview content={block.content} />;
       case "pricing-modern": return <PricingModernBlockPreview content={block.content} />;
       case "testimonials-dark": return <TestimonialsDarkBlockPreview content={block.content} />;
       case "cta-banner": return <CtaBannerBlockPreview content={block.content} />;
@@ -192,16 +182,10 @@ function BlockPreviewInner({ block }: { block: Block }) {
       case "tech-stack": return <TechStackBlockPreview content={block.content} />;
       case "before-after-pro": return <BeforeAfterProBlockPreview content={block.content} />;
       // ─── 50 new blocks ───
-      case "hero-split-portfolio": return <HeroSplitPortfolioBlockPreview content={block.content} />;
       case "hero-minimal-service": return <HeroMinimalServiceBlockPreview content={block.content} />;
       case "hero-dark-saas": return <HeroDarkSaasBlockPreview content={block.content} />;
       case "hero-creator-brand": return <HeroCreatorBrandBlockPreview content={block.content} />;
       case "hero-video-showreel": return <HeroVideoShowreelBlockPreview content={block.content} />;
-      case "projects-grid-cases": return <ProjectsGridCasesBlockPreview content={block.content} />;
-      case "projects-horizontal": return <ProjectsHorizontalBlockPreview content={block.content} />;
-      case "project-before-after": return <ProjectBeforeAfterBlockPreview content={block.content} />;
-      case "project-timeline": return <ProjectTimelineBlockPreview content={block.content} />;
-      case "project-masonry-wall": return <ProjectMasonryWallBlockPreview content={block.content} />;
       case "services-3card-premium": return <Services3CardPremiumBlockPreview content={block.content} />;
       case "services-icon-grid": return <ServicesIconGridBlockPreview content={block.content} />;
       case "services-split-value": return <ServicesSplitValueBlockPreview content={block.content} />;

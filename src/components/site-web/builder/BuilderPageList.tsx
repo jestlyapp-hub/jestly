@@ -204,7 +204,7 @@ function BlockPalette({ pageId, dispatch }: { pageId: string; dispatch: ReturnTy
   const [open, setOpen] = useState(false);
 
   const quickBlocks = useMemo(() => {
-    const picks: BlockType[] = ["hero", "services-list", "portfolio-grid", "testimonials-carousel", "contact-form", "faq-advanced", "centered-cta", "video", "pricing-table-real"];
+    const picks: BlockType[] = ["hero", "services-list", "testimonials-carousel", "contact-form", "faq-advanced", "centered-cta", "video", "pricing-table-real"];
     return picks.map((type) => {
       const entry = getBlockEntry(type);
       return entry ? { type, name: entry.name } : null;

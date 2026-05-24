@@ -10,7 +10,6 @@ const pageLabels: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/commandes": "Commandes",
   "/clients": "Clients",
-  "/projets": "Projets",
   "/produits": "Offres",
   "/facturation": "Facturation",
   "/facturation/templates": "Modèles & Récurrences",
@@ -26,7 +25,6 @@ export default function Topbar() {
   const pageLabel = pageLabels[pathname]
     ?? (pathname.startsWith("/site-web") ? "Site web" : null)
     ?? (pathname.startsWith("/clients/") ? "Fiche client" : null)
-    ?? (pathname.startsWith("/projets/") ? "Projet" : null)
     ?? (pathname.startsWith("/taches/") ? "Tâche" : null)
     ?? (pathname.startsWith("/produits/") ? "Offre" : null)
     ?? "Dashboard";

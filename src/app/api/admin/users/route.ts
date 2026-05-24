@@ -71,7 +71,7 @@ export async function GET(req: NextRequest) {
   const ids = profiles.map((p: any) => p.id);
 
   // Lancer toutes les requêtes de stats en parallèle
-  const [ordersRes, clientsRes, productsRes, sitesRes, projectsRes, healthRes] =
+  const [ordersRes, clientsRes, productsRes, sitesRes, healthRes] =
     await Promise.all([
       // Orders: count + sum(amount) for paid statuses + max(created_at)
       (supabase.from("orders") as any)
@@ -90,10 +90,6 @@ export async function GET(req: NextRequest) {
         .select("owner_id")
         .in("owner_id", ids),
 
-      (supabase.from("projects") as any)
-        .select("user_id")
-        .in("user_id", ids),
-
       // Health snapshots
       (supabase.from("account_health_snapshots") as any)
         .select("account_id, score, tier")
@@ -109,7 +105,6 @@ export async function GET(req: NextRequest) {
       client_count: number;
       product_count: number;
       site_count: number;
-      project_count: number;
       last_order_at: string | null;
     }
   > = {};
@@ -122,7 +117,6 @@ export async function GET(req: NextRequest) {
       client_count: 0,
       product_count: 0,
       site_count: 0,
-      project_count: 0,
       last_order_at: null,
     };
   }
@@ -164,14 +158,6 @@ export async function GET(req: NextRequest) {
     for (const si of sitesRes.data) {
       const s = statsMap[si.owner_id];
       if (s) s.site_count++;
-    }
-  }
-
-  // Projects
-  if (projectsRes.data) {
-    for (const pr of projectsRes.data) {
-      const s = statsMap[pr.user_id];
-      if (s) s.project_count++;
     }
   }
 

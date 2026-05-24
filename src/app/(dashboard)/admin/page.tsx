@@ -16,7 +16,6 @@ interface DashboardData {
   total_sites: number;
   total_waitlist: number;
   total_leads: number;
-  total_projects: number;
   users_this_week: number;
   orders_this_week: number;
   revenue_this_week: number;

@@ -36,7 +36,6 @@ interface UserProfile {
   client_count: number;
   product_count: number;
   site_count: number;
-  project_count: number;
   last_order_at: string | null;
   health_score: number | null;
   health_tier: HealthTier | null;

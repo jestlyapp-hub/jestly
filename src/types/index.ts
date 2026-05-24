@@ -187,95 +187,6 @@ export interface Product {
   stripePriceId?: string;
 }
 
-/* ─── Projects System ─── */
-
-export type ProjectStatus = "draft" | "in_progress" | "review" | "completed" | "archived";
-export type ProjectType = "thumbnail" | "video" | "branding" | "development" | "design" | "content" | "custom";
-export type ProjectPriority = "low" | "normal" | "high" | "urgent";
-export type ProjectItemType = "folder" | "image" | "video" | "file" | "link" | "note" | "embed" | "reference" | "moodboard";
-
-export interface Project {
-  id: string;
-  name: string;
-  description: string;
-  projectType: ProjectType;
-  color: string;
-  status: ProjectStatus;
-  priority: ProjectPriority;
-  budget: number;
-  currency: string;
-  tags: string[];
-  coverUrl?: string;
-  clientId?: string;
-  clientName?: string;
-  clientEmail?: string;
-  clientCompany?: string;
-  productId?: string;
-  orderId?: string;
-  isPortfolio: boolean;
-  portfolioDescription?: string;
-  portfolioDisplayTitle?: string;
-  portfolioSubtitle?: string;
-  portfolioResult?: string;
-  portfolioSummary?: string;
-  portfolioCoverUrl?: string;
-  portfolioCoverItemId?: string;
-  portfolioCategory?: string;
-  portfolioImages?: string[];
-  portfolioExternalUrl?: string;
-  portfolioSlug?: string;
-  portfolioCtaLabel?: string;
-  portfolioCtaUrl?: string;
-  portfolioIntroText?: string;
-  portfolioChallengeText?: string;
-  portfolioSolutionText?: string;
-  portfolioResultText?: string;
-  portfolioGalleryItemIds?: string[];
-  portfolioSeoTitle?: string;
-  portfolioSeoDescription?: string;
-  portfolioFeatured?: boolean;
-  portfolioDisplayOrder?: number;
-  portfolioVisibility?: "draft" | "public";
-  shareToken?: string;
-  deadline?: string;
-  startDate?: string;
-  itemsCount: number;
-  foldersCount: number;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProjectFolder {
-  id: string;
-  projectId: string;
-  parentId?: string;
-  name: string;
-  color: string;
-  position: number;
-  itemsCount?: number;
-}
-
-export interface ProjectItem {
-  id: string;
-  projectId: string;
-  folderId?: string;
-  itemType: ProjectItemType;
-  title: string;
-  description: string;
-  content: string;
-  url?: string;
-  filePath?: string;
-  fileSize?: number;
-  mimeType?: string;
-  thumbnailUrl?: string;
-  tags: string[];
-  metadata: Record<string, unknown>;
-  position: number;
-  isPinned: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface Invoice {
   id: string;
   number: string;
@@ -467,7 +378,6 @@ export interface ButtonStyle {
 
 export type BlockType =
   | "hero"
-  | "portfolio-grid"
   | "services-list"
   | "pack-premium"
   | "testimonials"
@@ -506,7 +416,6 @@ export type BlockType =
   | "hero-split-glow"
   | "hero-centered-mesh"
   | "services-premium"
-  | "portfolio-masonry"
   | "pricing-modern"
   | "testimonials-dark"
   | "cta-banner"
@@ -516,16 +425,10 @@ export type BlockType =
   | "tech-stack"
   | "before-after-pro"
   // ─── 50 new blocks (library expansion) ───
-  | "hero-split-portfolio"
   | "hero-minimal-service"
   | "hero-dark-saas"
   | "hero-creator-brand"
   | "hero-video-showreel"
-  | "projects-grid-cases"
-  | "projects-horizontal"
-  | "project-before-after"
-  | "project-timeline"
-  | "project-masonry-wall"
   | "services-3card-premium"
   | "services-icon-grid"
   | "services-split-value"
@@ -611,32 +514,6 @@ export interface HeroBlockContent {
   link?: Link;
   blockLink?: BlockLink;
   imageUrl?: string;
-}
-
-export interface PortfolioProject {
-  title: string;
-  imageUrl: string;
-  category: string;
-  link?: Link;
-  slug?: string;
-  description?: string;
-  images?: string[];
-  featured?: boolean;
-  clientName?: string;
-  result?: string;
-  externalUrl?: string;
-}
-
-export interface PortfolioGridBlockContent {
-  items: PortfolioProject[];
-  columns: 2 | 3 | 4;
-  categories: string[];
-  showFilter: boolean;
-  showDetailLink: boolean;
-  showSearch?: boolean;
-  source?: "manual" | "linked_projects";
-  linkedProjectIds?: string[];
-  resolvedProjects?: PortfolioCard[];
 }
 
 export interface ServicesListBlockContent extends SaleBlockBriefSettings {
@@ -1021,21 +898,6 @@ export interface ServicesPremiumBlockContent extends SaleBlockBriefSettings {
   productIds?: string[];
 }
 
-export interface PortfolioMasonryBlockContent {
-  title?: string;
-  subtitle?: string;
-  items: {
-    imageUrl: string;
-    title: string;
-    category: string;
-    description?: string;
-  }[];
-  columns: 2 | 3;
-  source?: "manual" | "linked_projects";
-  linkedProjectIds?: string[];
-  resolvedProjects?: PortfolioCard[];
-}
-
 export interface PricingModernBlockContent extends SaleBlockBriefSettings {
   title?: string;
   subtitle?: string;
@@ -1144,62 +1006,10 @@ export interface BeforeAfterProBlockContent {
 
 /* ─── 50 New Block Content Types (Library Expansion) ─── */
 
-export interface HeroSplitPortfolioBlockContent { badge?: string; title: string; subtitle: string; ctaLabel: string; ctaLink?: string; secondaryCtaLabel?: string; secondaryCtaLink?: string; imageUrl?: string; stats?: { value: string; label: string }[]; }
 export interface HeroMinimalServiceBlockContent { trustBadge?: string; title: string; subtitle: string; ctaLabel: string; secondaryCtaLabel?: string; proofItems?: { icon: string; text: string }[]; }
 export interface HeroDarkSaasBlockContent { title: string; subtitle: string; ctaLabel: string; secondaryCtaLabel?: string; features?: { title: string; description: string }[]; imageUrl?: string; }
 export interface HeroCreatorBrandBlockContent { title: string; subtitle: string; credentials?: string[]; ctaLabel: string; secondaryCtaLabel?: string; imageUrl?: string; socialProof?: { value: string; label: string }[]; }
 export interface HeroVideoShowreelBlockContent { title: string; subtitle: string; ctaLabel?: string; videoUrl?: string; tags?: string[]; }
-/** Resolved portfolio card used by linked_projects blocks */
-export interface PortfolioCard {
-  projectId: string;
-  imageUrl?: string;
-  title: string;
-  category: string;
-  result?: string;
-  summary?: string;
-  ctaLabel?: string;
-  ctaUrl?: string;
-  slug?: string;
-}
-
-export interface ProjectsGridCasesBlockContent {
-  title: string;
-  subtitle?: string;
-  source?: "manual" | "linked_projects";
-  linkedProjectIds?: string[];
-  resolvedProjects?: PortfolioCard[];
-  projects: { imageUrl?: string; title: string; category: string; result: string }[];
-}
-export interface ProjectsHorizontalBlockContent {
-  title: string;
-  subtitle?: string;
-  projects: { imageUrl?: string; title: string; category: string }[];
-  ctaLabel?: string;
-  source?: "manual" | "linked_projects";
-  linkedProjectIds?: string[];
-  resolvedProjects?: PortfolioCard[];
-}
-export interface ProjectBeforeAfterBlockContent {
-  title: string;
-  subtitle?: string;
-  items: { beforeLabel: string; afterLabel: string; beforeImageUrl?: string; afterImageUrl?: string; resultText: string; metricBadge?: string; description: string; category?: string }[];
-  linkedProjectId?: string;
-}
-export interface ProjectTimelineBlockContent {
-  title: string;
-  subtitle?: string;
-  steps: { title: string; description: string; tag?: string }[];
-  resultSummary?: string;
-  linkedProjectId?: string;
-}
-export interface ProjectMasonryWallBlockContent {
-  title?: string;
-  source?: "manual" | "linked_projects";
-  linkedProjectIds?: string[];
-  resolvedProjects?: PortfolioCard[];
-  items: { imageUrl?: string; title: string; category: string }[];
-  columns?: number;
-}
 export interface Services3CardPremiumBlockContent extends SaleBlockBriefSettings {
   title: string;
   subtitle?: string;
@@ -1594,7 +1404,6 @@ export interface SiteMember {
 
 export type BlockContentMap = {
   hero: HeroBlockContent;
-  "portfolio-grid": PortfolioGridBlockContent;
   "services-list": ServicesListBlockContent;
   "pack-premium": PackPremiumBlockContent;
   testimonials: TestimonialsBlockContent;
@@ -1633,7 +1442,6 @@ export type BlockContentMap = {
   "hero-split-glow": HeroSplitGlowBlockContent;
   "hero-centered-mesh": HeroCenteredMeshBlockContent;
   "services-premium": ServicesPremiumBlockContent;
-  "portfolio-masonry": PortfolioMasonryBlockContent;
   "pricing-modern": PricingModernBlockContent;
   "testimonials-dark": TestimonialsDarkBlockContent;
   "cta-banner": CtaBannerBlockContent;
@@ -1643,16 +1451,10 @@ export type BlockContentMap = {
   "tech-stack": TechStackBlockContent;
   "before-after-pro": BeforeAfterProBlockContent;
   // ─── 50 new blocks ───
-  "hero-split-portfolio": HeroSplitPortfolioBlockContent;
   "hero-minimal-service": HeroMinimalServiceBlockContent;
   "hero-dark-saas": HeroDarkSaasBlockContent;
   "hero-creator-brand": HeroCreatorBrandBlockContent;
   "hero-video-showreel": HeroVideoShowreelBlockContent;
-  "projects-grid-cases": ProjectsGridCasesBlockContent;
-  "projects-horizontal": ProjectsHorizontalBlockContent;
-  "project-before-after": ProjectBeforeAfterBlockContent;
-  "project-timeline": ProjectTimelineBlockContent;
-  "project-masonry-wall": ProjectMasonryWallBlockContent;
   "services-3card-premium": Services3CardPremiumBlockContent;
   "services-icon-grid": ServicesIconGridBlockContent;
   "services-split-value": ServicesSplitValueBlockContent;

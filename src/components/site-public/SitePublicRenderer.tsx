@@ -26,7 +26,6 @@ import AttributionTracker from "@/components/site-public/AttributionTracker";
 
 // ── Block Preview imports (reuse existing block content renderers) ──
 import HeroBlockPreview from "@/components/site-web/blocks/HeroBlockPreview";
-import PortfolioGridBlockPreview from "@/components/site-web/blocks/PortfolioGridBlockPreview";
 import ServicesListBlockPreview from "@/components/site-web/blocks/ServicesListBlockPreview";
 import PackPremiumBlockPreview from "@/components/site-web/blocks/PackPremiumBlockPreview";
 import TestimonialsBlockPreview from "@/components/site-web/blocks/TestimonialsBlockPreview";
@@ -65,7 +64,6 @@ import PricingTableRealBlockPreview from "@/components/site-web/blocks/PricingTa
 import HeroSplitGlowBlockPreview from "@/components/site-web/blocks/HeroSplitGlowBlockPreview";
 import HeroCenteredMeshBlockPreview from "@/components/site-web/blocks/HeroCenteredMeshBlockPreview";
 import ServicesPremiumBlockPreview from "@/components/site-web/blocks/ServicesPremiumBlockPreview";
-import PortfolioMasonryBlockPreview from "@/components/site-web/blocks/PortfolioMasonryBlockPreview";
 import PricingModernBlockPreview from "@/components/site-web/blocks/PricingModernBlockPreview";
 import TestimonialsDarkBlockPreview from "@/components/site-web/blocks/TestimonialsDarkBlockPreview";
 import CtaBannerBlockPreview from "@/components/site-web/blocks/CtaBannerBlockPreview";
@@ -75,16 +73,10 @@ import VideoShowcaseBlockPreview from "@/components/site-web/blocks/VideoShowcas
 import TechStackBlockPreview from "@/components/site-web/blocks/TechStackBlockPreview";
 import BeforeAfterProBlockPreview from "@/components/site-web/blocks/BeforeAfterProBlockPreview";
 // ─── 50 new blocks ───
-import HeroSplitPortfolioBlockPreview from "@/components/site-web/blocks/HeroSplitPortfolioBlockPreview";
 import HeroMinimalServiceBlockPreview from "@/components/site-web/blocks/HeroMinimalServiceBlockPreview";
 import HeroDarkSaasBlockPreview from "@/components/site-web/blocks/HeroDarkSaasBlockPreview";
 import HeroCreatorBrandBlockPreview from "@/components/site-web/blocks/HeroCreatorBrandBlockPreview";
 import HeroVideoShowreelBlockPreview from "@/components/site-web/blocks/HeroVideoShowreelBlockPreview";
-import ProjectsGridCasesBlockPreview from "@/components/site-web/blocks/ProjectsGridCasesBlockPreview";
-import ProjectsHorizontalBlockPreview from "@/components/site-web/blocks/ProjectsHorizontalBlockPreview";
-import ProjectBeforeAfterBlockPreview from "@/components/site-web/blocks/ProjectBeforeAfterBlockPreview";
-import ProjectTimelineBlockPreview from "@/components/site-web/blocks/ProjectTimelineBlockPreview";
-import ProjectMasonryWallBlockPreview from "@/components/site-web/blocks/ProjectMasonryWallBlockPreview";
 import Services3CardPremiumBlockPreview from "@/components/site-web/blocks/Services3CardPremiumBlockPreview";
 import ServicesIconGridBlockPreview from "@/components/site-web/blocks/ServicesIconGridBlockPreview";
 import ServicesSplitValueBlockPreview from "@/components/site-web/blocks/ServicesSplitValueBlockPreview";
@@ -134,7 +126,6 @@ function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: stri
   const lp = ctx ? { siteId: ctx.siteId, pagePath: ctx.pagePath, blockType: block.type } : undefined;
   switch (block.type) {
     case "hero": return <HeroBlockPreview content={block.content} />;
-    case "portfolio-grid": return <PortfolioGridBlockPreview content={block.content} siteSlug={ctx?.siteSlug} />;
     case "services-list": return <ServicesListBlockPreview content={block.content} />;
     case "pack-premium": return <PackPremiumBlockPreview content={block.content} />;
     case "testimonials": return <TestimonialsBlockPreview content={block.content} />;
@@ -173,7 +164,6 @@ function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: stri
     case "hero-split-glow": return <HeroSplitGlowBlockPreview content={block.content} />;
     case "hero-centered-mesh": return <HeroCenteredMeshBlockPreview content={block.content} />;
     case "services-premium": return <ServicesPremiumBlockPreview content={block.content} />;
-    case "portfolio-masonry": return <PortfolioMasonryBlockPreview content={block.content} siteSlug={ctx?.siteSlug} />;
     case "pricing-modern": return <PricingModernBlockPreview content={block.content} />;
     case "testimonials-dark": return <TestimonialsDarkBlockPreview content={block.content} />;
     case "cta-banner": return <CtaBannerBlockPreview content={block.content} />;
@@ -183,16 +173,10 @@ function renderBlockContent(block: Block, ctx?: { siteId: string; pagePath: stri
     case "tech-stack": return <TechStackBlockPreview content={block.content} />;
     case "before-after-pro": return <BeforeAfterProBlockPreview content={block.content} />;
     // ─── 50 new blocks ───
-    case "hero-split-portfolio": return <HeroSplitPortfolioBlockPreview content={block.content} />;
     case "hero-minimal-service": return <HeroMinimalServiceBlockPreview content={block.content} />;
     case "hero-dark-saas": return <HeroDarkSaasBlockPreview content={block.content} />;
     case "hero-creator-brand": return <HeroCreatorBrandBlockPreview content={block.content} />;
     case "hero-video-showreel": return <HeroVideoShowreelBlockPreview content={block.content} />;
-    case "projects-grid-cases": return <ProjectsGridCasesBlockPreview content={block.content} siteSlug={ctx?.siteSlug} basePath={ctx?.basePath} />;
-    case "projects-horizontal": return <ProjectsHorizontalBlockPreview content={block.content} siteSlug={ctx?.siteSlug} />;
-    case "project-before-after": return <ProjectBeforeAfterBlockPreview content={block.content} />;
-    case "project-timeline": return <ProjectTimelineBlockPreview content={block.content} />;
-    case "project-masonry-wall": return <ProjectMasonryWallBlockPreview content={block.content} siteSlug={ctx?.siteSlug} basePath={ctx?.basePath} />;
     case "services-3card-premium": return <Services3CardPremiumBlockPreview content={block.content} />;
     case "services-icon-grid": return <ServicesIconGridBlockPreview content={block.content} />;
     case "services-split-value": return <ServicesSplitValueBlockPreview content={block.content} />;
@@ -242,11 +226,11 @@ const FULL_BLEED_BLOCKS = new Set([
   "full-image", "video", "hero", "availability-banner",
   "hero-split-glow", "hero-centered-mesh", "cta-banner", "footer-block",
   "services-premium", "service-cards", "services-list",
-  "portfolio-masonry", "pricing-modern",
+  "pricing-modern",
   "testimonials-dark", "contact-premium", "video-showcase",
   "tech-stack", "before-after-pro", "cta-premium",
   // new full-bleed blocks
-  "hero-split-portfolio", "hero-minimal-service", "hero-dark-saas",
+  "hero-minimal-service", "hero-dark-saas",
   "hero-creator-brand", "hero-video-showreel",
   "services-3card-premium", "services-icon-grid", "services-split-value", "services-process-offers",
   "cta-centered-strong", "cta-split-text", "cta-dark-glow",

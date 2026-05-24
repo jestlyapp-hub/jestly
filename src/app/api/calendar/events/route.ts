@@ -169,7 +169,7 @@ export async function GET(req: NextRequest) {
 
   // ── Parallel queries for all 5 sources ──
   /* eslint-disable @typescript-eslint/no-explicit-any */
-  const [calendarResult, ordersResult, tasksResult, projectsResult, invoicesResult] = await Promise.allSettled([
+  const [calendarResult, ordersResult, tasksResult, invoicesResult] = await Promise.allSettled([
     // 1. Manual calendar events (join calendar_categories for color)
     (supabase.from("calendar_events") as any)
       .select("*, calendar_categories(color, name)")
@@ -195,16 +195,7 @@ export async function GET(req: NextRequest) {
       .gte("due_date", rangeStart)
       .lte("due_date", rangeEnd),
 
-    // 4. Projects with deadlines
-    (supabase.from("projects") as any)
-      .select("id, name, deadline, start_date, status, priority")
-      .eq("user_id", user.id)
-      .not("deadline", "is", null)
-      .not("status", "in", '("completed","archived")')
-      .gte("deadline", rangeStart + "T00:00:00")
-      .lte("deadline", rangeEnd + "T23:59:59"),
-
-    // 5. Invoices with due dates
+    // 4. Invoices with due dates
     (supabase.from("invoices") as any)
       .select("id, invoice_number, amount, due_date, status, client_id, clients(name)")
       .eq("user_id", user.id)
@@ -265,25 +256,6 @@ export async function GET(req: NextRequest) {
     } as CalendarEvent));
   }
 
-  let projectEvents: CalendarEvent[] = [];
-  if (projectsResult.status === "fulfilled" && projectsResult.value.data) {
-    for (const p of projectsResult.value.data as any[]) {
-      if (p.deadline) {
-        projectEvents.push({
-          id: `project-deadline-${p.id}`,
-          title: `${p.name || "Projet"} — Échéance`,
-          category: "projet" as EventCategory,
-          date: typeof p.deadline === "string" ? p.deadline.substring(0, 10) : new Date(p.deadline).toISOString().substring(0, 10),
-          allDay: true,
-          priority: p.priority === "urgent" ? "urgent" : p.priority === "high" ? "high" : "medium",
-          source: "project" as const,
-          projectId: p.id,
-          projectStatus: p.status,
-        } as CalendarEvent);
-      }
-    }
-  }
-
   let invoiceEvents: CalendarEvent[] = [];
   if (invoicesResult.status === "fulfilled" && invoicesResult.value.data) {
     invoiceEvents = invoicesResult.value.data.map((inv: any) => ({
@@ -302,7 +274,7 @@ export async function GET(req: NextRequest) {
   }
   /* eslint-enable @typescript-eslint/no-explicit-any */
 
-  return NextResponse.json([...manualEvents, ...orderEvents, ...taskEvents, ...projectEvents, ...invoiceEvents]);
+  return NextResponse.json([...manualEvents, ...orderEvents, ...taskEvents, ...invoiceEvents]);
 }
 
 // ─── POST ───

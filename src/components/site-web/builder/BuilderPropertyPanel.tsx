@@ -70,11 +70,10 @@ const hoverEffectOptions: { value: HoverEffect; label: string }[] = [
 ];
 
 const CARD_BLOCK_TYPES = new Set([
-  "portfolio-grid", "portfolio-masonry", "services-list", "services-premium",
+  "services-list", "services-premium",
   "services-3card-premium", "services-icon-grid", "service-cards",
   "pricing-table", "pricing-modern", "pricing-3tier-saas",
   "testimonials", "testimonials-carousel", "testimonials-dark", "testimonials-3dark",
-  "projects-grid-cases", "projects-horizontal", "project-masonry-wall",
   "products-3card-shop", "product-cards-grid", "product-bundle-compare",
   "team-mini-grid", "feature-grid", "tech-stack", "comparison-table",
   "why-me", "logo-cloud", "trust-badges",

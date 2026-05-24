@@ -2,7 +2,6 @@
 
 import type { Block } from "@/types";
 import HeroBlockEditor from "./HeroBlockEditor";
-import PortfolioGridBlockEditor from "./PortfolioGridBlockEditor";
 import ServicesListBlockEditor from "./ServicesListBlockEditor";
 import PackPremiumBlockEditor from "./PackPremiumBlockEditor";
 import TestimonialsBlockEditor from "./TestimonialsBlockEditor";
@@ -41,7 +40,6 @@ import PricingTableRealBlockEditor from "./PricingTableRealBlockEditor";
 import HeroSplitGlowBlockEditor from "./HeroSplitGlowBlockEditor";
 import HeroCenteredMeshBlockEditor from "./HeroCenteredMeshBlockEditor";
 import ServicesPremiumBlockEditor from "./ServicesPremiumBlockEditor";
-import PortfolioMasonryBlockEditor from "./PortfolioMasonryBlockEditor";
 import PricingModernBlockEditor from "./PricingModernBlockEditor";
 import TestimonialsDarkBlockEditor from "./TestimonialsDarkBlockEditor";
 import CtaBannerBlockEditor from "./CtaBannerBlockEditor";
@@ -51,16 +49,10 @@ import VideoShowcaseBlockEditor from "./VideoShowcaseBlockEditor";
 import TechStackBlockEditor from "./TechStackBlockEditor";
 import BeforeAfterProBlockEditor from "./BeforeAfterProBlockEditor";
 // ─── 50 new block editors ───
-import HeroSplitPortfolioBlockEditor from "./HeroSplitPortfolioBlockEditor";
 import HeroMinimalServiceBlockEditor from "./HeroMinimalServiceBlockEditor";
 import HeroDarkSaasBlockEditor from "./HeroDarkSaasBlockEditor";
 import HeroCreatorBrandBlockEditor from "./HeroCreatorBrandBlockEditor";
 import HeroVideoShowreelBlockEditor from "./HeroVideoShowreelBlockEditor";
-import ProjectsGridCasesBlockEditor from "./ProjectsGridCasesBlockEditor";
-import ProjectsHorizontalBlockEditor from "./ProjectsHorizontalBlockEditor";
-import ProjectBeforeAfterBlockEditor from "./ProjectBeforeAfterBlockEditor";
-import ProjectTimelineBlockEditor from "./ProjectTimelineBlockEditor";
-import ProjectMasonryWallBlockEditor from "./ProjectMasonryWallBlockEditor";
 import Services3CardPremiumBlockEditor from "./Services3CardPremiumBlockEditor";
 import ServicesIconGridBlockEditor from "./ServicesIconGridBlockEditor";
 import ServicesSplitValueBlockEditor from "./ServicesSplitValueBlockEditor";
@@ -110,7 +102,6 @@ export default function BlockEditor({ block }: { block: Block }) {
 
   switch (block.type) {
     case "hero": return <HeroBlockEditor block={block} />;
-    case "portfolio-grid": return <PortfolioGridBlockEditor block={block} />;
     case "services-list": return <ServicesListBlockEditor block={block} />;
     case "pack-premium": return <PackPremiumBlockEditor block={block} />;
     case "testimonials": return <TestimonialsBlockEditor block={block} />;
@@ -149,7 +140,6 @@ export default function BlockEditor({ block }: { block: Block }) {
     case "hero-split-glow": return <HeroSplitGlowBlockEditor block={block} />;
     case "hero-centered-mesh": return <HeroCenteredMeshBlockEditor block={block} />;
     case "services-premium": return <ServicesPremiumBlockEditor block={block} />;
-    case "portfolio-masonry": return <PortfolioMasonryBlockEditor block={block} />;
     case "pricing-modern": return <PricingModernBlockEditor block={block} />;
     case "testimonials-dark": return <TestimonialsDarkBlockEditor block={block} />;
     case "cta-banner": return <CtaBannerBlockEditor block={block} />;
@@ -159,16 +149,10 @@ export default function BlockEditor({ block }: { block: Block }) {
     case "tech-stack": return <TechStackBlockEditor block={block} />;
     case "before-after-pro": return <BeforeAfterProBlockEditor block={block} />;
     // ─── 50 new blocks ───
-    case "hero-split-portfolio": return <HeroSplitPortfolioBlockEditor block={block} />;
     case "hero-minimal-service": return <HeroMinimalServiceBlockEditor block={block} />;
     case "hero-dark-saas": return <HeroDarkSaasBlockEditor block={block} />;
     case "hero-creator-brand": return <HeroCreatorBrandBlockEditor block={block} />;
     case "hero-video-showreel": return <HeroVideoShowreelBlockEditor block={block} />;
-    case "projects-grid-cases": return <ProjectsGridCasesBlockEditor block={block} />;
-    case "projects-horizontal": return <ProjectsHorizontalBlockEditor block={block} />;
-    case "project-before-after": return <ProjectBeforeAfterBlockEditor block={block} />;
-    case "project-timeline": return <ProjectTimelineBlockEditor block={block} />;
-    case "project-masonry-wall": return <ProjectMasonryWallBlockEditor block={block} />;
     case "services-3card-premium": return <Services3CardPremiumBlockEditor block={block} />;
     case "services-icon-grid": return <ServicesIconGridBlockEditor block={block} />;
     case "services-split-value": return <ServicesSplitValueBlockEditor block={block} />;

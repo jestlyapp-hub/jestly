@@ -29,7 +29,7 @@ export function useSubscription() {
   const beta = isBetaOpenAccess();
 
   const planId = data ? normalizePlanId(data.planId) : "starter";
-  const usage: ResourceUsage = data?.usage ?? { sites: 0, ordersThisMonth: 0, activeProjects: 0 };
+  const usage: ResourceUsage = data?.usage ?? { sites: 0, ordersThisMonth: 0 };
 
   // En mode bêta, on résout les entitlements comme un plan Business (tout illimité)
   const effectivePlanId: PlanId = beta ? "business" : planId;

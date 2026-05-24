@@ -40,7 +40,7 @@ export interface CalendarEvent {
   notes?: string;
   priority: EventPriority;
   /** Source type */
-  source: "manual" | "order" | "task" | "project" | "invoice";
+  source: "manual" | "order" | "task" | "invoice";
   /** Custom hex color (overrides category default) */
   color?: string;
   /** FK to calendar_categories */
@@ -57,9 +57,6 @@ export interface CalendarEvent {
   /** If source === "task" */
   taskId?: string;
   taskStatus?: string;
-  /** If source === "project" */
-  projectId?: string;
-  projectStatus?: string;
   /** If source === "invoice" */
   invoiceId?: string;
   invoiceStatus?: string;

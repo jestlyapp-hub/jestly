@@ -25,7 +25,7 @@ export async function GET() {
   // Usage — requêtes en parallèle
   const { start, end } = currentMonthBounds();
 
-  const [sitesRes, ordersRes, projectsRes] = await Promise.all([
+  const [sitesRes, ordersRes] = await Promise.all([
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("sites") as any)
       .select("id", { count: "exact", head: true })
@@ -36,11 +36,6 @@ export async function GET() {
       .eq("user_id", user.id)
       .gte("created_at", `${start}T00:00:00`)
       .lte("created_at", `${end}T23:59:59`),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("projects") as any)
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .neq("status", "archived"),
   ]);
 
   return NextResponse.json({
@@ -53,7 +48,6 @@ export async function GET() {
     usage: {
       sites: sitesRes.count ?? 0,
       ordersThisMonth: ordersRes.count ?? 0,
-      activeProjects: projectsRes.count ?? 0,
     },
   });
 }

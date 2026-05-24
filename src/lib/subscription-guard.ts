@@ -66,14 +66,6 @@ async function countUsage(
         .lte("created_at", `${end}T23:59:59`);
       return count ?? 0;
     }
-    case "active_projects": {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { count } = await (supabase.from("projects") as any)
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", userId)
-        .neq("status", "archived");
-      return count ?? 0;
-    }
     case "pages_per_site": {
       if (!context?.siteId) return 0;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -123,12 +115,11 @@ export async function checkFeatureAccess(
 export async function getFullEntitlements(supabase: SupabaseClient, userId: string) {
   const planId = await getUserPlan(supabase, userId);
 
-  const [sites, ordersThisMonth, activeProjects] = await Promise.all([
+  const [sites, ordersThisMonth] = await Promise.all([
     countUsage(supabase, userId, "sites"),
     countUsage(supabase, userId, "orders_per_month"),
-    countUsage(supabase, userId, "active_projects"),
   ]);
 
-  const usage: ResourceUsage = { sites, ordersThisMonth, activeProjects };
+  const usage: ResourceUsage = { sites, ordersThisMonth };
   return resolveEntitlements(planId, usage);
 }
