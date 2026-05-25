@@ -32,7 +32,10 @@ export async function pinterestApi<T = unknown>(
   const method = options.method ?? "GET";
   const url = new URL(`${API_BASE}${endpoint}`);
   for (const [k, v] of Object.entries(options.query ?? {})) {
-    if (Array.isArray(v)) v.forEach((item) => url.searchParams.append(k, item));
+    // Pinterest API v5 attend les listes d'IDs en CSV (campaign_ids=X,Y,Z),
+    // PAS en multi-value répété (campaign_ids=X&campaign_ids=Y) qui ne renvoie
+    // silencieusement que la 1re entité. Cf bug agrégation Ads 2026-05-25.
+    if (Array.isArray(v)) url.searchParams.set(k, v.join(","));
     else url.searchParams.set(k, String(v));
   }
 

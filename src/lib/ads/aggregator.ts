@@ -32,6 +32,7 @@ export interface TimelinePoint {
 
 interface PerfRow {
   date: string; provider: string; campaign_id: string; campaign_name: string;
+  campaign_status: string | null;
   ads_spend_cents: number; ads_impressions: number; ads_clicks: number;
   ads_outbound_clicks: number; ads_reported_roas: number | null;
   shopify_orders_count: number; shopify_revenue_cents: number;
@@ -39,17 +40,27 @@ interface PerfRow {
   marginal_roas: number | null;
 }
 
+/** Une campagne est-elle archivée (cycle de vie Ads, pas le profit_status) ? */
+function isArchived(status: string | null | undefined): boolean {
+  return String(status ?? "").toUpperCase() === "ARCHIVED";
+}
+
 // ── Helpers DB ──────────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchPerf(supabase: any, userId: string, range: DateRange, providers?: AdsProvider[]): Promise<PerfRow[]> {
+async function fetchPerf(
+  supabase: any, userId: string, range: DateRange,
+  providers?: AdsProvider[], includeArchived = false,
+): Promise<PerfRow[]> {
   let q = supabase.from("campaign_performance_daily")
-    .select("date, provider, campaign_id, campaign_name, ads_spend_cents, ads_impressions, ads_clicks, ads_outbound_clicks, ads_reported_roas, shopify_orders_count, shopify_revenue_cents, real_roas, profit_status, attribution_method, marginal_roas")
+    .select("date, provider, campaign_id, campaign_name, campaign_status, ads_spend_cents, ads_impressions, ads_clicks, ads_outbound_clicks, ads_reported_roas, shopify_orders_count, shopify_revenue_cents, real_roas, profit_status, attribution_method, marginal_roas")
     .eq("user_id", userId)
     .gte("date", range.from)
     .lte("date", range.to);
   if (providers && providers.length > 0) q = q.in("provider", providers);
   const { data } = await q;
-  return (data ?? []) as PerfRow[];
+  const rows = (data ?? []) as PerfRow[];
+  // Par défaut on masque les campagnes archivées (toggle "Voir aussi les archivées").
+  return includeArchived ? rows : rows.filter((r) => !isArchived(r.campaign_status));
 }
 
 // ── Overview KPIs ───────────────────────────────────────────────
@@ -129,11 +140,13 @@ export interface CampaignsListParams {
   sortOrder?: "asc" | "desc";
   limit?: number;
   offset?: number;
+  /** Inclure les campagnes archivées (default false). */
+  includeArchived?: boolean;
 }
 
 export async function getCampaignsList(userId: string, params: CampaignsListParams): Promise<{ campaigns: CampaignRow[]; total: number }> {
   const supabase = createAdminClient();
-  const rows = await fetchPerf(supabase, userId, params.range, params.providers);
+  const rows = await fetchPerf(supabase, userId, params.range, params.providers, params.includeArchived ?? false);
 
   // Agrège par campaign
   const map = new Map<string, CampaignRow & { _statuses: ProfitStatus[] }>();
@@ -143,6 +156,7 @@ export async function getCampaignsList(userId: string, params: CampaignsListPara
       provider: r.provider as AdsProvider,
       campaign_id: r.campaign_id,
       campaign_name: r.campaign_name,
+      lifecycle_status: r.campaign_status ?? null,
       spend_cents: 0, revenue_cents: 0, orders: 0, impressions: 0, clicks: 0,
       ads_reported_roas: null, real_roas: null, marginal_roas: null,
       profit_status: "unmatched" as ProfitStatus,
@@ -155,6 +169,7 @@ export async function getCampaignsList(userId: string, params: CampaignsListPara
     cur.impressions += r.ads_impressions;
     cur.clicks += r.ads_clicks;
     cur._statuses.push(r.profit_status);
+    if (r.campaign_status != null) cur.lifecycle_status = r.campaign_status;
     if (r.attribution_method) cur.attribution_method = (r.attribution_method as CampaignRow["attribution_method"]);
     if (r.ads_reported_roas != null) cur.ads_reported_roas = r.ads_reported_roas;
     map.set(key, cur);

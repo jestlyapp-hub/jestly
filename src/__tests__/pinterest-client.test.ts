@@ -76,13 +76,14 @@ describe("pinterestApi", () => {
     expect(fetchMock.mock.calls.length).toBe(1);
   });
 
-  it("query string : array → repeat keys", async () => {
+  it("query string : array → CSV (Pinterest v5 attend ids=a,b,c, pas multi-value)", async () => {
+    // Pinterest API v5 renvoie SILENCIEUSEMENT que la 1re entité si on répète la clé
+    // (ids=a&ids=b). Le format CSV ids=a,b,c est obligatoire. Cf bug agrégation Ads.
     const fetchMock = mockFetchSeries([jsonResponse({ items: [] })]);
     await pinterestApi(integration, "/x", { query: { ids: ["a", "b", "c"], page_size: 25 } });
     const url = fetchMock.mock.calls[0][0] as string;
-    expect(url).toContain("ids=a");
-    expect(url).toContain("ids=b");
-    expect(url).toContain("ids=c");
+    expect(url).toContain("ids=a%2Cb%2Cc"); // "a,b,c" url-encodé
+    expect(url).not.toContain("ids=a&ids=b"); // surtout PAS de multi-value
     expect(url).toContain("page_size=25");
   });
 });

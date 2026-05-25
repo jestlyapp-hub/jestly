@@ -45,16 +45,27 @@ export function listAdAccounts(i: PinterestIntegrationRef): Promise<Json[]> {
   return pinterestCollectAll<Json>(i, "/ad_accounts", { page_size: 100 });
 }
 
+// Pinterest /campaigns (et /ad_groups, /ads) ne renvoie ACTIVE+PAUSED que par défaut :
+// les ARCHIVED sont silencieusement exclues sans entity_statuses explicite. On les
+// inclut au sync pour pouvoir les afficher derrière le toggle "Voir aussi les archivées".
+const ALL_ENTITY_STATUSES = "ACTIVE,PAUSED,ARCHIVED";
+
 export function listCampaigns(i: PinterestIntegrationRef, adAccountId: string): Promise<Json[]> {
-  return pinterestCollectAll<Json>(i, `/ad_accounts/${adAccountId}/campaigns`, { page_size: 100 });
+  return pinterestCollectAll<Json>(i, `/ad_accounts/${adAccountId}/campaigns`, {
+    page_size: 100, entity_statuses: ALL_ENTITY_STATUSES,
+  });
 }
 
 export function listAdGroups(i: PinterestIntegrationRef, adAccountId: string): Promise<Json[]> {
-  return pinterestCollectAll<Json>(i, `/ad_accounts/${adAccountId}/ad_groups`, { page_size: 100 });
+  return pinterestCollectAll<Json>(i, `/ad_accounts/${adAccountId}/ad_groups`, {
+    page_size: 100, entity_statuses: ALL_ENTITY_STATUSES,
+  });
 }
 
 export function listAds(i: PinterestIntegrationRef, adAccountId: string): Promise<Json[]> {
-  return pinterestCollectAll<Json>(i, `/ad_accounts/${adAccountId}/ads`, { page_size: 100 });
+  return pinterestCollectAll<Json>(i, `/ad_accounts/${adAccountId}/ads`, {
+    page_size: 100, entity_statuses: ALL_ENTITY_STATUSES,
+  });
 }
 
 export function getCampaignsAnalytics(

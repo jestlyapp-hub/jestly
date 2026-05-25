@@ -16,11 +16,12 @@ export async function GET(req: NextRequest) {
   const search = url.searchParams.get("search") ?? undefined;
   const limit = Math.min(parseInt(url.searchParams.get("limit") ?? "50", 10), 200);
   const offset = parseInt(url.searchParams.get("offset") ?? "0", 10);
+  const includeArchived = ["1", "true"].includes((url.searchParams.get("include_archived") ?? "").toLowerCase());
 
   const result = await getCampaignsList(auth.user.id, {
     range, providers,
     status: status && ["profitable", "warning", "unprofitable", "unmatched"].includes(status) ? status : undefined,
-    sortBy, sortOrder, search, limit, offset,
+    sortBy, sortOrder, search, limit, offset, includeArchived,
   });
   return NextResponse.json(result);
 }

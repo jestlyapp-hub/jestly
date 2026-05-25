@@ -38,6 +38,7 @@ function AdsOverviewContent() {
   const sortOrder = (searchParams.get("sortOrder") ?? "desc") as "asc" | "desc";
   const status = (searchParams.get("status") ?? "all") as ProfitStatus | "all";
   const search = searchParams.get("search") ?? "";
+  const includeArchived = searchParams.get("archived") === "1";
 
   const queryString = useMemo(() => {
     const p = new URLSearchParams();
@@ -52,8 +53,9 @@ function AdsOverviewContent() {
     p.set("sortOrder", sortOrder);
     if (status !== "all") p.set("status", status);
     if (search) p.set("search", search);
+    if (includeArchived) p.set("include_archived", "1");
     return p.toString();
-  }, [range, sortBy, sortOrder, status, search]);
+  }, [range, sortBy, sortOrder, status, search, includeArchived]);
 
   const { data: overview, mutate: mutateOverview } = useApi<OverviewResponse>(`/api/ecom/ads/overview?${queryString}`);
   const { data: pinterestStatus } = useApi<PinterestStatus>("/api/integrations/pinterest/status");
@@ -203,10 +205,12 @@ function AdsOverviewContent() {
         }}
         onStatusFilter={(s) => updateParam("status", s === "all" ? null : s)}
         onSearchChange={(s) => updateParam("search", s || null)}
+        onIncludeArchivedChange={(v) => updateParam("archived", v ? "1" : null)}
         currentSortBy={sortBy}
         currentSortOrder={sortOrder}
         currentStatus={status}
         currentSearch={search}
+        includeArchived={includeArchived}
         exportHref={`/api/ecom/ads/export?range=${range}`}
       />
 

@@ -14,19 +14,21 @@ interface Props {
   onSortChange?: (sortBy: string, sortOrder: "asc" | "desc") => void;
   onStatusFilter?: (status: ProfitStatus | "all") => void;
   onSearchChange?: (search: string) => void;
+  onIncludeArchivedChange?: (include: boolean) => void;
   currentSortBy?: string;
   currentSortOrder?: "asc" | "desc";
   currentStatus?: ProfitStatus | "all";
   currentSearch?: string;
+  includeArchived?: boolean;
   exportHref?: string;
 }
 
 type SortKey = "campaign_name" | "spend_cents" | "revenue_cents" | "real_roas" | "orders";
 
 export default function CampaignsTable({
-  campaigns, total, onSortChange, onStatusFilter, onSearchChange,
+  campaigns, total, onSortChange, onStatusFilter, onSearchChange, onIncludeArchivedChange,
   currentSortBy = "spend", currentSortOrder = "desc", currentStatus = "all",
-  currentSearch = "", exportHref,
+  currentSearch = "", includeArchived = false, exportHref,
 }: Props) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -95,6 +97,15 @@ export default function CampaignsTable({
           <option value="unprofitable">En perte</option>
           <option value="unmatched">Non attribuées</option>
         </select>
+        <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] text-[#5A5A58] cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={includeArchived}
+            onChange={(e) => onIncludeArchivedChange?.(e.target.checked)}
+            className="accent-[#7C3AED] cursor-pointer"
+          />
+          Voir aussi les archivées
+        </label>
         {selected.size >= 2 && (
           <button
             onClick={handleCompare}
@@ -150,6 +161,11 @@ export default function CampaignsTable({
                       className="flex items-center gap-1.5 text-[12px] font-medium text-[#191919] hover:text-[#7C3AED]">
                       <span className="text-[13px]">{providerEmoji(c.provider)}</span>
                       <span className="line-clamp-1">{c.campaign_name}</span>
+                      {String(c.lifecycle_status ?? "").toUpperCase() === "ARCHIVED" && (
+                        <span className="flex-shrink-0 px-1.5 py-0.5 rounded text-[9px] font-semibold uppercase tracking-wide bg-[#F2F2F0] text-[#8A8A88]">
+                          Archivée
+                        </span>
+                      )}
                     </Link>
                   </td>
                   <td className="px-3 py-2.5 text-right text-[12px] tabular-nums text-[#191919]">{formatCurrency(c.spend_cents)}</td>

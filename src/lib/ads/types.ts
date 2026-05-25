@@ -80,6 +80,8 @@ export interface CampaignRow {
   provider: AdsProvider;
   campaign_id: string;
   campaign_name: string;
+  /** Statut de cycle de vie Ads (ACTIVE/PAUSED/ARCHIVED…), distinct du profit_status. */
+  lifecycle_status?: string | null;
   spend_cents: number;
   revenue_cents: number;
   orders: number;

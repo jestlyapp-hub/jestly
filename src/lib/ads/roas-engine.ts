@@ -73,6 +73,7 @@ interface DailyMetricsRow {
   date: string;
   campaign_id: string;
   campaign_name: string;
+  campaign_status: string | null; // cycle de vie (ACTIVE/PAUSED/ARCHIVED)
   spend_cents: number;
   impressions: number;
   clicks: number;
@@ -105,17 +106,19 @@ async function loadMetricsByProvider(
     .gte("date", fromIso)
     .lte("date", toIso);
 
-  // Récupère le nom des campagnes
+  // Récupère le nom + statut de cycle de vie des campagnes
   const ids = [...new Set((rows ?? []).map((r: { entity_id: string }) => r.entity_id))];
   const nameMap = new Map<string, string>();
+  const statusMap = new Map<string, string | null>();
   if (ids.length > 0) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: camps } = await (supabase.from("pinterest_campaigns") as any)
-      .select("pinterest_campaign_id, name")
+      .select("pinterest_campaign_id, name, status")
       .eq("integration_id", integ.id)
       .in("pinterest_campaign_id", ids);
-    for (const c of (camps ?? []) as Array<{ pinterest_campaign_id: string; name: string }>) {
+    for (const c of (camps ?? []) as Array<{ pinterest_campaign_id: string; name: string; status: string | null }>) {
       nameMap.set(c.pinterest_campaign_id, c.name);
+      statusMap.set(c.pinterest_campaign_id, c.status ?? null);
     }
   }
 
@@ -123,6 +126,7 @@ async function loadMetricsByProvider(
     date: r.date as string,
     campaign_id: r.entity_id as string,
     campaign_name: nameMap.get(r.entity_id as string) ?? String(r.entity_id),
+    campaign_status: statusMap.get(r.entity_id as string) ?? null,
     spend_cents: Number(r.spend_cents ?? 0),
     impressions: Number(r.impressions ?? 0),
     clicks: Number(r.clicks ?? 0),
@@ -219,7 +223,22 @@ export async function refreshUserCampaignPerformance(params: RefreshParams): Pro
   // 4. Pour chaque provider, charge les metrics journalières puis upsert performance_daily
   let totalUpserted = 0;
   for (const provider of providers) {
+    const supabase = createAdminClient();
     const metrics = await loadMetricsByProvider(userId, provider, fromIso, toIso);
+
+    // Recompute cohérent : purge la fenêtre [fromIso, toIso] pour ce provider AVANT
+    // de ré-insérer. Sinon les jours qui ne sont plus renvoyés par l'API Ads (ex.
+    // une campagne dont la fenêtre de dépense s'est rétrécie) restent en base et
+    // gonflent le spend agrégé. L'upsert seul ne nettoie pas ces orphelins.
+    // Cf bug agrégation Ads 2026-05-25.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from("campaign_performance_daily") as any)
+      .delete()
+      .eq("user_id", userId)
+      .eq("provider", provider)
+      .gte("date", fromIso)
+      .lte("date", toIso);
+
     if (metrics.length === 0) {
       // Pas de metrics → on log mais on continue (les autres providers ou les orders unmatched)
       logger.info("roas_no_metrics_for_provider", { userId, provider });
@@ -244,7 +263,6 @@ export async function refreshUserCampaignPerformance(params: RefreshParams): Pro
     }
 
     // Upsert 1 row par (campaign, jour)
-    const supabase = createAdminClient();
     for (const m of metrics) {
       const key = `${m.campaign_id}|${m.date}`;
       const attr = attrByCampaignDay.get(key);
@@ -269,6 +287,7 @@ export async function refreshUserCampaignPerformance(params: RefreshParams): Pro
         provider,
         campaign_id: m.campaign_id,
         campaign_name: m.campaign_name,
+        campaign_status: m.campaign_status,
         ads_spend_cents: m.spend_cents,
         ads_impressions: m.impressions,
         ads_clicks: m.clicks,
