@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, ShoppingCart, Package, Users, BarChart3, Target, Settings } from "lucide-react";
 import { formatRelativeDate } from "@/lib/shopify/formatters";
+import AccountMemoryBanner from "@/components/ecom/AccountMemoryBanner";
 
 interface Props {
   integration: {
@@ -64,7 +65,10 @@ export default function EcomShell({ integration, children }: Props) {
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-6 py-6">{children}</div>
+      <div className="max-w-[1400px] mx-auto px-6 py-6">
+        <AccountMemoryBanner />
+        {children}
+      </div>
     </div>
   );
 }
