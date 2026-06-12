@@ -256,13 +256,22 @@ async function loadOrdersInWindow(userId: string, fromIso: string, toIso: string
   const integIds = (integs ?? []).map((i: { id: string }) => i.id);
   if (integIds.length === 0) return [];
 
+  // utm_content / utm_term n'existent PAS dans shopify_orders (schéma 072) : les
+  // sélectionner faisait échouer toute la requête (42703) et l'erreur silencieuse
+  // laissait le moteur tourner avec 0 commande → revenue 0 partout (diagnostic
+  // 2026-06-12). À réintégrer ici quand la migration les ajoutera et que le sync
+  // Shopify les remplira (prérequis du ROAS par visuel).
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: rows } = await (supabase.from("shopify_orders") as any)
-    .select("shopify_order_id, created_at, total_price, landing_site, referring_site, source_name, utm_source, utm_medium, utm_campaign, utm_content, utm_term")
+  const { data: rows, error } = await (supabase.from("shopify_orders") as any)
+    .select("shopify_order_id, created_at, total_price, landing_site, referring_site, source_name, utm_source, utm_medium, utm_campaign")
     .in("integration_id", integIds)
     .gte("created_at", fromIso + "T00:00:00")
     .lte("created_at", toIso + "T23:59:59")
     .is("cancelled_at", null);
+  if (error) {
+    logger.error("roas_load_orders_failed", { userId, error: error.message });
+    return [];
+  }
 
   return ((rows ?? []) as Array<Record<string, unknown>>).map((r) => ({
     shopify_order_id: r.shopify_order_id as string,
@@ -274,8 +283,8 @@ async function loadOrdersInWindow(userId: string, fromIso: string, toIso: string
     utm_source: (r.utm_source as string | null) ?? null,
     utm_medium: (r.utm_medium as string | null) ?? null,
     utm_campaign: (r.utm_campaign as string | null) ?? null,
-    utm_content: (r.utm_content as string | null) ?? null,
-    utm_term: (r.utm_term as string | null) ?? null,
+    utm_content: null,
+    utm_term: null,
   }));
 }
 
@@ -326,6 +335,7 @@ export async function refreshUserCampaignPerformance(params: RefreshParams): Pro
     Date.now() - (daysBack + settings.attribution_window_days) * 24 * 3600 * 1000
   ).toISOString().slice(0, 10);
   const orders = await loadOrdersInWindow(userId, matchWindowFromIso, toIso);
+  logger.info("roas_orders_loaded", { userId, count: orders.length, from: matchWindowFromIso, to: toIso });
 
   // 2. Match chaque order et garde les résultats en mémoire
   type OrderMatch = { order: ShopifyOrderForMatch; matches: MatchResult[] };
@@ -336,6 +346,11 @@ export async function refreshUserCampaignPerformance(params: RefreshParams): Pro
     });
     orderMatches.push({ order, matches });
   }
+  logger.info("roas_orders_matched", {
+    userId,
+    matched: orderMatches.filter(({ matches }) => matches.some((m) => m.campaign_id)).length,
+    unmatched: orderMatches.filter(({ matches }) => !matches.some((m) => m.campaign_id)).length,
+  });
 
   // 3. Persiste les touchpoints (truncate + insert pour cette fenêtre)
   await persistAttributionTouches(userId, orderMatches, fromIso);
