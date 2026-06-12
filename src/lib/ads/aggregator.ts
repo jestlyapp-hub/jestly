@@ -3,7 +3,7 @@
  * Utilise campaign_performance_daily comme source primaire (déjà computé).
  */
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { AdsProvider, DateRange, ProfitStatus, CampaignRow } from "./types";
+import type { AdsProvider, DateRange, ProfitStatus, CampaignRow, CreativeRow } from "./types";
 import { computeRoas } from "./roas-engine";
 
 export interface OverviewKpis {
@@ -206,6 +206,128 @@ export async function getCampaignsList(userId: string, params: CampaignsListPara
   const offset = params.offset ?? 0;
   const limit = params.limit ?? 50;
   return { campaigns: filtered.slice(offset, offset + limit), total };
+}
+
+// ── Creatives list (grain ad/visuel) ────────────────────────────
+export interface CreativesListParams {
+  range: DateRange;
+  providers?: AdsProvider[];
+  status?: ProfitStatus;
+  search?: string;
+  sortBy?: "spend" | "revenue" | "roas" | "orders";
+  sortOrder?: "asc" | "desc";
+  limit?: number;
+  offset?: number;
+}
+
+interface AdPerfRow {
+  date: string; provider: string; campaign_id: string; campaign_name: string | null;
+  ad_id: string; ad_name: string | null; pin_id: string | null;
+  spend_cents: number; impressions: number; clicks: number;
+  shopify_orders_count: number; shopify_revenue_cents: number;
+  real_roas: number | null; profit_status: ProfitStatus | null;
+}
+
+export async function getCreativesList(
+  userId: string, params: CreativesListParams,
+): Promise<{ creatives: CreativeRow[]; total: number }> {
+  const supabase = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let q = (supabase.from("ad_creative_performance_daily") as any)
+    .select("date, provider, campaign_id, campaign_name, ad_id, ad_name, pin_id, spend_cents, impressions, clicks, shopify_orders_count, shopify_revenue_cents, real_roas, profit_status")
+    .eq("user_id", userId)
+    .gte("date", params.range.from)
+    .lte("date", params.range.to);
+  if (params.providers && params.providers.length > 0) q = q.in("provider", params.providers);
+  const { data } = await q;
+  const rows = (data ?? []) as AdPerfRow[];
+
+  // Agrège par ad
+  const map = new Map<string, CreativeRow & { _statuses: ProfitStatus[] }>();
+  for (const r of rows) {
+    const key = `${r.provider}|${r.ad_id}`;
+    const cur = map.get(key) ?? {
+      provider: r.provider as AdsProvider,
+      ad_id: r.ad_id,
+      ad_name: r.ad_name,
+      pin_id: r.pin_id,
+      pin_title: null,
+      pin_media_url: null,
+      campaign_id: r.campaign_id,
+      campaign_name: r.campaign_name,
+      spend_cents: 0, revenue_cents: 0, orders: 0, impressions: 0, clicks: 0,
+      real_roas: null,
+      profit_status: "unmatched" as ProfitStatus,
+      _statuses: [] as ProfitStatus[],
+    };
+    cur.spend_cents += r.spend_cents;
+    cur.revenue_cents += r.shopify_revenue_cents;
+    cur.orders += r.shopify_orders_count;
+    cur.impressions += r.impressions;
+    cur.clicks += r.clicks;
+    if (r.ad_name) cur.ad_name = r.ad_name;
+    if (r.pin_id) cur.pin_id = r.pin_id;
+    if (r.campaign_name) cur.campaign_name = r.campaign_name;
+    if (r.profit_status) cur._statuses.push(r.profit_status);
+    map.set(key, cur);
+  }
+
+  const aggregated = [...map.values()].map((c) => {
+    c.real_roas = computeRoas(c.revenue_cents, c.spend_cents);
+    const order: Record<ProfitStatus, number> = { unprofitable: 4, warning: 3, profitable: 2, unmatched: 1 };
+    c.profit_status = c._statuses.reduce<ProfitStatus>((worst, s) => (order[s] > order[worst] ? s : worst), "unmatched");
+    delete (c as { _statuses?: ProfitStatus[] })._statuses;
+    return c as CreativeRow;
+  });
+
+  // Joint les infos visuel (miniature + titre) depuis pinterest_pins
+  const pinIds = [...new Set(aggregated.map((c) => c.pin_id).filter((p): p is string => !!p))];
+  if (pinIds.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: integ } = await (supabase.from("integrations") as any)
+      .select("id").eq("user_id", userId).eq("provider", "pinterest").eq("status", "active").maybeSingle();
+    if (integ) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: pins } = await (supabase.from("pinterest_pins") as any)
+        .select("pinterest_pin_id, title, media_url")
+        .eq("integration_id", integ.id)
+        .in("pinterest_pin_id", pinIds);
+      const pinMap = new Map<string, { title: string | null; media_url: string | null }>();
+      for (const p of (pins ?? []) as Array<{ pinterest_pin_id: string; title: string | null; media_url: string | null }>) {
+        pinMap.set(p.pinterest_pin_id, { title: p.title ?? null, media_url: p.media_url ?? null });
+      }
+      for (const c of aggregated) {
+        if (!c.pin_id) continue;
+        const pin = pinMap.get(c.pin_id);
+        if (pin) { c.pin_title = pin.title; c.pin_media_url = pin.media_url; }
+      }
+    }
+  }
+
+  // Filtres
+  let filtered = aggregated;
+  if (params.status) filtered = filtered.filter((c) => c.profit_status === params.status);
+  if (params.search) {
+    const q2 = params.search.toLowerCase();
+    filtered = filtered.filter((c) =>
+      (c.ad_name ?? "").toLowerCase().includes(q2)
+      || (c.pin_title ?? "").toLowerCase().includes(q2)
+      || (c.campaign_name ?? "").toLowerCase().includes(q2));
+  }
+
+  // Tri
+  const sortBy = params.sortBy ?? "spend";
+  const sortOrder = params.sortOrder ?? "desc";
+  filtered.sort((a, b) => {
+    const va = sortBy === "spend" ? a.spend_cents : sortBy === "revenue" ? a.revenue_cents : sortBy === "roas" ? (a.real_roas ?? -1) : a.orders;
+    const vb = sortBy === "spend" ? b.spend_cents : sortBy === "revenue" ? b.revenue_cents : sortBy === "roas" ? (b.real_roas ?? -1) : b.orders;
+    return sortOrder === "asc" ? va - vb : vb - va;
+  });
+
+  const total = filtered.length;
+  const offset = params.offset ?? 0;
+  const limit = params.limit ?? 50;
+  return { creatives: filtered.slice(offset, offset + limit), total };
 }
 
 // ── Campaign detail ─────────────────────────────────────────────
