@@ -10,7 +10,7 @@ import PeriodSelector from "@/components/ecom/ads/PeriodSelector";
 import CreativesTable, { PinThumbnail } from "@/components/ecom/ads/CreativesTable";
 import { computeRoas } from "@/lib/ads/roas-engine";
 import { formatCurrency, formatRoas } from "@/lib/ads/formatters";
-import type { CreativeRow, ProfitStatus } from "@/lib/ads/types";
+import type { CreativeRow, AggregatedProfitStatus } from "@/lib/ads/types";
 
 interface CreativesResponse { creatives: CreativeRow[]; total: number }
 
@@ -20,7 +20,7 @@ function CreativesContent() {
   const range = (searchParams.get("range") ?? "30d") as "7d" | "30d" | "90d" | "custom";
   const sortBy = searchParams.get("sortBy") ?? "spend";
   const sortOrder = (searchParams.get("sortOrder") ?? "desc") as "asc" | "desc";
-  const status = (searchParams.get("status") ?? "all") as ProfitStatus | "all";
+  const status = (searchParams.get("status") ?? "all") as AggregatedProfitStatus | "all";
   const search = searchParams.get("search") ?? "";
 
   const query = useMemo(() => {

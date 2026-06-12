@@ -13,6 +13,14 @@ export type AttributionMethod =
 
 export type ProfitStatus = "profitable" | "warning" | "unprofitable" | "unmatched";
 
+/**
+ * Statut d'un agrégat de période (UI uniquement, jamais écrit en base — le
+ * CHECK de campaign_performance_daily ne connaît que ProfitStatus).
+ * `insufficient_data` : volume insuffisant sur la période pour juger la
+ * rentabilité (spend sous le seuil, aucune commande, ou revenue sans spend).
+ */
+export type AggregatedProfitStatus = ProfitStatus | "insufficient_data";
+
 export type AttributionModel = "first_touch" | "last_touch" | "linear" | "u_shaped";
 
 export interface DateRange {
@@ -96,7 +104,7 @@ export interface CreativeRow {
   impressions: number;
   clicks: number;
   real_roas: number | null;
-  profit_status: ProfitStatus;
+  profit_status: AggregatedProfitStatus;
 }
 
 export interface CampaignRow {
@@ -113,6 +121,6 @@ export interface CampaignRow {
   ads_reported_roas: number | null;
   real_roas: number | null;
   marginal_roas: number | null;
-  profit_status: ProfitStatus;
+  profit_status: AggregatedProfitStatus;
   attribution_method: AttributionMethod | null;
 }

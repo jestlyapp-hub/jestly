@@ -6,18 +6,18 @@ import { useRouter } from "next/navigation";
 import { Search, Download, ChevronUp, ChevronDown, GitCompare } from "lucide-react";
 import { formatCurrency, formatRoas, formatNumberFr, providerEmoji } from "@/lib/ads/formatters";
 import CampaignStatusBadge from "./CampaignStatusBadge";
-import type { CampaignRow, ProfitStatus, AdsProvider } from "@/lib/ads/types";
+import type { CampaignRow, AggregatedProfitStatus, AdsProvider } from "@/lib/ads/types";
 
 interface Props {
   campaigns: CampaignRow[];
   total: number;
   onSortChange?: (sortBy: string, sortOrder: "asc" | "desc") => void;
-  onStatusFilter?: (status: ProfitStatus | "all") => void;
+  onStatusFilter?: (status: AggregatedProfitStatus | "all") => void;
   onSearchChange?: (search: string) => void;
   onIncludeArchivedChange?: (include: boolean) => void;
   currentSortBy?: string;
   currentSortOrder?: "asc" | "desc";
-  currentStatus?: ProfitStatus | "all";
+  currentStatus?: AggregatedProfitStatus | "all";
   currentSearch?: string;
   includeArchived?: boolean;
   exportHref?: string;
@@ -88,13 +88,14 @@ export default function CampaignsTable({
         </form>
         <select
           value={currentStatus}
-          onChange={(e) => onStatusFilter?.(e.target.value as ProfitStatus | "all")}
+          onChange={(e) => onStatusFilter?.(e.target.value as AggregatedProfitStatus | "all")}
           className="px-2.5 py-1.5 border border-[#E6E6E4] rounded-md text-[12px] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
         >
           <option value="all">Tous statuts</option>
           <option value="profitable">Rentables</option>
           <option value="warning">Limites</option>
           <option value="unprofitable">En perte</option>
+          <option value="insufficient_data">Données partielles</option>
           <option value="unmatched">Non attribuées</option>
         </select>
         <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-[12px] text-[#5A5A58] cursor-pointer select-none">

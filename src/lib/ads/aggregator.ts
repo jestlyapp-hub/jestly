@@ -3,8 +3,8 @@
  * Utilise campaign_performance_daily comme source primaire (déjà computé).
  */
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { AdsProvider, DateRange, ProfitStatus, CampaignRow, CreativeRow } from "./types";
-import { computeRoas } from "./roas-engine";
+import type { AdsProvider, DateRange, ProfitStatus, AggregatedProfitStatus, CampaignRow, CreativeRow, EcomSettings } from "./types";
+import { computeRoas, determineProfitStatus, getEcomSettings } from "./roas-engine";
 
 export interface OverviewKpis {
   range: DateRange;
@@ -14,12 +14,40 @@ export interface OverviewKpis {
   impressions: number;
   clicks: number;
   global_roas: number | null;
+  global_status: AggregatedProfitStatus;
   avg_cpc_cents: number | null;
   avg_cpa_cents: number | null;
   profitable_campaigns: number;
   warning_campaigns: number;
   unprofitable_campaigns: number;
+  insufficient_campaigns: number;
   total_campaigns: number;
+}
+
+/**
+ * Statut de rentabilité d'une PÉRIODE agrégée (pas d'un jour isolé).
+ * Le ROAS journalier rapproche le revenue du jour de la commande avec le spend
+ * de ce seul jour : il est ininterprétable dès que le clic et l'achat ne tombent
+ * pas le même jour (cf DIAGNOSTIC-ROAS-CALCUL.md). Le statut découle donc du
+ * MÊME ROAS de période que le chiffre affiché (SUM revenue / SUM spend).
+ *
+ * Garde-fou "données partielles" : sous le seuil de spend, sans commande, ou
+ * avec du revenue sans aucun spend sur la période, le ROAS de période n'est pas
+ * interprétable non plus → statut neutre `insufficient_data` plutôt qu'un
+ * "Rentable"/"Perte" trompeur.
+ */
+export function determinePeriodStatus(
+  totals: { spend_cents: number; revenue_cents: number; orders: number },
+  settings: Pick<EcomSettings, "roas_profitability_threshold" | "roas_warning_threshold" | "alert_min_spend_cents">,
+): AggregatedProfitStatus {
+  if (totals.spend_cents === 0 && totals.revenue_cents > 0) return "insufficient_data";
+  if (totals.orders === 0) return "insufficient_data";
+  if (totals.spend_cents < settings.alert_min_spend_cents) return "insufficient_data";
+  return determineProfitStatus(
+    computeRoas(totals.revenue_cents, totals.spend_cents),
+    settings.roas_profitability_threshold,
+    settings.roas_warning_threshold,
+  );
 }
 
 export interface TimelinePoint {
@@ -66,10 +94,15 @@ async function fetchPerf(
 // ── Overview KPIs ───────────────────────────────────────────────
 export async function getOverviewKpis(userId: string, range: DateRange, providers?: AdsProvider[]): Promise<OverviewKpis> {
   const supabase = createAdminClient();
-  const rows = await fetchPerf(supabase, userId, range, providers);
+  const [rows, settings] = await Promise.all([
+    fetchPerf(supabase, userId, range, providers),
+    getEcomSettings(userId),
+  ]);
 
   let spend = 0, revenue = 0, orders = 0, impressions = 0, clicks = 0;
-  const campaignsByStatus = { profitable: new Set<string>(), warning: new Set<string>(), unprofitable: new Set<string>(), unmatched: new Set<string>() };
+  // Totaux PAR CAMPAGNE sur la période : le statut se juge sur l'agrégat,
+  // jamais sur les lignes journalières (une campagne = un seul statut).
+  const byCampaign = new Map<string, { spend_cents: number; revenue_cents: number; orders: number }>();
 
   for (const r of rows) {
     spend += r.ads_spend_cents;
@@ -78,10 +111,21 @@ export async function getOverviewKpis(userId: string, range: DateRange, provider
     impressions += r.ads_impressions;
     clicks += r.ads_clicks;
     const k = `${r.provider}|${r.campaign_id}`;
-    if (r.profit_status === "profitable") campaignsByStatus.profitable.add(k);
-    else if (r.profit_status === "warning") campaignsByStatus.warning.add(k);
-    else if (r.profit_status === "unprofitable") campaignsByStatus.unprofitable.add(k);
-    else campaignsByStatus.unmatched.add(k);
+    const cur = byCampaign.get(k) ?? { spend_cents: 0, revenue_cents: 0, orders: 0 };
+    cur.spend_cents += r.ads_spend_cents;
+    cur.revenue_cents += r.shopify_revenue_cents;
+    cur.orders += r.shopify_orders_count;
+    byCampaign.set(k, cur);
+  }
+
+  const counts = { profitable: 0, warning: 0, unprofitable: 0, insufficient: 0, other: 0 };
+  for (const totals of byCampaign.values()) {
+    const status = determinePeriodStatus(totals, settings);
+    if (status === "profitable") counts.profitable += 1;
+    else if (status === "warning") counts.warning += 1;
+    else if (status === "unprofitable") counts.unprofitable += 1;
+    else if (status === "insufficient_data") counts.insufficient += 1;
+    else counts.other += 1;
   }
 
   return {
@@ -92,12 +136,14 @@ export async function getOverviewKpis(userId: string, range: DateRange, provider
     impressions,
     clicks,
     global_roas: computeRoas(revenue, spend),
+    global_status: determinePeriodStatus({ spend_cents: spend, revenue_cents: revenue, orders }, settings),
     avg_cpc_cents: clicks > 0 ? Math.round(spend / clicks) : null,
     avg_cpa_cents: orders > 0 ? Math.round(spend / orders) : null,
-    profitable_campaigns: campaignsByStatus.profitable.size,
-    warning_campaigns: campaignsByStatus.warning.size,
-    unprofitable_campaigns: campaignsByStatus.unprofitable.size,
-    total_campaigns: campaignsByStatus.profitable.size + campaignsByStatus.warning.size + campaignsByStatus.unprofitable.size + campaignsByStatus.unmatched.size,
+    profitable_campaigns: counts.profitable,
+    warning_campaigns: counts.warning,
+    unprofitable_campaigns: counts.unprofitable,
+    insufficient_campaigns: counts.insufficient,
+    total_campaigns: byCampaign.size,
   };
 }
 
@@ -134,7 +180,7 @@ export async function getTimeline(userId: string, range: DateRange, providers?: 
 export interface CampaignsListParams {
   range: DateRange;
   providers?: AdsProvider[];
-  status?: ProfitStatus;
+  status?: AggregatedProfitStatus;
   search?: string;
   sortBy?: "spend" | "revenue" | "roas" | "orders";
   sortOrder?: "asc" | "desc";
@@ -146,10 +192,13 @@ export interface CampaignsListParams {
 
 export async function getCampaignsList(userId: string, params: CampaignsListParams): Promise<{ campaigns: CampaignRow[]; total: number }> {
   const supabase = createAdminClient();
-  const rows = await fetchPerf(supabase, userId, params.range, params.providers, params.includeArchived ?? false);
+  const [rows, settings] = await Promise.all([
+    fetchPerf(supabase, userId, params.range, params.providers, params.includeArchived ?? false),
+    getEcomSettings(userId),
+  ]);
 
   // Agrège par campaign
-  const map = new Map<string, CampaignRow & { _statuses: ProfitStatus[] }>();
+  const map = new Map<string, CampaignRow>();
   for (const r of rows) {
     const key = `${r.provider}|${r.campaign_id}`;
     const cur = map.get(key) ?? {
@@ -159,30 +208,27 @@ export async function getCampaignsList(userId: string, params: CampaignsListPara
       lifecycle_status: r.campaign_status ?? null,
       spend_cents: 0, revenue_cents: 0, orders: 0, impressions: 0, clicks: 0,
       ads_reported_roas: null, real_roas: null, marginal_roas: null,
-      profit_status: "unmatched" as ProfitStatus,
+      profit_status: "unmatched" as AggregatedProfitStatus,
       attribution_method: null,
-      _statuses: [] as ProfitStatus[],
     };
     cur.spend_cents += r.ads_spend_cents;
     cur.revenue_cents += r.shopify_revenue_cents;
     cur.orders += r.shopify_orders_count;
     cur.impressions += r.ads_impressions;
     cur.clicks += r.ads_clicks;
-    cur._statuses.push(r.profit_status);
     if (r.campaign_status != null) cur.lifecycle_status = r.campaign_status;
     if (r.attribution_method) cur.attribution_method = (r.attribution_method as CampaignRow["attribution_method"]);
     if (r.ads_reported_roas != null) cur.ads_reported_roas = r.ads_reported_roas;
     map.set(key, cur);
   }
 
-  // Recompute aggregated real_roas + profit_status
+  // ROAS + statut depuis le MÊME agrégat de période (jamais les statuts daily,
+  // cf DIAGNOSTIC-ROAS-CALCUL.md : "pire des jours" marquait "Perte" toute
+  // campagne avec moins d'une vente par jour).
   const aggregated = [...map.values()].map((c) => {
     c.real_roas = computeRoas(c.revenue_cents, c.spend_cents);
-    // Status agrégé : pire des statuts daily (unprofitable > warning > profitable > unmatched)
-    const order: Record<ProfitStatus, number> = { unprofitable: 4, warning: 3, profitable: 2, unmatched: 1 };
-    c.profit_status = c._statuses.reduce<ProfitStatus>((worst, s) => (order[s] > order[worst] ? s : worst), "unmatched");
-    delete (c as { _statuses?: ProfitStatus[] })._statuses;
-    return c as CampaignRow;
+    c.profit_status = determinePeriodStatus(c, settings);
+    return c;
   });
 
   // Filtres
@@ -212,7 +258,7 @@ export async function getCampaignsList(userId: string, params: CampaignsListPara
 export interface CreativesListParams {
   range: DateRange;
   providers?: AdsProvider[];
-  status?: ProfitStatus;
+  status?: AggregatedProfitStatus;
   search?: string;
   sortBy?: "spend" | "revenue" | "roas" | "orders";
   sortOrder?: "asc" | "desc";
@@ -232,6 +278,7 @@ export async function getCreativesList(
   userId: string, params: CreativesListParams,
 ): Promise<{ creatives: CreativeRow[]; total: number }> {
   const supabase = createAdminClient();
+  const settings = await getEcomSettings(userId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let q = (supabase.from("ad_creative_performance_daily") as any)
     .select("date, provider, campaign_id, campaign_name, ad_id, ad_name, pin_id, spend_cents, impressions, clicks, shopify_orders_count, shopify_revenue_cents, real_roas, profit_status")
@@ -243,7 +290,7 @@ export async function getCreativesList(
   const rows = (data ?? []) as AdPerfRow[];
 
   // Agrège par ad
-  const map = new Map<string, CreativeRow & { _statuses: ProfitStatus[] }>();
+  const map = new Map<string, CreativeRow>();
   for (const r of rows) {
     const key = `${r.provider}|${r.ad_id}`;
     const cur = map.get(key) ?? {
@@ -257,8 +304,7 @@ export async function getCreativesList(
       campaign_name: r.campaign_name,
       spend_cents: 0, revenue_cents: 0, orders: 0, impressions: 0, clicks: 0,
       real_roas: null,
-      profit_status: "unmatched" as ProfitStatus,
-      _statuses: [] as ProfitStatus[],
+      profit_status: "unmatched" as AggregatedProfitStatus,
     };
     cur.spend_cents += r.spend_cents;
     cur.revenue_cents += r.shopify_revenue_cents;
@@ -268,16 +314,14 @@ export async function getCreativesList(
     if (r.ad_name) cur.ad_name = r.ad_name;
     if (r.pin_id) cur.pin_id = r.pin_id;
     if (r.campaign_name) cur.campaign_name = r.campaign_name;
-    if (r.profit_status) cur._statuses.push(r.profit_status);
     map.set(key, cur);
   }
 
+  // Même règle que les campagnes : statut depuis l'agrégat de période.
   const aggregated = [...map.values()].map((c) => {
     c.real_roas = computeRoas(c.revenue_cents, c.spend_cents);
-    const order: Record<ProfitStatus, number> = { unprofitable: 4, warning: 3, profitable: 2, unmatched: 1 };
-    c.profit_status = c._statuses.reduce<ProfitStatus>((worst, s) => (order[s] > order[worst] ? s : worst), "unmatched");
-    delete (c as { _statuses?: ProfitStatus[] })._statuses;
-    return c as CreativeRow;
+    c.profit_status = determinePeriodStatus(c, settings);
+    return c;
   });
 
   // Joint les infos visuel (miniature + titre) depuis pinterest_pins

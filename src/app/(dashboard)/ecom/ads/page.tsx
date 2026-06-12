@@ -16,12 +16,12 @@ import PeriodSelector from "@/components/ecom/ads/PeriodSelector";
 import InsightsBar from "@/components/ecom/ads/InsightsBar";
 import { computeRoas } from "@/lib/ads/roas-engine";
 import { formatRoas } from "@/lib/ads/formatters";
-import type { CampaignRow, ProfitStatus } from "@/lib/ads/types";
+import type { CampaignRow, AggregatedProfitStatus } from "@/lib/ads/types";
 
 interface OverviewResponse {
   range: { from: string; to: string };
-  kpis: Record<string, { value?: number; value_cents?: number | null; formatted: string; delta_percent: number | null; status?: ProfitStatus }>;
-  campaigns_by_status: { profitable: number; warning: number; unprofitable: number; total: number };
+  kpis: Record<string, { value?: number; value_cents?: number | null; formatted: string; delta_percent: number | null; status?: AggregatedProfitStatus }>;
+  campaigns_by_status: { profitable: number; warning: number; unprofitable: number; insufficient: number; total: number };
 }
 
 interface TimelineResponse { points: Array<{ date: string; spend_cents: number; revenue_cents: number; orders: number; roas: number | null }> }
@@ -36,7 +36,7 @@ function AdsOverviewContent() {
   const range = (searchParams.get("range") ?? "30d") as "7d" | "30d" | "90d" | "custom";
   const sortBy = searchParams.get("sortBy") ?? "spend";
   const sortOrder = (searchParams.get("sortOrder") ?? "desc") as "asc" | "desc";
-  const status = (searchParams.get("status") ?? "all") as ProfitStatus | "all";
+  const status = (searchParams.get("status") ?? "all") as AggregatedProfitStatus | "all";
   const search = searchParams.get("search") ?? "";
   const includeArchived = searchParams.get("archived") === "1";
 

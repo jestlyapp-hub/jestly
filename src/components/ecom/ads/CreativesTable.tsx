@@ -5,17 +5,17 @@ import Link from "next/link";
 import { Search, ChevronUp, ChevronDown, ImageOff } from "lucide-react";
 import { formatCurrency, formatRoas, formatNumberFr } from "@/lib/ads/formatters";
 import CampaignStatusBadge from "./CampaignStatusBadge";
-import type { CreativeRow, ProfitStatus } from "@/lib/ads/types";
+import type { CreativeRow, AggregatedProfitStatus } from "@/lib/ads/types";
 
 interface Props {
   creatives: CreativeRow[];
   total: number;
   onSortChange?: (sortBy: string, sortOrder: "asc" | "desc") => void;
-  onStatusFilter?: (status: ProfitStatus | "all") => void;
+  onStatusFilter?: (status: AggregatedProfitStatus | "all") => void;
   onSearchChange?: (search: string) => void;
   currentSortBy?: string;
   currentSortOrder?: "asc" | "desc";
-  currentStatus?: ProfitStatus | "all";
+  currentStatus?: AggregatedProfitStatus | "all";
   currentSearch?: string;
 }
 
@@ -90,13 +90,14 @@ export default function CreativesTable({
         </form>
         <select
           value={currentStatus}
-          onChange={(e) => onStatusFilter?.(e.target.value as ProfitStatus | "all")}
+          onChange={(e) => onStatusFilter?.(e.target.value as AggregatedProfitStatus | "all")}
           className="px-2.5 py-1.5 border border-[#E6E6E4] rounded-md text-[12px] focus:outline-none focus:ring-2 focus:ring-[#7C3AED]/30"
         >
           <option value="all">Tous statuts</option>
           <option value="profitable">Rentables</option>
           <option value="warning">Limites</option>
           <option value="unprofitable">En perte</option>
+          <option value="insufficient_data">Données partielles</option>
           <option value="unmatched">Non attribués</option>
         </select>
       </div>

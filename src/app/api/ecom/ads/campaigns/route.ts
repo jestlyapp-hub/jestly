@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { getCampaignsList } from "@/lib/ads/aggregator";
-import type { ProfitStatus } from "@/lib/ads/types";
+import type { AggregatedProfitStatus } from "@/lib/ads/types";
 import { parseRange, parseProviders } from "../_helpers";
 
 export async function GET(req: NextRequest) {
@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const range = parseRange(url.searchParams.get("range"), url.searchParams.get("from"), url.searchParams.get("to"));
   const providers = parseProviders(url.searchParams.get("providers"));
-  const status = url.searchParams.get("status") as ProfitStatus | null;
+  const status = url.searchParams.get("status") as AggregatedProfitStatus | null;
   const sortBy = (url.searchParams.get("sortBy") ?? "spend") as "spend" | "revenue" | "roas" | "orders";
   const sortOrder = (url.searchParams.get("sortOrder") ?? "desc") as "asc" | "desc";
   const search = url.searchParams.get("search") ?? undefined;
@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
 
   const result = await getCampaignsList(auth.user.id, {
     range, providers,
-    status: status && ["profitable", "warning", "unprofitable", "unmatched"].includes(status) ? status : undefined,
+    status: status && ["profitable", "warning", "unprofitable", "unmatched", "insufficient_data"].includes(status) ? status : undefined,
     sortBy, sortOrder, search, limit, offset, includeArchived,
   });
   return NextResponse.json(result);

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import type { AggregatedProfitStatus } from "@/lib/ads/types";
 
 export interface KpiData {
   label: string;
@@ -9,7 +10,7 @@ export interface KpiData {
   delta_percent: number | null;
   /** True si une variation positive est bonne (CA, ROAS, commandes) ; false pour CPC/CPA. */
   positiveIsGood: boolean;
-  status?: "profitable" | "warning" | "unprofitable" | "unmatched";
+  status?: AggregatedProfitStatus;
 }
 
 interface Props {
@@ -22,6 +23,7 @@ const STATUS_COLOR: Record<NonNullable<KpiData["status"]>, string> = {
   warning: "text-amber-600",
   unprofitable: "text-rose-600",
   unmatched: "text-[#8A8A88]",
+  insufficient_data: "text-sky-600",
 };
 
 export default function AdsKpiGrid({ kpis, loading }: Props) {

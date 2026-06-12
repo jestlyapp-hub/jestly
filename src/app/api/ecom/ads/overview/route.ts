@@ -48,9 +48,8 @@ export async function GET(req: NextRequest) {
         value: current.global_roas,
         formatted: formatRoas(current.global_roas),
         delta_percent: deltaPct(current.global_roas ?? 0, previous.global_roas ?? 0),
-        status: current.global_roas == null ? "unmatched" :
-          current.global_roas >= 2 ? "profitable" :
-          current.global_roas >= 1.5 ? "warning" : "unprofitable",
+        // Statut de période (seuils des settings + garde-fou volume), plus de seuils en dur
+        status: current.global_status,
       },
       orders: {
         value: current.orders,
@@ -72,6 +71,7 @@ export async function GET(req: NextRequest) {
       profitable: current.profitable_campaigns,
       warning: current.warning_campaigns,
       unprofitable: current.unprofitable_campaigns,
+      insufficient: current.insufficient_campaigns,
       total: current.total_campaigns,
     },
     providers: providers ?? ["pinterest", "google_ads", "meta_ads", "tiktok_ads"],
