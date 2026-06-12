@@ -39,6 +39,7 @@ export function formatConfidence(c: number | null): string {
 
 export function formatAttributionMethod(method: string | null): string {
   switch (method) {
+    case "utm_content_exact": return "UTM visuel exact";
     case "utm_campaign_exact": return "UTM exact";
     case "utm_source_prorata": return "Source prorata";
     case "referring_site": return "Domaine référent";

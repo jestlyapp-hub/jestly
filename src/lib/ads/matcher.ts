@@ -1,7 +1,9 @@
 /**
- * Matcher commande Shopify → campagne Ads.
+ * Matcher commande Shopify → campagne Ads (et ad/visuel quand possible).
  *
- * 4 heuristiques (essayées dans l'ordre) :
+ * 5 heuristiques (essayées dans l'ordre) :
+ *   0. utm_content_exact  : utm_content === ad_id Pinterest (tracking template {adid})
+ *      → grain ad/visuel, la commande est aussi rattachée à la campagne parente
  *   1. utm_campaign_exact : utm_campaign === campaign_id numérique OU campaign_name normalisé
  *   2. utm_source_prorata : utm_source connu mais pas de campaign match → prorata par spend
  *      sur la fenêtre d'attribution (top 3 campagnes du provider, weights sum = 1)
@@ -75,6 +77,82 @@ async function loadCampaignsForUser(userId: string): Promise<Array<{ provider: A
   return out;
 }
 
+export interface AdCandidate {
+  provider: AdsProvider;
+  ad_id: string;
+  ad_name: string | null;
+  pin_id: string | null;
+  campaign_id: string;
+}
+
+/**
+ * Match pur utm_content → ad. Gère le {adid} seul ET les templates combinés
+ * type "{adid}_{device}" (ex "687195134313_c") : les ad_id Pinterest étant
+ * numériques, on teste aussi chaque token numérique ≥ 6 chiffres.
+ */
+export function matchAdFromUtmContent<T extends { ad_id: string }>(
+  utmContent: string | null | undefined,
+  ads: T[],
+): T | null {
+  if (!utmContent) return null;
+  const content = String(utmContent).trim();
+  if (!content) return null;
+  const byId = new Map(ads.map((a) => [a.ad_id, a]));
+  const exact = byId.get(content);
+  if (exact) return exact;
+  const tokens = content.split(/[^0-9]+/).filter((t) => t.length >= 6);
+  for (const t of tokens) {
+    const hit = byId.get(t);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/**
+ * Charge les ads Pinterest avec leur campagne parente résolue (ad → ad_group → campaign).
+ * Appelé en lazy : uniquement quand la commande porte un utm_content.
+ * V1 = Pinterest only (mêmes raisons que loadCampaignsForUser).
+ */
+async function loadAdsForUser(userId: string): Promise<AdCandidate[]> {
+  const supabase = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: integ } = await (supabase.from("integrations") as any)
+    .select("id")
+    .eq("user_id", userId)
+    .eq("provider", "pinterest")
+    .eq("status", "active")
+    .maybeSingle();
+  if (!integ) return [];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: adGroups } = await (supabase.from("pinterest_ad_groups") as any)
+    .select("pinterest_ad_group_id, campaign_id")
+    .eq("integration_id", integ.id);
+  const campaignByAdGroup = new Map<string, string>();
+  for (const g of (adGroups ?? []) as Array<{ pinterest_ad_group_id: string; campaign_id: string }>) {
+    campaignByAdGroup.set(g.pinterest_ad_group_id, g.campaign_id);
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: ads } = await (supabase.from("pinterest_ads") as any)
+    .select("pinterest_ad_id, name, ad_group_id, pin_id")
+    .eq("integration_id", integ.id);
+
+  const out: AdCandidate[] = [];
+  for (const a of (ads ?? []) as Array<{ pinterest_ad_id: string; name: string | null; ad_group_id: string; pin_id: string | null }>) {
+    const campaignId = campaignByAdGroup.get(a.ad_group_id);
+    if (!campaignId) continue; // chaîne ad → campagne non résoluble → cascade classique
+    out.push({
+      provider: "pinterest",
+      ad_id: a.pinterest_ad_id,
+      ad_name: a.name ?? null,
+      pin_id: a.pin_id ?? null,
+      campaign_id: campaignId,
+    });
+  }
+  return out;
+}
+
 /** Charge le spend agrégé par campagne d'un provider sur la fenêtre [from, to]. */
 async function loadSpendByCampaign(
   userId: string,
@@ -117,6 +195,30 @@ export async function matchOrderToCampaign(params: MatchParams): Promise<MatchRe
   const campaigns = await loadCampaignsForUser(userId);
   if (campaigns.length === 0) {
     return [unmatchedResult()];
+  }
+
+  // ── Heuristique 0 : utm_content exact match sur un ad_id ──────
+  // Tracking template Pinterest avec {adid} → grain ad/visuel. La commande
+  // reste rattachée à la campagne parente (le pipeline campagne ne change pas).
+  if (utms.content) {
+    const ads = await loadAdsForUser(userId);
+    const ad = matchAdFromUtmContent(utms.content, ads);
+    if (ad) {
+      const parent = campaigns.find((c) => c.provider === ad.provider && c.campaign_id === ad.campaign_id);
+      if (parent) {
+        return [{
+          provider: ad.provider,
+          campaign_id: parent.campaign_id,
+          campaign_name: parent.campaign_name,
+          method: "utm_content_exact",
+          confidence: 0.95,
+          attribution_weight: 1.0,
+          ad_id: ad.ad_id,
+          ad_name: ad.ad_name,
+          pin_id: ad.pin_id,
+        }];
+      }
+    }
   }
 
   // ── Heuristique 1 : utm_campaign exact match (id OU name) ─────

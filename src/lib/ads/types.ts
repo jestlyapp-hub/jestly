@@ -5,6 +5,7 @@
 export type AdsProvider = "pinterest" | "google_ads" | "meta_ads" | "tiktok_ads";
 
 export type AttributionMethod =
+  | "utm_content_exact"    // utm_content match exact sur un ad_id ({adid} du tracking template)
   | "utm_campaign_exact"   // utm_campaign match exact (id ou name normalisé)
   | "utm_source_prorata"   // pas de campaign match, prorata par spend sur la fenêtre
   | "referring_site"       // fallback domain (ex pinterest.com sans UTM)
@@ -55,6 +56,10 @@ export interface MatchResult {
   method: AttributionMethod;
   confidence: number;        // 0 à 1
   attribution_weight: number; // 0 à 1, somme = 1 par order
+  /** Renseignés uniquement en utm_content_exact (grain ad/visuel). */
+  ad_id?: string | null;
+  ad_name?: string | null;
+  pin_id?: string | null;
 }
 
 export interface UtmExtraction {
@@ -74,6 +79,24 @@ export interface KpiCard {
   formatted: string;
   delta_percent: number | null;
   status?: ProfitStatus;
+}
+
+export interface CreativeRow {
+  provider: AdsProvider;
+  ad_id: string;
+  ad_name: string | null;
+  pin_id: string | null;
+  pin_title: string | null;
+  pin_media_url: string | null;
+  campaign_id: string;
+  campaign_name: string | null;
+  spend_cents: number;
+  revenue_cents: number;
+  orders: number;
+  impressions: number;
+  clicks: number;
+  real_roas: number | null;
+  profit_status: ProfitStatus;
 }
 
 export interface CampaignRow {
