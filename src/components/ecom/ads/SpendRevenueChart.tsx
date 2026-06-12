@@ -47,7 +47,7 @@ export default function SpendRevenueChart({ points }: Props) {
       <div className="flex items-baseline justify-between mb-3">
         <div>
           <h3 className="text-[14px] font-bold text-[#191919]">Dépense vs revenue attribuée</h3>
-          <p className="text-[11px] text-[#8A8A88]">Évolution journalière, ROAS en surimpression</p>
+          <p className="text-[11px] text-[#8A8A88]">Évolution journalière, ROAS lissé sur 7 jours glissants</p>
         </div>
       </div>
       <div className="h-[280px]">
@@ -64,7 +64,7 @@ export default function SpendRevenueChart({ points }: Props) {
             <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
             <Bar yAxisId="left" dataKey="spend" name="Dépense" fill="#DDD6FE" />
             <Bar yAxisId="left" dataKey="revenue" name="Revenue" fill="#7C3AED" />
-            <Line yAxisId="right" type="monotone" dataKey="roas" name="ROAS" stroke="#191919" strokeWidth={1.5} dot={false} />
+            <Line yAxisId="right" type="monotone" dataKey="roas" name="ROAS 7 j" stroke="#191919" strokeWidth={1.5} dot={false} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>

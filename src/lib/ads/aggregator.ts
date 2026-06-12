@@ -148,6 +148,26 @@ export async function getOverviewKpis(userId: string, range: DateRange, provider
 }
 
 // ── Timeline ────────────────────────────────────────────────────
+/**
+ * ROAS glissant : pour chaque jour, SUM(revenue) / SUM(spend) des `windowDays`
+ * jours qui se terminent ce jour-là. Le ROAS d'un jour isolé (revenue du jour ÷
+ * spend du jour) est ininterprétable dès que le clic et l'achat ne tombent pas
+ * le même jour — la courbe lissée absorbe ce décalage (cf DIAGNOSTIC-ROAS-CALCUL.md).
+ */
+export function computeRollingRoas(
+  points: Array<{ spend_cents: number; revenue_cents: number }>,
+  windowDays = 7,
+): Array<number | null> {
+  return points.map((_, i) => {
+    let spend = 0, revenue = 0;
+    for (let j = Math.max(0, i - windowDays + 1); j <= i; j++) {
+      spend += points[j].spend_cents;
+      revenue += points[j].revenue_cents;
+    }
+    return computeRoas(revenue, spend);
+  });
+}
+
 export async function getTimeline(userId: string, range: DateRange, providers?: AdsProvider[]): Promise<TimelinePoint[]> {
   const supabase = createAdminClient();
   const rows = await fetchPerf(supabase, userId, range, providers);
@@ -170,9 +190,11 @@ export async function getTimeline(userId: string, range: DateRange, providers?: 
     out.push({
       date: day,
       spend_cents: v.spend, revenue_cents: v.revenue, orders: v.orders,
-      roas: computeRoas(v.revenue, v.spend),
+      roas: null, // rempli ci-dessous (glissant 7 j, pas le ROAS du jour isolé)
     });
   }
+  const rolling = computeRollingRoas(out);
+  out.forEach((p, i) => { p.roas = rolling[i]; });
   return out;
 }
 
@@ -409,8 +431,10 @@ export async function getCampaignDetail(
     spend_cents: Number(r.ads_spend_cents ?? 0),
     revenue_cents: Number(r.shopify_revenue_cents ?? 0),
     orders: Number(r.shopify_orders_count ?? 0),
-    roas: r.real_roas != null ? Number(r.real_roas) : null,
+    roas: null as number | null,
   }));
+  const rollingDetail = computeRollingRoas(timeline);
+  timeline.forEach((p, i) => { p.roas = rollingDetail[i]; });
 
   return {
     campaign: {
