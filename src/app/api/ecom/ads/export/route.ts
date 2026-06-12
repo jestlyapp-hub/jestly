@@ -21,7 +21,10 @@ export async function GET(req: NextRequest) {
   if (providers) q = q.in("provider", providers);
   const { data: rows } = await q;
 
-  const headers = ["date", "provider", "campaign", "spend_eur", "impressions", "clicks", "ads_conversions", "shopify_revenue_eur", "shopify_orders", "real_roas", "status"];
+  // roas_jour_indicatif : revenue du jour ÷ spend du même jour — intensité du
+  // jour, NON décisionnelle (le ROAS de pilotage se calcule sur la période,
+  // cf DIAGNOSTIC-ROAS-CALCUL.md). Idem statut_jour.
+  const headers = ["date", "provider", "campaign", "spend_eur", "impressions", "clicks", "ads_conversions", "shopify_revenue_eur", "shopify_orders", "roas_jour_indicatif", "statut_jour"];
   const escape = (v: unknown): string => {
     if (v == null) return "";
     const s = String(v).replace(/"/g, '""');
