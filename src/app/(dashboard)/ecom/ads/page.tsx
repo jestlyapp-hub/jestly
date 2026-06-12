@@ -4,7 +4,7 @@ import { Suspense, useState, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
-import { RefreshCw, Loader2, Target } from "lucide-react";
+import { RefreshCw, Loader2, Target, Image as ImageIcon } from "lucide-react";
 import Link from "next/link";
 import AdsKpiGrid from "@/components/ecom/ads/AdsKpiGrid";
 import AdsStatusBadges from "@/components/ecom/ads/AdsStatusBadges";
@@ -165,6 +165,13 @@ function AdsOverviewContent() {
           <p className="text-[12px] text-[#8A8A88] mt-0.5">ROAS réel basé sur vos vraies commandes Shopify attribuées</p>
         </div>
         <div className="flex items-center gap-2">
+          <Link
+            href={`/ecom/ads/creatives?range=${range}`}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-[#E6E6E4] rounded-md text-[12px] font-medium text-[#5A5A58] hover:bg-[#FBFBFA]"
+          >
+            <ImageIcon size={12} />
+            Visuels
+          </Link>
           <PeriodSelector value={range} onChange={(v) => updateParam("range", v)} />
           <button
             onClick={handleRefresh} disabled={refreshing}
