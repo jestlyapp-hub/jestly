@@ -137,6 +137,97 @@ async function loadMetricsByProvider(
   }));
 }
 
+// ── Metrics ad-level (grain créatif/visuel) ─────────────────────
+interface AdDailyMetricsRow {
+  date: string;
+  ad_id: string;
+  ad_name: string | null;
+  ad_group_id: string | null;
+  campaign_id: string | null;
+  campaign_name: string | null;
+  pin_id: string | null;
+  spend_cents: number;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  conversion_value_cents: number;
+  ctr: number | null;
+  cpc_cents: number | null;
+}
+
+async function loadAdMetricsByProvider(
+  userId: string, provider: AdsProvider, fromIso: string, toIso: string,
+): Promise<AdDailyMetricsRow[]> {
+  if (provider !== "pinterest") return []; // V1 = Pinterest only
+
+  const supabase = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: integ } = await (supabase.from("integrations") as any)
+    .select("id")
+    .eq("user_id", userId)
+    .eq("provider", "pinterest")
+    .eq("status", "active")
+    .maybeSingle();
+  if (!integ) return [];
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: rows } = await (supabase.from("pinterest_metrics_daily") as any)
+    .select("date, entity_id, spend_cents, impressions, clicks, conversions, conversion_value_cents, ctr, cpc_cents")
+    .eq("integration_id", integ.id)
+    .eq("entity_type", "ad")
+    .gte("date", fromIso)
+    .lte("date", toIso);
+  if (!rows || rows.length === 0) return [];
+
+  // Résout la hiérarchie ad → ad_group → campaign (+ noms, pin)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: ads } = await (supabase.from("pinterest_ads") as any)
+    .select("pinterest_ad_id, name, ad_group_id, pin_id")
+    .eq("integration_id", integ.id);
+  const adInfo = new Map<string, { name: string | null; ad_group_id: string; pin_id: string | null }>();
+  for (const a of (ads ?? []) as Array<{ pinterest_ad_id: string; name: string | null; ad_group_id: string; pin_id: string | null }>) {
+    adInfo.set(a.pinterest_ad_id, { name: a.name ?? null, ad_group_id: a.ad_group_id, pin_id: a.pin_id ?? null });
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: adGroups } = await (supabase.from("pinterest_ad_groups") as any)
+    .select("pinterest_ad_group_id, campaign_id")
+    .eq("integration_id", integ.id);
+  const campaignByAdGroup = new Map<string, string>();
+  for (const g of (adGroups ?? []) as Array<{ pinterest_ad_group_id: string; campaign_id: string }>) {
+    campaignByAdGroup.set(g.pinterest_ad_group_id, g.campaign_id);
+  }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: camps } = await (supabase.from("pinterest_campaigns") as any)
+    .select("pinterest_campaign_id, name")
+    .eq("integration_id", integ.id);
+  const campaignName = new Map<string, string>();
+  for (const c of (camps ?? []) as Array<{ pinterest_campaign_id: string; name: string }>) {
+    campaignName.set(c.pinterest_campaign_id, c.name);
+  }
+
+  return (rows as Array<Record<string, unknown>>).map((r) => {
+    const adId = r.entity_id as string;
+    const info = adInfo.get(adId);
+    const campaignId = info ? (campaignByAdGroup.get(info.ad_group_id) ?? null) : null;
+    return {
+      date: r.date as string,
+      ad_id: adId,
+      ad_name: info?.name ?? null,
+      ad_group_id: info?.ad_group_id ?? null,
+      campaign_id: campaignId,
+      campaign_name: campaignId ? (campaignName.get(campaignId) ?? null) : null,
+      pin_id: info?.pin_id ?? null,
+      spend_cents: Number(r.spend_cents ?? 0),
+      impressions: Number(r.impressions ?? 0),
+      clicks: Number(r.clicks ?? 0),
+      conversions: Number(r.conversions ?? 0),
+      conversion_value_cents: Number(r.conversion_value_cents ?? 0),
+      ctr: r.ctr != null ? Number(r.ctr) : null,
+      cpc_cents: r.cpc_cents != null ? Number(r.cpc_cents) : null,
+    };
+  });
+}
+
 // ── Orders shopify de la fenêtre ────────────────────────────────
 interface ShopifyOrderForMatch {
   shopify_order_id: string;
@@ -186,6 +277,35 @@ async function loadOrdersInWindow(userId: string, fromIso: string, toIso: string
     utm_content: (r.utm_content as string | null) ?? null,
     utm_term: (r.utm_term as string | null) ?? null,
   }));
+}
+
+// ── Agrégation revenue par (ad, jour) ───────────────────────────
+// Seuls les matches utm_content_exact portent un ad_id : le ROAS visuel est
+// exact par construction (pas de répartition approximative campagne → ads).
+export interface AdDayAggregate {
+  orders: Set<string>;
+  revenue_cents: number;
+  confidences: number[];
+}
+
+export function aggregateRevenueByAdDay(
+  orderMatches: Array<{ order: { shopify_order_id: string; created_at: string; total_price: number }; matches: MatchResult[] }>,
+): Map<string, AdDayAggregate> {
+  const out = new Map<string, AdDayAggregate>();
+  for (const { order, matches } of orderMatches) {
+    const dayIso = order.created_at.slice(0, 10);
+    const orderRevenueCents = Math.round(order.total_price * 100);
+    for (const m of matches) {
+      if (!m.ad_id) continue;
+      const key = `${m.ad_id}|${dayIso}`;
+      const cur = out.get(key) ?? { orders: new Set<string>(), revenue_cents: 0, confidences: [] };
+      cur.orders.add(order.shopify_order_id);
+      cur.revenue_cents += Math.round(orderRevenueCents * m.attribution_weight);
+      cur.confidences.push(m.confidence);
+      out.set(key, cur);
+    }
+  }
+  return out;
 }
 
 // ── Cœur du refresh ─────────────────────────────────────────────
@@ -315,6 +435,13 @@ export async function refreshUserCampaignPerformance(params: RefreshParams): Pro
     }
   }
 
+  // 4bis. Grain ad/visuel : upsert ad_creative_performance_daily (par provider)
+  for (const provider of providers) {
+    totalUpserted += await refreshAdCreativePerformance(
+      userId, provider, fromIso, toIso, orderMatches, settings,
+    );
+  }
+
   // 5. Détecte les alertes
   let alertsGenerated = 0;
   try {
@@ -327,6 +454,86 @@ export async function refreshUserCampaignPerformance(params: RefreshParams): Pro
   const duration_ms = Date.now() - t0;
   logger.info("roas_refresh_complete", { userId, rows_upserted: totalUpserted, duration_ms, alerts_generated: alertsGenerated });
   return { rows_upserted: totalUpserted, duration_ms, alerts_generated: alertsGenerated };
+}
+
+/**
+ * Calcule et persiste la performance jour × ad (créatif/visuel).
+ * Spend : pinterest_metrics_daily entity_type='ad' (déjà synchronisé).
+ * Revenue : commandes matchées en utm_content_exact uniquement (exact, pas réparti).
+ * Même pattern delete-then-upsert que le grain campagne (cf bug 2026-05-25).
+ */
+async function refreshAdCreativePerformance(
+  userId: string,
+  provider: AdsProvider,
+  fromIso: string,
+  toIso: string,
+  orderMatches: Array<{ order: { shopify_order_id: string; created_at: string; total_price: number }; matches: MatchResult[] }>,
+  settings: EcomSettings,
+): Promise<number> {
+  const supabase = createAdminClient();
+  const metrics = await loadAdMetricsByProvider(userId, provider, fromIso, toIso);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase.from("ad_creative_performance_daily") as any)
+    .delete()
+    .eq("user_id", userId)
+    .eq("provider", provider)
+    .gte("date", fromIso)
+    .lte("date", toIso);
+
+  if (metrics.length === 0) {
+    logger.info("roas_no_ad_metrics_for_provider", { userId, provider });
+    return 0;
+  }
+
+  const attrByAdDay = aggregateRevenueByAdDay(orderMatches);
+
+  let upserted = 0;
+  for (const m of metrics) {
+    const attr = attrByAdDay.get(`${m.ad_id}|${m.date}`);
+    const revenueCents = attr?.revenue_cents ?? 0;
+    const realRoas = computeRoas(revenueCents, m.spend_cents);
+    const status: ProfitStatus = m.spend_cents === 0
+      ? (revenueCents > 0 ? "profitable" : "unmatched")
+      : determineProfitStatus(realRoas, settings.roas_profitability_threshold, settings.roas_warning_threshold);
+    const confidence = attr && attr.confidences.length > 0
+      ? attr.confidences.reduce((s, c) => s + c, 0) / attr.confidences.length
+      : null;
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from("ad_creative_performance_daily") as any).upsert({
+      user_id: userId,
+      date: m.date,
+      provider,
+      campaign_id: m.campaign_id ?? "unknown",
+      campaign_name: m.campaign_name,
+      ad_group_id: m.ad_group_id,
+      ad_id: m.ad_id,
+      ad_name: m.ad_name,
+      pin_id: m.pin_id,
+      spend_cents: m.spend_cents,
+      impressions: m.impressions,
+      clicks: m.clicks,
+      conversions: m.conversions,
+      conversions_value_cents: m.conversion_value_cents,
+      ctr: m.ctr,
+      cpc_cents: m.cpc_cents,
+      cpm_cents: m.impressions > 0 ? Math.round((m.spend_cents / m.impressions) * 1000) : null,
+      shopify_orders_count: attr?.orders.size ?? 0,
+      shopify_revenue_cents: revenueCents,
+      shopify_attributable_order_ids: attr ? [...attr.orders] : [],
+      real_roas: realRoas,
+      profit_status: status,
+      attribution_confidence: confidence,
+      computed_at: new Date().toISOString(),
+    }, { onConflict: "user_id,date,provider,ad_id" });
+    if (error) {
+      logger.error("ad_roas_upsert_failed", { error: error.message, ad_id: m.ad_id, date: m.date });
+      continue;
+    }
+    upserted += 1;
+  }
+  return upserted;
 }
 
 async function persistAttributionTouches(
@@ -369,6 +576,8 @@ async function persistAttributionTouches(
         landing_path: order.landing_site,
         attribution_weight: m.attribution_weight,
         attribution_method: m.method,
+        // Grain ad/visuel (utm_content_exact) → retrouvable par la vue Visuels
+        metadata: m.ad_id ? { ad_id: m.ad_id, ad_name: m.ad_name ?? null, pin_id: m.pin_id ?? null } : {},
       });
     });
   }
