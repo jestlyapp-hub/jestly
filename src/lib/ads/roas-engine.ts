@@ -317,6 +317,38 @@ export function aggregateRevenueByAdDay(
   return out;
 }
 
+// ── Agrégation revenue par (campagne, jour) ─────────────────────
+export interface CampaignDayAggregate {
+  orders: Set<string>;
+  revenue_cents: number;
+  methods: Set<string>;
+  confidences: number[];
+  campaign_name: string | null;
+}
+
+export function aggregateRevenueByCampaignDay(
+  orderMatches: Array<{ order: { shopify_order_id: string; created_at: string; total_price: number }; matches: MatchResult[] }>,
+  provider: AdsProvider,
+): Map<string, CampaignDayAggregate> {
+  const out = new Map<string, CampaignDayAggregate>();
+  for (const { order, matches } of orderMatches) {
+    const dayIso = order.created_at.slice(0, 10);
+    const orderRevenueCents = Math.round(order.total_price * 100);
+    for (const m of matches) {
+      if (m.provider !== provider || !m.campaign_id) continue;
+      const key = `${m.campaign_id}|${dayIso}`;
+      const cur = out.get(key) ?? { orders: new Set<string>(), revenue_cents: 0, methods: new Set<string>(), confidences: [], campaign_name: null };
+      cur.orders.add(order.shopify_order_id);
+      cur.revenue_cents += Math.round(orderRevenueCents * m.attribution_weight);
+      cur.methods.add(m.method);
+      cur.confidences.push(m.confidence);
+      if (m.campaign_name) cur.campaign_name = m.campaign_name;
+      out.set(key, cur);
+    }
+  }
+  return out;
+}
+
 // ── Cœur du refresh ─────────────────────────────────────────────
 export async function refreshUserCampaignPerformance(params: RefreshParams): Promise<RefreshResult> {
   const t0 = Date.now();
@@ -375,27 +407,13 @@ export async function refreshUserCampaignPerformance(params: RefreshParams): Pro
       .lte("date", toIso);
 
     if (metrics.length === 0) {
-      // Pas de metrics → on log mais on continue (les autres providers ou les orders unmatched)
+      // Pas de metrics → on log, mais on n'abandonne pas : les commandes matchées
+      // doivent quand même produire leurs lignes (cf. lignes synthétiques ci-dessous).
       logger.info("roas_no_metrics_for_provider", { userId, provider });
-      continue;
     }
 
     // Agrège les orders attribués par (campaign, jour)
-    const attrByCampaignDay = new Map<string, { orders: Set<string>; revenue_cents: number; methods: Set<string>; confidences: number[] }>();
-    for (const { order, matches } of orderMatches) {
-      const dayIso = order.created_at.slice(0, 10);
-      const orderRevenueCents = Math.round(order.total_price * 100);
-      for (const m of matches) {
-        if (m.provider !== provider || !m.campaign_id) continue;
-        const key = `${m.campaign_id}|${dayIso}`;
-        const cur = attrByCampaignDay.get(key) ?? { orders: new Set(), revenue_cents: 0, methods: new Set(), confidences: [] };
-        cur.orders.add(order.shopify_order_id);
-        cur.revenue_cents += Math.round(orderRevenueCents * m.attribution_weight);
-        cur.methods.add(m.method);
-        cur.confidences.push(m.confidence);
-        attrByCampaignDay.set(key, cur);
-      }
-    }
+    const attrByCampaignDay = aggregateRevenueByCampaignDay(orderMatches, provider);
 
     // Upsert 1 row par (campaign, jour)
     for (const m of metrics) {
@@ -444,6 +462,57 @@ export async function refreshUserCampaignPerformance(params: RefreshParams): Pro
       }, { onConflict: "user_id,date,provider,campaign_id" });
       if (error) {
         logger.error("roas_upsert_failed", { error: error.message, campaign_id: m.campaign_id, date: m.date });
+        continue;
+      }
+      totalUpserted += 1;
+    }
+
+    // Lignes synthétiques : une vente attribuée à une campagne qui n'a PAS de
+    // ligne metrics ce jour-là (pas de spend ce jour) était perdue — le tableau
+    // sous-comptait le revenue vs Shopify (cf DIAGNOSTIC-ROAS-ZERO.md §4.2).
+    // On crée la ligne (campagne, jour) avec spend 0 : computeRoas renvoie null
+    // (affiché "—"), profit_status "profitable" puisque du revenue existe.
+    const metricKeys = new Set(metrics.map((m) => `${m.campaign_id}|${m.date}`));
+    for (const [key, attr] of attrByCampaignDay.entries()) {
+      if (metricKeys.has(key)) continue;
+      const [campaignId, dayIso] = key.split("|");
+      // La purge ne couvre que [fromIso, toIso] : ne pas écrire hors fenêtre
+      // (le matching regarde plus loin en arrière pour la fenêtre d'attribution).
+      if (dayIso < fromIso || dayIso > toIso) continue;
+      const method = [...attr.methods].sort()[0] ?? null;
+      const confidence = attr.confidences.length > 0
+        ? attr.confidences.reduce((s, c) => s + c, 0) / attr.confidences.length
+        : null;
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.from("campaign_performance_daily") as any).upsert({
+        user_id: userId,
+        date: dayIso,
+        provider,
+        campaign_id: campaignId,
+        campaign_name: attr.campaign_name,
+        campaign_status: null,
+        ads_spend_cents: 0,
+        ads_impressions: 0,
+        ads_clicks: 0,
+        ads_outbound_clicks: 0,
+        ads_conversions: 0,
+        ads_conversions_value_cents: 0,
+        ads_reported_roas: null,
+        shopify_orders_count: attr.orders.size,
+        shopify_revenue_cents: attr.revenue_cents,
+        shopify_attributable_order_ids: [...attr.orders],
+        real_roas: computeRoas(attr.revenue_cents, 0),
+        roas_delta: null,
+        marginal_roas: null,
+        is_profitable: attr.revenue_cents > 0,
+        profit_status: attr.revenue_cents > 0 ? "profitable" : "unmatched",
+        attribution_method: method,
+        attribution_confidence: confidence,
+        computed_at: new Date().toISOString(),
+      }, { onConflict: "user_id,date,provider,campaign_id" });
+      if (error) {
+        logger.error("roas_synthetic_upsert_failed", { error: error.message, campaign_id: campaignId, date: dayIso });
         continue;
       }
       totalUpserted += 1;

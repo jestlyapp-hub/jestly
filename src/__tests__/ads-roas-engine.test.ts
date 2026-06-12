@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { computeRoas, computeMarginalRoas, determineProfitStatus } from "@/lib/ads/roas-engine";
+import { computeRoas, computeMarginalRoas, determineProfitStatus, aggregateRevenueByCampaignDay } from "@/lib/ads/roas-engine";
+import type { MatchResult } from "@/lib/ads/types";
 
 describe("computeRoas", () => {
   it("ROAS = revenue / spend", () => {
@@ -48,5 +49,52 @@ describe("determineProfitStatus", () => {
   });
   it("null → unmatched", () => {
     expect(determineProfitStatus(null, profitable, warning)).toBe("unmatched");
+  });
+});
+
+describe("aggregateRevenueByCampaignDay", () => {
+  const match = (campaignId: string, weight = 1.0): MatchResult => ({
+    provider: "pinterest",
+    campaign_id: campaignId,
+    campaign_name: `Campagne ${campaignId}`,
+    method: "utm_campaign_exact",
+    confidence: 0.98,
+    attribution_weight: weight,
+  });
+
+  it("agrège revenue et commandes par (campagne, jour)", () => {
+    const out = aggregateRevenueByCampaignDay([
+      { order: { shopify_order_id: "o1", created_at: "2026-06-06T17:00:00Z", total_price: 61.95 }, matches: [match("camp-A")] },
+      { order: { shopify_order_id: "o2", created_at: "2026-06-06T20:00:00Z", total_price: 47.95 }, matches: [match("camp-B")] },
+    ], "pinterest");
+    expect(out.get("camp-A|2026-06-06")!.revenue_cents).toBe(6195);
+    expect(out.get("camp-B|2026-06-06")!.revenue_cents).toBe(4795);
+    expect(out.get("camp-B|2026-06-06")!.orders.size).toBe(1);
+    expect(out.get("camp-B|2026-06-06")!.campaign_name).toBe("Campagne camp-B");
+  });
+
+  it("une campagne SANS metrics le jour J reste présente dans l'agrégat (vente non perdue)", () => {
+    // Le scénario du diagnostic : la vente existe même si la campagne n'a pas
+    // dépensé ce jour-là — l'agrégat doit la porter pour la ligne synthétique.
+    const out = aggregateRevenueByCampaignDay([
+      { order: { shopify_order_id: "o306964", created_at: "2026-06-06T20:02:19Z", total_price: 47.95 }, matches: [match("626758420271")] },
+    ], "pinterest");
+    expect(out.has("626758420271|2026-06-06")).toBe(true);
+    // ROAS d'une ligne spend 0 : null (affiché "—"), jamais un faux chiffre
+    expect(computeRoas(out.get("626758420271|2026-06-06")!.revenue_cents, 0)).toBeNull();
+  });
+
+  it("applique l'attribution_weight et ignore les autres providers / unmatched", () => {
+    const unmatched: MatchResult = { provider: null, campaign_id: null, campaign_name: null, method: "unmatched", confidence: 0, attribution_weight: 1.0 };
+    const out = aggregateRevenueByCampaignDay([
+      { order: { shopify_order_id: "o1", created_at: "2026-06-06T10:00:00Z", total_price: 100 }, matches: [match("camp-A", 0.5)] },
+      { order: { shopify_order_id: "o2", created_at: "2026-06-06T11:00:00Z", total_price: 100 }, matches: [unmatched] },
+    ], "pinterest");
+    expect(out.get("camp-A|2026-06-06")!.revenue_cents).toBe(5000);
+    expect(out.size).toBe(1);
+  });
+
+  it("liste vide → map vide", () => {
+    expect(aggregateRevenueByCampaignDay([], "pinterest").size).toBe(0);
   });
 });
