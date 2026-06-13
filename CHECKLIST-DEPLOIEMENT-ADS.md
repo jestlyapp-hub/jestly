@@ -1,7 +1,14 @@
 # CHECKLIST — Mise en production du module Ads + crons (correction n°1 du diagnostic ROAS)
 
-> Préparée le 2026-06-12. **Rien n'a été mergé ni déployé** : chaque étape ci-dessous est à déclencher par Gabriel.
+> Préparée le 2026-06-12, mise à jour après le fix complet du calcul ROAS (commits `60de38f`, `5bf27d0`, `a355a43`).
+> **Rien n'a été mergé ni déployé** : chaque étape ci-dessous est à déclencher par Gabriel.
 > Objectif : que le cron `refresh-campaign-performance` tourne enfin en production, pour que le revenue attribué ne se refige plus.
+>
+> ✅ **Le pré-requis « ne pas déployer avant le fix du calcul » est levé** : les statuts découlent désormais du ROAS
+> de période (plus de badges « Perte » erronés issus du grain journalier), le garde-fou « données partielles » neutralise
+> les ROAS trompeurs à faible volume, et la courbe est lissée sur 7 jours glissants. Vérifié sur les données réelles
+> (campagnes du diagnostic) + 386 tests verts + build OK. Déployer est désormais sûr : le cron recalculera des chiffres
+> ET des statuts cohérents.
 
 ---
 
@@ -16,6 +23,8 @@
 | Migration 093 | Présente en fichier, **non appliquée** (colonnes revenue de `ad_creative_performance_daily`). Sans elle : le ROAS campagne fonctionne, le grain visuel logge des erreurs bénignes (`ad_roas_upsert_failed`). À appliquer idéalement au déploiement. |
 | Migration 094 (`utm_content`/`utm_term` sur `shopify_orders`) | **N'existe pas encore** (ni fichier ni base) — prévue au chantier « ROAS par visuel ». |
 | Moteur ROAS | Corrigé et vérifié sur données réelles (commits `9253d92`, `761aca7`) : les 2 ventes Pinterest du 6 juin apparaissent (109,90 € au total). |
+| Calcul/affichage ROAS | Fix complet appliqué (commits `60de38f` statuts période + garde-fou, `5bf27d0` courbe lissée, `a355a43` export) — cf `DIAGNOSTIC-ROAS-CALCUL.md`. Défaut 30 j : déjà en place (aucun changement requis). |
+| Compte doublon | Intégrations du compte `ef7a948f…` archivées (`status='paused'`, réversible) : le cron ne traitera que le compte actif. |
 
 ⚠️ À savoir : merger cette branche met en prod **tout le travail depuis le 25 avril** (module e-commerce complet, audit CRO, onboarding v3, etc.), pas seulement le module Ads. C'est le chemin recommandé (main figé n'a plus de valeur), mais le déploiement est large : prévois un coup d'œil rapide sur les pages principales après mise en ligne.
 
