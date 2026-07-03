@@ -110,5 +110,6 @@ server.listen(PORT, "127.0.0.1", () => {
   console.log("→ Ouvre cette URL dans ton navigateur (compte rasenyafx@gmail.com) :\n");
   console.log(authUrl.toString());
   console.log("\n(ouverture automatique tentée…)");
-  exec(`start "" "${authUrl.toString().replace(/&/g, "^&")}"`, () => {});
+  // URL entre guillemets : cmd n'a pas besoin d'échapper les & dans ce cas.
+  exec(`start "" "${authUrl.toString()}"`, () => {});
 });
