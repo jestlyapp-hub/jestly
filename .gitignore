@@ -47,3 +47,7 @@ next-env.d.ts
 
 # Handover files (contiennent token Shopify en clair)
 JESTLY_ECOM_HANDOVER.md
+
+# Credentials OAuth Google téléchargés (ne jamais committer)
+client_secret*.json
+*credentials*.json
