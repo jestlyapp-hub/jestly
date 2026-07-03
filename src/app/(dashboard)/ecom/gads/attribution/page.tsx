@@ -91,7 +91,7 @@ export default function GadsAttributionPage() {
             <RoasCard
               label="ROAS attribué Google"
               value={formatRoas(data.roas_google_attributed)}
-              hint={`${formatCurrency(data.google_attributed_revenue_cents)} de CA rattachable à Google (utm, referrer, gclid) · ${data.google_attributed_orders} commande${data.google_attributed_orders > 1 ? "s" : ""}`}
+              hint={`${formatCurrency(data.google_attributed_revenue_cents)} de CA rattachable à Google Ads payant (gclid ou utm de campagne — le referrer google organique compte en SEO) · ${data.google_attributed_orders} commande${data.google_attributed_orders > 1 ? "s" : ""}`}
               highlight
               badge="Indicateur de décision budgétaire Ads"
             />

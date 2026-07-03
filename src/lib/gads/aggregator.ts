@@ -14,9 +14,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { computeRoas, getEcomSettings } from "@/lib/ads/roas-engine";
 import { computeRollingRoas, determinePeriodStatus } from "@/lib/ads/aggregator";
 import type { AggregatedProfitStatus, DateRange } from "@/lib/ads/types";
-import { extractUtmsFromOrder, normalizeSource } from "@/lib/ads/utm-parser";
 import { filterRealOrders } from "@/lib/shopify/test-orders-filter";
 import { findMissingDates } from "./importer";
+import { deriveMeasuredChannel } from "./channels";
 
 // ── Types exposés aux routes ─────────────────────────────────────
 export interface GadsOverview {
@@ -178,15 +178,17 @@ function toCents(price: number | null): number {
   return Math.round((price ?? 0) * 100);
 }
 
-/** La commande est-elle rattachable à Google (utm, referrer ou gclid) ? */
+/**
+ * La commande est-elle rattachable à Google Ads (payant) ?
+ * Délègue à deriveMeasuredChannel : un referrer google.com sans gclid ni utm
+ * est du SEO organique, pas du Google Ads — le compter gonflerait le ROAS.
+ */
 export function isGoogleAttributed(order: {
+  tracking_status?: string | null;
   utm_source?: string | null; utm_medium?: string | null; utm_campaign?: string | null;
   referring_site?: string | null; landing_site?: string | null;
 }): boolean {
-  const utms = extractUtmsFromOrder(order);
-  if (normalizeSource(utms.source) === "google_ads") return true;
-  // Auto-tagging Google Ads sans utm : gclid/gbraid/wbraid dans la landing page.
-  return /[?&](gclid|gbraid|wbraid)=/i.test(order.landing_site ?? "");
+  return deriveMeasuredChannel(order) === "google_ads";
 }
 
 function bucketOf(status: TrackingBucket | null): TrackingBucket {

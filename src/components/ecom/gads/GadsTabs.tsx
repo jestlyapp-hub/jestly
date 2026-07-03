@@ -7,6 +7,8 @@ const TABS = [
   { href: "/ecom/gads", label: "Pilotage" },
   { href: "/ecom/gads/timeline", label: "Détail temporel" },
   { href: "/ecom/gads/attribution", label: "Attribution" },
+  { href: "/ecom/gads/orders", label: "Commandes" },
+  { href: "/ecom/gads/products", label: "Produits" },
 ];
 
 export default function GadsTabs() {
