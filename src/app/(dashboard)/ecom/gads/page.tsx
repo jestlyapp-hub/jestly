@@ -19,6 +19,7 @@ import SpendRevenueChart from "@/components/ecom/ads/SpendRevenueChart";
 import PeriodSelector from "@/components/ecom/ads/PeriodSelector";
 import GadsTabs from "@/components/ecom/gads/GadsTabs";
 import ImportCsvButton, { type ImportRecap } from "@/components/ecom/gads/ImportCsvButton";
+import ApiSyncButton from "@/components/ecom/gads/ApiSyncButton";
 import ImportRecapBanner from "@/components/ecom/gads/ImportRecapBanner";
 import MissingDatesBanner from "@/components/ecom/gads/MissingDatesBanner";
 import { STATUS_LABELS, TRACKING_LABELS, formatDateFr, type Period } from "@/components/ecom/gads/format";
@@ -60,6 +61,7 @@ export default function GadsPilotagePage() {
         <div className="flex items-center gap-2.5">
           <GadsTabs />
           <PeriodSelector value={period} onChange={(v) => setPeriod(v as Period)} />
+          <ApiSyncButton onSynced={onImported} />
           <ImportCsvButton onImported={onImported} />
         </div>
       </div>
