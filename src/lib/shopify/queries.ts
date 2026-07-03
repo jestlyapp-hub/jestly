@@ -41,6 +41,8 @@ export const QUERY_ORDERS = /* GraphQL */ `
           tags
           sourceName
           customerJourneySummary {
+            ready
+            momentsCount { count }
             firstVisit { landingPage referrerUrl source utmParameters { source medium campaign } }
           }
           totalPriceSet { shopMoney { amount currencyCode } }

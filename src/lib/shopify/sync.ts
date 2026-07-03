@@ -11,6 +11,7 @@ import {
   QUERY_SHOPIFYQL,
 } from "./queries";
 import type { DecryptedIntegration } from "./types";
+import { computeTrackingStatus } from "./tracking-status";
 
 const PAGE_SIZE = 50;
 
@@ -33,6 +34,8 @@ interface OrderNode {
   tags: string[];
   sourceName: string | null;
   customerJourneySummary?: {
+    ready?: boolean | null;
+    momentsCount?: { count: number } | null;
     firstVisit?: {
       landingPage: string | null;
       referrerUrl: string | null;
@@ -93,8 +96,11 @@ export async function syncOrders(
     });
 
     const rows = res.orders.edges.map(({ node }) => {
-      const firstVisit = node.customerJourneySummary?.firstVisit;
+      const journey = node.customerJourneySummary;
+      const firstVisit = journey?.firstVisit;
       const utm = firstVisit?.utmParameters;
+      // Journey pas encore traité par Shopify (ready=false) → momentsCount non fiable → inconnu.
+      const momentsCount = journey?.ready === false ? null : journey?.momentsCount?.count ?? null;
       const lineItems = node.lineItems.edges.map(({ node: li }) => ({
         id: shopifyGidToId(li.id),
         product_id: shopifyGidToId(li.product?.id),
@@ -135,6 +141,14 @@ export async function syncOrders(
         utm_source: utm?.source ?? null,
         utm_medium: utm?.medium ?? null,
         utm_campaign: utm?.campaign ?? null,
+        journey_moments_count: momentsCount,
+        tracking_status: computeTrackingStatus(momentsCount, {
+          utm_source: utm?.source ?? null,
+          utm_medium: utm?.medium ?? null,
+          utm_campaign: utm?.campaign ?? null,
+          referring_site: firstVisit?.referrerUrl ?? null,
+          landing_site: firstVisit?.landingPage ?? null,
+        }),
         created_at: node.createdAt,
         updated_at: node.updatedAt,
         processed_at: node.processedAt,
