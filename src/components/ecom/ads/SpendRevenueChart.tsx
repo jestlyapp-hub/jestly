@@ -7,6 +7,9 @@ import { formatCurrency } from "@/lib/ads/formatters";
 
 interface Props {
   points: Array<{ date: string; spend_cents: number; revenue_cents: number; orders: number; roas: number | null }>;
+  title?: string;
+  subtitle?: string;
+  revenueName?: string;
 }
 
 interface TooltipEntry { name?: string; value?: number; color?: string; dataKey?: string }
@@ -34,7 +37,12 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   );
 }
 
-export default function SpendRevenueChart({ points }: Props) {
+export default function SpendRevenueChart({
+  points,
+  title = "Dépense vs revenue attribuée",
+  subtitle = "Évolution journalière, ROAS lissé sur 7 jours glissants",
+  revenueName = "Revenue",
+}: Props) {
   const data = points.map((p) => ({
     date: p.date,
     spend: p.spend_cents,
@@ -46,8 +54,8 @@ export default function SpendRevenueChart({ points }: Props) {
     <div className="bg-white border border-[#E6E6E4] rounded-xl p-5">
       <div className="flex items-baseline justify-between mb-3">
         <div>
-          <h3 className="text-[14px] font-bold text-[#191919]">Dépense vs revenue attribuée</h3>
-          <p className="text-[11px] text-[#8A8A88]">Évolution journalière, ROAS lissé sur 7 jours glissants</p>
+          <h3 className="text-[14px] font-bold text-[#191919]">{title}</h3>
+          <p className="text-[11px] text-[#8A8A88]">{subtitle}</p>
         </div>
       </div>
       <div className="h-[280px]">
@@ -63,7 +71,7 @@ export default function SpendRevenueChart({ points }: Props) {
             <Tooltip content={<CustomTooltip />} />
             <Legend iconType="circle" wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
             <Bar yAxisId="left" dataKey="spend" name="Dépense" fill="#DDD6FE" />
-            <Bar yAxisId="left" dataKey="revenue" name="Revenue" fill="#7C3AED" />
+            <Bar yAxisId="left" dataKey="revenue" name={revenueName} fill="#7C3AED" />
             <Line yAxisId="right" type="monotone" dataKey="roas" name="ROAS 7 j" stroke="#191919" strokeWidth={1.5} dot={false} />
           </ComposedChart>
         </ResponsiveContainer>
