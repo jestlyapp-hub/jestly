@@ -27,6 +27,11 @@ const Patch = z.object({
   alert_min_spend_cents: z.number().int().min(0).optional(),
   email_digest_enabled: z.boolean().optional(),
   email_digest_frequency: z.enum(["daily", "weekly", "monthly"]).optional(),
+  // Frais par commande (Réglages coûts — coûts variables du BE-ROAS)
+  shipping_cost_cents: z.number().int().min(0).optional(),
+  payment_fee_percent: z.number().min(0).max(100).optional(),
+  payment_fee_fixed_cents: z.number().int().min(0).optional(),
+  packaging_cost_cents: z.number().int().min(0).optional(),
 });
 
 export async function PATCH(req: NextRequest) {

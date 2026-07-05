@@ -23,7 +23,7 @@ const NAV: { href: string; label: string; icon: typeof LayoutDashboard }[] = [
   { href: "/ecom/customers", label: "Clients", icon: Users },
   { href: "/ecom/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/ecom/ads", label: "Ads", icon: Target },
-  { href: "/ecom/gads", label: "Google Ads", icon: Megaphone },
+  { href: "/ecom/gads", label: "Analytics", icon: Megaphone },
   { href: "/ecom/settings", label: "Réglages", icon: Settings },
 ];
 
