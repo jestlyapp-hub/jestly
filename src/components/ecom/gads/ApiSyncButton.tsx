@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { RefreshCw, Loader2 } from "lucide-react";
+import { useAnalyticsInvalidation } from "@/lib/hooks/use-analytics-invalidation";
 import type { ImportRecap } from "./ImportCsvButton";
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 
 /** Pull manuel de l'API Google Ads (lecture seule) vers gads_daily. */
 export default function ApiSyncButton({ onSynced }: Props) {
+  const invalidateAnalytics = useAnalyticsInvalidation();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,6 +23,7 @@ export default function ApiSyncButton({ onSynced }: Props) {
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
       onSynced(body.recap as ImportRecap);
+      await invalidateAnalytics();
     } catch (e) {
       setError((e as Error).message);
     } finally {

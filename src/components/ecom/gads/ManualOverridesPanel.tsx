@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import { useAnalyticsInvalidation } from "@/lib/hooks/use-analytics-invalidation";
 import { formatCurrency } from "@/lib/ads/formatters";
 import { formatDateFr } from "./format";
 import OverrideForm, { type ManualOverride } from "./OverrideForm";
@@ -32,9 +33,11 @@ export default function ManualOverridesPanel({ from, to, onChanged }: Props) {
     onChanged();
   };
 
+  const invalidateAnalytics = useAnalyticsInvalidation();
   const remove = async (id: string) => {
     await apiFetch(`/api/ecom/gads/manual/${id}`, { method: "DELETE" });
     await refresh();
+    await invalidateAnalytics();
   };
 
   return (

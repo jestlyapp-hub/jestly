@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Upload, Loader2 } from "lucide-react";
+import { useAnalyticsInvalidation } from "@/lib/hooks/use-analytics-invalidation";
 
 export interface ImportRecap {
   rows_in_csv: number;
@@ -21,6 +22,7 @@ interface Props {
 }
 
 export default function ImportCsvButton({ onImported, variant = "primary" }: Props) {
+  const invalidateAnalytics = useAnalyticsInvalidation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +37,7 @@ export default function ImportCsvButton({ onImported, variant = "primary" }: Pro
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(body.error ?? `HTTP ${res.status}`);
       onImported(body.recap as ImportRecap);
+      await invalidateAnalytics();
     } catch (e) {
       setError((e as Error).message);
     } finally {

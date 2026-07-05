@@ -9,6 +9,7 @@
 import { useMemo, useState } from "react";
 import { Loader2, Plus, Trash2, Check } from "lucide-react";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
+import { useAnalyticsInvalidation } from "@/lib/hooks/use-analytics-invalidation";
 import { formatCurrency } from "@/lib/ads/formatters";
 import type { EcomSettings } from "@/lib/ads/types";
 import GadsTabs from "@/components/ecom/gads/GadsTabs";
@@ -96,6 +97,7 @@ function ProductCostsSection() {
 }
 
 function ProductCostRow({ product: p, onSaved }: { product: ProductRow; onSaved: () => void }) {
+  const invalidateAnalytics = useAnalyticsInvalidation();
   const [raw, setRaw] = useState(p.unit_cost_cents != null ? (p.unit_cost_cents / 100).toString().replace(".", ",") : "");
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -122,6 +124,7 @@ function ProductCostRow({ product: p, onSaved }: { product: ProductRow; onSaved:
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       onSaved();
+      await invalidateAnalytics();
     } finally {
       setBusy(false);
     }
@@ -177,6 +180,7 @@ function ProductCostRow({ product: p, onSaved }: { product: ProductRow; onSaved:
 
 // ── Frais par commande ───────────────────────────────────────────
 function OrderFeesSection() {
+  const invalidateAnalytics = useAnalyticsInvalidation();
   const api = useApi<{ settings: EcomSettings }>("/api/ecom/settings");
   const s = api.data?.settings;
   const [values, setValues] = useState<Record<string, string> | null>(null);
@@ -212,6 +216,7 @@ function OrderFeesSection() {
       setTimeout(() => setSaved(false), 2000);
       await api.mutate();
       setValues(null);
+      await invalidateAnalytics();
     } finally {
       setBusy(false);
     }
@@ -254,6 +259,7 @@ function Field({ label, value, onChange, placeholder }: {
 
 // ── Dépenses récurrentes ─────────────────────────────────────────
 function ExpensesSection() {
+  const invalidateAnalytics = useAnalyticsInvalidation();
   const api = useApi<{ expenses: ExpenseRow[] }>("/api/ecom/costs/expenses");
   const expenses = api.data?.expenses ?? [];
   const [label, setLabel] = useState("");
@@ -273,6 +279,7 @@ function ExpensesSection() {
       setLabel("");
       setAmount("");
       await api.mutate();
+      await invalidateAnalytics();
     } finally {
       setBusy(false);
     }
@@ -281,6 +288,7 @@ function ExpensesSection() {
   const remove = async (id: string) => {
     await apiFetch(`/api/ecom/costs/expenses/${id}`, { method: "DELETE" });
     await api.mutate();
+    await invalidateAnalytics();
   };
 
   return (

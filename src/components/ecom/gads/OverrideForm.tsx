@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { apiFetch } from "@/lib/hooks/use-api";
+import { useAnalyticsInvalidation } from "@/lib/hooks/use-analytics-invalidation";
 
 export interface ManualOverride {
   id: string;
@@ -31,6 +32,7 @@ interface Props {
  * distinguable des données mesurées (garde-fou anti-biais).
  */
 export default function OverrideForm({ initial, lockedDate, onSaved, onCancel }: Props) {
+  const invalidateAnalytics = useAnalyticsInvalidation();
   const [date, setDate] = useState(initial?.date ?? lockedDate ?? new Date().toISOString().slice(0, 10));
   const [revenueEuros, setRevenueEuros] = useState(initial ? String(initial.revenue_cents / 100) : "");
   const [ordersCount, setOrdersCount] = useState(initial ? String(initial.orders_count) : "1");
@@ -57,6 +59,7 @@ export default function OverrideForm({ initial, lockedDate, onSaved, onCancel }:
         ? await apiFetch<{ override: ManualOverride }>(`/api/ecom/gads/manual/${initial.id}`, { method: "PATCH", body })
         : await apiFetch<{ override: ManualOverride }>("/api/ecom/gads/manual", { method: "POST", body });
       onSaved(res.override);
+      await invalidateAnalytics();
     } catch (e) {
       setError((e as Error).message);
     } finally {

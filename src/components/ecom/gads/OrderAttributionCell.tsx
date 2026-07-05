@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AlertTriangle, Loader2, RotateCcw } from "lucide-react";
 import { apiFetch } from "@/lib/hooks/use-api";
+import { useAnalyticsInvalidation } from "@/lib/hooks/use-analytics-invalidation";
 import { CHANNEL_LABELS, CONFIDENCE_LABELS, type Channel, type ManualConfidence } from "@/lib/gads/channels";
 import type { AttributionOrderRow } from "@/lib/gads/attribution-aggregator";
 
@@ -14,23 +15,33 @@ interface Props {
 const SELECT_CLS = "px-2 py-1 text-[11px] bg-[#F7F7F5] border border-[#E5E3F0] rounded-md focus:outline-none focus:border-[#7C3AED] text-[#1a1535]";
 
 /**
- * Sélecteur d'attribution manuelle d'une commande, avec les deux rappels :
- * - commande fantôme → « parcours non capté, attribution basée sur ton hypothèse »
- * - divergence avec la donnée captée → « Shopify a capté X — sûr ? »
- * Le niveau de confiance est obligatoire dès qu'un canal est choisi.
+ * Sélecteur d'attribution manuelle d'une commande.
+ *
+ * Comportement (passe qualité, BUG N°2) :
+ *  - commande trackée : pré-remplie avec la source mesurée, AUCUN champ de
+ *    confiance tant que Gabriel ne force pas une attribution DIFFÉRENTE ;
+ *  - divergence forcée → avertissement « Shopify a capté X — sûr ? » +
+ *    confiance obligatoire ;
+ *  - commande fantôme : tout choix de canal = hypothèse → confiance
+ *    obligatoire + rappel « parcours non capté ».
+ * Après sauvegarde : invalidation de toutes les vues Analytics (BUG N°1).
  */
 export default function OrderAttributionCell({ order, onSaved }: Props) {
-  const initialChannel: Channel = order.manual?.channel ?? order.measured_channel ?? "ghost";
-  const [channel, setChannel] = useState<Channel>(initialChannel);
+  const invalidateAnalytics = useAnalyticsInvalidation();
+  const baselineChannel: Channel = order.manual?.channel ?? order.measured_channel ?? "ghost";
+  const [channel, setChannel] = useState<Channel>(baselineChannel);
   const [confidence, setConfidence] = useState<ManualConfidence | "">(order.manual?.confidence ?? "");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const needsConfidence = channel !== "ghost";
-  const baselineConfidence = order.manual?.confidence ?? "";
-  const dirty = channel !== initialChannel || (needsConfidence && confidence !== baselineConfidence && confidence !== "");
+  const channelChanged = channel !== baselineChannel;
   const divergesFromMeasured = order.measured_channel != null && channel !== "ghost" && channel !== order.measured_channel;
-  const isGhostGuess = order.tracking_status === "ghost" && channel !== "ghost";
+  const isGhostGuess = order.tracking_status === "ghost" && channel !== "ghost" && (channelChanged || order.manual != null);
+  // Confiance demandée UNIQUEMENT pour une attribution manuelle réelle :
+  // divergence forcée, hypothèse sur une commande sans mesure, ou manuel existant.
+  const needsConfidence = channel !== "ghost" &&
+    (order.manual != null || divergesFromMeasured || (order.measured_channel == null && channelChanged));
+  const dirty = channelChanged || (needsConfidence && confidence !== (order.manual?.confidence ?? "") && confidence !== "");
 
   const save = async () => {
     if (needsConfidence && !confidence) { setError("Choisis le niveau de confiance"); return; }
@@ -39,9 +50,10 @@ export default function OrderAttributionCell({ order, onSaved }: Props) {
     try {
       await apiFetch(`/api/ecom/gads/orders/${order.order_id}/attribution`, {
         method: "PUT",
-        body: { channel, confidence: channel === "ghost" ? null : confidence },
+        body: { channel, confidence: channel === "ghost" ? null : confidence || null },
       });
       onSaved();
+      await invalidateAnalytics();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -57,6 +69,7 @@ export default function OrderAttributionCell({ order, onSaved }: Props) {
       setChannel(order.measured_channel ?? "ghost");
       setConfidence("");
       onSaved();
+      await invalidateAnalytics();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -67,7 +80,8 @@ export default function OrderAttributionCell({ order, onSaved }: Props) {
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-1.5 flex-wrap">
-        <select value={channel} onChange={(e) => setChannel(e.target.value as Channel)} className={SELECT_CLS} disabled={busy}>
+        <select value={channel} onChange={(e) => { setChannel(e.target.value as Channel); setError(null); }}
+          className={SELECT_CLS} disabled={busy}>
           {(Object.keys(CHANNEL_LABELS) as Channel[]).map((c) => (
             <option key={c} value={c}>{c === "ghost" ? "Laisser fantôme" : CHANNEL_LABELS[c]}</option>
           ))}
