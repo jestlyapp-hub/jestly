@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const TABS = [
-  { href: "/ecom/gads", label: "Pilotage" },
-  { href: "/ecom/gads/timeline", label: "Détail temporel" },
+  { href: "/ecom/gads", label: "Vue d'ensemble" },
   { href: "/ecom/gads/attribution", label: "Attribution" },
   { href: "/ecom/gads/orders", label: "Commandes" },
   { href: "/ecom/gads/products", label: "Produits" },
+  { href: "/ecom/gads/timeline", label: "Détail temporel" },
+  { href: "/ecom/gads/costs", label: "Réglages coûts" },
 ];
 
 export default function GadsTabs() {

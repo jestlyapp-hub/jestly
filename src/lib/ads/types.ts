@@ -41,6 +41,11 @@ export interface EcomSettings {
   alert_min_spend_cents: number;
   email_digest_enabled: boolean;
   email_digest_frequency: "daily" | "weekly" | "monthly";
+  /** Frais par commande (migration 099) — coûts variables du BE-ROAS. */
+  shipping_cost_cents: number;
+  payment_fee_percent: number;
+  payment_fee_fixed_cents: number;
+  packaging_cost_cents: number;
 }
 
 export const DEFAULT_ECOM_SETTINGS: Omit<EcomSettings, "user_id"> = {
@@ -55,6 +60,10 @@ export const DEFAULT_ECOM_SETTINGS: Omit<EcomSettings, "user_id"> = {
   alert_min_spend_cents: 5000,
   email_digest_enabled: false,
   email_digest_frequency: "weekly",
+  shipping_cost_cents: 0,
+  payment_fee_percent: 0,
+  payment_fee_fixed_cents: 0,
+  packaging_cost_cents: 0,
 };
 
 export interface MatchResult {

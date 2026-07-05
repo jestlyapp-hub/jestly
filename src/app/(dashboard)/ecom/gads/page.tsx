@@ -1,147 +1,139 @@
 "use client";
 
 /**
- * Google Ads — Vue 1 : Pilotage.
- * KPIs de période (dépense CSV, CA Shopify, ROAS SUM/SUM), courbe dépense vs
- * revenue, statut de rentabilité, alerte dates manquantes.
+ * Analytics — Vue d'ensemble : Blended Stats Board (Phase 1B).
  *
- * Garde-fou : le ROAS affiché ici est GLOBAL (toutes sources). Il mesure la
- * santé de la boutique et ne doit jamais juger une décision de budget Ads —
- * c'est le rôle du ROAS attribué Google (vue Attribution).
+ * Les métriques de vérité : MER (insensible aux ventes fantômes), BE-ROAS
+ * (seuil de rentabilité par commande, coûts variables uniquement) et Net
+ * Profit. Le statut rentable/en perte compare MER au BE-ROAS — plus de seuil
+ * arbitraire. Mode dégradé tant que les coûts ne sont pas renseignés :
+ * MER/AOV/NC-ROAS restent affichés, BE-ROAS et Net Profit disent
+ * « non renseigné » avec CTA — jamais une valeur inventée.
  */
 import { useState } from "react";
 import Link from "next/link";
-import { Info } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
 import { useApi } from "@/lib/hooks/use-api";
 import { formatCurrency, formatNumberFr, formatRoas } from "@/lib/ads/formatters";
-import type { GadsOverview, GadsTimelinePoint } from "@/lib/gads/aggregator";
-import SpendRevenueChart from "@/components/ecom/ads/SpendRevenueChart";
+import type { BlendedBoard } from "@/lib/costs/blended";
+import type { BlendedStats } from "@/lib/costs/engine";
 import PeriodSelector from "@/components/ecom/ads/PeriodSelector";
 import GadsTabs from "@/components/ecom/gads/GadsTabs";
 import ImportCsvButton, { type ImportRecap } from "@/components/ecom/gads/ImportCsvButton";
 import ApiSyncButton from "@/components/ecom/gads/ApiSyncButton";
 import ImportRecapBanner from "@/components/ecom/gads/ImportRecapBanner";
 import MissingDatesBanner from "@/components/ecom/gads/MissingDatesBanner";
-import { STATUS_LABELS, TRACKING_LABELS, formatDateFr, type Period } from "@/components/ecom/gads/format";
+import DataQualityBanner from "@/components/ecom/gads/DataQualityBanner";
+import BlendedChart from "@/components/ecom/gads/BlendedChart";
+import type { Period } from "@/components/ecom/gads/format";
 
-export default function GadsPilotagePage() {
+export default function BlendedBoardPage() {
   const [period, setPeriod] = useState<Period>("30d");
   const [recap, setRecap] = useState<ImportRecap | null>(null);
 
-  const overviewApi = useApi<GadsOverview & { computed_at: string }>(`/api/ecom/gads/overview?range=${period}`);
-  const timelineApi = useApi<{ points: GadsTimelinePoint[] }>(`/api/ecom/gads/timeline?range=${period}`);
-  const overview = overviewApi.data;
+  const api = useApi<BlendedBoard>(`/api/ecom/gads/blended?range=${period}`);
+  const board = api.data;
+  const cur = board?.current;
 
   const onImported = (r: ImportRecap) => {
     setRecap(r);
-    void overviewApi.mutate();
-    void timelineApi.mutate();
+    void api.mutate();
   };
-
-  const chartPoints = (timelineApi.data?.points ?? []).map((p) => ({
-    date: p.date,
-    spend_cents: p.cost_cents,
-    revenue_cents: p.shopify_revenue_cents,
-    orders: p.shopify_orders,
-    roas: p.rolling_roas,
-  }));
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[20px] font-bold text-[#191919]">Google Ads</h1>
+          <h1 className="text-[20px] font-bold text-[#1a1535]">Vue d&apos;ensemble</h1>
           <p className="text-[12px] text-[#8A8A88]">
-            Dépense importée par CSV, croisée avec le CA Shopify réel
-            {overview?.covered_range && (
-              <> · données Ads du {formatDateFr(overview.covered_range.from)} au {formatDateFr(overview.covered_range.to)}</>
-            )}
+            Rentabilité réelle : revenue Shopify croisé avec la dépense Ads et tes coûts
           </p>
         </div>
         <div className="flex items-center gap-2.5">
           <GadsTabs />
           <PeriodSelector value={period} onChange={(v) => setPeriod(v as Period)} />
           <ApiSyncButton onSynced={onImported} />
-          <ImportCsvButton onImported={onImported} />
+          <ImportCsvButton onImported={onImported} variant="secondary" />
         </div>
       </div>
 
       {recap && <ImportRecapBanner recap={recap} onDismiss={() => setRecap(null)} />}
-      {overview && <MissingDatesBanner missingDates={overview.missing_dates} />}
+      {api.error && (
+        <div className="bg-rose-50 border border-rose-200 rounded-lg px-4 py-3 text-[12px] text-rose-800">{api.error}</div>
+      )}
 
-      {overviewApi.error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-lg px-4 py-3 text-[12px] text-rose-800">
-          {overviewApi.error}
+      {cur && !cur.costs_configured && (
+        <div className="flex flex-wrap items-center gap-3 bg-[#EDE9FE] border border-[#DDD6FE] rounded-lg px-4 py-3 text-[12px] text-[#1a1535]">
+          <Wallet size={15} className="text-[#7C3AED]" />
+          <span>
+            <span className="font-semibold">Renseigne tes coûts pour débloquer la rentabilité réelle</span>{" "}
+            — BE-ROAS et Net Profit ont besoin de tes COGS et frais par commande.
+          </span>
+          <Link href="/ecom/gads/costs"
+            className="ml-auto px-3 py-1.5 rounded-md text-[12px] font-medium bg-[#7C3AED] text-white hover:bg-[#6D28D9]">
+            Réglages coûts →
+          </Link>
         </div>
       )}
 
-      {overview && overview.covered_range == null ? (
-        <div className="bg-white border border-[#E6E6E4] rounded-xl p-10 text-center">
-          <h2 className="text-[15px] font-bold text-[#191919]">Aucune donnée Google Ads pour l&apos;instant</h2>
-          <p className="text-[12px] text-[#8A8A88] mt-1 mb-4 max-w-md mx-auto">
-            Exporte depuis Google Ads la vue Campagnes segmentée par jour (CSV), puis importe le fichier ici.
-            Les réimports écrasent proprement les chiffres existants — le CSV le plus récent fait foi.
-          </p>
-          <div className="flex justify-center">
-            <ImportCsvButton onImported={onImported} />
-          </div>
-        </div>
-      ) : overview ? (
+      {board && <MissingDatesBanner missingDates={board.missing_dates} />}
+      {board && <DataQualityBanner quality={board.quality} />}
+
+      {cur && board && (
         <>
-          {/* KPIs période */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <KpiCard label="Dépense Google Ads" value={formatCurrency(overview.spend_cents)}
-              hint={`${formatNumberFr(overview.clicks)} clics · ${formatNumberFr(overview.impressions)} impressions`} />
-            <KpiCard label="CA Shopify (toutes sources)" value={formatCurrency(overview.shopify_revenue_cents)}
-              hint={`${formatNumberFr(overview.shopify_orders)} commandes sur la période`} />
-            <div className="bg-white border border-[#E6E6E4] rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-medium text-[#5A5A58]">ROAS global (toutes sources)</span>
-                <StatusBadge status={overview.status} />
-              </div>
-              <div className="text-[22px] font-bold text-[#191919] mt-1 tabular-nums">{formatRoas(overview.real_roas)}</div>
-              <p className="text-[10px] text-[#8A8A88] mt-1 flex items-start gap-1">
-                <Info size={11} className="shrink-0 mt-[1px]" />
-                <span>
-                  Santé de la boutique, pas juge de campagne Ads — pour décider d&apos;un budget, utilise le{" "}
-                  <Link href="/ecom/gads/attribution" className="underline text-[#7C3AED]">ROAS attribué Google</Link>.
-                </span>
-              </p>
-            </div>
-            <KpiCard label="ROAS déclaré par Google" value={formatRoas(overview.reported_roas)}
-              hint={`Valeur de conv. ${formatCurrency(overview.conversion_value_cents)} · à confronter au CA réel`} />
+          <StatusHero stats={cur} />
+
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+            <Kpi label="Revenue" value={formatCurrency(cur.revenue_cents)}
+              delta={delta(cur.revenue_cents, board.previous.revenue_cents)} goodWhenUp
+              hint={`${formatNumberFr(cur.orders_count)} commandes`} />
+            <Kpi label="Blended Ad Spend" value={formatCurrency(cur.spend_cents)}
+              delta={delta(cur.spend_cents, board.previous.spend_cents)}
+              hint="Google Ads (CSV/API)" />
+            <Kpi label="MER" value={formatRoas(cur.mer)}
+              delta={delta(cur.mer, board.previous.mer)} goodWhenUp
+              hint="Revenue ÷ dépense — insensible aux ventes fantômes" />
+            <Kpi label="AOV" value={cur.aov_cents != null ? formatCurrency(cur.aov_cents) : "—"}
+              delta={delta(cur.aov_cents, board.previous.aov_cents)} goodWhenUp
+              hint="Panier moyen" />
+            <Kpi label="NC-ROAS" value={formatRoas(cur.nc_roas)}
+              delta={delta(cur.nc_roas, board.previous.nc_roas)} goodWhenUp
+              hint={`CA nouveaux clients ${formatCurrency(cur.nc_revenue_cents)}`} />
+            <Kpi label="NCPA" value={cur.ncpa_cents != null ? formatCurrency(cur.ncpa_cents) : "—"}
+              delta={delta(cur.ncpa_cents, board.previous.ncpa_cents)}
+              hint={`${cur.new_customers} nouveau${cur.new_customers > 1 ? "x" : ""} client${cur.new_customers > 1 ? "s" : ""}`} />
+            <Kpi label="BE-ROAS" highlight
+              value={!cur.costs_configured ? "non renseigné" : !cur.be_roas_reachable ? "∅" : formatRoas(cur.be_roas)}
+              hint={!cur.costs_configured
+                ? "Renseigne tes coûts"
+                : !cur.be_roas_reachable
+                  ? "Marge unitaire ≤ 0 : aucun ROAS ne rentabilise"
+                  : `Coût variable moyen ${cur.variable_cost_per_order_cents != null ? formatCurrency(cur.variable_cost_per_order_cents) : "—"} / commande`}
+              cta={!cur.costs_configured ? "/ecom/gads/costs" : undefined} />
+            <Kpi label="Net Profit" highlight
+              value={cur.net_profit_cents != null ? formatCurrency(cur.net_profit_cents) : "non renseigné"}
+              delta={delta(cur.net_profit_cents, board.previous.net_profit_cents)} goodWhenUp
+              tone={cur.net_profit_cents != null ? (cur.net_profit_cents >= 0 ? "positive" : "negative") : undefined}
+              hint={cur.net_profit_cents != null
+                ? `dont ${formatCurrency(cur.expenses_prorated_cents)} de dépenses récurrentes`
+                : "Renseigne tes coûts"}
+              cta={cur.net_profit_cents == null ? "/ecom/gads/costs" : undefined} />
+            <Kpi label="Net Margin"
+              value={cur.net_margin != null ? `${(cur.net_margin * 100).toFixed(1)} %` : "non renseigné"}
+              delta={delta(cur.net_margin, board.previous.net_margin)} goodWhenUp
+              hint="Net Profit ÷ Revenue" />
+            <Kpi label="Couverture COGS"
+              value={cur.cogs.total_units > 0 ? `${Math.round(cur.cogs.coverage * 100)} %` : "—"}
+              hint={`${cur.cogs.covered_units}/${cur.cogs.total_units} unités avec coût renseigné`}
+              cta={cur.cogs.coverage < 1 && cur.cogs.total_units > 0 ? "/ecom/gads/costs" : undefined} />
           </div>
 
-          {/* Traçabilité des commandes */}
-          <div className="bg-white border border-[#E6E6E4] rounded-xl px-4 py-3 flex flex-wrap items-center gap-4 text-[12px]">
-            <span className="font-semibold text-[#191919]">Traçabilité des commandes :</span>
-            {(["tracked", "ghost", "unmatched", "unknown"] as const).map((k) => {
-              const count = overview[`${k}_orders` as const];
-              const meta = TRACKING_LABELS[k];
-              if (k === "unknown" && count === 0) return null;
-              return (
-                <span key={k} className="inline-flex items-center gap-1.5 text-[#5A5A58]" title={meta.description}>
-                  <span className={`inline-block w-1.5 h-1.5 rounded-full ${meta.dot}`} />
-                  <span className="tabular-nums font-medium text-[#191919]">{count}</span>
-                  <span className="text-[#8A8A88]">{meta.label.toLowerCase()}</span>
-                </span>
-              );
-            })}
-            <Link href="/ecom/gads/attribution" className="ml-auto text-[11px] text-[#7C3AED] hover:underline">
-              Voir la qualité de la donnée →
-            </Link>
-          </div>
-
-          {/* Courbe dépense vs CA */}
-          <SpendRevenueChart
-            points={chartPoints}
-            title="Dépense Google Ads vs CA Shopify"
-            subtitle="Évolution journalière (toutes sources), ROAS global lissé sur 7 jours glissants"
-            revenueName="CA Shopify"
-          />
+          <BlendedChart points={board.timeline} costsConfigured={cur.costs_configured} />
         </>
-      ) : (
-        <div className="bg-white border border-[#E6E6E4] rounded-xl p-10 text-center text-[12px] text-[#8A8A88]">
+      )}
+
+      {!board && !api.error && (
+        <div className="bg-white border border-[#E5E3F0] rounded-xl p-10 text-center text-[12px] text-[#8A8A88]">
           Chargement…
         </div>
       )}
@@ -149,21 +141,85 @@ export default function GadsPilotagePage() {
   );
 }
 
-function KpiCard({ label, value, hint }: { label: string; value: string; hint?: string }) {
+// ── Statut de vérité : MER vs BE-ROAS ────────────────────────────
+function StatusHero({ stats: s }: { stats: BlendedStats }) {
+  if (s.status === "insufficient_data") {
+    return (
+      <div className="bg-white border border-[#E5E3F0] rounded-xl p-5 flex items-center gap-4">
+        <span className="text-[15px] font-bold text-[#5A5A58]">Rentabilité non calculable</span>
+        <span className="text-[12px] text-[#8A8A88]">
+          {s.orders_count === 0 ? "Aucune commande sur la période." : "Coûts non renseignés — le statut s'active dès la première saisie."}
+        </span>
+      </div>
+    );
+  }
+  const profitable = s.status === "profitable";
   return (
-    <div className="bg-white border border-[#E6E6E4] rounded-xl p-4">
-      <span className="text-[11px] font-medium text-[#5A5A58]">{label}</span>
-      <div className="text-[22px] font-bold text-[#191919] mt-1 tabular-nums">{value}</div>
-      {hint && <p className="text-[10px] text-[#8A8A88] mt-1">{hint}</p>}
+    <div className={`rounded-xl p-5 border-2 ${profitable ? "bg-emerald-50 border-emerald-300" : "bg-rose-50 border-rose-300"}`}>
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+        <span className={`text-[18px] font-bold ${profitable ? "text-emerald-800" : "text-rose-800"}`}>
+          {profitable ? "✓ Rentable" : "✗ En perte"}
+        </span>
+        {s.mer != null && s.be_roas != null && (
+          <span className="text-[13px] text-[#1a1535]">
+            MER <span className="font-bold tabular-nums">{formatRoas(s.mer)}</span> vs seuil de rentabilité{" "}
+            <span className="font-bold tabular-nums">{formatRoas(s.be_roas)}</span>
+            {s.mer_vs_be_roas != null && (
+              <span className={`ml-2 font-semibold tabular-nums ${profitable ? "text-emerald-700" : "text-rose-700"}`}>
+                ({s.mer_vs_be_roas > 0 ? "+" : ""}{s.mer_vs_be_roas.toFixed(2)})
+              </span>
+            )}
+          </span>
+        )}
+        {!s.be_roas_reachable && (
+          <span className="text-[12px] text-rose-800">
+            Marge unitaire négative : le coût variable moyen dépasse le panier moyen — aucun budget publicitaire ne peut rentabiliser.
+          </span>
+        )}
+        {s.net_profit_cents != null && (
+          <span className="ml-auto text-[13px] text-[#1a1535]">
+            Net Profit : <span className={`font-bold tabular-nums ${s.net_profit_cents >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+              {formatCurrency(s.net_profit_cents)}
+            </span>
+          </span>
+        )}
+      </div>
     </div>
   );
 }
 
-function StatusBadge({ status }: { status: keyof typeof STATUS_LABELS }) {
-  const meta = STATUS_LABELS[status];
+// ── KPI card ─────────────────────────────────────────────────────
+function delta(cur: number | null | undefined, prev: number | null | undefined): number | null {
+  if (cur == null || prev == null || prev === 0) return null;
+  return Math.round(((cur - prev) / Math.abs(prev)) * 1000) / 10;
+}
+
+function Kpi({ label, value, hint, delta: d, goodWhenUp = false, highlight = false, tone, cta }: {
+  label: string; value: string; hint?: string; delta?: number | null;
+  goodWhenUp?: boolean; highlight?: boolean; tone?: "positive" | "negative"; cta?: string;
+}) {
+  const deltaColor = d == null || !goodWhenUp
+    ? "text-[#8A8A88]"
+    : (d >= 0 ? "text-emerald-600" : "text-rose-600");
+  const valueColor = tone === "positive" ? "text-emerald-700" : tone === "negative" ? "text-rose-700" : "text-[#1a1535]";
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[10px] font-semibold ${meta.className}`}>
-      {meta.label}
-    </span>
+    <div className={`bg-white rounded-xl p-4 border ${highlight ? "border-[#7C3AED] border-2" : "border-[#E5E3F0]"}`}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-medium text-[#5A5A58]">{label}</span>
+        {d != null && (
+          <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold tabular-nums ${deltaColor}`}>
+            {d >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
+            {d > 0 ? "+" : ""}{d} %
+          </span>
+        )}
+      </div>
+      <div className={`text-[21px] font-bold mt-1 tabular-nums ${valueColor} ${value === "non renseigné" ? "text-[14px] text-[#8A8A88] italic" : ""}`}>
+        {value}
+      </div>
+      {hint && <p className="text-[10px] text-[#8A8A88] mt-1">{hint}</p>}
+      {cta && (
+        <Link href={cta} className="text-[10px] text-[#7C3AED] hover:underline">Renseigner →</Link>
+      )}
+    </div>
   );
 }
