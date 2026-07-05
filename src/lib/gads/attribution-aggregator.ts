@@ -196,10 +196,11 @@ export function computeProductBreakdown(
 }
 
 // ── Chargement DB + composition ──────────────────────────────────
-interface DbOrderRow {
+export interface DbOrderRow {
   id: string;
   name: string | null;
   total_price: number | null;
+  customer_id?: string | null;
   created_at: string;
   tracking_status: "tracked" | "ghost" | "unmatched" | null;
   utm_source: string | null;
@@ -228,7 +229,7 @@ interface DbPixelRow {
   confidence: number;
 }
 
-async function loadOrdersAndManual(userId: string, range: DateRange): Promise<{
+export async function loadOrdersAndManual(userId: string, range: DateRange): Promise<{
   orders: DbOrderRow[];
   manualByOrder: Map<string, DbManualRow>;
   pixelByOrder: Map<string, PixelResolution>;
@@ -245,7 +246,7 @@ async function loadOrdersAndManual(userId: string, range: DateRange): Promise<{
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("shopify_orders") as any)
-    .select("id, name, total_price, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site, line_items")
+    .select("id, name, total_price, customer_id, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site, line_items")
     .eq("integration_id", integ.id)
     .is("cancelled_at", null)
     .gte("created_at", `${range.from}T00:00:00Z`)

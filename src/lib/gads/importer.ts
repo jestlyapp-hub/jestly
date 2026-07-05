@@ -23,6 +23,8 @@ export interface GadsImportRecap {
   skipped_totals: number;
   warnings: string[];
   missing_dates: string[];
+  /** Lignes produit × jour upsertées (sync API uniquement — le CSV n'a pas ce grain). */
+  product_rows?: number;
 }
 
 const rowKey = (r: { campaign_name: string; date: string }): string => `${r.campaign_name}|${r.date}`;

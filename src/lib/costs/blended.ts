@@ -29,7 +29,9 @@ export interface DataQuality {
   unmatched: number;
   unknown: number;
   pixel_recovered: number;
-  /** Part du CA attribuable (mesuré + pixel) sur le CA total (0-1). */
+  survey_recovered: number;
+  survey_recovered_revenue_cents: number;
+  /** Part du CA attribuable (mesuré + pixel + survey) sur le CA total (0-1). */
   attributable_revenue_share: number | null;
 }
 
@@ -44,6 +46,7 @@ export interface BlendedBoard {
 interface DbOrder {
   id: string;
   name: string | null;
+  shopify_order_id: string;
   total_price: number | null;
   customer_id: string | null;
   created_at: string;
@@ -82,7 +85,7 @@ export async function getBlendedBoard(userId: string, range: DateRange): Promise
     integ
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ? (supabase.from("shopify_orders") as any)
-          .select("id, name, total_price, customer_id, created_at, tracking_status, line_items")
+          .select("id, name, shopify_order_id, total_price, customer_id, created_at, tracking_status, line_items")
           .eq("integration_id", integ.id)
           .is("cancelled_at", null)
           .gte("created_at", `${prev.from}T00:00:00Z`)
@@ -170,23 +173,39 @@ export async function getBlendedBoard(userId: string, range: DateRange): Promise
   // ── Qualité de donnée (bandeau 1C) ─────────────────────────────
   const quality: DataQuality = {
     tracked: 0, ghost: 0, unmatched: 0, unknown: 0, pixel_recovered: 0,
+    survey_recovered: 0, survey_recovered_revenue_cents: 0,
     attributable_revenue_share: null,
   };
   let attributableRevenue = 0;
   const pixelByOrder = new Set<string>();
+  const surveyByShopifyId = new Set<string>();
   if (currentOrders.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: pixelRows } = await (supabase.from("pixel_order_attribution") as any)
-      .select("order_id")
-      .in("order_id", currentOrders.map((o) => o.id));
+    const [{ data: pixelRows }, { data: ppsRows }] = await Promise.all([
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from("pixel_order_attribution") as any)
+        .select("order_id")
+        .in("order_id", currentOrders.map((o) => o.id)),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from("pps_responses") as any)
+        .select("shopify_order_id")
+        .in("shopify_order_id", currentOrders.map((o) => o.shopify_order_id)),
+    ]);
     for (const p of (pixelRows ?? []) as Array<{ order_id: string }>) pixelByOrder.add(p.order_id);
+    for (const r of (ppsRows ?? []) as Array<{ shopify_order_id: string }>) surveyByShopifyId.add(r.shopify_order_id);
   }
   for (const o of currentOrders) {
     const bucket = (o.tracking_status ?? "unknown") as keyof Pick<DataQuality, "tracked" | "ghost" | "unmatched" | "unknown">;
     quality[bucket in quality ? bucket : "unknown"] += 1;
-    const attributable = o.tracking_status === "tracked" || pixelByOrder.has(o.id);
+    const pixelResolved = pixelByOrder.has(o.id);
+    // Le survey ne « récupère » que ce que ni Shopify ni le pixel n'ont résolu.
+    const surveyResolved = !pixelResolved && o.tracking_status !== "tracked" && surveyByShopifyId.has(o.shopify_order_id);
+    const attributable = o.tracking_status === "tracked" || pixelResolved || surveyResolved;
     if (attributable) attributableRevenue += o.total_cents;
-    if (o.tracking_status !== "tracked" && pixelByOrder.has(o.id)) quality.pixel_recovered += 1;
+    if (o.tracking_status !== "tracked" && pixelResolved) quality.pixel_recovered += 1;
+    if (surveyResolved) {
+      quality.survey_recovered += 1;
+      quality.survey_recovered_revenue_cents += o.total_cents;
+    }
   }
   quality.attributable_revenue_share = current.revenue_cents > 0
     ? Math.round((attributableRevenue / current.revenue_cents) * 1000) / 1000
