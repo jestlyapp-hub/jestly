@@ -38,17 +38,17 @@ export default function ManualOverridesPanel({ from, to, onChanged }: Props) {
   };
 
   return (
-    <div className="bg-white border border-[#E6E6E4] rounded-xl p-5">
+    <div className="bg-white border border-[#E5E3F0] rounded-xl p-5">
       <div className="flex items-start justify-between mb-1">
         <div>
-          <h3 className="text-[14px] font-bold text-[#191919]">Commandes ajoutées à la main</h3>
+          <h3 className="text-[14px] font-bold text-[#1a1535]">Commandes ajoutées à la main</h3>
           <p className="text-[11px] text-[#8A8A88]">
             Estimations manuelles, pas de la donnée mesurée — comptées uniquement dans le « ROAS avec overrides ».
           </p>
         </div>
         {!adding && (
           <button onClick={() => setAdding(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-white text-[#191919] border border-[#E6E6E4] hover:bg-[#FBFBFA]">
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-white text-[#1a1535] border border-[#E5E3F0] hover:bg-[#FBFBFA]">
             <Plus size={13} strokeWidth={1.8} /> Ajouter
           </button>
         )}
@@ -78,7 +78,7 @@ export default function ManualOverridesPanel({ from, to, onChanged }: Props) {
               ) : (
                 <div className="flex items-center gap-3 text-[12px]">
                   <span className="text-[#5A5A58] w-16 shrink-0">{formatDateFr(o.date)}</span>
-                  <span className="font-semibold text-[#191919] tabular-nums">{formatCurrency(o.revenue_cents)}</span>
+                  <span className="font-semibold text-[#1a1535] tabular-nums">{formatCurrency(o.revenue_cents)}</span>
                   <span className="text-[#8A8A88]">
                     {o.orders_count} cmd{o.orders_count > 1 ? "s" : ""}
                     {o.campaign_name && <> · {o.campaign_name}</>}
@@ -87,7 +87,7 @@ export default function ManualOverridesPanel({ from, to, onChanged }: Props) {
                   <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#F0EEFF] text-[#7C3AED] text-[10px] font-semibold uppercase">
                     Manuel
                   </span>
-                  <button onClick={() => setEditingId(o.id)} className="text-[#8A8A88] hover:text-[#191919]" aria-label="Modifier">
+                  <button onClick={() => setEditingId(o.id)} className="text-[#8A8A88] hover:text-[#1a1535]" aria-label="Modifier">
                     <Pencil size={13} />
                   </button>
                   <button onClick={() => void remove(o.id)} className="text-[#8A8A88] hover:text-rose-600" aria-label="Supprimer">

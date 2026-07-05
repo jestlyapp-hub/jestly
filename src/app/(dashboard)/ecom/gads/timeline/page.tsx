@@ -46,7 +46,7 @@ export default function GadsTimelinePage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[20px] font-bold text-[#191919]">Détail temporel</h1>
+          <h1 className="text-[20px] font-bold text-[#1a1535]">Détail temporel</h1>
           <p className="text-[12px] text-[#8A8A88]">
             Jour par jour — le ROAS journalier est indicatif, la décision se prend sur la période
           </p>
@@ -59,11 +59,11 @@ export default function GadsTimelinePage() {
 
       <MissingDatesBanner missingDates={gaps} />
 
-      <div className="bg-white border border-[#E6E6E4] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#E5E3F0] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="border-b border-[#E6E6E4] bg-[#FBFBFA] text-left text-[11px] text-[#5A5A58]">
+              <tr className="border-b border-[#E5E3F0] bg-[#FBFBFA] text-left text-[11px] text-[#5A5A58]">
                 <th className="px-4 py-2.5 font-medium">Date</th>
                 <th className="px-4 py-2.5 font-medium text-right">Dépense</th>
                 <th className="px-4 py-2.5 font-medium text-right">Clics</th>
@@ -124,19 +124,19 @@ function RowGroup({ point: p, overrides, editing, onEdit, onSaved, onCancel }: {
     <>
       <tr className={`border-b border-[#EFEFEF] ${p.is_gap ? "bg-rose-50/60" : "hover:bg-[#FBFBFA]"}`}>
         <td className="px-4 py-2 whitespace-nowrap">
-          <span className="text-[#191919] font-medium">{formatDateFr(p.date, "EEE d MMM")}</span>
+          <span className="text-[#1a1535] font-medium">{formatDateFr(p.date, "EEE d MMM")}</span>
           {p.is_gap && (
             <span className="ml-2 inline-flex items-center gap-1 text-[10px] text-rose-700 font-medium">
               <AlertTriangle size={10} /> Aucune donnée Ads
             </span>
           )}
         </td>
-        <td className={`px-4 py-2 text-right tabular-nums ${p.is_gap ? "text-rose-400" : "text-[#191919]"}`}>
+        <td className={`px-4 py-2 text-right tabular-nums ${p.is_gap ? "text-rose-400" : "text-[#1a1535]"}`}>
           {p.is_gap ? "—" : formatCurrency(p.cost_cents)}
         </td>
         <td className="px-4 py-2 text-right tabular-nums text-[#5A5A58]">{p.is_gap ? "—" : formatNumberFr(p.clicks)}</td>
         <td className="px-4 py-2 text-right tabular-nums text-[#5A5A58]">{p.is_gap ? "—" : p.conversions.toLocaleString("fr-FR")}</td>
-        <td className="px-4 py-2 text-right tabular-nums text-[#191919] font-medium">
+        <td className="px-4 py-2 text-right tabular-nums text-[#1a1535] font-medium">
           {formatCurrency(p.shopify_revenue_cents)}
           {manualTotal > 0 && (
             <span className="ml-1 text-[10px] text-[#7C3AED]" title="Overrides manuels sur ce jour (comptés à part)">
@@ -146,7 +146,7 @@ function RowGroup({ point: p, overrides, editing, onEdit, onSaved, onCancel }: {
         </td>
         <td className="px-4 py-2 text-right tabular-nums text-[#5A5A58]">{p.shopify_orders}</td>
         <td className="px-4 py-2 text-right tabular-nums text-[#8A8A88] italic">{formatRoas(p.day_roas)}</td>
-        <td className="px-4 py-2 text-right tabular-nums font-semibold text-[#191919]">{formatRoas(p.rolling_roas)}</td>
+        <td className="px-4 py-2 text-right tabular-nums font-semibold text-[#1a1535]">{formatRoas(p.rolling_roas)}</td>
         <td className="px-2 py-2 text-right">
           <button onClick={onEdit} title="Ajouter une commande manuelle sur ce jour"
             className={`p-1 rounded hover:bg-[#F0EEFF] ${editing ? "text-[#7C3AED]" : "text-[#B4B4B2] hover:text-[#7C3AED]"}`}>

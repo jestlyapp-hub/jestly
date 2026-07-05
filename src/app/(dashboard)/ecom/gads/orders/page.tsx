@@ -46,7 +46,7 @@ export default function GadsOrdersPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[20px] font-bold text-[#191919]">Attribution par commande</h1>
+          <h1 className="text-[20px] font-bold text-[#1a1535]">Attribution par commande</h1>
           <p className="text-[12px] text-[#8A8A88]">
             Attribue une source à chaque commande — la traçabilité réelle reste affichée en face de ton hypothèse
           </p>
@@ -58,10 +58,10 @@ export default function GadsOrdersPage() {
       </div>
 
       {/* Rappel de cadrage — toujours visible */}
-      <div className="flex items-start gap-2 bg-[#F7F7F5] border border-[#E6E6E4] rounded-lg px-4 py-2.5 text-[11px] text-[#5A5A58]">
+      <div className="flex items-start gap-2 bg-[#F7F7F5] border border-[#E5E3F0] rounded-lg px-4 py-2.5 text-[11px] text-[#5A5A58]">
         <Info size={13} className="shrink-0 mt-[1px] text-[#8A8A88]" />
         <span>
-          L&apos;attribution manuelle est une <span className="font-semibold text-[#191919]">hypothèse</span>, pas une mesure.
+          L&apos;attribution manuelle est une <span className="font-semibold text-[#1a1535]">hypothèse</span>, pas une mesure.
           Le ROAS mesuré reste la référence. Utilise les attributions manuelles pour explorer des scénarios,
           pas pour décider un budget sur une intuition.
         </span>
@@ -70,11 +70,11 @@ export default function GadsOrdersPage() {
       {/* Filtre canal */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[12px] font-medium text-[#5A5A58]">Canal :</span>
-        <div className="inline-flex items-center bg-[#F7F7F5] border border-[#E6E6E4] rounded-md p-0.5">
+        <div className="inline-flex items-center bg-[#F7F7F5] border border-[#E5E3F0] rounded-md p-0.5">
           {FILTERS.map((f) => (
             <button key={f.value} onClick={() => setFilter(f.value)}
               className={`px-2.5 py-1 text-[11px] font-medium rounded transition-colors ${
-                filter === f.value ? "bg-white text-[#191919] shadow-sm" : "text-[#5A5A58] hover:text-[#191919]"
+                filter === f.value ? "bg-white text-[#1a1535] shadow-sm" : "text-[#5A5A58] hover:text-[#1a1535]"
               }`}>
               {f.label}
             </button>
@@ -92,11 +92,11 @@ export default function GadsOrdersPage() {
       </div>
 
       {/* Tableau des commandes */}
-      <div className="bg-white border border-[#E6E6E4] rounded-xl overflow-hidden">
+      <div className="bg-white border border-[#E5E3F0] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="border-b border-[#E6E6E4] bg-[#FBFBFA] text-left text-[11px] text-[#5A5A58]">
+              <tr className="border-b border-[#E5E3F0] bg-[#FBFBFA] text-left text-[11px] text-[#5A5A58]">
                 <th className="px-4 py-2.5 font-medium">Commande</th>
                 <th className="px-4 py-2.5 font-medium text-right">Montant</th>
                 <th className="px-4 py-2.5 font-medium">Produit(s)</th>
@@ -124,9 +124,9 @@ export default function GadsOrdersPage() {
 
 function ChannelCard({ stats: c }: { stats: ChannelStats }) {
   return (
-    <div className="bg-white border border-[#E6E6E4] rounded-xl p-4">
+    <div className="bg-white border border-[#E5E3F0] rounded-xl p-4">
       <div className="flex items-center justify-between gap-2 mb-2">
-        <span className="text-[12px] font-bold text-[#191919]">{CHANNEL_LABELS[c.channel]}</span>
+        <span className="text-[12px] font-bold text-[#1a1535]">{CHANNEL_LABELS[c.channel]}</span>
         {c.sample_small && (
           <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-semibold"
             title="Moins de 5 ventes sur la période : le ROAS de ce canal n'est pas significatif">
@@ -136,14 +136,14 @@ function ChannelCard({ stats: c }: { stats: ChannelStats }) {
       </div>
       {c.spend_cents == null ? (
         <p className="text-[11px] text-[#8A8A88]">
-          <span className="font-semibold text-[#191919]">Dépense non renseignée</span> — ROAS non calculable
+          <span className="font-semibold text-[#1a1535]">Dépense non renseignée</span> — ROAS non calculable
           (aucun coût n&apos;est inventé).
         </p>
       ) : (
         <div className="flex items-baseline gap-4 flex-wrap">
           <div title="Données captées par Shopify uniquement — la référence">
             <div className="text-[10px] text-[#8A8A88]">Mesuré Shopify</div>
-            <div className="text-[18px] font-bold text-[#191919] tabular-nums">{formatRoas(c.roas_measured)}</div>
+            <div className="text-[18px] font-bold text-[#1a1535] tabular-nums">{formatRoas(c.roas_measured)}</div>
           </div>
           <div title="Mesuré + sources récupérées par le pixel Jestly sur les commandes fantômes">
             <div className="text-[10px] text-[#8A8A88]">Avec pixel Jestly</div>
@@ -177,10 +177,10 @@ function OrderRow({ order: o, onSaved }: { order: AttributionOrderRow; onSaved: 
   return (
     <tr className="border-b border-[#EFEFEF] hover:bg-[#FBFBFA] align-top">
       <td className="px-4 py-2.5 whitespace-nowrap">
-        <div className="font-medium text-[#191919]">{o.name ?? "—"}</div>
+        <div className="font-medium text-[#1a1535]">{o.name ?? "—"}</div>
         <div className="text-[10px] text-[#8A8A88]">{formatDateFr(o.created_at.slice(0, 10), "d MMM yyyy")}</div>
       </td>
-      <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-[#191919]">{formatCurrency(o.total_cents)}</td>
+      <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-[#1a1535]">{formatCurrency(o.total_cents)}</td>
       <td className="px-4 py-2.5 max-w-[220px]">
         <span className="text-[#5A5A58] line-clamp-2" title={o.products.join(", ")}>
           {o.products.join(", ") || "—"}

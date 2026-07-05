@@ -25,6 +25,7 @@ import ImportRecapBanner from "@/components/ecom/gads/ImportRecapBanner";
 import MissingDatesBanner from "@/components/ecom/gads/MissingDatesBanner";
 import DataQualityBanner from "@/components/ecom/gads/DataQualityBanner";
 import BlendedChart from "@/components/ecom/gads/BlendedChart";
+import ShopSelector from "@/components/ecom/gads/ShopSelector";
 import type { Period } from "@/components/ecom/gads/format";
 
 export default function BlendedBoardPage() {
@@ -49,7 +50,8 @@ export default function BlendedBoardPage() {
             Rentabilité réelle : revenue Shopify croisé avec la dépense Ads et tes coûts
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <ShopSelector />
           <GadsTabs />
           <PeriodSelector value={period} onChange={(v) => setPeriod(v as Period)} />
           <ApiSyncButton onSynced={onImported} />
@@ -86,9 +88,11 @@ export default function BlendedBoardPage() {
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
             <Kpi label="Revenue" value={formatCurrency(cur.revenue_cents)}
               delta={delta(cur.revenue_cents, board.previous.revenue_cents)} goodWhenUp
+              spark={board.timeline.map((p) => p.revenue_cents)}
               hint={`${formatNumberFr(cur.orders_count)} commandes`} />
             <Kpi label="Blended Ad Spend" value={formatCurrency(cur.spend_cents)}
               delta={delta(cur.spend_cents, board.previous.spend_cents)}
+              spark={board.timeline.map((p) => p.spend_cents)}
               hint="Google Ads (CSV/API)" />
             <Kpi label="MER" value={formatRoas(cur.mer)}
               delta={delta(cur.mer, board.previous.mer)} goodWhenUp
@@ -112,6 +116,7 @@ export default function BlendedBoardPage() {
               cta={!cur.costs_configured ? "/ecom/gads/costs" : undefined} />
             <Kpi label="Net Profit" highlight
               value={cur.net_profit_cents != null ? formatCurrency(cur.net_profit_cents) : "non renseigné"}
+              spark={cur.costs_configured ? board.timeline.map((p) => p.net_profit_cents ?? 0) : undefined}
               delta={delta(cur.net_profit_cents, board.previous.net_profit_cents)} goodWhenUp
               tone={cur.net_profit_cents != null ? (cur.net_profit_cents >= 0 ? "positive" : "negative") : undefined}
               hint={cur.net_profit_cents != null
@@ -194,9 +199,9 @@ function delta(cur: number | null | undefined, prev: number | null | undefined):
   return Math.round(((cur - prev) / Math.abs(prev)) * 1000) / 10;
 }
 
-function Kpi({ label, value, hint, delta: d, goodWhenUp = false, highlight = false, tone, cta }: {
+function Kpi({ label, value, hint, delta: d, goodWhenUp = false, highlight = false, tone, cta, spark }: {
   label: string; value: string; hint?: string; delta?: number | null;
-  goodWhenUp?: boolean; highlight?: boolean; tone?: "positive" | "negative"; cta?: string;
+  goodWhenUp?: boolean; highlight?: boolean; tone?: "positive" | "negative"; cta?: string; spark?: number[];
 }) {
   const deltaColor = d == null || !goodWhenUp
     ? "text-[#8A8A88]"
@@ -216,10 +221,25 @@ function Kpi({ label, value, hint, delta: d, goodWhenUp = false, highlight = fal
       <div className={`text-[21px] font-bold mt-1 tabular-nums ${valueColor} ${value === "non renseigné" ? "text-[14px] text-[#8A8A88] italic" : ""}`}>
         {value}
       </div>
+      {spark && spark.length > 1 && spark.some((v) => v !== 0) && <MicroSparkline values={spark} />}
       {hint && <p className="text-[10px] text-[#8A8A88] mt-1">{hint}</p>}
       {cta && (
         <Link href={cta} className="text-[10px] text-[#7C3AED] hover:underline">Renseigner →</Link>
       )}
     </div>
+  );
+}
+
+/** Micro-sparkline des KPI cards — gère les valeurs négatives (Net Profit). */
+function MicroSparkline({ values }: { values: number[] }) {
+  const max = Math.max(...values, 0);
+  const min = Math.min(...values, 0);
+  const span = max - min || 1;
+  const w = 100, h = 16;
+  const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${h - ((v - min) / span) * (h - 2) - 1}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-4 mt-1" preserveAspectRatio="none" aria-hidden>
+      <polyline points={pts} fill="none" stroke="#A78BFA" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
+    </svg>
   );
 }

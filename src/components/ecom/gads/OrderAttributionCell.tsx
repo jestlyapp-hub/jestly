@@ -11,7 +11,7 @@ interface Props {
   onSaved: () => void;
 }
 
-const SELECT_CLS = "px-2 py-1 text-[11px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-md focus:outline-none focus:border-[#7C3AED] text-[#191919]";
+const SELECT_CLS = "px-2 py-1 text-[11px] bg-[#F7F7F5] border border-[#E5E3F0] rounded-md focus:outline-none focus:border-[#7C3AED] text-[#1a1535]";
 
 /**
  * Sélecteur d'attribution manuelle d'une commande, avec les deux rappels :
@@ -88,7 +88,7 @@ export default function OrderAttributionCell({ order, onSaved }: Props) {
         )}
         {order.manual && !dirty && (
           <button onClick={() => void reset()} disabled={busy} title="Retirer l'attribution manuelle"
-            className="p-1 rounded text-[#B4B4B2] hover:text-[#191919] hover:bg-[#FBFBFA]">
+            className="p-1 rounded text-[#B4B4B2] hover:text-[#1a1535] hover:bg-[#FBFBFA]">
             <RotateCcw size={12} />
           </button>
         )}

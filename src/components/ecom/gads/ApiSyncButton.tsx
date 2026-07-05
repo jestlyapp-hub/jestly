@@ -34,7 +34,7 @@ export default function ApiSyncButton({ onSynced }: Props) {
         onClick={() => void sync()}
         disabled={busy}
         title="Re-pull les 30 derniers jours depuis l'API Google Ads (les chiffres les plus récents font foi)"
-        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-white text-[#191919] border border-[#E6E6E4] hover:bg-[#FBFBFA] transition-colors disabled:opacity-60"
+        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-white text-[#1a1535] border border-[#E5E3F0] hover:bg-[#FBFBFA] transition-colors disabled:opacity-60"
       >
         {busy ? <Loader2 size={13} className="animate-spin" /> : <RefreshCw size={13} strokeWidth={1.8} />}
         {busy ? "Sync en cours…" : "Actualiser depuis l'API"}

@@ -45,7 +45,7 @@ export default function ImportCsvButton({ onImported, variant = "primary" }: Pro
 
   const cls = variant === "primary"
     ? "bg-[#7C3AED] text-white hover:bg-[#6D28D9]"
-    : "bg-white text-[#191919] border border-[#E6E6E4] hover:bg-[#FBFBFA]";
+    : "bg-white text-[#1a1535] border border-[#E5E3F0] hover:bg-[#FBFBFA]";
 
   return (
     <div className="inline-flex flex-col items-end gap-1">

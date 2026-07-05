@@ -64,7 +64,7 @@ export default function OverrideForm({ initial, lockedDate, onSaved, onCancel }:
     }
   };
 
-  const inputCls = "w-full px-2.5 py-1.5 text-[12px] bg-[#F7F7F5] border border-[#E6E6E4] rounded-md focus:outline-none focus:border-[#7C3AED] text-[#191919]";
+  const inputCls = "w-full px-2.5 py-1.5 text-[12px] bg-[#F7F7F5] border border-[#E5E3F0] rounded-md focus:outline-none focus:border-[#7C3AED] text-[#1a1535]";
 
   return (
     <div className="space-y-2.5">
@@ -103,7 +103,7 @@ export default function OverrideForm({ initial, lockedDate, onSaved, onCancel }:
           {initial ? "Enregistrer" : "Ajouter la commande"}
         </button>
         {onCancel && (
-          <button onClick={onCancel} className="px-3 py-1.5 rounded-md text-[12px] font-medium text-[#5A5A58] hover:bg-[#FBFBFA] border border-[#E6E6E4]">
+          <button onClick={onCancel} className="px-3 py-1.5 rounded-md text-[12px] font-medium text-[#5A5A58] hover:bg-[#FBFBFA] border border-[#E5E3F0]">
             Annuler
           </button>
         )}
