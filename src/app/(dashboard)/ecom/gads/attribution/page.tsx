@@ -87,13 +87,18 @@ export default function GadsAttributionPage() {
           </div>
 
           {/* Comparaison des ROAS */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-3">
             <RoasCard
               label="ROAS attribué Google"
               value={formatRoas(data.roas_google_attributed)}
               hint={`${formatCurrency(data.google_attributed_revenue_cents)} de CA rattachable à Google Ads payant (gclid ou utm de campagne — le referrer google organique compte en SEO) · ${data.google_attributed_orders} commande${data.google_attributed_orders > 1 ? "s" : ""}`}
               highlight
               badge="Indicateur de décision budgétaire Ads"
+            />
+            <RoasCard
+              label="ROAS Google avec pixel Jestly"
+              value={formatRoas(data.roas_google_with_pixel)}
+              hint="Mesuré Google + commandes fantômes résolues google_ads par le pixel first-party. Distinct du natif, jamais fondu."
             />
             <RoasCard
               label="ROAS déclaré par Google"
@@ -105,6 +110,40 @@ export default function GadsAttributionPage() {
               value={formatRoas(data.roas_crossed)}
               hint="CA Shopify total ÷ dépense. Santé de la boutique — ne juge pas les campagnes Ads."
             />
+          </div>
+
+          {/* Sources récupérées par le pixel first-party */}
+          <div className="bg-white border border-[#E6E6E4] rounded-xl p-5">
+            <h3 className="text-[14px] font-bold text-[#191919] mb-1">Sources récupérées par le pixel Jestly</h3>
+            <p className="text-[11px] text-[#8A8A88] mb-3">
+              Commandes non attribuables côté Shopify (fantômes, non rattachées) dont le pixel first-party a capté
+              la source à l&apos;arrivée. Toujours affichées à part — jamais fondues dans la donnée native.
+            </p>
+            {data.pixel_recovered.orders === 0 ? (
+              <p className="text-[12px] text-[#8A8A88]">
+                Aucune récupération pour l&apos;instant — normal tant que le pixel n&apos;est pas installé sur le thème
+                (ou si toutes les commandes de la période sont déjà trackées).
+              </p>
+            ) : (
+              <div className="flex flex-wrap items-center gap-4">
+                <div>
+                  <div className="text-[20px] font-bold text-sky-700 tabular-nums">{data.pixel_recovered.orders}</div>
+                  <div className="text-[10px] text-[#8A8A88]">commande{data.pixel_recovered.orders > 1 ? "s" : ""} récupérée{data.pixel_recovered.orders > 1 ? "s" : ""}</div>
+                </div>
+                <div>
+                  <div className="text-[20px] font-bold text-[#191919] tabular-nums">{formatCurrency(data.pixel_recovered.revenue_cents)}</div>
+                  <div className="text-[10px] text-[#8A8A88]">de CA sorti de la zone d&apos;ombre</div>
+                </div>
+                <div className="flex flex-wrap gap-1.5 ml-auto">
+                  {data.pixel_recovered.by_source.map((s) => (
+                    <span key={s.source} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-50 border border-sky-200 text-sky-700 text-[10px] font-medium">
+                      {s.source === "direct" ? "Direct" : s.source === "google_ads" ? "Google Ads" : s.source === "seo" ? "SEO" : s.source === "pinterest" ? "Pinterest" : "Autre"}
+                      <span className="tabular-nums">{s.orders} · {formatCurrency(s.revenue_cents)}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Données brutes vs overrides */}

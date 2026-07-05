@@ -80,6 +80,12 @@ export async function dispatchWebhook(
       // Update minimal du cache : marquer la row updated_at.
       const orderId = String(payload.id ?? "");
       if (orderId) {
+        // note_attributes REST [{name, value}] → forme GraphQL [{key, value}]
+        // (même format que la sync, lu par le matching pixel).
+        const rawAttributes = Array.isArray(payload.note_attributes)
+          ? (payload.note_attributes as Array<{ name?: string; value?: string | null }>)
+              .map((a) => ({ key: a.name ?? "", value: a.value ?? null }))
+          : undefined;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (supabase.from("shopify_orders") as any)
           .update({
@@ -87,6 +93,7 @@ export async function dispatchWebhook(
             fulfillment_status: (payload.fulfillment_status as string) ?? null,
             updated_at: (payload.updated_at as string) ?? new Date().toISOString(),
             cancelled_at: (payload.cancelled_at as string) ?? null,
+            ...(rawAttributes && rawAttributes.length > 0 ? { note_attributes: rawAttributes } : {}),
           })
           .eq("integration_id", integrationId)
           .eq("shopify_order_id", orderId);

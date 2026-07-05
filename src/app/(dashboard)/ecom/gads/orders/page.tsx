@@ -140,17 +140,22 @@ function ChannelCard({ stats: c }: { stats: ChannelStats }) {
           (aucun coût n&apos;est inventé).
         </p>
       ) : (
-        <div className="flex items-baseline gap-4">
-          <div>
-            <div className="text-[10px] text-[#8A8A88]">ROAS mesuré</div>
+        <div className="flex items-baseline gap-4 flex-wrap">
+          <div title="Données captées par Shopify uniquement — la référence">
+            <div className="text-[10px] text-[#8A8A88]">Mesuré Shopify</div>
             <div className="text-[18px] font-bold text-[#191919] tabular-nums">{formatRoas(c.roas_measured)}</div>
           </div>
-          <div>
+          <div title="Mesuré + sources récupérées par le pixel Jestly sur les commandes fantômes">
+            <div className="text-[10px] text-[#8A8A88]">Avec pixel Jestly</div>
+            <div className="text-[18px] font-bold text-sky-700 tabular-nums">{formatRoas(c.roas_with_pixel)}</div>
+          </div>
+          <div title="Mesuré + tes attributions manuelles (hypothèses)">
             <div className="text-[10px] text-[#8A8A88]">Avec manuelles</div>
             <div className="text-[18px] font-bold text-[#7C3AED] tabular-nums">{formatRoas(c.roas_with_manual)}</div>
           </div>
           {c.delta_percent != null && c.delta_percent !== 0 && (
-            <span className={`text-[11px] font-semibold ${c.delta_percent > 0 ? "text-emerald-600" : "text-rose-600"}`}>
+            <span className={`text-[11px] font-semibold ${c.delta_percent > 0 ? "text-emerald-600" : "text-rose-600"}`}
+              title="Écart du ROAS avec manuelles par rapport au mesuré">
               {c.delta_percent > 0 ? "+" : ""}{c.delta_percent} %
             </span>
           )}
@@ -160,6 +165,7 @@ function ChannelCard({ stats: c }: { stats: ChannelStats }) {
         {c.orders_effective} vente{c.orders_effective > 1 ? "s" : ""} :{" "}
         {c.orders_effective - c.orders_from_manual} mesurée{c.orders_effective - c.orders_from_manual > 1 ? "s" : ""},{" "}
         {c.orders_from_manual} manuelle{c.orders_from_manual > 1 ? "s" : ""}
+        {c.orders_from_pixel > 0 && <> · pixel : +{c.orders_from_pixel}</>}
         {" · "}{formatCurrency(c.revenue_effective_cents)}
       </p>
     </div>
@@ -187,7 +193,16 @@ function OrderRow({ order: o, onSaved }: { order: AttributionOrderRow; onSaved: 
         </span>
       </td>
       <td className="px-4 py-2.5 whitespace-nowrap text-[#5A5A58]">
-        {o.measured_channel ? CHANNEL_LABELS[o.measured_channel] : "—"}
+        <div>{o.measured_channel ? CHANNEL_LABELS[o.measured_channel] : "—"}</div>
+        {o.pixel && (
+          <span
+            className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-sky-50 border border-sky-200 text-sky-700 text-[10px] font-semibold"
+            title={`Source récupérée par le pixel Jestly (${o.pixel.match_method === "cart_attribute" ? "attribut de panier" : "proximité temporelle"}) — distincte du natif Shopify`}
+          >
+            Pixel : {o.pixel.resolved_source === "direct" ? "Direct" : CHANNEL_LABELS[o.pixel.resolved_source as Channel] ?? o.pixel.resolved_source}
+            · {Math.round(o.pixel.confidence * 100)} %
+          </span>
+        )}
       </td>
       <td className="px-4 py-2.5 min-w-[260px]">
         <OrderAttributionCell order={o} onSaved={onSaved} />

@@ -18,6 +18,12 @@ import { deriveMeasuredChannel, resolveEffectiveChannel, type Channel, type Manu
 export const SMALL_SAMPLE_THRESHOLD = 5;
 
 // ── Types exposés ────────────────────────────────────────────────
+export interface PixelResolution {
+  resolved_source: "google_ads" | "seo" | "pinterest" | "direct" | "other";
+  match_method: "cart_attribute" | "time_proximity";
+  confidence: number;
+}
+
 export interface AttributionOrderRow {
   order_id: string;
   name: string | null;
@@ -27,6 +33,8 @@ export interface AttributionOrderRow {
   tracking_status: "tracked" | "ghost" | "unmatched" | null;
   measured_channel: Exclude<Channel, "ghost"> | null;
   manual: { channel: Channel; confidence: ManualConfidence | null; note: string | null } | null;
+  /** Source récupérée par le pixel Jestly — toujours distincte du natif Shopify. */
+  pixel: PixelResolution | null;
   effective_channel: Exclude<Channel, "ghost"> | null;
 }
 
@@ -40,7 +48,12 @@ export interface ChannelStats {
   revenue_effective_cents: number;
   /** Ventes effectives qui n'existent que par un choix manuel. */
   orders_from_manual: number;
+  /** Ventes ajoutées par le pixel Jestly (mesuré inconnu, pixel résolu). */
+  orders_from_pixel: number;
+  revenue_with_pixel_cents: number;
   roas_measured: number | null;
+  /** 3e ligne : mesuré + sources récupérées par le pixel (jamais fondu). */
+  roas_with_pixel: number | null;
   roas_with_manual: number | null;
   /** Écart du ROAS avec manuelles vs mesuré, en % (null si incalculable). */
   delta_percent: number | null;
@@ -67,6 +80,7 @@ interface OrderLike {
   total_cents: number;
   measured_channel: Exclude<Channel, "ghost"> | null;
   manual: { channel: Channel; confidence: ManualConfidence | null } | null;
+  pixel?: PixelResolution | null;
 }
 
 const NON_GHOST_CHANNELS: Array<Exclude<Channel, "ghost">> = ["google_ads", "seo", "pinterest", "other"];
@@ -78,11 +92,18 @@ export function computeChannelStats(
   return NON_GHOST_CHANNELS.map((channel) => {
     let ordersMeasured = 0, revenueMeasured = 0;
     let ordersEffective = 0, revenueEffective = 0, ordersFromManual = 0;
+    let ordersFromPixel = 0, revenueWithPixel = 0;
 
     for (const o of orders) {
       if (o.measured_channel === channel) {
         ordersMeasured += 1;
         revenueMeasured += o.total_cents;
+        revenueWithPixel += o.total_cents;
+      } else if (o.measured_channel == null && o.pixel?.resolved_source === channel) {
+        // Le pixel ne remplace JAMAIS une mesure Shopify : il ne fait que
+        // combler les commandes dont la source mesurée est inconnue.
+        ordersFromPixel += 1;
+        revenueWithPixel += o.total_cents;
       }
       const effective = resolveEffectiveChannel(o.measured_channel, o.manual);
       if (effective === channel) {
@@ -95,6 +116,7 @@ export function computeChannelStats(
 
     const spend = spendByChannel[channel] ?? null;
     const roasMeasured = spend != null ? computeRoas(revenueMeasured, spend) : null;
+    const roasWithPixel = spend != null ? computeRoas(revenueWithPixel, spend) : null;
     const roasWithManual = spend != null ? computeRoas(revenueEffective, spend) : null;
     const delta = roasMeasured != null && roasWithManual != null && roasMeasured > 0
       ? Math.round(((roasWithManual - roasMeasured) / roasMeasured) * 1000) / 10
@@ -108,7 +130,10 @@ export function computeChannelStats(
       orders_effective: ordersEffective,
       revenue_effective_cents: revenueEffective,
       orders_from_manual: ordersFromManual,
+      orders_from_pixel: ordersFromPixel,
+      revenue_with_pixel_cents: revenueWithPixel,
       roas_measured: roasMeasured,
+      roas_with_pixel: roasWithPixel,
       roas_with_manual: roasWithManual,
       delta_percent: delta,
       sample_small: ordersEffective < SMALL_SAMPLE_THRESHOLD,
@@ -196,9 +221,17 @@ function nextDayIso(day: string): string {
   return new Date(new Date(`${day}T00:00:00Z`).getTime() + 24 * 3600 * 1000).toISOString();
 }
 
+interface DbPixelRow {
+  order_id: string;
+  resolved_source: PixelResolution["resolved_source"];
+  match_method: PixelResolution["match_method"];
+  confidence: number;
+}
+
 async function loadOrdersAndManual(userId: string, range: DateRange): Promise<{
   orders: DbOrderRow[];
   manualByOrder: Map<string, DbManualRow>;
+  pixelByOrder: Map<string, PixelResolution>;
 }> {
   const supabase = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -208,7 +241,7 @@ async function loadOrdersAndManual(userId: string, range: DateRange): Promise<{
     .eq("provider", "shopify")
     .eq("status", "active")
     .maybeSingle();
-  if (!integ) return { orders: [], manualByOrder: new Map() };
+  if (!integ) return { orders: [], manualByOrder: new Map(), pixelByOrder: new Map() };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("shopify_orders") as any)
@@ -222,16 +255,32 @@ async function loadOrdersAndManual(userId: string, range: DateRange): Promise<{
   const orders = filterRealOrders((data ?? []) as DbOrderRow[]);
 
   const manualByOrder = new Map<string, DbManualRow>();
+  const pixelByOrder = new Map<string, PixelResolution>();
   if (orders.length > 0) {
+    const orderIds = orders.map((o) => o.id);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: manual, error: manualError } = await (supabase.from("order_manual_attribution") as any)
       .select("order_id, channel, confidence, note")
       .eq("user_id", userId)
-      .in("order_id", orders.map((o) => o.id));
+      .in("order_id", orderIds);
     if (manualError) throw new Error(`Lecture order_manual_attribution échouée : ${manualError.message}`);
     for (const m of (manual ?? []) as DbManualRow[]) manualByOrder.set(m.order_id, m);
+
+    // Sources récupérées par le pixel first-party (tables 097, jamais fondues).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: pixel, error: pixelError } = await (supabase.from("pixel_order_attribution") as any)
+      .select("order_id, resolved_source, match_method, confidence")
+      .in("order_id", orderIds);
+    if (pixelError) throw new Error(`Lecture pixel_order_attribution échouée : ${pixelError.message}`);
+    for (const p of (pixel ?? []) as DbPixelRow[]) {
+      pixelByOrder.set(p.order_id, {
+        resolved_source: p.resolved_source,
+        match_method: p.match_method,
+        confidence: Number(p.confidence),
+      });
+    }
   }
-  return { orders, manualByOrder };
+  return { orders, manualByOrder, pixelByOrder };
 }
 
 async function loadGadsSpend(userId: string, range: DateRange): Promise<number> {
@@ -246,7 +295,11 @@ async function loadGadsSpend(userId: string, range: DateRange): Promise<number> 
   return ((data ?? []) as Array<{ cost_cents: number }>).reduce((s, r) => s + r.cost_cents, 0);
 }
 
-function toAttributionRow(o: DbOrderRow, manual: DbManualRow | undefined): AttributionOrderRow {
+function toAttributionRow(
+  o: DbOrderRow,
+  manual: DbManualRow | undefined,
+  pixel: PixelResolution | undefined,
+): AttributionOrderRow {
   const measured = deriveMeasuredChannel(o);
   const manualObj = manual
     ? { channel: manual.channel, confidence: manual.confidence, note: manual.note }
@@ -260,23 +313,29 @@ function toAttributionRow(o: DbOrderRow, manual: DbManualRow | undefined): Attri
     tracking_status: o.tracking_status,
     measured_channel: measured,
     manual: manualObj,
+    pixel: pixel ?? null,
     effective_channel: resolveEffectiveChannel(measured, manualObj),
   };
 }
 
-/** Vue Commandes : lignes + stats par canal (double ROAS). */
+/** Vue Commandes : lignes + stats par canal (triple ROAS). */
 export async function getOrdersAttribution(userId: string, range: DateRange): Promise<{
   orders: AttributionOrderRow[];
   channels: ChannelStats[];
 }> {
-  const [{ orders, manualByOrder }, gadsSpend] = await Promise.all([
+  const [{ orders, manualByOrder, pixelByOrder }, gadsSpend] = await Promise.all([
     loadOrdersAndManual(userId, range),
     loadGadsSpend(userId, range),
   ]);
 
-  const rows = orders.map((o) => toAttributionRow(o, manualByOrder.get(o.id)));
+  const rows = orders.map((o) => toAttributionRow(o, manualByOrder.get(o.id), pixelByOrder.get(o.id)));
   const channels = computeChannelStats(
-    rows.map((r) => ({ total_cents: r.total_cents, measured_channel: r.measured_channel, manual: r.manual })),
+    rows.map((r) => ({
+      total_cents: r.total_cents,
+      measured_channel: r.measured_channel,
+      manual: r.manual,
+      pixel: r.pixel,
+    })),
     // Seul Google Ads a une dépense saisie — jamais de coût inventé ailleurs.
     { google_ads: gadsSpend },
   );
@@ -290,6 +349,7 @@ export async function getProductsBreakdown(
   channelFilter?: Exclude<Channel, "ghost"> | "all",
 ): Promise<ProductRow[]> {
   const { orders, manualByOrder } = await loadOrdersAndManual(userId, range);
+  // La vue Produits reste sur mesuré + manuel : le pixel n'y est pas fondu.
   return computeProductBreakdown(
     orders.map((o) => {
       const manual = manualByOrder.get(o.id);

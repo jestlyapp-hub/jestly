@@ -82,9 +82,17 @@ export interface GadsAttribution {
   roas_declared: number | null;        // valeur de conv. Google / coût CSV
   roas_crossed: number | null;         // CA Shopify total / coût CSV
   roas_google_attributed: number | null; // CA Shopify attribué Google / coût CSV
+  /** Mesuré Google + commandes fantômes résolues google_ads par le pixel. */
+  roas_google_with_pixel: number | null;
   roas_with_manual: number | null;     // (CA Shopify + overrides) / coût CSV
   manual_revenue_cents: number;
   manual_orders: number;
+  /** Sources récupérées par le pixel Jestly sur les commandes non attribuables. */
+  pixel_recovered: {
+    orders: number;
+    revenue_cents: number;
+    by_source: Array<{ source: string; orders: number; revenue_cents: number }>;
+  };
 }
 
 // ── Chargement des données ───────────────────────────────────────
@@ -99,6 +107,7 @@ interface GadsDailyRow {
 }
 
 interface ShopifyOrderRow {
+  id: string;
   name: string | null;
   total_price: number | null;
   created_at: string;
@@ -141,7 +150,7 @@ async function loadShopifyOrders(supabase: any, userId: string, range: DateRange
   if (!integ) return [];
 
   const { data, error } = await supabase.from("shopify_orders")
-    .select("name, total_price, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site")
+    .select("id, name, total_price, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site")
     .eq("integration_id", integ.id)
     .is("cancelled_at", null)
     .gte("created_at", `${range.from}T00:00:00Z`)
@@ -324,6 +333,18 @@ export async function getGadsAttribution(userId: string, range: DateRange): Prom
     loadManualOverrides(supabase, userId, range),
   ]);
 
+  // Sources récupérées par le pixel first-party (jamais fondues dans le natif).
+  const pixelByOrder = new Map<string, string>();
+  if (orders.length > 0) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: pixelRows } = await (supabase.from("pixel_order_attribution") as any)
+      .select("order_id, resolved_source")
+      .in("order_id", orders.map((o) => o.id));
+    for (const p of (pixelRows ?? []) as Array<{ order_id: string; resolved_source: string }>) {
+      pixelByOrder.set(p.order_id, p.resolved_source);
+    }
+  }
+
   const spend = gads.reduce((s, g) => s + g.cost_cents, 0);
   const convValue = gads.reduce((s, g) => s + g.conversion_value_cents, 0);
 
@@ -335,6 +356,9 @@ export async function getGadsAttribution(userId: string, range: DateRange): Prom
   };
   let totalRevenue = 0;
   let googleOrders = 0, googleRevenue = 0;
+  let pixelGoogleRevenue = 0;
+  const pixelRecovered = { orders: 0, revenue_cents: 0 };
+  const pixelBySource = new Map<string, { orders: number; revenue_cents: number }>();
   for (const o of orders) {
     const cents = toCents(o.total_price);
     totalRevenue += cents;
@@ -344,6 +368,18 @@ export async function getGadsAttribution(userId: string, range: DateRange): Prom
     if (isGoogleAttributed(o)) {
       googleOrders += 1;
       googleRevenue += cents;
+    } else if (b !== "tracked") {
+      // Commande non attribuable côté Shopify : le pixel a-t-il récupéré la source ?
+      const source = pixelByOrder.get(o.id);
+      if (source) {
+        pixelRecovered.orders += 1;
+        pixelRecovered.revenue_cents += cents;
+        const cur = pixelBySource.get(source) ?? { orders: 0, revenue_cents: 0 };
+        cur.orders += 1;
+        cur.revenue_cents += cents;
+        pixelBySource.set(source, cur);
+        if (source === "google_ads") pixelGoogleRevenue += cents;
+      }
     }
   }
 
@@ -369,8 +405,16 @@ export async function getGadsAttribution(userId: string, range: DateRange): Prom
     roas_declared: computeRoas(convValue, spend),
     roas_crossed: computeRoas(totalRevenue, spend),
     roas_google_attributed: computeRoas(googleRevenue, spend),
+    roas_google_with_pixel: computeRoas(googleRevenue + pixelGoogleRevenue, spend),
     roas_with_manual: computeRoas(totalRevenue + manualRevenue, spend),
     manual_revenue_cents: manualRevenue,
     manual_orders: manualOrders,
+    pixel_recovered: {
+      orders: pixelRecovered.orders,
+      revenue_cents: pixelRecovered.revenue_cents,
+      by_source: [...pixelBySource.entries()]
+        .map(([source, v]) => ({ source, ...v }))
+        .sort((a, b) => b.revenue_cents - a.revenue_cents),
+    },
   };
 }

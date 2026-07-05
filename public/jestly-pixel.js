@@ -115,9 +115,32 @@
     } catch (e) { /* réseau indisponible : tant pis, pas de retry */ }
   }
 
+  // ── Attribut de panier : la voie fiable du matching commande ────
+  // Pousse le session_id en cart attribute `_jestly_sid` (préfixe _ =
+  // masqué au client au checkout). Il revient dans la commande Shopify,
+  // que le serveur Jestly rattache alors à la session. Une fois par onglet.
+  function syncCartAttribute(sid) {
+    try {
+      if (window.sessionStorage.getItem("_jestly_cart") === sid) return;
+    } catch (e) { /* ignore */ }
+    try {
+      fetch("/cart/update.js", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ attributes: { _jestly_sid: sid } }),
+        credentials: "same-origin",
+      }).then(function (res) {
+        if (res && res.ok) {
+          try { window.sessionStorage.setItem("_jestly_cart", sid); } catch (e) { /* ignore */ }
+        }
+      }).catch(function () { /* hors Shopify ou réseau : silencieux */ });
+    } catch (e) { /* ignore */ }
+  }
+
   function run(config) {
     if (navigator.webdriver) return; // bots évidents
     var session = getOrCreateSession();
+    syncCartAttribute(session.sid);
     var collected = collectParams();
     var referrer = externalReferrer();
 

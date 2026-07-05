@@ -63,6 +63,49 @@ describe("computeChannelStats — double ROAS mesuré vs avec manuelles", () => 
   });
 });
 
+describe("computeChannelStats — 3e ligne : ROAS avec pixel Jestly", () => {
+  const pixel = (source: "google_ads" | "seo" | "pinterest" | "direct" | "other") =>
+    ({ resolved_source: source, match_method: "cart_attribute" as const, confidence: 0.95 });
+
+  it("le pixel comble les commandes sans mesure, sans toucher au mesuré", () => {
+    const orders = [
+      { ...order(10000, "google_ads"), pixel: null },
+      { ...order(6000, null), pixel: pixel("google_ads") }, // ghost récupérée
+    ];
+    const stats = computeChannelStats(orders, { google_ads: 8000 });
+    const gads = stats.find((s) => s.channel === "google_ads")!;
+    expect(gads.roas_measured).toBe(1.25);      // 100 € / 80 € — inchangé
+    expect(gads.roas_with_pixel).toBe(2);       // 160 € / 80 €
+    expect(gads.orders_from_pixel).toBe(1);
+  });
+
+  it("le pixel ne remplace JAMAIS une mesure Shopify divergente", () => {
+    const orders = [{ ...order(10000, "seo"), pixel: pixel("google_ads") }];
+    const stats = computeChannelStats(orders, { google_ads: 5000 });
+    const gads = stats.find((s) => s.channel === "google_ads")!;
+    expect(gads.orders_from_pixel).toBe(0);     // mesuré seo = vérité, pixel ignoré
+    expect(gads.revenue_with_pixel_cents).toBe(0);
+  });
+
+  it("une résolution pixel « direct » ne gonfle aucun canal", () => {
+    const orders = [{ ...order(5000, null), pixel: pixel("direct") }];
+    const stats = computeChannelStats(orders, { google_ads: 1000 });
+    for (const s of stats) expect(s.orders_from_pixel).toBe(0);
+  });
+
+  it("les trois ROAS restent distincts (mesuré / pixel / manuel)", () => {
+    const orders = [
+      { ...order(8000, "google_ads"), pixel: null },
+      { ...order(4000, null), pixel: pixel("google_ads") },
+      { ...order(2000, null, { channel: "google_ads", confidence: "guessed" }), pixel: null },
+    ];
+    const gads = computeChannelStats(orders, { google_ads: 4000 }).find((s) => s.channel === "google_ads")!;
+    expect(gads.roas_measured).toBe(2);       // 80 € / 40 €
+    expect(gads.roas_with_pixel).toBe(3);     // (80+40) / 40
+    expect(gads.roas_with_manual).toBe(2.5);  // (80+20) / 40
+  });
+});
+
 describe("computeProductBreakdown — ventilation par produit et canal", () => {
   const li = (title: string, price: number, qty = 1, product_id: string | null = null) =>
     ({ title, price, quantity: qty, total_discount: 0, product_id });

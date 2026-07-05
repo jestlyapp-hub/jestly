@@ -40,6 +40,7 @@ export const QUERY_ORDERS = /* GraphQL */ `
           phone
           tags
           sourceName
+          customAttributes { key value }
           customerJourneySummary {
             ready
             momentsCount { count }

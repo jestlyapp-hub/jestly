@@ -12,6 +12,7 @@ import {
 } from "./queries";
 import type { DecryptedIntegration } from "./types";
 import { computeTrackingStatus } from "./tracking-status";
+import { matchPixelAttributionForUser } from "@/lib/pixel/matcher";
 
 const PAGE_SIZE = 50;
 
@@ -33,6 +34,7 @@ interface OrderNode {
   phone: string | null;
   tags: string[];
   sourceName: string | null;
+  customAttributes?: Array<{ key: string; value: string | null }> | null;
   customerJourneySummary?: {
     ready?: boolean | null;
     momentsCount?: { count: number } | null;
@@ -136,6 +138,7 @@ export async function syncOrders(
         billing_address: node.billingAddress ?? null,
         tags: node.tags ?? [],
         source_name: node.sourceName,
+        note_attributes: node.customAttributes ?? [],
         referring_site: firstVisit?.referrerUrl ?? null,
         landing_site: firstVisit?.landingPage ?? null,
         utm_source: utm?.source ?? null,
@@ -499,6 +502,12 @@ export async function initialFullSync(
     console.warn(`[ecom] sessions sync skipped: ${(e as Error).message}`);
   }
 
+  try {
+    await matchPixelAttributionForUser(integration.user_id);
+  } catch (e) {
+    console.warn(`[ecom] pixel matching skipped: ${(e as Error).message}`);
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase.from("shopify_sync_state") as any).update({
     initial_sync_completed: true,
@@ -543,6 +552,8 @@ export async function deltaSync(integration: DecryptedIntegration): Promise<void
     await syncCustomers(integration, { since: lastCustomers });
     try { await syncAnalytics(integration); } catch (e) { console.warn("analytics:", (e as Error).message); }
     try { await syncSessions(integration); } catch (e) { console.warn("sessions:", (e as Error).message); }
+    // Matching pixel first-party (jamais bloquant pour la sync).
+    try { await matchPixelAttributionForUser(integration.user_id); } catch (e) { console.warn("pixel:", (e as Error).message); }
 
     const now = new Date().toISOString();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
