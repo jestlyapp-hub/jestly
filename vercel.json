@@ -3,22 +3,6 @@
     {
       "path": "/api/cron/notifications",
       "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/ecom/sync",
-      "schedule": "0 */4 * * *"
-    },
-    {
-      "path": "/api/cron/pinterest-sync",
-      "schedule": "0 */6 * * *"
-    },
-    {
-      "path": "/api/cron/refresh-campaign-performance",
-      "schedule": "30 */6 * * *"
-    },
-    {
-      "path": "/api/cron/gads-sync",
-      "schedule": "15 */6 * * *"
     }
   ]
 }

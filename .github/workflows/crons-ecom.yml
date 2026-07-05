@@ -1,0 +1,65 @@
+# Crons ECOM hébergés sur GitHub Actions.
+#
+# Le plan Vercel Hobby limite les crons à une cadence quotidienne et REJETTE
+# silencieusement tout déploiement qui en déclare davantage (précédent :
+# commit aeeb689). Les cadences 4 h / 6 h vivent donc ici et appellent les
+# endpoints de prod avec le secret CRON_SECRET (à créer dans
+# Settings → Secrets and variables → Actions, même valeur que Vercel).
+#
+# Les horaires GitHub Actions sont en UTC et best-effort (quelques minutes
+# de dérive possibles) — sans conséquence pour des syncs de reporting.
+
+name: Crons ECOM
+
+on:
+  schedule:
+    - cron: "0 */4 * * *"   # sync Shopify (orders/products/customers/analytics)
+    - cron: "0 */6 * * *"   # sync Pinterest Ads
+    - cron: "30 */6 * * *"  # recompute ROAS campagnes (campaign_performance_daily)
+    - cron: "15 */6 * * *"  # pull API Google Ads → gads_daily
+  workflow_dispatch: {}      # déclenchement manuel : lance les 4 syncs
+
+jobs:
+  sync-shopify:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */4 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Sync Shopify
+        run: |
+          curl --silent --show-error --fail-with-body --max-time 120 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://jestly.fr/api/ecom/sync"
+
+  sync-pinterest:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '0 */6 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Sync Pinterest Ads
+        run: |
+          curl --silent --show-error --fail-with-body --max-time 120 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://jestly.fr/api/cron/pinterest-sync"
+
+  refresh-roas:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '30 */6 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Recompute ROAS campagnes
+        run: |
+          curl --silent --show-error --fail-with-body --max-time 120 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://jestly.fr/api/cron/refresh-campaign-performance"
+
+  sync-google-ads:
+    if: github.event_name == 'workflow_dispatch' || github.event.schedule == '15 */6 * * *'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Pull API Google Ads
+        run: |
+          curl --silent --show-error --fail-with-body --max-time 120 \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            "https://jestly.fr/api/cron/gads-sync"
