@@ -13,6 +13,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { computeRoas } from "@/lib/ads/roas-engine";
 import type { DateRange } from "@/lib/ads/types";
 import { filterRealOrders } from "@/lib/shopify/test-orders-filter";
+import { parisDayStartUtcIso, parisNextDayStartUtcIso } from "@/lib/paris-time";
 import { deriveMeasuredChannel, resolveEffectiveChannel, type Channel, type ManualConfidence } from "./channels";
 
 export const SMALL_SAMPLE_THRESHOLD = 5;
@@ -218,9 +219,6 @@ interface DbManualRow {
   note: string | null;
 }
 
-function nextDayIso(day: string): string {
-  return new Date(new Date(`${day}T00:00:00Z`).getTime() + 24 * 3600 * 1000).toISOString();
-}
 
 interface DbPixelRow {
   order_id: string;
@@ -249,8 +247,8 @@ export async function loadOrdersAndManual(userId: string, range: DateRange): Pro
     .select("id, name, total_price, customer_id, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site, line_items")
     .eq("integration_id", integ.id)
     .is("cancelled_at", null)
-    .gte("created_at", `${range.from}T00:00:00Z`)
-    .lt("created_at", nextDayIso(range.to))
+    .gte("created_at", parisDayStartUtcIso(range.from))
+    .lt("created_at", parisNextDayStartUtcIso(range.to))
     .order("created_at", { ascending: false });
   if (error) throw new Error(`Lecture shopify_orders échouée : ${error.message}`);
   const orders = filterRealOrders((data ?? []) as DbOrderRow[]);

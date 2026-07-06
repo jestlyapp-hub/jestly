@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { PixelPayloadSchema, isLikelyBot, hasAttributionSignals } from "@/lib/pixel/collect";
+import { PixelPayloadSchema, isLikelyBot, hasAttributionSignals, isConsentTwin } from "@/lib/pixel/collect";
 
 const VALID = {
   pixel_id: "6f1d1f52-7d4a-4f4e-9a5b-2f3c4d5e6f70",
@@ -51,6 +51,26 @@ describe("isLikelyBot — filtre des bots évidents", () => {
   it("laisse passer les navigateurs réels", () => {
     expect(isLikelyBot("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/126 Safari/537.36")).toBe(false);
     expect(isLikelyBot("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) Version/17.0 Mobile Safari/604.1")).toBe(false);
+  });
+});
+
+describe("isConsentTwin — fusion des doublons de session au consentement", () => {
+  it("même landing + même referrer = même visiteur (bannière qui purge et recharge)", () => {
+    expect(isConsentTwin(
+      { landing_page: "https://lhorlogemurale.fr/?gclid=abc", referrer: null },
+      { landing: "https://lhorlogemurale.fr/?gclid=abc", referrer: null },
+    )).toBe(true);
+  });
+
+  it("landing ou referrer différents = visiteurs distincts, jamais fusionnés", () => {
+    expect(isConsentTwin(
+      { landing_page: "https://lhorlogemurale.fr/?gclid=abc", referrer: null },
+      { landing: "https://lhorlogemurale.fr/produits/pendule", referrer: null },
+    )).toBe(false);
+    expect(isConsentTwin(
+      { landing_page: "https://lhorlogemurale.fr/", referrer: "https://google.com/" },
+      { landing: "https://lhorlogemurale.fr/", referrer: "https://ecosia.org/" },
+    )).toBe(false);
   });
 });
 

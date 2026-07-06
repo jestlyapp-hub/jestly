@@ -2,16 +2,15 @@
  * Helpers communs aux endpoints /api/ecom/ads/*
  */
 import type { AdsProvider, DateRange } from "@/lib/ads/types";
+import { parisDaysAgo, todayParis } from "@/lib/paris-time";
 
 export function parseRange(rangeParam: string | null, fromParam: string | null, toParam: string | null): DateRange {
-  if (fromParam && toParam) {
+  if (fromParam && toParam && /^\d{4}-\d{2}-\d{2}$/.test(fromParam) && /^\d{4}-\d{2}-\d{2}$/.test(toParam)) {
     return { from: fromParam, to: toParam };
   }
-  const today = new Date();
-  const toIso = today.toISOString().slice(0, 10);
+  // « Aujourd'hui » au sens de Paris — pas du fuseau UTC du serveur.
   const days = rangeParam === "7d" ? 7 : rangeParam === "90d" ? 90 : 30;
-  const fromIso = new Date(today.getTime() - days * 24 * 3600 * 1000).toISOString().slice(0, 10);
-  return { from: fromIso, to: toIso };
+  return { from: parisDaysAgo(days), to: todayParis() };
 }
 
 export function parseProviders(providersParam: string | null): AdsProvider[] | undefined {

@@ -137,8 +137,8 @@ export async function getAttributionBoard(userId: string, range: DateRange): Pro
   const { orders, manualByOrder, pixelByOrder } = await loadOrdersAndManual(userId, range);
   const orderIds = (orders as DbOrderRow[]).map((o) => o.id);
 
-  // Pixel avec session (pour first vs last) + réponses survey
-  const [pixelRows, ppsRows, gadsSpendRows] = await Promise.all([
+  // Pixel, survey, dépense et IDs Shopify en parallèle (une seule vague).
+  const [pixelRows, ppsRows, gadsSpendRows, shopifyIdRows] = await Promise.all([
     orderIds.length > 0
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ? (supabase.from("pixel_order_attribution") as any)
@@ -159,6 +159,13 @@ export async function getAttributionBoard(userId: string, range: DateRange): Pro
       .gte("date", range.from)
       .lte("date", range.to)
       .then(({ data }: { data: Array<{ cost_cents: number }> | null }) => data ?? []),
+    orderIds.length > 0
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? (supabase.from("shopify_orders") as any)
+          .select("id, shopify_order_id")
+          .in("id", orderIds)
+          .then(({ data }: { data: Array<{ id: string; shopify_order_id: string }> | null }) => data ?? [])
+      : Promise.resolve([]),
   ]);
 
   // Sessions des résolutions pixel → first vs last touch
@@ -186,16 +193,10 @@ export async function getAttributionBoard(userId: string, range: DateRange): Pro
     });
   }
 
-  // Survey par shopify_order_id → il faut l'ID Shopify de chaque commande
+  // Survey par shopify_order_id → l'ID Shopify de chaque commande
   const shopifyIdByOrderId = new Map<string, string>();
-  if (orderIds.length > 0) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: ids } = await (supabase.from("shopify_orders") as any)
-      .select("id, shopify_order_id")
-      .in("id", orderIds);
-    for (const r of (ids ?? []) as Array<{ id: string; shopify_order_id: string }>) {
-      shopifyIdByOrderId.set(r.id, r.shopify_order_id);
-    }
+  for (const r of shopifyIdRows as Array<{ id: string; shopify_order_id: string }>) {
+    shopifyIdByOrderId.set(r.id, r.shopify_order_id);
   }
   const surveyByShopifyId = new Map<string, PpsAnswer>();
   for (const r of ppsRows as Array<{ shopify_order_id: string; answer: PpsAnswer }>) {

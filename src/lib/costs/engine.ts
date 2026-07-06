@@ -10,6 +10,7 @@
  *  - Donnée manquante = null (« non renseigné »), jamais une valeur inventée.
  *  - MER décisionnel = SUM(revenue) / SUM(spend) sur la période.
  */
+import { parisDay } from "@/lib/paris-time";
 
 export interface ProductCostRow {
   shopify_product_id: string;
@@ -52,7 +53,8 @@ export function resolveUnitCost(
   orderDate: string,
 ): number | null {
   if (!productId) return null;
-  const day = orderDate.slice(0, 10);
+  // Jour de Paris : une commande à 00 h 30 utilise la version de SON jour.
+  const day = orderDate.length > 10 ? parisDay(orderDate) : orderDate;
   let best: ProductCostRow | null = null;
   for (const c of costs) {
     if (c.shopify_product_id !== productId || c.effective_from > day) continue;

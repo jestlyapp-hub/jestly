@@ -13,9 +13,9 @@ import { AlertTriangle, Columns3, Info } from "lucide-react";
 import { useApi } from "@/lib/hooks/use-api";
 import { formatCurrency, formatNumberFr, formatRoas } from "@/lib/ads/formatters";
 import type { ProductAnalyticsRow } from "@/lib/gads/product-analytics";
-import PeriodSelector from "@/components/ecom/ads/PeriodSelector";
 import GadsTabs from "@/components/ecom/gads/GadsTabs";
-import type { Period } from "@/components/ecom/gads/format";
+import AnalyticsPeriodFilter, { useAnalyticsRange } from "@/components/ecom/gads/AnalyticsPeriodFilter";
+import { TableSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
 
 type ChannelFilter = "all" | "google_ads" | "seo" | "pinterest" | "other";
 
@@ -40,7 +40,7 @@ interface Col {
 const COLS: Col[] = [
   { id: "orders", label: "Ventes", default: true, value: (r) => r.orders_count, render: (r) => formatNumberFr(r.orders_count) },
   { id: "units", label: "Unités", default: false, value: (r) => r.units, render: (r) => formatNumberFr(r.units) },
-  { id: "revenue", label: "CA", default: true, value: (r) => r.revenue_cents, render: (r) => formatCurrency(r.revenue_cents) },
+  { id: "revenue", label: "CA", tooltip: "Somme des lignes d'articles (remises déduites), HORS frais de port et taxes — diffère volontairement du CA TTC de la Vue d'ensemble", default: true, value: (r) => r.revenue_cents, render: (r) => formatCurrency(r.revenue_cents) },
   { id: "nc_revenue", label: "CA nouveaux clients", default: false, value: (r) => r.nc_revenue_cents, render: (r) => formatCurrency(r.nc_revenue_cents) },
   { id: "cogs", label: "COGS", tooltip: "Coût d'achat des unités vendues (versions en vigueur à la date de commande)", default: false, value: (r) => r.cogs_cents, render: (r) => r.cogs_cents != null ? formatCurrency(r.cogs_cents) : "non renseigné" },
   { id: "margin", label: "Marge brute", default: true, value: (r) => r.gross_margin_cents, render: (r) => r.gross_margin_cents != null ? formatCurrency(r.gross_margin_cents) : "—" },
@@ -58,7 +58,7 @@ const COLS: Col[] = [
 const STORAGE_KEY = "gads_products_columns";
 
 export default function ProductAnalyticsPage() {
-  const [period, setPeriod] = useState<Period>("30d");
+  const { from, to } = useAnalyticsRange();
   const [filter, setFilter] = useState<ChannelFilter>("all");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<string>("__default");
@@ -80,7 +80,7 @@ export default function ProductAnalyticsPage() {
   };
 
   const api = useApi<{ rows: ProductAnalyticsRow[]; days: string[]; wasted_spend_cents: number; ads_data_available: boolean }>(
-    `/api/ecom/gads/products?range=${period}&channel=${filter}`,
+    `/api/ecom/gads/products?from=${from}&to=${to}&channel=${filter}`,
   );
   const data = api.data;
 
@@ -122,9 +122,9 @@ export default function ProductAnalyticsPage() {
             CA, marge et dépense Google Ads par produit — granularité produit (les variantes sont agrégées)
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <GadsTabs />
-          <PeriodSelector value={period} onChange={(v) => setPeriod(v as Period)} />
+          <AnalyticsPeriodFilter />
         </div>
       </div>
 
@@ -177,10 +177,10 @@ export default function ProductAnalyticsPage() {
         </div>
       </div>
 
-      {api.error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-lg px-4 py-3 text-[12px] text-rose-800">{api.error}</div>
-      )}
+      {api.error && <ErrorBanner message={api.error} onRetry={() => void api.mutate()} />}
+      {api.loading && <TableSkeleton rows={8} />}
 
+      {!api.loading && (
       <div className="bg-white border border-[#E5E3F0] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-[12px]">
@@ -254,9 +254,12 @@ export default function ProductAnalyticsPage() {
           </table>
         </div>
       </div>
+      )}
       <p className="text-[11px] text-[#8A8A88]">
         ROAS croisé = CA Shopify attribué Google (mesuré + pixel) ÷ dépense produit · ROAS déclaré = chiffre de Google.
-        Granularité produit : les item_id du flux Shopping (variantes) sont agrégés au produit — la vue par variante viendra si le besoin apparaît.
+        <span className="font-medium text-[#5A5A58]"> Le CA de cette vue somme les lignes d&apos;articles, hors frais de port et taxes</span> —
+        il est donc légèrement inférieur au CA TTC de la Vue d&apos;ensemble : c&apos;est voulu, la granularité produit se juge hors port.
+        Granularité produit : les item_id du flux Shopping (variantes) sont agrégés au produit.
       </p>
     </div>
   );

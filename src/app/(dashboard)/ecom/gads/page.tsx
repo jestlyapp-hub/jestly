@@ -17,7 +17,6 @@ import { useApi } from "@/lib/hooks/use-api";
 import { formatCurrency, formatNumberFr, formatRoas } from "@/lib/ads/formatters";
 import type { BlendedBoard } from "@/lib/costs/blended";
 import type { BlendedStats } from "@/lib/costs/engine";
-import PeriodSelector from "@/components/ecom/ads/PeriodSelector";
 import GadsTabs from "@/components/ecom/gads/GadsTabs";
 import ImportCsvButton, { type ImportRecap } from "@/components/ecom/gads/ImportCsvButton";
 import ApiSyncButton from "@/components/ecom/gads/ApiSyncButton";
@@ -26,13 +25,14 @@ import MissingDatesBanner from "@/components/ecom/gads/MissingDatesBanner";
 import DataQualityBanner from "@/components/ecom/gads/DataQualityBanner";
 import BlendedChart from "@/components/ecom/gads/BlendedChart";
 import ShopSelector from "@/components/ecom/gads/ShopSelector";
-import type { Period } from "@/components/ecom/gads/format";
+import AnalyticsPeriodFilter, { useAnalyticsRange } from "@/components/ecom/gads/AnalyticsPeriodFilter";
+import { KpiGridSkeleton, CardSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
 
 export default function BlendedBoardPage() {
-  const [period, setPeriod] = useState<Period>("30d");
+  const { from, to } = useAnalyticsRange();
   const [recap, setRecap] = useState<ImportRecap | null>(null);
 
-  const api = useApi<BlendedBoard>(`/api/ecom/gads/blended?range=${period}`);
+  const api = useApi<BlendedBoard>(`/api/ecom/gads/blended?from=${from}&to=${to}`);
   const board = api.data;
   const cur = board?.current;
 
@@ -53,16 +53,14 @@ export default function BlendedBoardPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           <ShopSelector />
           <GadsTabs />
-          <PeriodSelector value={period} onChange={(v) => setPeriod(v as Period)} />
+          <AnalyticsPeriodFilter />
           <ApiSyncButton onSynced={onImported} />
           <ImportCsvButton onImported={onImported} variant="secondary" />
         </div>
       </div>
 
       {recap && <ImportRecapBanner recap={recap} onDismiss={() => setRecap(null)} />}
-      {api.error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-lg px-4 py-3 text-[12px] text-rose-800">{api.error}</div>
-      )}
+      {api.error && <ErrorBanner message={api.error} onRetry={() => void api.mutate()} />}
 
       {cur && !cur.costs_configured && (
         <div className="flex flex-wrap items-center gap-3 bg-[#EDE9FE] border border-[#DDD6FE] rounded-lg px-4 py-3 text-[12px] text-[#1a1535]">
@@ -96,17 +94,22 @@ export default function BlendedBoardPage() {
               hint="Google Ads (CSV/API)" />
             <Kpi label="MER" value={formatRoas(cur.mer)}
               delta={delta(cur.mer, board.previous.mer)} goodWhenUp
+              tooltip="MER = SUM(Revenue Shopify) ÷ SUM(Blended Ad Spend) sur la période"
               hint="Revenue ÷ dépense — insensible aux ventes fantômes" />
             <Kpi label="AOV" value={cur.aov_cents != null ? formatCurrency(cur.aov_cents) : "—"}
               delta={delta(cur.aov_cents, board.previous.aov_cents)} goodWhenUp
+              tooltip="AOV = Revenue ÷ nombre de commandes"
               hint="Panier moyen" />
             <Kpi label="NC-ROAS" value={formatRoas(cur.nc_roas)}
               delta={delta(cur.nc_roas, board.previous.nc_roas)} goodWhenUp
+              tooltip="NC-ROAS = CA des nouveaux clients (1re commande du customer_id) ÷ dépense"
               hint={`CA nouveaux clients ${formatCurrency(cur.nc_revenue_cents)}`} />
             <Kpi label="NCPA" value={cur.ncpa_cents != null ? formatCurrency(cur.ncpa_cents) : "—"}
               delta={delta(cur.ncpa_cents, board.previous.ncpa_cents)}
+              tooltip="NCPA = dépense ÷ nombre de nouveaux clients"
               hint={`${cur.new_customers} nouveau${cur.new_customers > 1 ? "x" : ""} client${cur.new_customers > 1 ? "s" : ""}`} />
             <Kpi label="BE-ROAS" highlight
+              tooltip="BE-ROAS = AOV ÷ (AOV − coût variable moyen par commande). Coût variable = COGS + expédition + frais de paiement + emballage. Les dépenses récurrentes n'y entrent pas."
               value={!cur.costs_configured ? "non renseigné" : !cur.be_roas_reachable ? "∅" : formatRoas(cur.be_roas)}
               hint={!cur.costs_configured
                 ? "Renseigne tes coûts"
@@ -115,6 +118,7 @@ export default function BlendedBoardPage() {
                   : `Coût variable moyen ${cur.variable_cost_per_order_cents != null ? formatCurrency(cur.variable_cost_per_order_cents) : "—"} / commande`}
               cta={!cur.costs_configured ? "/ecom/gads/costs" : undefined} />
             <Kpi label="Net Profit" highlight
+              tooltip="Net Profit = Revenue − COGS − dépense Ads − expédition − frais de paiement − emballage − dépenses récurrentes (prorata)"
               value={cur.net_profit_cents != null ? formatCurrency(cur.net_profit_cents) : "non renseigné"}
               spark={cur.costs_configured ? board.timeline.map((p) => p.net_profit_cents ?? 0) : undefined}
               delta={delta(cur.net_profit_cents, board.previous.net_profit_cents)} goodWhenUp
@@ -126,6 +130,7 @@ export default function BlendedBoardPage() {
             <Kpi label="Net Margin"
               value={cur.net_margin != null ? `${(cur.net_margin * 100).toFixed(1)} %` : "non renseigné"}
               delta={delta(cur.net_margin, board.previous.net_margin)} goodWhenUp
+              tooltip="Net Margin = Net Profit ÷ Revenue"
               hint="Net Profit ÷ Revenue" />
             <Kpi label="Couverture COGS"
               value={cur.cogs.total_units > 0 ? `${Math.round(cur.cogs.coverage * 100)} %` : "—"}
@@ -138,9 +143,11 @@ export default function BlendedBoardPage() {
       )}
 
       {!board && !api.error && (
-        <div className="bg-white border border-[#E5E3F0] rounded-xl p-10 text-center text-[12px] text-[#8A8A88]">
-          Chargement…
-        </div>
+        <>
+          <CardSkeleton height="h-16" />
+          <KpiGridSkeleton />
+          <CardSkeleton height="h-72" />
+        </>
       )}
     </div>
   );
@@ -199,18 +206,18 @@ function delta(cur: number | null | undefined, prev: number | null | undefined):
   return Math.round(((cur - prev) / Math.abs(prev)) * 1000) / 10;
 }
 
-function Kpi({ label, value, hint, delta: d, goodWhenUp = false, highlight = false, tone, cta, spark }: {
+function Kpi({ label, value, hint, delta: d, goodWhenUp = false, highlight = false, tone, cta, spark, tooltip }: {
   label: string; value: string; hint?: string; delta?: number | null;
-  goodWhenUp?: boolean; highlight?: boolean; tone?: "positive" | "negative"; cta?: string; spark?: number[];
+  goodWhenUp?: boolean; highlight?: boolean; tone?: "positive" | "negative"; cta?: string; spark?: number[]; tooltip?: string;
 }) {
   const deltaColor = d == null || !goodWhenUp
     ? "text-[#8A8A88]"
     : (d >= 0 ? "text-emerald-600" : "text-rose-600");
   const valueColor = tone === "positive" ? "text-emerald-700" : tone === "negative" ? "text-rose-700" : "text-[#1a1535]";
   return (
-    <div className={`bg-white rounded-xl p-4 border ${highlight ? "border-[#7C3AED] border-2" : "border-[#E5E3F0]"}`}>
+    <div className={`bg-white rounded-xl p-4 border ${highlight ? "border-[#7C3AED] border-2" : "border-[#E5E3F0]"}`} title={tooltip}>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-medium text-[#5A5A58]">{label}</span>
+        <span className={`text-[11px] font-medium text-[#5A5A58] ${tooltip ? "underline decoration-dotted decoration-[#C4B5FD] underline-offset-2 cursor-help" : ""}`}>{label}</span>
         {d != null && (
           <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold tabular-nums ${deltaColor}`}>
             {d >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}

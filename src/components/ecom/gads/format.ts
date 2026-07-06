@@ -2,15 +2,14 @@
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import type { AggregatedProfitStatus } from "@/lib/ads/types";
+import { parisDaysAgo, todayParis } from "@/lib/paris-time";
 
 export type Period = "7d" | "30d" | "90d";
 
-/** Même convention que parseRange côté API : N jours glissants jusqu'à aujourd'hui. */
+/** Même convention que parseRange côté API : N jours glissants, au sens de Paris. */
 export function periodToRange(period: Period): { from: string; to: string } {
   const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
-  const to = new Date().toISOString().slice(0, 10);
-  const from = new Date(Date.now() - days * 24 * 3600 * 1000).toISOString().slice(0, 10);
-  return { from, to };
+  return { from: parisDaysAgo(days), to: todayParis() };
 }
 
 export function formatDateFr(iso: string, pattern = "d MMM"): string {

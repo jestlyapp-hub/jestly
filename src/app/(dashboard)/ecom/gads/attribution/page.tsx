@@ -14,10 +14,11 @@ import { formatCurrency, formatRoas } from "@/lib/ads/formatters";
 import type { AttributionBoard, BoardOrderRow, ResolvedSource, SourceOrigin } from "@/lib/gads/attribution-board";
 import { CHANNEL_LABELS, type Channel } from "@/lib/gads/channels";
 import { PPS_ANSWER_LABELS, type PpsAnswer } from "@/lib/pixel/pps";
-import PeriodSelector from "@/components/ecom/ads/PeriodSelector";
 import GadsTabs from "@/components/ecom/gads/GadsTabs";
 import ManualOverridesPanel from "@/components/ecom/gads/ManualOverridesPanel";
-import { TRACKING_LABELS, formatDateFr, periodToRange, type Period } from "@/components/ecom/gads/format";
+import AnalyticsPeriodFilter, { useAnalyticsRange } from "@/components/ecom/gads/AnalyticsPeriodFilter";
+import { CardSkeleton, TableSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
+import { TRACKING_LABELS, formatDateFr } from "@/components/ecom/gads/format";
 
 type Model = "first" | "last";
 type Filter = "all" | "google_ads" | "seo" | "pinterest" | "direct" | "other" | "ghost";
@@ -49,12 +50,11 @@ const channelLabel = (c: string | null): string =>
   c == null || c === "ghost" ? "Ghost (non résolu)" : c === "direct" ? "Direct" : CHANNEL_LABELS[c as Channel] ?? c;
 
 export default function AttributionBoardPage() {
-  const [period, setPeriod] = useState<Period>("30d");
+  const { from, to } = useAnalyticsRange();
   const [model, setModel] = useState<Model>("last");
   const [filter, setFilter] = useState<Filter>("all");
-  const { from, to } = periodToRange(period);
 
-  const api = useApi<AttributionBoard>(`/api/ecom/gads/attribution?range=${period}`);
+  const api = useApi<AttributionBoard>(`/api/ecom/gads/attribution?from=${from}&to=${to}`);
   const board = api.data;
 
   const resolvedOf = (o: BoardOrderRow): ResolvedSource => (model === "first" ? o.resolved_first : o.resolved_last);
@@ -103,9 +103,9 @@ export default function AttributionBoardPage() {
             Source retenue par commande — hiérarchie pixel → natif → manuel → déclaré client → ghost, jamais fondus
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <GadsTabs />
-          <PeriodSelector value={period} onChange={(v) => setPeriod(v as Period)} />
+          <AnalyticsPeriodFilter />
           <div className="inline-flex items-center bg-[#F7F7F5] border border-[#E5E3F0] rounded-md p-0.5"
             title="First-click / last-click — n'affecte que les commandes résolues par le pixel (Shopify natif ne capte que le first-touch)">
             {(["first", "last"] as Model[]).map((m) => (
@@ -120,8 +120,14 @@ export default function AttributionBoardPage() {
         </div>
       </div>
 
-      {api.error && (
-        <div className="bg-rose-50 border border-rose-200 rounded-lg px-4 py-3 text-[12px] text-rose-800">{api.error}</div>
+      {api.error && <ErrorBanner message={api.error} onRetry={() => void api.mutate()} />}
+
+      {!board && !api.error && (
+        <>
+          <CardSkeleton height="h-24" />
+          <CardSkeleton height="h-32" />
+          <TableSkeleton rows={6} />
+        </>
       )}
 
       {ghostShare != null && ghostShare > 0 && (

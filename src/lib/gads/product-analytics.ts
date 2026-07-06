@@ -11,6 +11,7 @@
  */
 import { createAdminClient } from "@/lib/supabase/admin";
 import { computeRoas } from "@/lib/ads/roas-engine";
+import { parisDay } from "@/lib/paris-time";
 import type { DateRange } from "@/lib/ads/types";
 import { resolveUnitCost, type ProductCostRow } from "@/lib/costs/engine";
 import { deriveMeasuredChannel, resolveEffectiveChannel, type Channel } from "./channels";
@@ -118,7 +119,7 @@ export function computeProductAnalytics(input: {
     if (channelFilter !== "all" && effective !== channelFilter) continue;
     const isGoogle = o.measured_channel === "google_ads" ||
       (o.measured_channel == null && o.pixel?.resolved_source === "google_ads");
-    const day = o.created_at.slice(0, 10);
+    const day = parisDay(o.created_at);
 
     for (const li of o.line_items ?? []) {
       const qty = Number(li.quantity ?? 0);

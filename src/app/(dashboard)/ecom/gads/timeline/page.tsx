@@ -15,18 +15,18 @@ import { AlertTriangle, Pencil } from "lucide-react";
 import { useApi } from "@/lib/hooks/use-api";
 import { formatCurrency, formatNumberFr, formatRoas } from "@/lib/ads/formatters";
 import type { GadsTimelinePoint } from "@/lib/gads/aggregator";
-import PeriodSelector from "@/components/ecom/ads/PeriodSelector";
 import GadsTabs from "@/components/ecom/gads/GadsTabs";
 import MissingDatesBanner from "@/components/ecom/gads/MissingDatesBanner";
 import OverrideForm, { type ManualOverride } from "@/components/ecom/gads/OverrideForm";
-import { formatDateFr, periodToRange, type Period } from "@/components/ecom/gads/format";
+import AnalyticsPeriodFilter, { useAnalyticsRange } from "@/components/ecom/gads/AnalyticsPeriodFilter";
+import { TableSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
+import { formatDateFr } from "@/components/ecom/gads/format";
 
 export default function GadsTimelinePage() {
-  const [period, setPeriod] = useState<Period>("30d");
-  const { from, to } = periodToRange(period);
+  const { from, to } = useAnalyticsRange();
   const [editingDate, setEditingDate] = useState<string | null>(null);
 
-  const timelineApi = useApi<{ points: GadsTimelinePoint[] }>(`/api/ecom/gads/timeline?range=${period}`);
+  const timelineApi = useApi<{ points: GadsTimelinePoint[] }>(`/api/ecom/gads/timeline?from=${from}&to=${to}`);
   const manualApi = useApi<{ overrides: ManualOverride[] }>(`/api/ecom/gads/manual?from=${from}&to=${to}`);
 
   const points = timelineApi.data?.points ?? [];
@@ -51,11 +51,14 @@ export default function GadsTimelinePage() {
             Jour par jour — le ROAS journalier est indicatif, la décision se prend sur la période
           </p>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5">
           <GadsTabs />
-          <PeriodSelector value={period} onChange={(v) => setPeriod(v as Period)} />
+          <AnalyticsPeriodFilter />
         </div>
       </div>
+
+      {timelineApi.error && <ErrorBanner message={timelineApi.error} onRetry={() => void timelineApi.mutate()} />}
+      {timelineApi.loading && <TableSkeleton rows={10} />}
 
       <MissingDatesBanner missingDates={gaps} />
 

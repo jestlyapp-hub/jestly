@@ -17,6 +17,7 @@ import type { AggregatedProfitStatus, DateRange } from "@/lib/ads/types";
 import { filterRealOrders } from "@/lib/shopify/test-orders-filter";
 import { findMissingDates } from "./importer";
 import { deriveMeasuredChannel } from "./channels";
+import { parisDay, parisDayStartUtcIso, parisNextDayStartUtcIso } from "@/lib/paris-time";
 
 // ── Types exposés aux routes ─────────────────────────────────────
 export interface GadsOverview {
@@ -153,8 +154,8 @@ async function loadShopifyOrders(supabase: any, userId: string, range: DateRange
     .select("id, name, total_price, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site")
     .eq("integration_id", integ.id)
     .is("cancelled_at", null)
-    .gte("created_at", `${range.from}T00:00:00Z`)
-    .lt("created_at", nextDayIso(range.to));
+    .gte("created_at", parisDayStartUtcIso(range.from))
+    .lt("created_at", parisNextDayStartUtcIso(range.to));
   if (error) throw new Error(`Lecture shopify_orders échouée : ${error.message}`);
   // Commandes de test exclues des analytics (même règle que le dashboard ECOM).
   return filterRealOrders((data ?? []) as ShopifyOrderRow[]);
@@ -178,11 +179,6 @@ async function loadAllGadsDates(supabase: any, userId: string): Promise<string[]
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
-function nextDayIso(day: string): string {
-  const t = new Date(`${day}T00:00:00Z`).getTime() + 24 * 3600 * 1000;
-  return new Date(t).toISOString();
-}
-
 function toCents(price: number | null): number {
   return Math.round((price ?? 0) * 100);
 }
@@ -284,7 +280,7 @@ export async function getGadsTimeline(userId: string, range: DateRange): Promise
 
   const revenueByDay = new Map<string, { revenue: number; orders: number }>();
   for (const o of orders) {
-    const day = o.created_at.slice(0, 10);
+    const day = parisDay(o.created_at);
     const cur = revenueByDay.get(day) ?? { revenue: 0, orders: 0 };
     cur.revenue += toCents(o.total_price);
     cur.orders += 1;

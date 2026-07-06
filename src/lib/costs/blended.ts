@@ -8,6 +8,7 @@ import { computeRollingRoas } from "@/lib/ads/aggregator";
 import type { DateRange } from "@/lib/ads/types";
 import { filterRealOrders } from "@/lib/shopify/test-orders-filter";
 import { findMissingDates } from "@/lib/gads/importer";
+import { parisDay, parisDayStartUtcIso, parisNextDayStartUtcIso } from "@/lib/paris-time";
 import {
   computeBlendedStats, computeOrdersCogs, prorateExpenses,
   type BlendedOrder, type BlendedStats, type CustomExpenseRow, type ProductCostRow,
@@ -54,9 +55,6 @@ interface DbOrder {
   line_items: Array<{ product_id?: string | null; quantity?: number | null }> | null;
 }
 
-function nextDayIso(day: string): string {
-  return new Date(new Date(`${day}T00:00:00Z`).getTime() + 24 * 3600 * 1000).toISOString();
-}
 
 function previousRange(range: DateRange): DateRange {
   const from = new Date(`${range.from}T00:00:00Z`).getTime();
@@ -88,8 +86,8 @@ export async function getBlendedBoard(userId: string, range: DateRange): Promise
           .select("id, name, shopify_order_id, total_price, customer_id, created_at, tracking_status, line_items")
           .eq("integration_id", integ.id)
           .is("cancelled_at", null)
-          .gte("created_at", `${prev.from}T00:00:00Z`)
-          .lt("created_at", nextDayIso(range.to))
+          .gte("created_at", parisDayStartUtcIso(prev.from))
+          .lt("created_at", parisNextDayStartUtcIso(range.to))
           .then(({ data }: { data: DbOrder[] | null }) => filterRealOrders(data ?? []))
       : Promise.resolve([] as DbOrder[]),
     // Première commande de chaque client (historique complet) pour NC-ROAS/NCPA
@@ -146,8 +144,10 @@ export async function getBlendedBoard(userId: string, range: DateRange): Promise
     line_items: o.line_items ?? [],
   });
   const all = (ordersBothPeriods as DbOrder[]).map(toBlended);
-  const inRange = (o: { created_at: string }, r: DateRange) =>
-    o.created_at >= `${r.from}T00:00:00Z` && o.created_at < nextDayIso(r.to);
+  const inRange = (o: { created_at: string }, r: DateRange) => {
+    const day = parisDay(o.created_at);
+    return day >= r.from && day <= r.to;
+  };
   const currentOrders = all.filter((o) => inRange(o, range));
   const previousOrders = all.filter((o) => inRange(o, prev));
 
@@ -214,7 +214,7 @@ export async function getBlendedBoard(userId: string, range: DateRange): Promise
   // ── Timeline : Revenue / Spend / Net Profit par jour + MER glissant 7 j ──
   const revenueByDay = new Map<string, { revenue: number; orders: number; cogs: number }>();
   for (const o of currentOrders) {
-    const day = o.created_at.slice(0, 10);
+    const day = parisDay(o.created_at);
     const cur = revenueByDay.get(day) ?? { revenue: 0, orders: 0, cogs: 0 };
     cur.revenue += o.total_cents;
     cur.orders += 1;

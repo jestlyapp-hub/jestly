@@ -50,6 +50,22 @@ export function hasAttributionSignals(payload: PixelPayload): boolean {
   );
 }
 
+/**
+ * Deux sessions sont « jumelles de consentement » si elles décrivent la même
+ * arrivée (même landing, même referrer) : la bannière cookies purge parfois le
+ * stockage et recharge la page au moment de l'acceptation, ce qui recrée un ID.
+ */
+export function isConsentTwin(
+  existing: { landing_page: string | null; referrer: string | null },
+  incoming: { landing?: string | null; referrer?: string | null },
+): boolean {
+  return (existing.landing_page ?? null) === (incoming.landing ?? null)
+    && (existing.referrer ?? null) === (incoming.referrer ?? null);
+}
+
+/** Fenêtre de fusion des sessions jumelles (purge de la bannière cookies). */
+export const CONSENT_TWIN_WINDOW_MS = 30_000;
+
 // Cache court des pixel_id valides — évite un SELECT par page vue.
 const shopCache = new Map<string, { shopId: string | null; expires: number }>();
 const SHOP_CACHE_MS = 60_000;
@@ -105,6 +121,25 @@ export async function recordArrival(payload: PixelPayload): Promise<boolean> {
     .maybeSingle();
 
   if (!existing) {
+    // Durcissement consentement : une session créée il y a < 30 s avec la même
+    // arrivée = même visiteur dont la bannière a purgé le stockage. On garde
+    // son first touch et on adopte le NOUVEL ID (celui que le navigateur détient
+    // désormais — c'est lui qui partira dans l'attribut de panier).
+    const { data: twins } = await table
+      .select("id, session_id, landing_page, referrer")
+      .eq("shop_id", shopId)
+      .gte("first_seen_at", new Date(Date.now() - CONSENT_TWIN_WINDOW_MS).toISOString())
+      .neq("session_id", payload.session_id);
+    const twin = ((twins ?? []) as Array<{ id: string; landing_page: string | null; referrer: string | null }>)
+      .find((t) => isConsentTwin(t, { landing: payload.landing, referrer: payload.referrer }));
+    if (twin) {
+      const { error: mergeError } = await table
+        .update({ session_id: payload.session_id, last_seen_at: now })
+        .eq("id", twin.id);
+      if (!mergeError) return true;
+      logger.error("pixel_session_merge_failed", { code: mergeError.code });
+    }
+
     const { error } = await table.insert({
       shop_id: shopId,
       session_id: payload.session_id,
