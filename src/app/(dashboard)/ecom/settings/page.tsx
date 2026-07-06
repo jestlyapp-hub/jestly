@@ -21,7 +21,7 @@ function SettingsContent() {
 
   return (
     <div className={active === "couts" ? "max-w-4xl" : "max-w-3xl"}>
-      <h1 className="text-[22px] font-bold text-[#1a1535] tracking-tight mb-1">Réglages</h1>
+      <h1 className="text-[22px] font-bold text-[var(--ecom-navy)] tracking-tight mb-1">Réglages</h1>
       <p className="text-[12px] text-[#8A8A88] mb-4">Coûts, objectifs, intégrations et seuils du module</p>
 
       <SettingsTabs active={active} />

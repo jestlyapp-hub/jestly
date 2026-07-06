@@ -38,7 +38,7 @@ const ORIGIN_META: Record<SourceOrigin, { label: string; cls: string }> = {
   native: { label: "Shopify natif", cls: "bg-emerald-50 border-emerald-200 text-emerald-700" },
   manual: { label: "Manuel", cls: "bg-[#EDE9FE] border-[#DDD6FE] text-[#7C3AED]" },
   survey: { label: "Déclaré client", cls: "bg-amber-50 border-amber-300 text-amber-800" },
-  ghost: { label: "Ghost", cls: "bg-[#F7F7F5] border-[#E5E3F0] text-[#8A8A88]" },
+  ghost: { label: "Ghost", cls: "bg-[#F7F7F5] border-[var(--ecom-card-border)] text-[#8A8A88]" },
 };
 
 const CHANNEL_BAR: Record<string, string> = {
@@ -99,18 +99,18 @@ export default function AttributionBoardPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[20px] font-bold text-[#1a1535]">Attribution Board</h1>
+          <h1 className="text-[20px] font-bold text-[var(--ecom-navy)]">Attribution Board</h1>
           <p className="text-[12px] text-[#8A8A88]">
             Source retenue par commande — hiérarchie pixel → natif → manuel → déclaré client → ghost, jamais fondus
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
-          <div className="inline-flex items-center bg-[#F7F7F5] border border-[#E5E3F0] rounded-md p-0.5"
+          <div className="inline-flex items-center bg-[#F7F7F5] border border-[var(--ecom-card-border)] rounded-md p-0.5"
             title="First-click / last-click — n'affecte que les commandes résolues par le pixel (Shopify natif ne capte que le first-touch)">
             {(["first", "last"] as Model[]).map((m) => (
               <button key={m} onClick={() => setModel(m)}
                 className={`px-2.5 py-1 text-[11px] font-medium rounded transition-colors ${
-                  model === m ? "bg-white text-[#1a1535] shadow-sm" : "text-[#5A5A58] hover:text-[#1a1535]"
+                  model === m ? "bg-white text-[var(--ecom-navy)] shadow-sm" : "text-[#5A5A58] hover:text-[var(--ecom-navy)]"
                 }`}>
                 {m === "first" ? "First-click" : "Last-click"}
               </button>
@@ -130,7 +130,7 @@ export default function AttributionBoardPage() {
       )}
 
       {ghostShare != null && ghostShare > 0 && (
-        <div className="bg-[#EDE9FE] border border-[#DDD6FE] rounded-lg px-4 py-3 text-[12px] text-[#1a1535]">
+        <div className="bg-[#EDE9FE] border border-[#DDD6FE] rounded-lg px-4 py-3 text-[12px] text-[var(--ecom-navy)]">
           <span className="font-semibold">{Math.round(ghostShare * 100)} % de ton CA reste non résolu (ghost)</span>{" "}
           après pixel, natif, manuel et survey. Ton ROAS Google réel est probablement meilleur que l&apos;affiché.
         </div>
@@ -138,9 +138,9 @@ export default function AttributionBoardPage() {
 
       {/* Triple ROAS Google — existant, intégré sans le casser */}
       {g && (
-        <div className="bg-white border border-[#E5E3F0] rounded-xl p-5">
+        <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-[14px] font-bold text-[#1a1535]">Triple ROAS Google Ads</h3>
+            <h3 className="text-[14px] font-bold text-[var(--ecom-navy)]">Triple ROAS Google Ads</h3>
             {g.sample_small && (
               <span className="inline-flex px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-semibold">
                 Échantillon faible
@@ -151,7 +151,7 @@ export default function AttributionBoardPage() {
             <p className="text-[12px] text-[#8A8A88]">Dépense non renseignée sur la période.</p>
           ) : (
             <div className="flex flex-wrap items-baseline gap-6">
-              <RoasBlock label="Mesuré Shopify" value={g.roas_measured} cls="text-[#1a1535]" />
+              <RoasBlock label="Mesuré Shopify" value={g.roas_measured} cls="text-[var(--ecom-navy)]" />
               <Ecart from={g.roas_measured} to={g.roas_with_pixel} />
               <RoasBlock label="Avec pixel Jestly" value={g.roas_with_pixel} cls="text-sky-700"
                 hint="Référence du Blended Board" />
@@ -166,19 +166,19 @@ export default function AttributionBoardPage() {
       )}
 
       {/* Répartition par canal (modèle sélectionné) */}
-      <div className="bg-white border border-[#E5E3F0] rounded-xl p-5">
-        <h3 className="text-[14px] font-bold text-[#1a1535] mb-3">
+      <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
+        <h3 className="text-[14px] font-bold text-[var(--ecom-navy)] mb-3">
           CA par canal — {model === "first" ? "first-click" : "last-click"}
         </h3>
         <div className="space-y-2">
           {repartition.rows.map(([key, b]) => (
             <div key={key} className="flex items-center gap-3">
-              <span className="w-36 shrink-0 text-[12px] text-[#1a1535] font-medium">{channelLabel(key === "ghost" ? null : key)}</span>
+              <span className="w-36 shrink-0 text-[12px] text-[var(--ecom-navy)] font-medium">{channelLabel(key === "ghost" ? null : key)}</span>
               <div className="flex-1 h-5 bg-[#F7F7F5] rounded overflow-hidden">
                 <div className={`h-5 ${CHANNEL_BAR[key] ?? "bg-[#A78BFA]"}`}
                   style={{ width: `${repartition.total > 0 ? Math.max(2, (b.revenue / repartition.total) * 100) : 0}%` }} />
               </div>
-              <span className="w-44 shrink-0 text-right text-[12px] tabular-nums text-[#1a1535]">
+              <span className="w-44 shrink-0 text-right text-[12px] tabular-nums text-[var(--ecom-navy)]">
                 {formatCurrency(b.revenue)} · {b.orders} cmd{b.orders > 1 ? "s" : ""}
                 {b.orders < 5 && <span className="text-[10px] text-amber-700" title="Échantillon faible"> ⚠</span>}
               </span>
@@ -192,8 +192,8 @@ export default function AttributionBoardPage() {
 
       {/* Survey (Partie C) */}
       {board && (
-        <div className="bg-white border border-[#E5E3F0] rounded-xl p-5">
-          <h3 className="text-[14px] font-bold text-[#1a1535] mb-1">Survey post-achat — « déclaré client »</h3>
+        <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
+          <h3 className="text-[14px] font-bold text-[var(--ecom-navy)] mb-1">Survey post-achat — « déclaré client »</h3>
           {Object.keys(board.survey.responses).length === 0 ? (
             <p className="text-[12px] text-[#8A8A88]">
               Aucune réponse pour l&apos;instant — installe le snippet survey sur la page de statut de commande
@@ -209,12 +209,12 @@ export default function AttributionBoardPage() {
                     <div className="flex-1 h-3 bg-[#F7F7F5] rounded overflow-hidden">
                       <div className="h-3 bg-amber-400" style={{ width: `${(count / Math.max(1, board.orders.length)) * 100}%` }} />
                     </div>
-                    <span className="tabular-nums text-[#1a1535] font-medium w-6 text-right">{count}</span>
+                    <span className="tabular-nums text-[var(--ecom-navy)] font-medium w-6 text-right">{count}</span>
                   </div>
                 ))}
               </div>
               <div className="text-[12px] text-[#5A5A58] space-y-1">
-                <div>Taux de réponse : <span className="font-semibold text-[#1a1535] tabular-nums">
+                <div>Taux de réponse : <span className="font-semibold text-[var(--ecom-navy)] tabular-nums">
                   {board.survey.response_rate != null ? `${Math.round(board.survey.response_rate * 100)} %` : "—"}</span></div>
                 <div>Récupéré par survey : <span className="font-semibold text-amber-700 tabular-nums">
                   {formatCurrency(board.survey.recovered_revenue_cents)}</span> ({board.survey.recovered_orders} cmd)</div>
@@ -227,11 +227,11 @@ export default function AttributionBoardPage() {
       {/* Filtre + commandes */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-[12px] font-medium text-[#5A5A58]">Canal :</span>
-        <div className="inline-flex items-center bg-[#F7F7F5] border border-[#E5E3F0] rounded-md p-0.5">
+        <div className="inline-flex items-center bg-[#F7F7F5] border border-[var(--ecom-card-border)] rounded-md p-0.5">
           {FILTERS.map((f) => (
             <button key={f.value} onClick={() => setFilter(f.value)}
               className={`px-2.5 py-1 text-[11px] font-medium rounded transition-colors ${
-                filter === f.value ? "bg-white text-[#1a1535] shadow-sm" : "text-[#5A5A58] hover:text-[#1a1535]"
+                filter === f.value ? "bg-white text-[var(--ecom-navy)] shadow-sm" : "text-[#5A5A58] hover:text-[var(--ecom-navy)]"
               }`}>
               {f.label}
             </button>
@@ -245,11 +245,11 @@ export default function AttributionBoardPage() {
         </span>
       </div>
 
-      <div className="bg-white border border-[#E5E3F0] rounded-xl overflow-hidden">
+      <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="border-b border-[#E5E3F0] bg-[#FBFBFA] text-left text-[11px] text-[#5A5A58]">
+              <tr className="border-b border-[var(--ecom-card-border)] bg-[var(--ecom-surface-sunken)] text-left text-[11px] text-[#5A5A58]">
                 <th className="px-4 py-2.5 font-medium">Commande</th>
                 <th className="px-4 py-2.5 font-medium text-right">Montant</th>
                 <th className="px-4 py-2.5 font-medium">Traçabilité réelle</th>
@@ -263,12 +263,12 @@ export default function AttributionBoardPage() {
                 const origin = ORIGIN_META[r.origin];
                 const tracking = TRACKING_LABELS[o.tracking_status ?? "unknown"];
                 return (
-                  <tr key={o.order_id} className="border-b border-[#EFEFEF] hover:bg-[#FBFBFA]">
+                  <tr key={o.order_id} className="border-b border-[#EFEFEF] hover:bg-[var(--ecom-surface-sunken)]">
                     <td className="px-4 py-2.5 whitespace-nowrap">
-                      <span className="font-medium text-[#1a1535]">{o.name ?? "—"}</span>
+                      <span className="font-medium text-[var(--ecom-navy)]">{o.name ?? "—"}</span>
                       <span className="ml-2 text-[10px] text-[#8A8A88]">{formatDateFr(o.created_at.slice(0, 10))}</span>
                     </td>
-                    <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-[#1a1535]">{formatCurrency(o.total_cents)}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-[var(--ecom-navy)]">{formatCurrency(o.total_cents)}</td>
                     <td className="px-4 py-2.5 whitespace-nowrap">
                       <span className="inline-flex items-center gap-1.5 text-[#5A5A58]" title={tracking.description}>
                         <span className={`inline-block w-1.5 h-1.5 rounded-full ${tracking.dot}`} />
@@ -276,7 +276,7 @@ export default function AttributionBoardPage() {
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <span className="font-medium text-[#1a1535]">{channelLabel(r.channel)}</span>
+                      <span className="font-medium text-[var(--ecom-navy)]">{channelLabel(r.channel)}</span>
                       <span className={`ml-2 inline-flex px-1.5 py-0.5 rounded border text-[10px] font-semibold ${origin.cls}`}>
                         {origin.label}
                       </span>

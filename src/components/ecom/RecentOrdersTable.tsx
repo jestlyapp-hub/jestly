@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { formatCurrency, formatRelativeDate, formatFinancialStatus, formatFulfillmentStatus } from "@/lib/shopify/formatters";
-import ChannelChip from "@/components/ecom/ChannelChip";
+import { ChannelChip } from "@/components/ecom/premium/ChannelChip";
 import type { DisplayChannel } from "@/lib/gads/channels";
 
 interface OrderItem {
@@ -33,10 +33,10 @@ function Badge({ label, color }: { label: string; color: string }) {
 
 export default function RecentOrdersTable({ data }: { data: OrderItem[] }) {
   return (
-    <div className="bg-white border border-[#E6E6E4] rounded-xl p-5">
+    <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[14px] font-bold text-[#191919]">Commandes récentes</h3>
-        <Link href="/ecom/orders" className="text-[11px] text-[#7C3AED] hover:underline font-semibold">
+        <h3 className="text-[14px] font-bold text-[var(--ecom-navy)]">Commandes récentes</h3>
+        <Link href="/ecom/orders" className="text-[11px] text-[var(--ecom-brand-violet)] hover:underline font-semibold">
           Voir toutes →
         </Link>
       </div>

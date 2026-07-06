@@ -13,6 +13,7 @@ import { formatCurrency, formatRoas } from "@/lib/ads/formatters";
 import type { BlendedBoard } from "@/lib/costs/blended";
 import ShopSelector from "@/components/ecom/gads/ShopSelector";
 import AnalyticsPeriodFilter, { useAnalyticsRange } from "@/components/ecom/gads/AnalyticsPeriodFilter";
+import { StatusBadge } from "@/components/ecom/premium/StatusBadge";
 
 export default function EcomGlobalBar() {
   const { from, to } = useAnalyticsRange();
@@ -21,7 +22,7 @@ export default function EcomGlobalBar() {
   const q = board?.quality;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 bg-white border border-[#E5E3F0] rounded-lg px-3 py-2 mb-4">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] px-3 py-2 mb-4">
       <ShopSelector />
       <AnalyticsPeriodFilter />
 
@@ -29,28 +30,23 @@ export default function EcomGlobalBar() {
       {cur && (
         <span className="inline-flex items-center gap-2 text-[12px]">
           {cur.status === "insufficient_data" ? (
-            <span className="px-2 py-0.5 rounded-full bg-[#F7F7F5] border border-[#E5E3F0] text-[#8A8A88] font-semibold text-[11px]">
-              Rentabilité non calculable
-            </span>
+            <StatusBadge tone="neutral" label="Rentabilité non calculable" />
           ) : (
-            <span className={`px-2 py-0.5 rounded-full border font-semibold text-[11px] ${
-              cur.status === "profitable"
-                ? "bg-emerald-50 border-emerald-300 text-emerald-800"
-                : "bg-rose-50 border-rose-300 text-rose-800"
-            }`}>
-              {cur.status === "profitable" ? "✓ Rentable" : "✗ En perte"}
-            </span>
+            <StatusBadge
+              tone={cur.status === "profitable" ? "positive" : "negative"}
+              label={cur.status === "profitable" ? "Rentable" : "En perte"}
+            />
           )}
           {cur.net_profit_cents != null && (
-            <span className="text-[#5A5A58]">
+            <span className="text-[var(--ecom-muted)]">
               Net Profit{" "}
-              <span className={`font-bold tabular-nums ${cur.net_profit_cents >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
+              <span className="font-bold ecom-tnum" style={{ color: cur.net_profit_cents >= 0 ? "var(--ecom-pos)" : "var(--ecom-neg)" }}>
                 {cur.net_profit_cents < 0 ? `(${formatCurrency(Math.abs(cur.net_profit_cents))})` : formatCurrency(cur.net_profit_cents)}
               </span>
             </span>
           )}
           {cur.mer != null && (
-            <span className="text-[#8A8A88] hidden md:inline" title="MER vs seuil de rentabilité (BE-ROAS)">
+            <span className="text-[var(--ecom-muted)] hidden md:inline" title="MER vs seuil de rentabilité (BE-ROAS)">
               MER {formatRoas(cur.mer)}{cur.be_roas != null && <> / seuil {formatRoas(cur.be_roas)}</>}
             </span>
           )}
@@ -58,7 +54,7 @@ export default function EcomGlobalBar() {
       )}
 
       {/* Qualité de donnée en pastilles + lien santé */}
-      <span className="ml-auto inline-flex items-center gap-3 text-[11px] text-[#5A5A58]">
+      <span className="ml-auto inline-flex items-center gap-3 text-[11px] text-[var(--ecom-muted)]">
         {q && (
           <span className="hidden sm:inline-flex items-center gap-2.5" title="Traçabilité des commandes de la période">
             <Dot cls="bg-emerald-500" n={q.tracked} label="trackées" />
@@ -68,7 +64,7 @@ export default function EcomGlobalBar() {
           </span>
         )}
         <Link href="/ecom/health"
-          className="inline-flex items-center gap-1 text-[#7C3AED] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED] rounded">
+          className="inline-flex items-center gap-1 text-[var(--ecom-brand-violet)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ecom-brand-violet)] rounded">
           <Activity size={12} /> Santé des données
         </Link>
       </span>

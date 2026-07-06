@@ -1,0 +1,142 @@
+/* ═══════════════════════════════════════════════════════════════════
+   ECOM PREMIUM — Système de tokens central (refonte design).
+   AUCUN hex / durée / ombre en dur ailleurs : tout dérive d'ici.
+   Namespace --ecom-* pour éviter toute collision avec les tokens Jestly.
+   Le miroir TypeScript vit dans src/lib/ecom/design-tokens.ts (Recharts, JS).
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Surfaces (3 niveaux + fond + creux) ── */
+  --ecom-surface-0: #f0eff5;   /* fond module */
+  --ecom-surface-1: #ffffff;   /* cartes */
+  --ecom-surface-2: #ffffff;   /* flottant / dropdowns (ombre accentuée) */
+  --ecom-surface-sunken: #faf9fc; /* en-têtes tableau, zones en creux */
+  --ecom-card-border: #E5E3F0;
+  --ecom-card-border-strong: #D8D4E8;
+
+  /* ── Marque ── */
+  --ecom-brand-violet: #7C3AED;
+  --ecom-brand-violet-hover: #6D28D9;
+  --ecom-violet-light: #EDE9FE;
+  --ecom-violet-mid: #A78BFA;
+  --ecom-navy: #1a1535;
+
+  /* ── Ombres douces multi-couches ── */
+  --ecom-shadow-sm: 0 1px 2px rgba(26, 21, 53, .04), 0 1px 3px rgba(26, 21, 53, .05);
+  --ecom-shadow-md: 0 2px 4px rgba(26, 21, 53, .04), 0 6px 16px rgba(26, 21, 53, .07);
+  --ecom-shadow-lg: 0 8px 24px rgba(26, 21, 53, .10), 0 2px 6px rgba(26, 21, 53, .05);
+  --ecom-shadow-violet-glow: 0 4px 20px rgba(124, 58, 237, .18);
+
+  /* ── Sémantique financière ── */
+  --ecom-pos: #0F9D6B;      --ecom-pos-soft: #E6F5EF;
+  --ecom-neg: #E5484D;      --ecom-neg-soft: #FDECEC;
+  --ecom-warn: #E8A33D;     --ecom-warn-soft: #FBF1E3;
+  --ecom-muted: #6B6880;    --ecom-muted-soft: #F3F2F7;
+
+  /* ── Canaux (figés, réutilisés chips / donuts / barres / légendes) ── */
+  --ecom-ch-google: #7C3AED;
+  --ecom-ch-seo: #0F9D6B;
+  --ecom-ch-pinterest: #E60023;
+  --ecom-ch-direct: #94919F;
+  --ecom-ch-pixel: #3B82F6;
+  --ecom-ch-survey: #E8A33D;
+  --ecom-ch-ghost: #C4C1D0;
+
+  /* ── Gradient signature (Verdict Hero uniquement) ── */
+  --ecom-gradient-hero: linear-gradient(135deg, #7C3AED 0%, #A78BFA 100%);
+
+  /* ── Typographie (échelle rem, ratio ~1.25) ── */
+  --ecom-fs-caption: 0.75rem;
+  --ecom-fs-label: 0.8125rem;
+  --ecom-fs-body: 0.9375rem;
+  --ecom-fs-h3: 1.125rem;
+  --ecom-fs-h2: 1.5rem;
+  --ecom-fs-kpi: 2rem;
+  --ecom-fs-hero: 3.25rem;
+  --ecom-tracking-tight: -0.02em;
+  --ecom-tracking-label: 0.06em;
+
+  /* ── Rayons ── */
+  --ecom-r-sm: 8px;
+  --ecom-r-md: 14px;
+  --ecom-r-lg: 20px;
+  --ecom-r-full: 9999px;
+
+  /* ── Motion ── */
+  --ecom-t-fast: 120ms;
+  --ecom-t-base: 180ms;
+  --ecom-t-slow: 320ms;
+  --ecom-t-hero: 600ms;
+  --ecom-ease-out: cubic-bezier(.22, 1, .36, 1);
+  --ecom-ease-inout: cubic-bezier(.65, 0, .35, 1);
+}
+
+/* ═══════ Primitives utilitaires (dérivées des tokens) ═══════ */
+
+.ecom-tnum { font-variant-numeric: tabular-nums; }
+.ecom-label {
+  font-size: var(--ecom-fs-caption);
+  font-weight: 500;
+  letter-spacing: var(--ecom-tracking-label);
+  text-transform: uppercase;
+  color: var(--ecom-muted);
+}
+
+/* ═══════ Keyframes (transform / opacity uniquement) ═══════ */
+
+@keyframes ecomRise {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes ecomScaleIn {
+  from { opacity: 0; transform: scale(.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes ecomBarGrow {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+/* Jauge : arcs tracés avec pathLength="1" → draw normalisé (indépendant du rayon) */
+@keyframes ecomGaugeDraw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+.ecom-gauge-arc {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  animation: ecomGaugeDraw var(--ecom-t-hero) var(--ecom-ease-out) both;
+}
+@keyframes ecomPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .55; transform: scale(1.35); }
+}
+
+/* Entrées orchestrées : appliquer .ecom-anim-rise + délai inline via style */
+.ecom-anim-rise { animation: ecomRise var(--ecom-t-slow) var(--ecom-ease-out) both; }
+.ecom-anim-scale-in { animation: ecomScaleIn var(--ecom-t-fast) var(--ecom-ease-out) both; }
+.ecom-anim-pulse { animation: ecomPulse 2.4s var(--ecom-ease-inout) infinite; }
+
+/* Skeleton shimmer (teinté module) */
+.ecom-skeleton {
+  background: linear-gradient(90deg, #ECEAF3 25%, #E2DFEE 37%, #ECEAF3 63%);
+  background-size: 200% 100%;
+  animation: ecomShimmer 1.5s ease-in-out infinite;
+  border-radius: var(--ecom-r-sm);
+}
+@keyframes ecomShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Respect strict de prefers-reduced-motion : on garde les états, pas le mouvement */
+@media (prefers-reduced-motion: reduce) {
+  .ecom-anim-rise,
+  .ecom-anim-scale-in,
+  .ecom-anim-pulse,
+  .ecom-skeleton,
+  .ecom-gauge-arc {
+    animation: none !important;
+  }
+  .ecom-gauge-arc { stroke-dashoffset: 0 !important; }
+  .ecom-gauge-needle { transition: none !important; }
+}

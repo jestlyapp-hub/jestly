@@ -2,6 +2,9 @@
 
 @import "tailwindcss";
 
+/* Système de tokens du module ECOM premium (refonte design) */
+@import "../styles/ecom-premium.css";
+
 @theme inline {
   /* ── Surface ── */
   --color-background: #FFFFFF;

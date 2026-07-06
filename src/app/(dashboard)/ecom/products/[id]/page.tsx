@@ -51,7 +51,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         {integ?.integration?.shop_domain && (
           <a href={`https://${integ.integration.shop_domain}/admin/products/${p.shopify_product_id}`}
              target="_blank" rel="noopener noreferrer"
-             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-[#E6E6E4] rounded-md text-[12px] hover:bg-[#FBFBFA]">
+             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-[#E6E6E4] rounded-md text-[12px] hover:bg-[var(--ecom-surface-sunken)]">
             <ExternalLink size={12} /> Shopify
           </a>
         )}
