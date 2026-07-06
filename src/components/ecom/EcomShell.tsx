@@ -1,10 +1,12 @@
 "use client";
 
+import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingCart, Package, Users, BarChart3, Target, Megaphone, Settings } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Users, Crosshair, Settings } from "lucide-react";
 import { formatRelativeDate } from "@/lib/shopify/formatters";
 import AccountMemoryBanner from "@/components/ecom/AccountMemoryBanner";
+import EcomGlobalBar from "@/components/ecom/EcomGlobalBar";
 
 interface Props {
   integration: {
@@ -16,14 +18,15 @@ interface Props {
   children: React.ReactNode;
 }
 
+// Refonte : une seule nav, 6 entrées. L'ancien « Tour de pilotage » a fusionné
+// avec la Vue d'ensemble Analytics dans le Dashboard ; « Ads » (Pinterest,
+// inactif) vit désormais dans Réglages → Intégrations.
 const NAV: { href: string; label: string; icon: typeof LayoutDashboard }[] = [
-  { href: "/ecom", label: "Tour de pilotage", icon: LayoutDashboard },
+  { href: "/ecom", label: "Dashboard", icon: LayoutDashboard },
   { href: "/ecom/orders", label: "Commandes", icon: ShoppingCart },
   { href: "/ecom/products", label: "Produits", icon: Package },
+  { href: "/ecom/attribution", label: "Attribution", icon: Crosshair },
   { href: "/ecom/customers", label: "Clients", icon: Users },
-  { href: "/ecom/analytics", label: "Analytics", icon: BarChart3 },
-  { href: "/ecom/ads", label: "Ads", icon: Target },
-  { href: "/ecom/gads", label: "Analytics", icon: Megaphone },
   { href: "/ecom/settings", label: "Réglages", icon: Settings },
 ];
 
@@ -66,9 +69,14 @@ export default function EcomShell({ integration, children }: Props) {
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto px-6 py-6">
-        <AccountMemoryBanner />
-        {children}
+      <div className="bg-[#f0eff5] min-h-[calc(100vh-48px)]">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-5">
+          <AccountMemoryBanner />
+          <Suspense fallback={null}>
+            <EcomGlobalBar />
+          </Suspense>
+          {children}
+        </div>
       </div>
     </div>
   );

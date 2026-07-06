@@ -4,11 +4,13 @@ import { ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, C
 import { format, parseISO } from "date-fns";
 import { fr } from "date-fns/locale";
 import { formatCurrency } from "@/lib/ads/formatters";
-import type { BlendedTimelinePoint } from "@/lib/costs/blended";
+import type { BlendedTimelinePoint, ComparePoint } from "@/lib/costs/blended";
 
 interface Props {
   points: BlendedTimelinePoint[];
   costsConfigured: boolean;
+  /** Superposition « Comparer » : la période de comparaison, alignée par index. */
+  compare?: ComparePoint[] | null;
 }
 
 interface TooltipEntry { name?: string; value?: number; color?: string; dataKey?: string }
@@ -33,13 +35,15 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   );
 }
 
-export default function BlendedChart({ points, costsConfigured }: Props) {
-  const data = points.map((p) => ({
+export default function BlendedChart({ points, costsConfigured, compare }: Props) {
+  const data = points.map((p, i) => ({
     date: p.date,
     revenue: p.revenue_cents,
     spend: p.spend_cents,
     net_profit: p.net_profit_cents ?? undefined,
     mer: p.rolling_mer ?? 0,
+    prev_revenue: compare?.[i]?.revenue_cents,
+    prev_spend: compare?.[i]?.spend_cents,
   }));
 
   return (
@@ -68,6 +72,14 @@ export default function BlendedChart({ points, costsConfigured }: Props) {
             <ReferenceLine yAxisId="left" y={0} stroke="#B4B4B2" strokeWidth={1} />
             <Bar yAxisId="left" dataKey="revenue" name="Revenue" fill="#7C3AED" />
             <Bar yAxisId="left" dataKey="spend" name="Dépense Ads" fill="#DDD6FE" />
+            {compare && (
+              <Line yAxisId="left" type="monotone" dataKey="prev_revenue" name="Revenue (comparaison)"
+                stroke="#A78BFA" strokeWidth={1.5} strokeDasharray="4 3" dot={false} />
+            )}
+            {compare && (
+              <Line yAxisId="left" type="monotone" dataKey="prev_spend" name="Dépense (comparaison)"
+                stroke="#B4B4B2" strokeWidth={1.2} strokeDasharray="4 3" dot={false} />
+            )}
             {costsConfigured && (
               <Line yAxisId="left" type="monotone" dataKey="net_profit" name="Profit net" stroke="#059669" strokeWidth={1.8} dot={false} />
             )}

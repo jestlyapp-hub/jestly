@@ -36,10 +36,18 @@ export interface DataQuality {
   attributable_revenue_share: number | null;
 }
 
+export interface ComparePoint {
+  date: string;
+  revenue_cents: number;
+  spend_cents: number;
+}
+
 export interface BlendedBoard {
   current: BlendedStats;
   previous: BlendedStats;
   timeline: BlendedTimelinePoint[];
+  /** Timeline de la période de comparaison (superposition « Comparer »). */
+  previous_timeline: ComparePoint[];
   quality: DataQuality;
   missing_dates: string[];
 }
@@ -66,9 +74,16 @@ function previousRange(range: DateRange): DateRange {
   };
 }
 
-export async function getBlendedBoard(userId: string, range: DateRange): Promise<BlendedBoard> {
+export async function getBlendedBoard(
+  userId: string,
+  range: DateRange,
+  compareRange?: DateRange,
+): Promise<BlendedBoard> {
   const supabase = createAdminClient();
-  const prev = previousRange(range);
+  const prev = compareRange ?? previousRange(range);
+  // Bornes de chargement couvrant les deux périodes (comparaison libre incluse).
+  const loadFrom = prev.from < range.from ? prev.from : range.from;
+  const loadTo = prev.to > range.to ? prev.to : range.to;
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: integ } = await (supabase.from("integrations") as any)
@@ -86,8 +101,8 @@ export async function getBlendedBoard(userId: string, range: DateRange): Promise
           .select("id, name, shopify_order_id, total_price, customer_id, created_at, tracking_status, line_items")
           .eq("integration_id", integ.id)
           .is("cancelled_at", null)
-          .gte("created_at", parisDayStartUtcIso(prev.from))
-          .lt("created_at", parisNextDayStartUtcIso(range.to))
+          .gte("created_at", parisDayStartUtcIso(loadFrom))
+          .lt("created_at", parisNextDayStartUtcIso(loadTo))
           .then(({ data }: { data: DbOrder[] | null }) => filterRealOrders(data ?? []))
       : Promise.resolve([] as DbOrder[]),
     // Première commande de chaque client (historique complet) pour NC-ROAS/NCPA
@@ -104,8 +119,8 @@ export async function getBlendedBoard(userId: string, range: DateRange): Promise
     (supabase.from("gads_daily") as any)
       .select("date, cost_cents")
       .eq("user_id", userId)
-      .gte("date", prev.from)
-      .lte("date", range.to)
+      .gte("date", loadFrom)
+      .lte("date", loadTo)
       .then(({ data }: { data: Array<{ date: string; cost_cents: number }> | null }) => data ?? []),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("gads_daily") as any)
@@ -263,10 +278,34 @@ export async function getBlendedBoard(userId: string, range: DateRange): Promise
   );
   timeline.forEach((p, i) => { p.rolling_mer = rolling[i]; });
 
+  // Timeline de comparaison (superposition « Comparer » sur le graphe)
+  const prevRevenueByDay = new Map<string, number>();
+  for (const o of previousOrders) {
+    const day = parisDay(o.created_at);
+    prevRevenueByDay.set(day, (prevRevenueByDay.get(day) ?? 0) + o.total_cents);
+  }
+  const prevSpendByDay = new Map<string, number>();
+  for (const g of gadsRows as Array<{ date: string; cost_cents: number }>) {
+    if (g.date < prev.from || g.date > prev.to) continue;
+    prevSpendByDay.set(g.date, (prevSpendByDay.get(g.date) ?? 0) + g.cost_cents);
+  }
+  const previousTimeline: ComparePoint[] = [];
+  const prevFromT = new Date(`${prev.from}T00:00:00Z`).getTime();
+  const prevToT = new Date(`${prev.to}T00:00:00Z`).getTime();
+  for (let t = prevFromT; t <= prevToT; t += 86_400_000) {
+    const day = new Date(t).toISOString().slice(0, 10);
+    previousTimeline.push({
+      date: day,
+      revenue_cents: prevRevenueByDay.get(day) ?? 0,
+      spend_cents: prevSpendByDay.get(day) ?? 0,
+    });
+  }
+
   return {
     current,
     previous,
     timeline,
+    previous_timeline: previousTimeline,
     quality,
     missing_dates: findMissingDates(allGadsDates as string[]),
   };

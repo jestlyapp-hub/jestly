@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
 import IntegrationCard from "./IntegrationCard";
+import PixelShopsCard from "./gads/PixelShopsCard";
 import SelectAdAccountModal from "./SelectAdAccountModal";
 import SyncProgressBar, { type SyncCounts } from "./SyncProgressBar";
 import { formatRelativeDate } from "@/lib/shopify/formatters";
@@ -191,11 +192,11 @@ export default function IntegrationsTab() {
         ]}
       />
 
-      {/* Pinterest */}
+      {/* Pinterest — inactif (vars sautées en prod, données conservées en base) */}
       <IntegrationCard
         icon="📌"
-        name="Pinterest Ads"
-        description="Importez vos campagnes pour calculer le ROAS réel basé sur les vraies ventes Shopify attribuées."
+        name="Pinterest Ads (inactif)"
+        description="Canal en pause : la sync tourne à vide en prod (variables non configurées, choix assumé). Les données historiques restent en base — reconnecter ici pour réactiver un jour. Ancien module : /ecom/ads."
         status={pinterestError ? "error" : pinterestConnected ? "connected" : pinterestPending ? "disconnected" : "disconnected"}
         contextLine={pinterestConnected && pinterest?.integration?.external_account_name
           ? `Ad account : ${pinterest.integration.external_account_name}`
@@ -230,13 +231,17 @@ export default function IntegrationsTab() {
         </div>
       )}
 
-      {/* Google Ads (coming soon) */}
+      {/* Google Ads — API branchée (refonte : dépense campagnes + produits) */}
       <IntegrationCard
         icon="🔵"
         name="Google Ads"
-        description="ROAS, conversions, search/display/perf max. En attente du Developer Token Google."
-        status="coming_soon"
+        description="API reporting branchée (lecture seule) : dépense par campagne et par produit, toutes les 6 h. Import CSV disponible en secours depuis le Dashboard."
+        status="connected"
+        metaLine="Sync automatique via GitHub Actions · fenêtre glissante 30 jours"
       />
+
+      {/* Pixel first-party par boutique (snippets copiables) */}
+      <PixelShopsCard />
 
       {/* Klaviyo (coming soon) */}
       <IntegrationCard

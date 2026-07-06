@@ -14,9 +14,15 @@ export async function GET(req: NextRequest) {
 
   const url = new URL(req.url);
   const range = parseRange(url.searchParams.get("range"), url.searchParams.get("from"), url.searchParams.get("to"));
+  // Période de comparaison libre (toggle « Comparer ») — défaut : période précédente.
+  const cfrom = url.searchParams.get("cfrom");
+  const cto = url.searchParams.get("cto");
+  const compare = cfrom && cto && /^\d{4}-\d{2}-\d{2}$/.test(cfrom) && /^\d{4}-\d{2}-\d{2}$/.test(cto)
+    ? { from: cfrom, to: cto }
+    : undefined;
 
   try {
-    const board = await getBlendedBoard(auth.user.id, range);
+    const board = await getBlendedBoard(auth.user.id, range, compare);
     return NextResponse.json({ ...board, computed_at: new Date().toISOString() });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });

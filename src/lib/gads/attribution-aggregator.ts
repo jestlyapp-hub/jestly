@@ -31,6 +31,9 @@ export interface AttributionOrderRow {
   created_at: string;
   total_cents: number;
   products: string[];
+  email: string | null;
+  financial_status: string | null;
+  fulfillment_status: string | null;
   tracking_status: "tracked" | "ghost" | "unmatched" | null;
   measured_channel: Exclude<Channel, "ghost"> | null;
   manual: { channel: Channel; confidence: ManualConfidence | null; note: string | null } | null;
@@ -202,6 +205,9 @@ export interface DbOrderRow {
   name: string | null;
   total_price: number | null;
   customer_id?: string | null;
+  email?: string | null;
+  financial_status?: string | null;
+  fulfillment_status?: string | null;
   created_at: string;
   tracking_status: "tracked" | "ghost" | "unmatched" | null;
   utm_source: string | null;
@@ -244,7 +250,7 @@ export async function loadOrdersAndManual(userId: string, range: DateRange): Pro
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("shopify_orders") as any)
-    .select("id, name, total_price, customer_id, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site, line_items")
+    .select("id, name, total_price, customer_id, email, financial_status, fulfillment_status, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site, line_items")
     .eq("integration_id", integ.id)
     .is("cancelled_at", null)
     .gte("created_at", parisDayStartUtcIso(range.from))
@@ -309,6 +315,9 @@ function toAttributionRow(
     created_at: o.created_at,
     total_cents: Math.round((o.total_price ?? 0) * 100),
     products: (o.line_items ?? []).map((li) => li.title?.trim() || "(produit sans titre)"),
+    email: o.email ?? null,
+    financial_status: o.financial_status ?? null,
+    fulfillment_status: o.fulfillment_status ?? null,
     tracking_status: o.tracking_status,
     measured_channel: measured,
     manual: manualObj,

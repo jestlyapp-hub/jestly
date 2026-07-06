@@ -2,18 +2,19 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
-import { Settings, Plug, TrendingUp } from "lucide-react";
+import { Settings, Plug, TrendingUp, Wallet } from "lucide-react";
 
-export type SettingsTabId = "general" | "integrations" | "roas";
+export type SettingsTabId = "couts" | "integrations" | "roas" | "general";
 
 interface Props {
   active: SettingsTabId;
 }
 
 const TABS: { id: SettingsTabId; label: string; icon: typeof Settings }[] = [
+  { id: "couts", label: "Coûts & objectifs", icon: Wallet },
   { id: "integrations", label: "Intégrations", icon: Plug },
+  { id: "roas", label: "Seuils & alertes", icon: TrendingUp },
   { id: "general", label: "Général", icon: Settings },
-  { id: "roas", label: "ROAS", icon: TrendingUp },
 ];
 
 export default function SettingsTabs({ active }: Props) {

@@ -46,6 +46,9 @@ export interface EcomSettings {
   payment_fee_percent: number;
   payment_fee_fixed_cents: number;
   packaging_cost_cents: number;
+  /** Objectifs mensuels (migration 102) — 0 = non défini. */
+  monthly_revenue_goal_cents: number;
+  monthly_net_profit_goal_cents: number;
 }
 
 export const DEFAULT_ECOM_SETTINGS: Omit<EcomSettings, "user_id"> = {
@@ -64,6 +67,8 @@ export const DEFAULT_ECOM_SETTINGS: Omit<EcomSettings, "user_id"> = {
   payment_fee_percent: 0,
   payment_fee_fixed_cents: 0,
   packaging_cost_cents: 0,
+  monthly_revenue_goal_cents: 0,
+  monthly_net_profit_goal_cents: 0,
 };
 
 export interface MatchResult {

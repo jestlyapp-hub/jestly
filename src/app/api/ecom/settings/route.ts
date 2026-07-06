@@ -32,6 +32,9 @@ const Patch = z.object({
   payment_fee_percent: z.number().min(0).max(100).optional(),
   payment_fee_fixed_cents: z.number().int().min(0).optional(),
   packaging_cost_cents: z.number().int().min(0).optional(),
+  // Objectifs mensuels (Dashboard) — 0 = non défini
+  monthly_revenue_goal_cents: z.number().int().min(0).optional(),
+  monthly_net_profit_goal_cents: z.number().int().min(0).optional(),
 });
 
 export async function PATCH(req: NextRequest) {
