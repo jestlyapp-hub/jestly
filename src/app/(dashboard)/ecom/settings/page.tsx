@@ -1,4 +1,5 @@
 "use client";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 /**
  * ECOM — Réglages (refonte : fusion des Réglages ECOM et des Réglages coûts).
@@ -34,6 +35,7 @@ function SettingsContent() {
 }
 
 export default function EcomSettingsPage() {
+  usePageTitle("Réglages ECOM");
   return (
     <Suspense fallback={<div className="text-[13px] text-[#8A8A88] py-10 text-center">Chargement…</div>}>
       <SettingsContent />

@@ -5,6 +5,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { filterRealOrders, isTestOrder } from "@/lib/shopify/test-orders-filter";
+import {
+  deriveMeasuredChannel,
+  resolveUnifiedChannel,
+  type Channel,
+  type DisplayChannel,
+  type ManualConfidence,
+  type PixelResolvedSource,
+} from "@/lib/gads/channels";
 
 interface PeriodPayload {
   range: { from: string; to: string };
@@ -25,10 +33,11 @@ interface DashboardResponse {
   recent_orders: {
     id: string; name: string; created_at: string; total_price: number; currency: string;
     email: string | null; financial_status: string | null; fulfillment_status: string | null;
-    source: string | null;
+    channel: DisplayChannel;
   }[];
-  sources: { source: string; sessions: number; revenue: number }[];
-  funnel: { sessions: number; cart: number; checkout: number; purchase: number };
+  sources: { channel: DisplayChannel; orders: number; revenue: number }[];
+  // cart / checkout à null = étape non suivie par le pixel MVP (pas de zéro trompeur).
+  funnel: { sessions: number; cart: number | null; checkout: number | null; purchase: number };
   countries: { country: string; revenue: number; orders: number }[];
   alerts: {
     low_stock: { product_id: string; title: string; inventory: number }[];
@@ -66,10 +75,12 @@ export async function GET(req: NextRequest) {
     previous = await buildPeriod(supabase, integration.id, prevFrom, prevTo);
   }
 
-  // Top produits (basé sur orders line_items dans la période, filtre commandes test)
+  // Top produits + sources (basé sur orders line_items dans la période, filtre
+  // commandes test). On charge aussi les signaux d'attribution (tracking, utm,
+  // referrer, landing) pour dériver le canal unifié — plus de source_name brut.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: ordersForProductsRaw } = await (supabase.from("shopify_orders") as any)
-    .select("name, line_items, utm_source, source_name, total_price, shipping_address")
+    .select("id, name, line_items, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site, total_price, shipping_address")
     .eq("integration_id", integration.id)
     .gte("created_at", from)
     .lte("created_at", to + "T23:59:59");
@@ -96,10 +107,35 @@ export async function GET(req: NextRequest) {
   // Recent orders (10 dernières) — affiche tout, avec badge "Test" pour commandes exclues
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: recent_orders_raw } = await (supabase.from("shopify_orders") as any)
-    .select("id, name, created_at, total_price, currency, email, financial_status, fulfillment_status, source_name, utm_source")
+    .select("id, name, created_at, total_price, currency, email, financial_status, fulfillment_status, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site")
     .eq("integration_id", integration.id)
     .order("created_at", { ascending: false })
     .limit(10);
+
+  // Canal unifié : on résout la même vérité que la vue Commandes (natif > pixel >
+  // manuel > non attribué), pour la colonne Source et le widget Sources.
+  const attributionOrderIds = [
+    ...new Set([
+      ...((ordersForProducts ?? []) as Array<{ id?: string }>).map((o) => o.id).filter(Boolean),
+      ...((recent_orders_raw ?? []) as Array<{ id?: string }>).map((o) => o.id).filter(Boolean),
+    ]),
+  ] as string[];
+  const { pixelByOrder, manualByOrder } = await loadAttributionSignals(supabase, user.id, attributionOrderIds);
+
+  const channelOf = (o: Record<string, unknown>): DisplayChannel =>
+    resolveUnifiedChannel({
+      measured: deriveMeasuredChannel({
+        tracking_status: (o.tracking_status as string) ?? null,
+        utm_source: (o.utm_source as string) ?? null,
+        utm_medium: (o.utm_medium as string) ?? null,
+        utm_campaign: (o.utm_campaign as string) ?? null,
+        referring_site: (o.referring_site as string) ?? null,
+        landing_site: (o.landing_site as string) ?? null,
+      }),
+      pixel: pixelByOrder.get(o.id as string) ?? null,
+      manual: manualByOrder.get(o.id as string) ?? null,
+    });
+
   const recent_orders = (recent_orders_raw ?? []).map((o: Record<string, unknown>) => ({
     id: o.id as string,
     name: o.name as string,
@@ -109,39 +145,34 @@ export async function GET(req: NextRequest) {
     email: (o.email as string) ?? null,
     financial_status: (o.financial_status as string) ?? null,
     fulfillment_status: (o.fulfillment_status as string) ?? null,
-    source: (o.utm_source as string) ?? (o.source_name as string) ?? null,
+    channel: channelOf(o),
     is_test: isTestOrder({ name: o.name as string }),
   }));
 
-  // Sources (sessions × revenu) — agrégation par utm_source / source_name
-  const sourceAgg = new Map<string, { sessions: number; revenue: number }>();
+  // Sources (CA par canal unifié) — plus de source_name brut, fantôme explicite.
+  const sourceAgg = new Map<DisplayChannel, { orders: number; revenue: number }>();
   for (const o of (ordersForProducts ?? []) as Array<Record<string, unknown>>) {
-    const src = ((o as { utm_source?: string }).utm_source) ?? ((o as { source_name?: string }).source_name) ?? "direct";
-    const cur = sourceAgg.get(src) ?? { sessions: 0, revenue: 0 };
+    const ch = channelOf(o);
+    const cur = sourceAgg.get(ch) ?? { orders: 0, revenue: 0 };
     cur.revenue += Number((o as { total_price?: number }).total_price ?? 0);
-    sourceAgg.set(src, cur);
+    cur.orders += 1;
+    sourceAgg.set(ch, cur);
   }
-  // Compléter avec sessions depuis sessions_daily (si dispo) — V1 simple : sessions globales par jour, attribution simplifiée
   const sources = [...sourceAgg.entries()]
-    .map(([source, v]) => ({ source: source || "direct", ...v }))
-    .sort((a, b) => b.revenue - a.revenue)
-    .slice(0, 8);
+    .map(([channel, v]) => ({ channel, ...v }))
+    .sort((a, b) => b.revenue - a.revenue);
 
-  // Funnel (somme sessions_daily période)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: sessionsRows } = await (supabase.from("shopify_sessions_daily") as any)
-    .select("sessions, sessions_with_cart_additions, sessions_that_reached_checkout, sessions_that_completed_checkout")
-    .eq("integration_id", integration.id)
-    .gte("date", from)
-    .lte("date", to);
-  let s = 0, c = 0, co = 0, p = 0;
-  for (const r of sessionsRows ?? []) {
-    s += r.sessions ?? 0;
-    c += r.sessions_with_cart_additions ?? 0;
-    co += r.sessions_that_reached_checkout ?? 0;
-    p += r.sessions_that_completed_checkout ?? 0;
-  }
-  const funnel = { sessions: s, cart: c, checkout: co, purchase: p };
+  // Funnel : rebranché sur les données réelles disponibles. Sessions = pixel
+  // first-party (période) ; Achat = commandes réelles Shopify (période). Le
+  // pixel MVP ne capte pas encore Ajout panier / Checkout → « non suivi »
+  // (null) plutôt que des zéros qui font croire à un site mort.
+  const pixelSessions = await countPixelSessions(supabase, user.id, from, to);
+  const funnel = {
+    sessions: pixelSessions,
+    cart: null as number | null,
+    checkout: null as number | null,
+    purchase: current.kpis.orders,
+  };
 
   // Géographie (top pays par revenu — depuis shipping_address)
   const countryAgg = new Map<string, { revenue: number; orders: number }>();
@@ -207,6 +238,61 @@ export async function GET(req: NextRequest) {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────
+
+/** Charge pixel + manuel pour un lot de commandes (une seule vérité d'attribution). */
+async function loadAttributionSignals(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  userId: string,
+  orderIds: string[],
+): Promise<{
+  pixelByOrder: Map<string, { resolved_source: PixelResolvedSource }>;
+  manualByOrder: Map<string, { channel: Channel; confidence: ManualConfidence | null }>;
+}> {
+  const pixelByOrder = new Map<string, { resolved_source: PixelResolvedSource }>();
+  const manualByOrder = new Map<string, { channel: Channel; confidence: ManualConfidence | null }>();
+  if (orderIds.length === 0) return { pixelByOrder, manualByOrder };
+
+  const [{ data: pixel }, { data: manual }] = await Promise.all([
+    (supabase.from("pixel_order_attribution") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .select("order_id, resolved_source")
+      .in("order_id", orderIds),
+    (supabase.from("order_manual_attribution") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+      .select("order_id, channel, confidence")
+      .eq("user_id", userId)
+      .in("order_id", orderIds),
+  ]);
+  for (const p of (pixel ?? []) as Array<{ order_id: string; resolved_source: PixelResolvedSource }>) {
+    pixelByOrder.set(p.order_id, { resolved_source: p.resolved_source });
+  }
+  for (const m of (manual ?? []) as Array<{ order_id: string; channel: Channel; confidence: ManualConfidence | null }>) {
+    manualByOrder.set(m.order_id, { channel: m.channel, confidence: m.confidence });
+  }
+  return { pixelByOrder, manualByOrder };
+}
+
+/** Sessions pixel first-party sur la période (toutes boutiques du user). */
+async function countPixelSessions(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  userId: string,
+  from: string,
+  to: string,
+): Promise<number> {
+  const { data: shops } = await (supabase.from("pixel_shops") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    .select("id")
+    .eq("user_id", userId);
+  const shopIds = ((shops ?? []) as Array<{ id: string }>).map((s) => s.id);
+  if (shopIds.length === 0) return 0;
+
+  const { count } = await (supabase.from("pixel_sessions") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    .select("id", { count: "exact", head: true })
+    .in("shop_id", shopIds)
+    .gte("first_seen_at", from)
+    .lte("first_seen_at", to + "T23:59:59");
+  return count ?? 0;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function buildPeriod(supabase: any, integrationId: string, from: string, to: string): Promise<PeriodPayload> {
   const { data: ordersRowsRaw } = await (supabase.from("shopify_orders") as any)

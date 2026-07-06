@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { formatCurrency, formatRelativeDate, formatFinancialStatus, formatFulfillmentStatus, formatSource } from "@/lib/shopify/formatters";
+import { formatCurrency, formatRelativeDate, formatFinancialStatus, formatFulfillmentStatus } from "@/lib/shopify/formatters";
+import ChannelChip from "@/components/ecom/ChannelChip";
+import type { DisplayChannel } from "@/lib/gads/channels";
 
 interface OrderItem {
   id: string;
@@ -12,7 +14,7 @@ interface OrderItem {
   email: string | null;
   financial_status: string | null;
   fulfillment_status: string | null;
-  source: string | null;
+  channel: DisplayChannel;
   is_test?: boolean;
 }
 
@@ -51,7 +53,7 @@ export default function RecentOrdersTable({ data }: { data: OrderItem[] }) {
                 <th className="pb-2 text-right">Montant</th>
                 <th className="pb-2">Paiement</th>
                 <th className="pb-2">Envoi</th>
-                <th className="pb-2">Source</th>
+                <th className="pb-2">Canal</th>
               </tr>
             </thead>
             <tbody>
@@ -73,7 +75,7 @@ export default function RecentOrdersTable({ data }: { data: OrderItem[] }) {
                     </td>
                     <td className="py-2 pr-2"><Badge label={fin.label} color={fin.color} /></td>
                     <td className="py-2 pr-2"><Badge label={ful.label} color={ful.color} /></td>
-                    <td className="py-2 text-[11px] text-[#8A8A88]">{formatSource(o.source)}</td>
+                    <td className="py-2"><ChannelChip channel={o.channel} /></td>
                   </tr>
                 );
               })}

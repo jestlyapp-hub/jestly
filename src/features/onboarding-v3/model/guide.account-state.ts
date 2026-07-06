@@ -81,7 +81,15 @@ async function fetchAccountState(): Promise<AccountState> {
   return s;
 }
 
-export function useAccountState() {
+/**
+ * `enabled` (défaut false) : ne déclenche l'appel des 4 endpoints
+ * (/api/sites, /api/products, /api/clients, /api/orders) QUE lorsque le guide
+ * est actif. Sans ce garde, l'état de compte se chargeait sur CHAQUE page du
+ * dashboard (ECOM inclus) alors que le guide y est inactif — 4 requêtes hors
+ * sujet par vue. `refreshAccountState` reste appelable manuellement (le guide
+ * le déclenche à son activation et à chaque étape franchie).
+ */
+export function useAccountState(enabled = false) {
   const [state, setState] = useState<AccountState>(EMPTY);
 
   const refresh = useCallback(async () => {
@@ -89,7 +97,7 @@ export function useAccountState() {
     catch { setState((p) => ({ ...p, loading: false })); }
   }, []);
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => { if (enabled) refresh(); }, [enabled, refresh]);
 
   return { accountState: state, refreshAccountState: refresh };
 }

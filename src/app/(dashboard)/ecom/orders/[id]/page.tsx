@@ -1,4 +1,5 @@
 "use client";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { use } from "react";
 import Link from "next/link";
@@ -39,6 +40,7 @@ const COLOR_CLASSES: Record<string, string> = {
 };
 
 export default function OrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  usePageTitle("Détail commande ECOM");
   const { id } = use(params);
   const { data: integ } = useApi<{ integration: { shop_domain: string } }>("/api/integrations/shopify/sync-state");
   const { data: order, loading } = useApi<{ data: OrderDetail }>(`/api/ecom/orders/${id}`);

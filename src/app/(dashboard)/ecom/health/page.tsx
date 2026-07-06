@@ -9,6 +9,7 @@ import { Activity, Radio, Link2, MessageSquare } from "lucide-react";
 import { useApi } from "@/lib/hooks/use-api";
 import { CardSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
 import { formatDateFr } from "@/components/ecom/gads/format";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 interface Health {
   syncs: {
@@ -19,8 +20,18 @@ interface Health {
     gads_product_last: string | null;
     gads_cadence: string;
   };
-  pixel: { shops: Array<{ label: string; is_active: boolean; sessions_24h: number; last_session_at: string | null }> };
-  matching: { orders_30d: number; tagged_orders_30d: number; cart_attribute_30d: number; time_proximity_30d: number };
+  pixel: {
+    shops: Array<{ label: string; is_active: boolean; sessions_24h: number; last_session_at: string | null; first_session_at: string | null }>;
+    active_since: string | null;
+  };
+  matching: {
+    orders_30d: number;
+    eligible_orders_30d: number;
+    tagged_orders_30d: number;
+    pixel_active_since: string | null;
+    cart_attribute_30d: number;
+    time_proximity_30d: number;
+  };
   survey: { responses_30d: number; response_rate: number | null };
 }
 
@@ -39,6 +50,7 @@ const freshness = (iso: string | null, maxHours: number): string =>
     : iso ? "bg-amber-500" : "bg-rose-500";
 
 export default function DataHealthPage() {
+  usePageTitle("Santé des données ECOM");
   const api = useApi<Health>("/api/ecom/gads/health");
   const h = api.data;
 
@@ -81,7 +93,7 @@ export default function DataHealthPage() {
                 <Row key={s.label}
                   dot={s.is_active ? (s.sessions_24h > 0 ? "bg-emerald-500" : "bg-amber-500") : "bg-[#B4B4B2]"}
                   label={s.label}
-                  value={`${s.sessions_24h} session${s.sessions_24h > 1 ? "s" : ""} · dernière ${ago(s.last_session_at)}`} />
+                  value={`${s.sessions_24h} session${s.sessions_24h > 1 ? "s" : ""} · dernière ${ago(s.last_session_at)}${s.first_session_at ? ` · actif depuis le ${formatDateFr(s.first_session_at.slice(0, 10))}` : ""}`} />
               ))}
               {h.pixel.shops.length === 0 && <li className="text-[#8A8A88]">Aucune boutique pixel enregistrée.</li>}
             </ul>
@@ -95,12 +107,23 @@ export default function DataHealthPage() {
             </div>
             <ul className="space-y-2 text-[12px]">
               <Row dot="bg-[#7C3AED]" label="Commandes avec cart attribute pixel"
-                value={`${h.matching.tagged_orders_30d} / ${h.matching.orders_30d}`} />
+                value={h.matching.pixel_active_since
+                  ? `${h.matching.tagged_orders_30d} / ${h.matching.eligible_orders_30d}`
+                  : "—"} />
               <Row dot="bg-sky-500" label="Résolues par attribut de panier (0,95)"
                 value={String(h.matching.cart_attribute_30d)} />
               <Row dot="bg-amber-500" label="Résolues par proximité temporelle (0,35)"
                 value={String(h.matching.time_proximity_30d)} />
             </ul>
+            {h.matching.pixel_active_since ? (
+              <p className="text-[11px] text-[#8A8A88] mt-2">
+                Pixel actif depuis le {formatDateFr(h.matching.pixel_active_since.slice(0, 10))} — seules les {h.matching.eligible_orders_30d} commande{h.matching.eligible_orders_30d > 1 ? "s" : ""} postérieure{h.matching.eligible_orders_30d > 1 ? "s" : ""} (sur {h.matching.orders_30d} au total sur 30 j) peuvent porter l&apos;attribut.
+              </p>
+            ) : (
+              <p className="text-[11px] text-[#8A8A88] mt-2">
+                Aucune session pixel encore captée — le matching s&apos;activera dès la première visite trackée.
+              </p>
+            )}
           </div>
 
           {/* Survey */}

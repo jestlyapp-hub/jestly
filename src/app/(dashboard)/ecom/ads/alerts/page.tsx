@@ -1,4 +1,5 @@
 "use client";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
@@ -123,6 +124,7 @@ function AlertsContent() {
 }
 
 export default function AlertsPage() {
+  usePageTitle("Alertes — Publicités ECOM");
   return (
     <Suspense fallback={<div className="text-[13px] text-[#8A8A88] py-10 text-center">Chargement…</div>}>
       <AlertsContent />

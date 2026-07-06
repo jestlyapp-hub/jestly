@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveMeasuredChannel, resolveEffectiveChannel } from "@/lib/gads/channels";
+import { deriveMeasuredChannel, resolveEffectiveChannel, resolveUnifiedChannel } from "@/lib/gads/channels";
 
 describe("deriveMeasuredChannel — canal mesuré depuis les données captées", () => {
   it("ghost ou unmatched → null (source inconnue, jamais devinée)", () => {
@@ -66,5 +66,29 @@ describe("resolveEffectiveChannel — le choix manuel prime", () => {
 
   it("manuel « ghost » explicite → non attribué, même si mesuré", () => {
     expect(resolveEffectiveChannel("google_ads", { channel: "ghost", confidence: null })).toBeNull();
+  });
+});
+
+describe("resolveUnifiedChannel — un seul canal affichable (Dashboard = vérité unique)", () => {
+  it("mesuré (natif Shopify) prime sur pixel et manuel", () => {
+    expect(resolveUnifiedChannel({
+      measured: "google_ads",
+      pixel: { resolved_source: "pinterest" },
+      manual: { channel: "seo" },
+    })).toBe("google_ads");
+  });
+
+  it("mesuré absent → pixel comble le vide", () => {
+    expect(resolveUnifiedChannel({ measured: null, pixel: { resolved_source: "pinterest" } })).toBe("pinterest");
+    expect(resolveUnifiedChannel({ measured: null, pixel: { resolved_source: "direct" } })).toBe("direct");
+  });
+
+  it("mesuré et pixel absents → manuel (hypothèse)", () => {
+    expect(resolveUnifiedChannel({ measured: null, pixel: null, manual: { channel: "seo" } })).toBe("seo");
+  });
+
+  it("rien de résolu → non attribué (fantôme rendu explicite, jamais « Direct »)", () => {
+    expect(resolveUnifiedChannel({ measured: null })).toBe("unattributed");
+    expect(resolveUnifiedChannel({ measured: null, manual: { channel: "ghost" } })).toBe("unattributed");
   });
 });

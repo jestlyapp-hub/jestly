@@ -1,4 +1,5 @@
 "use client";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { use, useState } from "react";
 import Link from "next/link";
@@ -41,6 +42,7 @@ interface AdsResponse {
 }
 
 export default function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  usePageTitle("Détail campagne ECOM");
   const { id } = use(params);
   const searchParams = useSearchParams();
   const provider = (searchParams.get("provider") ?? "pinterest") as AdsProvider;

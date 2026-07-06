@@ -1,4 +1,5 @@
 "use client";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { useState } from "react";
 import { useApi } from "@/lib/hooks/use-api";
@@ -18,6 +19,7 @@ interface CustomerRow {
 }
 
 export default function EcomCustomersPage() {
+  usePageTitle("Clients ECOM");
   const [search, setSearch] = useState("");
   const params = new URLSearchParams();
   if (search) params.set("search", search);

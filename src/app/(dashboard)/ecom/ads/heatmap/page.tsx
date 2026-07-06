@@ -1,4 +1,5 @@
 "use client";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Suspense, useState } from "react";
 import Link from "next/link";
@@ -55,6 +56,7 @@ function HeatmapContent() {
 }
 
 export default function HeatmapPage() {
+  usePageTitle("Heatmap — Publicités ECOM");
   return (
     <Suspense fallback={<div className="text-[13px] text-[#8A8A88] py-10 text-center">Chargement…</div>}>
       <HeatmapContent />

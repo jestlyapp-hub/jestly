@@ -18,7 +18,9 @@ import type { BlendedBoard } from "@/lib/costs/blended";
 import type { BlendedStats } from "@/lib/costs/engine";
 import type { EcomSettings } from "@/lib/ads/types";
 import type { ProductAnalyticsRow } from "@/lib/gads/product-analytics";
-import { buildInsights, type Insight } from "@/lib/gads/insights";
+import type { DisplayChannel } from "@/lib/gads/channels";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
+import { buildInsights, baselineComparable, type Insight } from "@/lib/gads/insights";
 import { computeGoalProgress, currentMonthRange } from "@/lib/gads/goals";
 import type { PeriodFilter } from "@/lib/period-filter";
 import PeriodFilterDropdown from "@/components/facturation/PeriodFilterDropdown";
@@ -41,15 +43,17 @@ interface ShopWidgetsData {
   top_products: { id: string; title: string; image_url: string | null; units: number; revenue: number }[];
   recent_orders: Array<{
     id: string; name: string; created_at: string; total_price: number; currency: string;
-    email: string | null; financial_status: string | null; fulfillment_status: string | null; source: string | null;
+    email: string | null; financial_status: string | null; fulfillment_status: string | null;
+    channel: DisplayChannel;
   }>;
-  sources: { source: string; revenue: number; sessions?: number }[];
-  funnel: { sessions: number; cart: number; checkout: number; purchase: number };
+  sources: { channel: DisplayChannel; revenue: number; orders: number }[];
+  funnel: { sessions: number; cart: number | null; checkout: number | null; purchase: number };
   countries: { country: string; revenue: number; orders: number }[];
   alerts: { low_stock: { product_id: string; title: string; inventory: number }[]; pending_fulfillment: number; failed_webhooks: number };
 }
 
 export default function EcomDashboardPage() {
+  usePageTitle("Dashboard ECOM");
   const { from, to } = useAnalyticsRange();
   const sp = useSearchParams();
   const [recap, setRecap] = useState<ImportRecap | null>(null);
@@ -68,6 +72,12 @@ export default function EcomDashboardPage() {
 
   const board = api.data;
   const cur = board?.current;
+
+  // La période de comparaison n'est une baseline exploitable que si elle a une
+  // activité réelle. Sinon on masque les deltas (« +804 % » sur ~0 est absurde).
+  const canCompare = board ? baselineComparable(board.previous) : true;
+  const cmpDelta = (a: number | null | undefined, b: number | null | undefined): number | null =>
+    canCompare ? delta(a, b) : null;
 
   const insights: Insight[] = board
     ? buildInsights({
@@ -123,29 +133,37 @@ export default function EcomDashboardPage() {
           <StatusHero stats={cur} />
           {insights.length > 0 && <InsightsBlock insights={insights} />}
 
+          {!canCompare && (
+            <div className="flex items-center gap-2 bg-[#F7F7F5] border border-[#E5E3F0] rounded-lg px-4 py-2.5 text-[12px] text-[#5A5A58]">
+              <span className="font-semibold text-[#1a1535]">Nouvelle activité</span>
+              — la période de comparaison n&apos;a quasiment aucune activité (moins de 10 € de dépense ou moins de 3 commandes).
+              Les deltas sont masqués car ils ne seraient pas pertinents.
+            </div>
+          )}
+
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
             <Kpi label="Revenue" value={formatCurrency(cur.revenue_cents)}
-              delta={delta(cur.revenue_cents, board.previous.revenue_cents)} goodWhenUp
+              delta={cmpDelta(cur.revenue_cents, board.previous.revenue_cents)} goodWhenUp
               spark={board.timeline.map((p) => p.revenue_cents)}
               hint={`${formatNumberFr(cur.orders_count)} commandes`} />
             <Kpi label="Blended Ad Spend" value={formatCurrency(cur.spend_cents)}
-              delta={delta(cur.spend_cents, board.previous.spend_cents)}
+              delta={cmpDelta(cur.spend_cents, board.previous.spend_cents)}
               spark={board.timeline.map((p) => p.spend_cents)}
               hint="Google Ads (CSV/API)" />
             <Kpi label="MER" value={formatRoas(cur.mer)}
-              delta={delta(cur.mer, board.previous.mer)} goodWhenUp
+              delta={cmpDelta(cur.mer, board.previous.mer)} goodWhenUp
               tooltip="MER = SUM(Revenue Shopify) ÷ SUM(Blended Ad Spend) sur la période"
               hint="Revenue ÷ dépense — insensible aux ventes fantômes" />
             <Kpi label="AOV" value={cur.aov_cents != null ? formatCurrency(cur.aov_cents) : "—"}
-              delta={delta(cur.aov_cents, board.previous.aov_cents)} goodWhenUp
+              delta={cmpDelta(cur.aov_cents, board.previous.aov_cents)} goodWhenUp
               tooltip="AOV = Revenue ÷ nombre de commandes"
               hint="Panier moyen" />
             <Kpi label="NC-ROAS" value={formatRoas(cur.nc_roas)}
-              delta={delta(cur.nc_roas, board.previous.nc_roas)} goodWhenUp
+              delta={cmpDelta(cur.nc_roas, board.previous.nc_roas)} goodWhenUp
               tooltip="NC-ROAS = CA des nouveaux clients (1re commande du customer_id) ÷ dépense"
               hint={`CA nouveaux clients ${formatCurrency(cur.nc_revenue_cents)}`} />
             <Kpi label="NCPA" value={cur.ncpa_cents != null ? formatCurrency(cur.ncpa_cents) : "—"}
-              delta={delta(cur.ncpa_cents, board.previous.ncpa_cents)}
+              delta={cmpDelta(cur.ncpa_cents, board.previous.ncpa_cents)}
               tooltip="NCPA = dépense ÷ nombre de nouveaux clients"
               hint={`${cur.new_customers} nouveau${cur.new_customers > 1 ? "x" : ""} client${cur.new_customers > 1 ? "s" : ""}`} />
             <Kpi label="BE-ROAS" highlight
@@ -161,7 +179,7 @@ export default function EcomDashboardPage() {
               tooltip="Net Profit = Revenue − COGS − dépense Ads − expédition − frais de paiement − emballage − dépenses récurrentes (prorata)"
               value={cur.net_profit_cents != null ? formatCurrency(cur.net_profit_cents) : "non renseigné"}
               spark={cur.costs_configured ? board.timeline.map((p) => p.net_profit_cents ?? 0) : undefined}
-              delta={delta(cur.net_profit_cents, board.previous.net_profit_cents)} goodWhenUp
+              delta={cmpDelta(cur.net_profit_cents, board.previous.net_profit_cents)} goodWhenUp
               tone={cur.net_profit_cents != null ? (cur.net_profit_cents >= 0 ? "positive" : "negative") : undefined}
               hint={cur.net_profit_cents != null
                 ? `dont ${formatCurrency(cur.expenses_prorated_cents)} de dépenses récurrentes`
@@ -169,7 +187,7 @@ export default function EcomDashboardPage() {
               cta={cur.net_profit_cents == null ? "/ecom/settings?tab=couts" : undefined} />
             <Kpi label="Net Margin"
               value={cur.net_margin != null ? `${(cur.net_margin * 100).toFixed(1)} %` : "non renseigné"}
-              delta={delta(cur.net_margin, board.previous.net_margin)} goodWhenUp
+              delta={cmpDelta(cur.net_margin, board.previous.net_margin)} goodWhenUp
               tooltip="Net Margin = Net Profit ÷ Revenue"
               hint="Net Profit ÷ Revenue" />
             <Kpi label="Couverture COGS"

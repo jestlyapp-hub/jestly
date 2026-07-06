@@ -1,4 +1,5 @@
 "use client";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 /**
  * Analytics — Attribution Board (Partie B).
@@ -49,6 +50,7 @@ const channelLabel = (c: string | null): string =>
   c == null || c === "ghost" ? "Ghost (non résolu)" : c === "direct" ? "Direct" : CHANNEL_LABELS[c as Channel] ?? c;
 
 export default function AttributionBoardPage() {
+  usePageTitle("Attribution ECOM");
   const { from, to } = useAnalyticsRange();
   const [model, setModel] = useState<Model>("last");
   const [filter, setFilter] = useState<Filter>("all");

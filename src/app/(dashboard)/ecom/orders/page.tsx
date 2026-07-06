@@ -20,6 +20,7 @@ import ExportCsvButton from "@/components/ecom/gads/ExportCsvButton";
 import { useAnalyticsRange } from "@/components/ecom/gads/AnalyticsPeriodFilter";
 import { KpiGridSkeleton, TableSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
 import { TRACKING_LABELS, formatDateFr } from "@/components/ecom/gads/format";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 type ChannelFilter = Exclude<Channel, "ghost"> | "all";
 type TrackingFilter = "all" | "tracked" | "ghost" | "unmatched";
@@ -51,6 +52,7 @@ const STATUS_CLS: Record<string, string> = {
 const PILL_BASE = "px-2.5 py-1 text-[11px] font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]";
 
 export default function EcomOrdersPage() {
+  usePageTitle("Commandes ECOM");
   const { from, to } = useAnalyticsRange();
   const [search, setSearch] = useState("");
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");

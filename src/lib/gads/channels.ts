@@ -93,3 +93,42 @@ export const CONFIDENCE_LABELS: Record<ManualConfidence, string> = {
   assumed: "Supposé",
   guessed: "Deviné",
 };
+
+// ── Canal unifié d'affichage (une seule vérité pour tous les widgets) ──
+//
+// Réduit les trois signaux d'une commande (natif Shopify, pixel first-party,
+// attribution manuelle) à UN canal affichable, avec les mêmes chips et
+// couleurs partout. Le fantôme (source inconnue) est un canal explicite
+// « Non attribué » — jamais fondu dans « Direct ». Aucun widget ne lit plus
+// le source_name brut de Shopify.
+export type DisplayChannel = "google_ads" | "seo" | "pinterest" | "other" | "direct" | "unattributed";
+
+/** Source résolue par le pixel (schéma 097) — inclut « direct » (canal réel). */
+export type PixelResolvedSource = "google_ads" | "seo" | "pinterest" | "direct" | "other";
+
+/**
+ * Précédence identique au reste de l'app : le natif Shopify (mesuré) est la
+ * référence ; le pixel ne fait que combler une source inconnue ; l'attribution
+ * manuelle est l'hypothèse de dernier recours. Rien de mesuré, rien au pixel,
+ * rien de posé → « Non attribué » (ex-fantôme rendu visible).
+ */
+export function resolveUnifiedChannel(input: {
+  measured: Exclude<Channel, "ghost"> | null;
+  pixel?: { resolved_source: PixelResolvedSource } | null;
+  manual?: { channel: Channel } | null;
+}): DisplayChannel {
+  if (input.measured) return input.measured;
+  if (input.pixel) return input.pixel.resolved_source;
+  if (input.manual && input.manual.channel !== "ghost") return input.manual.channel;
+  return "unattributed";
+}
+
+/** Libellé + classes de chip + couleur de pastille, constants dans toute l'app. */
+export const DISPLAY_CHANNEL_META: Record<DisplayChannel, { label: string; chip: string; dot: string }> = {
+  google_ads:   { label: "Google Ads",  chip: "bg-[#EEF2FF] text-[#4338CA] border-[#C7D2FE]",       dot: "#6366F1" },
+  seo:          { label: "SEO",          chip: "bg-emerald-50 text-emerald-700 border-emerald-200",  dot: "#10B981" },
+  pinterest:    { label: "Pinterest",    chip: "bg-rose-50 text-rose-700 border-rose-200",           dot: "#E60023" },
+  other:        { label: "Autre",        chip: "bg-violet-50 text-violet-700 border-violet-200",     dot: "#8B5CF6" },
+  direct:       { label: "Direct",       chip: "bg-[#F1F5F9] text-[#475569] border-[#E2E8F0]",       dot: "#64748B" },
+  unattributed: { label: "Non attribué", chip: "bg-amber-50 text-amber-700 border-amber-200",        dot: "#F59E0B" },
+};

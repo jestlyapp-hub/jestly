@@ -20,6 +20,17 @@ export interface Insight {
 const euros = (cents: number): string =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(cents / 100);
 
+/**
+ * Une période de comparaison n'est une baseline exploitable que si elle a une
+ * activité réelle : au moins 10 € de dépense ET au moins 3 commandes. En deçà,
+ * les deltas et insights de comparaison sont trompeurs.
+ */
+export const COMPARISON_MIN_SPEND_CENTS = 1000;
+export const COMPARISON_MIN_ORDERS = 3;
+export function baselineComparable(previous: { spend_cents: number; orders_count: number }): boolean {
+  return previous.spend_cents >= COMPARISON_MIN_SPEND_CENTS && previous.orders_count >= COMPARISON_MIN_ORDERS;
+}
+
 export function buildInsights(input: {
   current: BlendedStats;
   previous: BlendedStats;
@@ -91,7 +102,10 @@ export function buildInsights(input: {
   }
 
   // 5. Dépense en forte hausse pendant que le MER recule.
-  if (p.spend_cents > 0 && c.spend_cents > p.spend_cents * 1.3 && c.mer != null && p.mer != null && c.mer < p.mer) {
+  // Muté si la période de comparaison est quasi vide (dépense < 10 € OU < 3
+  // commandes) : un MER 4× issu d'une seule vente organique sans dépense n'est
+  // pas une baseline — le comparer produit des deltas absurdes (« +804 % »).
+  if (baselineComparable(p) && p.spend_cents > 0 && c.spend_cents > p.spend_cents * 1.3 && c.mer != null && p.mer != null && c.mer < p.mer) {
     insights.push({
       id: "spend_up_mer_down",
       severity: "warning",

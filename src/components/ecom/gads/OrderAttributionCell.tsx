@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Loader2, RotateCcw } from "lucide-react";
+import { AlertTriangle, Check, Loader2, RotateCcw } from "lucide-react";
 import { apiFetch } from "@/lib/hooks/use-api";
 import { useAnalyticsInvalidation } from "@/lib/hooks/use-analytics-invalidation";
 import { CHANNEL_LABELS, CONFIDENCE_LABELS, type Channel, type ManualConfidence } from "@/lib/gads/channels";
+import ChannelChip from "@/components/ecom/ChannelChip";
 import type { AttributionOrderRow } from "@/lib/gads/attribution-aggregator";
 
 interface Props {
@@ -13,6 +14,9 @@ interface Props {
 }
 
 const SELECT_CLS = "px-2 py-1 text-[11px] bg-[#F7F7F5] border border-[#E5E3F0] rounded-md focus:outline-none focus:border-[#7C3AED] text-[#1a1535]";
+// Option-action « Revenir à la mesure » (supprime l'override manuel) sur une
+// commande trackée — remplace « Laisser fantôme », qui n'a aucun sens ici.
+const RETURN_TO_MEASURED = "__measured__";
 
 /**
  * Sélecteur d'attribution manuelle d'une commande.
@@ -77,14 +81,40 @@ export default function OrderAttributionCell({ order, onSaved }: Props) {
     }
   };
 
+  const isTracked = order.tracking_status === "tracked";
+
   return (
     <div className="space-y-1">
+      {/* Canal mesuré pré-sélectionné (commande trackée sans override) : chip
+          plein + « mesuré », pour que l'état actif soit visuellement évident. */}
+      {isTracked && order.manual == null && order.measured_channel && (
+        <div className="flex items-center gap-1.5" title="Canal mesuré par Shopify — pré-sélectionné par défaut">
+          <ChannelChip channel={order.measured_channel} />
+          <span className="inline-flex items-center gap-0.5 text-[10px] text-emerald-700 font-medium">
+            <Check size={10} /> mesuré
+          </span>
+        </div>
+      )}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <select value={channel} onChange={(e) => { setChannel(e.target.value as Channel); setError(null); }}
+        <select
+          value={channel}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (v === RETURN_TO_MEASURED) { void reset(); return; }
+            setChannel(v as Channel);
+            setError(null);
+          }}
           className={SELECT_CLS} disabled={busy}>
-          {(Object.keys(CHANNEL_LABELS) as Channel[]).map((c) => (
-            <option key={c} value={c}>{c === "ghost" ? "Laisser fantôme" : CHANNEL_LABELS[c]}</option>
-          ))}
+          {(Object.keys(CHANNEL_LABELS) as Channel[])
+            // « Laisser fantôme » (ghost) masqué sur une commande trackée : elle
+            // n'est pas fantôme, la laisser telle serait un contresens.
+            .filter((c) => c !== "ghost" || !isTracked)
+            .map((c) => (
+              <option key={c} value={c}>{c === "ghost" ? "Laisser fantôme" : CHANNEL_LABELS[c]}</option>
+            ))}
+          {isTracked && order.manual != null && (
+            <option value={RETURN_TO_MEASURED}>Revenir à la mesure</option>
+          )}
         </select>
         {needsConfidence && (
           <select value={confidence} onChange={(e) => setConfidence(e.target.value as ManualConfidence)} className={SELECT_CLS} disabled={busy}>

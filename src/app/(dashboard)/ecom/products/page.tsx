@@ -1,4 +1,5 @@
 "use client";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 /**
  * Analytics — Product Analytics (Partie A3).
@@ -58,6 +59,7 @@ const COLS: Col[] = [
 const STORAGE_KEY = "gads_products_columns";
 
 export default function ProductAnalyticsPage() {
+  usePageTitle("Produits ECOM");
   const { from, to } = useAnalyticsRange();
   const [filter, setFilter] = useState<ChannelFilter>("all");
   const [search, setSearch] = useState("");

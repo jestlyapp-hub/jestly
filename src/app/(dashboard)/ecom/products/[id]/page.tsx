@@ -1,4 +1,5 @@
 "use client";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { use } from "react";
 import Link from "next/link";
@@ -28,6 +29,7 @@ interface ProductDetail {
 }
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  usePageTitle("Détail produit ECOM");
   const { id } = use(params);
   const { data: integ } = useApi<{ integration: { shop_domain: string } }>("/api/integrations/shopify/sync-state");
   const { data, loading } = useApi<{ data: ProductDetail }>(`/api/ecom/products/${id}`);

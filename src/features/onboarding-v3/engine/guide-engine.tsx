@@ -179,7 +179,9 @@ const GuideCtx = createContext<Ctx | null>(null);
 export function GuideProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<GuideState>(INITIAL_GUIDE_STATE);
   const [hydrated, setHydrated] = useState(false);
-  const { accountState, refreshAccountState } = useAccountState();
+  // Ne charge l'état de compte (4 endpoints) que quand le guide est actif —
+  // sinon chaque page du dashboard (ECOM inclus) sur-fetchait au montage.
+  const { accountState, refreshAccountState } = useAccountState(hydrated && state.active);
   const router = useRouter();
   const pathname = usePathname();
 

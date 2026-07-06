@@ -1,4 +1,5 @@
 "use client";
+import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 import { Suspense, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -170,6 +171,7 @@ function CreativesContent() {
 }
 
 export default function EcomAdsCreativesPage() {
+  usePageTitle("Créatives — Publicités ECOM");
   return (
     <Suspense fallback={<div className="text-[13px] text-[#8A8A88] py-10 text-center">Chargement…</div>}>
       <CreativesContent />
