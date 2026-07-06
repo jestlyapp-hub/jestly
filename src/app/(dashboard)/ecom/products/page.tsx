@@ -119,7 +119,7 @@ export default function ProductAnalyticsPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[20px] font-bold text-[#1a1535]">Product Analytics</h1>
+          <h1 className="text-[20px] font-bold text-[var(--ecom-navy)]">Product Analytics</h1>
           <p className="text-[12px] text-[#8A8A88]">
             CA, marge et dépense Google Ads par produit — granularité produit (les variantes sont agrégées)
           </p>
@@ -152,7 +152,7 @@ export default function ProductAnalyticsPage() {
         </div>
       )}
       {data && !data.ads_data_available && (
-        <div className="flex items-center gap-2 bg-[#F7F7F5] border border-[#E5E3F0] rounded-lg px-4 py-2.5 text-[11px] text-[#5A5A58]">
+        <div className="flex items-center gap-2 bg-[#F7F7F5] border border-[var(--ecom-card-border)] rounded-lg px-4 py-2.5 text-[11px] text-[#5A5A58]">
           <Info size={13} className="text-[#8A8A88]" />
           Dépense par produit non disponible sur la période — elle arrive avec la prochaine sync API (toutes les 6 h) ou via « Actualiser depuis l&apos;API » sur la Vue d&apos;ensemble.
         </div>
@@ -160,27 +160,27 @@ export default function ProductAnalyticsPage() {
 
       {/* Filtres + colonnes */}
       <div className="flex flex-wrap items-center gap-2">
-        <div className="inline-flex items-center bg-[#F7F7F5] border border-[#E5E3F0] rounded-md p-0.5">
+        <div className="inline-flex items-center bg-[#F7F7F5] border border-[var(--ecom-card-border)] rounded-md p-0.5">
           {FILTERS.map((f) => (
             <button key={f.value} onClick={() => setFilter(f.value)}
               className={`px-2.5 py-1 text-[11px] font-medium rounded transition-colors ${
-                filter === f.value ? "bg-white text-[#1a1535] shadow-sm" : "text-[#5A5A58] hover:text-[#1a1535]"
+                filter === f.value ? "bg-white text-[var(--ecom-navy)] shadow-sm" : "text-[#5A5A58] hover:text-[var(--ecom-navy)]"
               }`}>
               {f.label}
             </button>
           ))}
         </div>
         <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher un produit…"
-          className="px-2.5 py-1.5 text-[12px] bg-white border border-[#E5E3F0] rounded-md focus:outline-none focus:border-[#7C3AED] text-[#1a1535] w-56" />
+          className="px-2.5 py-1.5 text-[12px] bg-white border border-[var(--ecom-card-border)] rounded-md focus:outline-none focus:border-[#7C3AED] text-[var(--ecom-navy)] w-56" />
         <div className="relative ml-auto">
           <button onClick={() => setPickerOpen(!pickerOpen)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-white text-[#1a1535] border border-[#E5E3F0] hover:bg-[#FBFBFA]">
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-medium bg-white text-[var(--ecom-navy)] border border-[var(--ecom-card-border)] hover:bg-[var(--ecom-surface-sunken)]">
             <Columns3 size={13} /> Colonnes ({shownCols.length})
           </button>
           {pickerOpen && (
-            <div className="absolute right-0 mt-1 z-20 bg-white border border-[#E5E3F0] rounded-lg shadow-lg p-2 w-56">
+            <div className="absolute right-0 mt-1 z-20 bg-white border border-[var(--ecom-card-border)] rounded-lg shadow-lg p-2 w-56">
               {COLS.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 px-2 py-1 text-[12px] text-[#1a1535] hover:bg-[#FBFBFA] rounded cursor-pointer">
+                <label key={c.id} className="flex items-center gap-2 px-2 py-1 text-[12px] text-[var(--ecom-navy)] hover:bg-[var(--ecom-surface-sunken)] rounded cursor-pointer">
                   <input type="checkbox" checked={visible.has(c.id)} onChange={() => toggleCol(c.id)} className="accent-[#7C3AED]" />
                   {c.label}
                 </label>
@@ -194,15 +194,15 @@ export default function ProductAnalyticsPage() {
       {api.loading && <TableSkeleton rows={8} />}
 
       {!api.loading && (
-      <div className="bg-white border border-[#E5E3F0] rounded-xl overflow-hidden">
+      <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-[12px]">
             <thead>
-              <tr className="border-b border-[#E5E3F0] bg-[#FBFBFA] text-left text-[11px] text-[#5A5A58]">
+              <tr className="border-b border-[var(--ecom-card-border)] bg-[var(--ecom-surface-sunken)] text-left text-[11px] text-[#5A5A58]">
                 <th className="px-3 py-2.5 font-medium">Produit</th>
                 <th className="px-3 py-2.5 font-medium">CA 30 j</th>
                 {shownCols.map((c) => (
-                  <th key={c.id} className="px-3 py-2.5 font-medium text-right whitespace-nowrap cursor-pointer select-none hover:text-[#1a1535]"
+                  <th key={c.id} className="px-3 py-2.5 font-medium text-right whitespace-nowrap cursor-pointer select-none hover:text-[var(--ecom-navy)]"
                     title={c.tooltip} onClick={() => onSort(c.id)}>
                     {c.label}{sortBy === c.id && <span className="text-[#7C3AED]"> {sortDesc ? "↓" : "↑"}</span>}
                   </th>
@@ -211,7 +211,7 @@ export default function ProductAnalyticsPage() {
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr key={r.key} className={`border-b border-[#EFEFEF] align-top ${r.wasted_spend ? "bg-amber-50/50" : "hover:bg-[#FBFBFA]"}`}>
+                <tr key={r.key} className={`border-b border-[#EFEFEF] align-top ${r.wasted_spend ? "bg-amber-50/50" : "hover:bg-[var(--ecom-surface-sunken)]"}`}>
                   <td className="px-3 py-2.5 max-w-[280px]">
                     <div className="flex items-start gap-2.5">
                       {r.image_url ? (
@@ -221,7 +221,7 @@ export default function ProductAnalyticsPage() {
                         <span className="w-8 h-8 rounded-md bg-[#F7F7F5] border border-[#EFEFEF] shrink-0" />
                       )}
                       <div>
-                        <div className={`font-medium line-clamp-2 ${r.unknown_item ? "text-[#8A8A88] italic" : "text-[#1a1535]"}`} title={r.title}>{r.title}</div>
+                        <div className={`font-medium line-clamp-2 ${r.unknown_item ? "text-[#8A8A88] italic" : "text-[var(--ecom-navy)]"}`} title={r.title}>{r.title}</div>
                         <div className="flex flex-wrap gap-1 mt-0.5">
                           {r.wasted_spend && (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-amber-100 border border-amber-300 text-amber-800 text-[10px] font-semibold"
@@ -230,7 +230,7 @@ export default function ProductAnalyticsPage() {
                             </span>
                           )}
                           {r.sample_small && r.orders_count > 0 && (
-                            <span className="inline-flex px-1.5 py-0.5 rounded bg-[#F7F7F5] border border-[#E5E3F0] text-[#8A8A88] text-[10px] font-medium"
+                            <span className="inline-flex px-1.5 py-0.5 rounded bg-[#F7F7F5] border border-[var(--ecom-card-border)] text-[#8A8A88] text-[10px] font-medium"
                               title="Moins de 5 ventes : tout ROAS sur ce produit n'est pas significatif">
                               Échantillon faible
                             </span>
@@ -249,7 +249,7 @@ export default function ProductAnalyticsPage() {
                   </td>
                   {shownCols.map((c) => (
                     <td key={c.id} className={`px-3 py-2.5 text-right tabular-nums whitespace-nowrap ${
-                      c.render(r) === "non renseigné" || c.render(r) === "non disponible" ? "text-[#B4B4B2] italic text-[11px]" : "text-[#1a1535]"
+                      c.render(r) === "non renseigné" || c.render(r) === "non disponible" ? "text-[#B4B4B2] italic text-[11px]" : "text-[var(--ecom-navy)]"
                     }`}>
                       {c.render(r)}
                     </td>

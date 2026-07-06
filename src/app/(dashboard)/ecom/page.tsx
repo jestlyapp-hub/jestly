@@ -15,7 +15,6 @@ import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronUp, Lightbulb, Target
 import { useApi } from "@/lib/hooks/use-api";
 import { formatCurrency, formatNumberFr, formatRoas } from "@/lib/ads/formatters";
 import type { BlendedBoard } from "@/lib/costs/blended";
-import type { BlendedStats } from "@/lib/costs/engine";
 import type { EcomSettings } from "@/lib/ads/types";
 import type { ProductAnalyticsRow } from "@/lib/gads/product-analytics";
 import type { DisplayChannel } from "@/lib/gads/channels";
@@ -38,6 +37,9 @@ import Funnel from "@/components/ecom/Funnel";
 import RecentOrdersTable from "@/components/ecom/RecentOrdersTable";
 import GeographyList from "@/components/ecom/GeographyList";
 import AlertsPanel from "@/components/ecom/AlertsPanel";
+import { VerdictHero } from "@/components/ecom/premium/VerdictHero";
+import { InsightCard } from "@/components/ecom/premium/InsightCard";
+import { Sparkline } from "@/components/ecom/premium/Sparkline";
 
 interface ShopWidgetsData {
   top_products: { id: string; title: string; image_url: string | null; units: number; revenue: number }[];
@@ -78,6 +80,9 @@ export default function EcomDashboardPage() {
   const canCompare = board ? baselineComparable(board.previous) : true;
   const cmpDelta = (a: number | null | undefined, b: number | null | undefined): number | null =>
     canCompare ? delta(a, b) : null;
+
+  const periodDays = Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86_400_000) + 1;
+  const periodLabel = periodDays > 0 && periodDays <= 366 ? `${periodDays} derniers jours` : "période sélectionnée";
 
   const insights: Insight[] = board
     ? buildInsights({
@@ -130,18 +135,33 @@ export default function EcomDashboardPage() {
 
       {cur && board ? (
         <>
-          <StatusHero stats={cur} />
+          <VerdictHero
+            periodLabel={periodLabel}
+            costsConfigured={cur.costs_configured}
+            insufficientData={cur.status === "insufficient_data"}
+            profitable={cur.status === "profitable"}
+            netProfitLabel={cur.net_profit_cents != null
+              ? (cur.net_profit_cents < 0 ? `(${formatCurrency(Math.abs(cur.net_profit_cents))})` : formatCurrency(cur.net_profit_cents))
+              : null}
+            netProfitNegative={cur.net_profit_cents != null && cur.net_profit_cents < 0}
+            mer={cur.mer}
+            beRoas={cur.be_roas}
+            merLabel={cur.mer != null ? formatRoas(cur.mer) : null}
+            beRoasLabel={cur.be_roas != null ? formatRoas(cur.be_roas) : null}
+            calibrateHref="/ecom/settings?tab=couts"
+          />
           {insights.length > 0 && <InsightsBlock insights={insights} />}
 
           {!canCompare && (
-            <div className="flex items-center gap-2 bg-[#F7F7F5] border border-[#E5E3F0] rounded-lg px-4 py-2.5 text-[12px] text-[#5A5A58]">
-              <span className="font-semibold text-[#1a1535]">Nouvelle activité</span>
+            <div className="flex items-center gap-2 bg-[var(--ecom-surface-sunken)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-sm)] px-4 py-2.5 text-[var(--ecom-fs-label)] text-[var(--ecom-muted)]">
+              <span className="font-semibold text-[var(--ecom-navy)]">Nouvelle activité</span>
               — la période de comparaison n&apos;a quasiment aucune activité (moins de 10 € de dépense ou moins de 3 commandes).
               Les deltas sont masqués car ils ne seraient pas pertinents.
             </div>
           )}
 
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+          <p className="ecom-label pt-1">Acquisition</p>
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
             <Kpi label="Revenue" value={formatCurrency(cur.revenue_cents)}
               delta={cmpDelta(cur.revenue_cents, board.previous.revenue_cents)} goodWhenUp
               spark={board.timeline.map((p) => p.revenue_cents)}
@@ -166,6 +186,10 @@ export default function EcomDashboardPage() {
               delta={cmpDelta(cur.ncpa_cents, board.previous.ncpa_cents)}
               tooltip="NCPA = dépense ÷ nombre de nouveaux clients"
               hint={`${cur.new_customers} nouveau${cur.new_customers > 1 ? "x" : ""} client${cur.new_customers > 1 ? "s" : ""}`} />
+          </div>
+
+          <p className="ecom-label pt-1">Rentabilité</p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Kpi label="BE-ROAS" highlight
               tooltip="BE-ROAS = AOV ÷ (AOV − coût variable moyen par commande). Coût variable = COGS + expédition + frais de paiement + emballage."
               value={!cur.costs_configured ? "non renseigné" : !cur.be_roas_reachable ? "∅" : formatRoas(cur.be_roas)}
@@ -202,9 +226,9 @@ export default function EcomDashboardPage() {
             compare={compareOn ? board.previous_timeline : null} />
 
           {/* Vue journalière repliable (ex-Détail temporel) */}
-          <div className="bg-white border border-[#E5E3F0] rounded-xl">
+          <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)]">
             <button onClick={() => setShowDaily(!showDaily)}
-              className="w-full flex items-center justify-between px-5 py-3 text-[13px] font-bold text-[#1a1535] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED] rounded-xl">
+              className="w-full flex items-center justify-between px-5 py-3 text-[var(--ecom-fs-label)] font-bold text-[var(--ecom-navy)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ecom-brand-violet)] rounded-[var(--ecom-r-md)]">
               Vue journalière (dépense, CA, ROAS jour par jour)
               {showDaily ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
             </button>
@@ -218,6 +242,7 @@ export default function EcomDashboardPage() {
           {/* Widgets boutique (ex-Tour de pilotage) */}
           {shopApi.data && (
             <>
+              <p className="ecom-label pt-1">Attribution &amp; détail boutique</p>
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 <div className="lg:col-span-1">
                   <SourcesDonut data={shopApi.data.sources} />
@@ -277,7 +302,7 @@ function CompareControl() {
       <button
         onClick={() => setParams((p) => { if (on) { p.delete("compare"); p.delete("cfrom"); p.delete("cto"); p.delete("cpl"); } else p.set("compare", "1"); })}
         className={`px-3 py-1.5 rounded-md text-[12px] font-medium border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED] ${
-          on ? "bg-[#EDE9FE] border-[#C4B5FD] text-[#7C3AED]" : "bg-white border-[#E5E3F0] text-[#5A5A58] hover:text-[#1a1535]"
+          on ? "bg-[var(--ecom-violet-light)] border-[var(--ecom-violet-mid)] text-[var(--ecom-brand-violet)]" : "bg-[var(--ecom-surface-1)] border-[var(--ecom-card-border)] text-[var(--ecom-muted)] hover:text-[var(--ecom-navy)]"
         }`}
         title="Superpose la période de comparaison sur le graphe (défaut : période précédente)">
         Comparer
@@ -311,7 +336,7 @@ function GoalGauges() {
   if (!revenueGoal && !profitGoal) return null;
 
   return (
-    <div className="bg-white border border-[#E5E3F0] rounded-xl p-5">
+    <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
       <div className="flex items-center gap-2 mb-3">
         <Target size={14} className="text-[#7C3AED]" />
         <h3 className="text-[13px] font-bold text-[#1a1535]">Objectif du mois</h3>
@@ -345,79 +370,30 @@ function Gauge({ label, g }: { label: string; g: NonNullable<ReturnType<typeof c
 }
 
 // ── Insights automatiques (carte blanche A) ──────────────────────
-const INSIGHT_CLS: Record<Insight["severity"], string> = {
-  critical: "border-rose-200 bg-rose-50 text-rose-900",
-  warning: "border-amber-200 bg-amber-50 text-amber-900",
-  info: "border-[#E5E3F0] bg-[#F7F7F5] text-[#1a1535]",
+const INSIGHT_NATURE: Record<Insight["severity"], "loss" | "data" | "opportunity"> = {
+  critical: "loss",
+  warning: "data",
+  info: "opportunity",
 };
 
 function InsightsBlock({ insights }: { insights: Insight[] }) {
   return (
-    <div className="bg-white border border-[#E5E3F0] rounded-xl p-5">
+    <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
       <div className="flex items-center gap-2 mb-3">
-        <Lightbulb size={14} className="text-[#7C3AED]" />
-        <h3 className="text-[13px] font-bold text-[#1a1535]">À regarder</h3>
-        <span className="text-[11px] text-[#8A8A88]">règles automatiques sur ta donnée réelle, priorisées par impact</span>
+        <Lightbulb size={14} className="text-[var(--ecom-brand-violet)]" />
+        <h3 className="text-[var(--ecom-fs-label)] font-bold text-[var(--ecom-navy)]">À regarder</h3>
+        <span className="text-[var(--ecom-fs-caption)] text-[var(--ecom-muted)]">règles automatiques sur ta donnée réelle, priorisées par impact</span>
       </div>
-      <ul className="space-y-2">
+      <div className="grid gap-2">
         {insights.map((i) => (
-          <li key={i.id}>
-            <Link href={i.href as never}
-              className={`block border rounded-lg px-3 py-2 text-[12px] hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED] ${INSIGHT_CLS[i.severity]}`}>
-              {i.message}
-              {i.impact_cents > 0 && (
-                <span className="ml-2 font-semibold tabular-nums">({formatCurrency(i.impact_cents)})</span>
-              )}
-            </Link>
-          </li>
+          <InsightCard
+            key={i.id}
+            nature={INSIGHT_NATURE[i.severity]}
+            message={i.message}
+            impact={i.impact_cents > 0 ? formatCurrency(i.impact_cents) : undefined}
+            href={i.href}
+          />
         ))}
-      </ul>
-    </div>
-  );
-}
-
-// ── Statut de vérité + KPI (repris de la Vue d'ensemble) ─────────
-function StatusHero({ stats: s }: { stats: BlendedStats }) {
-  if (s.status === "insufficient_data") {
-    return (
-      <div className="bg-white border border-[#E5E3F0] rounded-xl p-5 flex items-center gap-4">
-        <span className="text-[15px] font-bold text-[#5A5A58]">Rentabilité non calculable</span>
-        <span className="text-[12px] text-[#8A8A88]">
-          {s.orders_count === 0 ? "Aucune commande sur la période." : "Coûts non renseignés — le statut s'active dès la première saisie."}
-        </span>
-      </div>
-    );
-  }
-  const profitable = s.status === "profitable";
-  return (
-    <div className={`rounded-xl p-5 border-2 ${profitable ? "bg-emerald-50 border-emerald-300" : "bg-rose-50 border-rose-300"}`}>
-      <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-        <span className={`text-[18px] font-bold ${profitable ? "text-emerald-800" : "text-rose-800"}`}>
-          {profitable ? "✓ Rentable" : "✗ En perte"}
-        </span>
-        {s.mer != null && s.be_roas != null && (
-          <span className="text-[13px] text-[#1a1535]">
-            MER <span className="font-bold tabular-nums">{formatRoas(s.mer)}</span> vs seuil de rentabilité{" "}
-            <span className="font-bold tabular-nums">{formatRoas(s.be_roas)}</span>
-            {s.mer_vs_be_roas != null && (
-              <span className={`ml-2 font-semibold tabular-nums ${profitable ? "text-emerald-700" : "text-rose-700"}`}>
-                ({s.mer_vs_be_roas > 0 ? "+" : ""}{s.mer_vs_be_roas.toFixed(2)})
-              </span>
-            )}
-          </span>
-        )}
-        {!s.be_roas_reachable && (
-          <span className="text-[12px] text-rose-800">
-            Marge unitaire négative : le coût variable moyen dépasse le panier moyen — aucun budget publicitaire ne peut rentabiliser.
-          </span>
-        )}
-        {s.net_profit_cents != null && (
-          <span className="ml-auto text-[13px] text-[#1a1535]">
-            Net Profit : <span className={`font-bold tabular-nums ${s.net_profit_cents >= 0 ? "text-emerald-700" : "text-rose-700"}`}>
-              {s.net_profit_cents < 0 ? `(${formatCurrency(Math.abs(s.net_profit_cents))})` : formatCurrency(s.net_profit_cents)}
-            </span>
-          </span>
-        )}
       </div>
     </div>
   );
@@ -432,42 +408,37 @@ function Kpi({ label, value, hint, delta: d, goodWhenUp = false, highlight = fal
   label: string; value: string; hint?: string; delta?: number | null;
   goodWhenUp?: boolean; highlight?: boolean; tone?: "positive" | "negative"; cta?: string; spark?: number[]; tooltip?: string;
 }) {
+  const unset = value === "non renseigné";
   const deltaColor = d == null || !goodWhenUp
-    ? "text-[#8A8A88]"
-    : (d >= 0 ? "text-emerald-600" : "text-rose-600");
-  const valueColor = tone === "positive" ? "text-emerald-700" : tone === "negative" ? "text-rose-700" : "text-[#1a1535]";
+    ? "text-[var(--ecom-muted)]"
+    : (d >= 0 ? "text-[var(--ecom-pos)]" : "text-[var(--ecom-neg)]");
+  const valueColor = tone === "positive" ? "text-[var(--ecom-pos)]" : tone === "negative" ? "text-[var(--ecom-neg)]" : "text-[var(--ecom-navy)]";
   return (
-    <div className={`bg-white rounded-xl p-4 border ${highlight ? "border-[#7C3AED] border-2" : "border-[#E5E3F0]"}`} title={tooltip}>
+    <div
+      className={`bg-[var(--ecom-surface-1)] rounded-[var(--ecom-r-md)] p-4 border shadow-[var(--ecom-shadow-sm)] transition-[transform,box-shadow,border-color] duration-[var(--ecom-t-fast)] ease-[var(--ecom-ease-out)] hover:-translate-y-0.5 hover:shadow-[var(--ecom-shadow-md)] hover:border-[var(--ecom-violet-mid)] ${highlight ? "border-2 border-[var(--ecom-brand-violet)]" : "border-[var(--ecom-card-border)]"}`}
+      title={tooltip}
+    >
       <div className="flex items-center justify-between gap-2">
-        <span className={`text-[11px] font-medium text-[#5A5A58] ${tooltip ? "underline decoration-dotted decoration-[#C4B5FD] underline-offset-2 cursor-help" : ""}`}>{label}</span>
+        <span className={`ecom-label ${tooltip ? "underline decoration-dotted decoration-[var(--ecom-violet-mid)] underline-offset-2 cursor-help" : ""}`}>{label}</span>
         {d != null && (
-          <span className={`inline-flex items-center gap-0.5 text-[11px] font-semibold tabular-nums ${deltaColor}`}>
+          <span className={`inline-flex items-center gap-0.5 text-[var(--ecom-fs-caption)] font-semibold ecom-tnum ${deltaColor}`}>
             {d >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
             {d > 0 ? "+" : ""}{d} %
           </span>
         )}
       </div>
-      <div className={`text-[21px] font-bold mt-1 tabular-nums ${valueColor} ${value === "non renseigné" ? "text-[14px] text-[#8A8A88] italic" : ""}`}>
-        {value}
-      </div>
-      {spark && spark.length > 1 && spark.some((v) => v !== 0) && <MicroSparkline values={spark} />}
-      {hint && <p className="text-[10px] text-[#8A8A88] mt-1">{hint}</p>}
+      {unset ? (
+        <div className="mt-1.5 text-[var(--ecom-fs-label)] italic text-[var(--ecom-muted)]">non renseigné</div>
+      ) : (
+        <div className={`text-[var(--ecom-fs-kpi)] font-bold mt-1 ecom-tnum tracking-[var(--ecom-tracking-tight)] leading-none ${valueColor}`}>
+          {value}
+        </div>
+      )}
+      {spark && spark.length > 1 && spark.some((v) => v !== 0) && <Sparkline values={spark} className="h-6 w-full mt-2" />}
+      {hint && <p className="text-[var(--ecom-fs-caption)] text-[var(--ecom-muted)] mt-1.5">{hint}</p>}
       {cta && (
-        <Link href={cta as never} className="text-[10px] text-[#7C3AED] hover:underline">Renseigner →</Link>
+        <Link href={cta as never} className="text-[var(--ecom-fs-caption)] font-medium text-[var(--ecom-brand-violet)] hover:underline mt-1 inline-block">Renseigner →</Link>
       )}
     </div>
-  );
-}
-
-function MicroSparkline({ values }: { values: number[] }) {
-  const max = Math.max(...values, 0);
-  const min = Math.min(...values, 0);
-  const span = max - min || 1;
-  const w = 100, h = 16;
-  const pts = values.map((v, i) => `${(i / (values.length - 1)) * w},${h - ((v - min) / span) * (h - 2) - 1}`).join(" ");
-  return (
-    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-4 mt-1" preserveAspectRatio="none" aria-hidden>
-      <polyline points={pts} fill="none" stroke="#A78BFA" strokeWidth="1.5" vectorEffect="non-scaling-stroke" />
-    </svg>
   );
 }

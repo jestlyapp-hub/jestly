@@ -57,7 +57,7 @@ export default function DataHealthPage() {
   return (
     <div className="space-y-4 max-w-4xl">
       <div>
-        <h1 className="text-[20px] font-bold text-[#1a1535]">Santé des données</h1>
+        <h1 className="text-[20px] font-bold text-[var(--ecom-navy)]">Santé des données</h1>
         <p className="text-[12px] text-[#8A8A88]">Syncs, pixel, matching et survey — l&apos;état de la machine en un écran</p>
       </div>
 
@@ -67,10 +67,10 @@ export default function DataHealthPage() {
       {h && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {/* Syncs */}
-          <div className="bg-white border border-[#E5E3F0] rounded-xl p-5">
+          <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
             <div className="flex items-center gap-2 mb-3">
               <Activity size={14} className="text-[#7C3AED]" />
-              <h3 className="text-[13px] font-bold text-[#1a1535]">Syncs</h3>
+              <h3 className="text-[13px] font-bold text-[var(--ecom-navy)]">Syncs</h3>
             </div>
             <ul className="space-y-2 text-[12px]">
               <Row dot={freshness(h.syncs.shopify_last, 6)} label="Shopify (commandes, produits, clients)"
@@ -83,10 +83,10 @@ export default function DataHealthPage() {
           </div>
 
           {/* Pixel */}
-          <div className="bg-white border border-[#E5E3F0] rounded-xl p-5">
+          <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
             <div className="flex items-center gap-2 mb-3">
               <Radio size={14} className="text-sky-600" />
-              <h3 className="text-[13px] font-bold text-[#1a1535]">Pixel first-party (24 h)</h3>
+              <h3 className="text-[13px] font-bold text-[var(--ecom-navy)]">Pixel first-party (24 h)</h3>
             </div>
             <ul className="space-y-2 text-[12px]">
               {h.pixel.shops.map((s) => (
@@ -100,10 +100,10 @@ export default function DataHealthPage() {
           </div>
 
           {/* Matching */}
-          <div className="bg-white border border-[#E5E3F0] rounded-xl p-5">
+          <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
             <div className="flex items-center gap-2 mb-3">
               <Link2 size={14} className="text-emerald-600" />
-              <h3 className="text-[13px] font-bold text-[#1a1535]">Matching commandes (30 j)</h3>
+              <h3 className="text-[13px] font-bold text-[var(--ecom-navy)]">Matching commandes (30 j)</h3>
             </div>
             <ul className="space-y-2 text-[12px]">
               <Row dot="bg-[#7C3AED]" label="Commandes avec cart attribute pixel"
@@ -127,10 +127,10 @@ export default function DataHealthPage() {
           </div>
 
           {/* Survey */}
-          <div className="bg-white border border-[#E5E3F0] rounded-xl p-5">
+          <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
             <div className="flex items-center gap-2 mb-3">
               <MessageSquare size={14} className="text-amber-600" />
-              <h3 className="text-[13px] font-bold text-[#1a1535]">Survey post-achat (30 j)</h3>
+              <h3 className="text-[13px] font-bold text-[var(--ecom-navy)]">Survey post-achat (30 j)</h3>
             </div>
             <ul className="space-y-2 text-[12px]">
               <Row dot={h.survey.responses_30d > 0 ? "bg-emerald-500" : "bg-[#B4B4B2]"} label="Réponses"
@@ -155,7 +155,7 @@ function Row({ dot, label, value }: { dot: string; label: string; value: string 
     <li className="flex items-center gap-2">
       <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${dot}`} />
       <span className="text-[#5A5A58] flex-1">{label}</span>
-      <span className="tabular-nums font-medium text-[#1a1535] text-right">{value}</span>
+      <span className="tabular-nums font-medium text-[var(--ecom-navy)] text-right">{value}</span>
     </li>
   );
 }

@@ -10,7 +10,7 @@ interface Props {
 
 export default function TopProductsTable({ data }: Props) {
   return (
-    <div className="bg-white border border-[#E6E6E4] rounded-xl p-5">
+    <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-[14px] font-bold text-[#191919]">Top produits</h3>
         <Link href="/ecom/products" className="text-[11px] text-[#7C3AED] hover:underline font-semibold">

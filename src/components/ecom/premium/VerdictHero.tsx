@@ -19,6 +19,8 @@ import { StatusBadge } from "./StatusBadge";
 interface Props {
   periodLabel: string;             // ex. « 30 derniers jours »
   costsConfigured: boolean;
+  /** Aucune commande / donnée insuffisante : verdict non calculable (neutre). */
+  insufficientData?: boolean;
   profitable: boolean;
   netProfitLabel: string | null;   // Net Profit formaté (verdict principal)
   netProfitNegative: boolean;
@@ -47,6 +49,7 @@ const arcPath = (from: number, to: number): string => {
 export function VerdictHero({
   periodLabel,
   costsConfigured,
+  insufficientData = false,
   profitable,
   netProfitLabel,
   netProfitNegative,
@@ -56,7 +59,9 @@ export function VerdictHero({
   beRoasLabel,
   calibrateHref,
 }: Props) {
-  const hasGauge = costsConfigured && mer != null && beRoas != null && beRoas > 0;
+  // Données insuffisantes (0 commande) : verdict neutre, on ne feint pas un calcul.
+  const noVerdict = insufficientData && costsConfigured;
+  const hasGauge = !noVerdict && costsConfigured && mer != null && beRoas != null && beRoas > 0;
   const ratio = hasGauge ? mer! / beRoas! : 0;
   const gap = hasGauge ? ratio - 1 : 0; // écart au point mort, en « ×seuil »
 
@@ -68,10 +73,12 @@ export function VerdictHero({
   }, []);
   const needleDeg = swept ? (Math.max(0, Math.min(DOMAIN_MAX, ratio)) - 1) * 90 : -90;
 
-  const heroValue = costsConfigured && netProfitLabel != null ? netProfitLabel : (merLabel ?? "—");
-  const heroTone = costsConfigured && netProfitLabel != null
-    ? (netProfitNegative ? "text-[var(--ecom-neg)]" : "text-[var(--ecom-pos)]")
-    : "text-[var(--ecom-navy)]";
+  const heroValue = noVerdict ? "—" : (costsConfigured && netProfitLabel != null ? netProfitLabel : (merLabel ?? "—"));
+  const heroTone = noVerdict
+    ? "text-[var(--ecom-muted)]"
+    : costsConfigured && netProfitLabel != null
+      ? (netProfitNegative ? "text-[var(--ecom-neg)]" : "text-[var(--ecom-pos)]")
+      : "text-[var(--ecom-navy)]";
 
   return (
     <section className="relative overflow-hidden bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-lg)] shadow-[var(--ecom-shadow-lg)]">
@@ -91,7 +98,12 @@ export function VerdictHero({
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            {costsConfigured ? (
+            {noVerdict ? (
+              <>
+                <StatusBadge tone="neutral" size="lg" label="Rentabilité non calculable" />
+                <span className="text-[var(--ecom-fs-label)] text-[var(--ecom-muted)]">Aucune commande sur la période.</span>
+              </>
+            ) : costsConfigured ? (
               <StatusBadge
                 tone={profitable ? "positive" : "negative"}
                 size="lg"

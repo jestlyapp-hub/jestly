@@ -43,7 +43,7 @@ export default function EcomCustomersPage() {
       <div className="bg-white border border-[#E6E6E4] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-[#FBFBFA] border-b border-[#E6E6E4]">
+            <thead className="bg-[var(--ecom-surface-sunken)] border-b border-[#E6E6E4]">
               <tr className="text-left text-[10px] font-semibold uppercase tracking-wide text-[#8A8A88]">
                 <th className="px-4 py-2.5">Client</th>
                 <th className="px-4 py-2.5">Email</th>
@@ -63,7 +63,7 @@ export default function EcomCustomersPage() {
               {data?.data.map((c) => {
                 const name = [c.first_name, c.last_name].filter(Boolean).join(" ") || "—";
                 return (
-                  <tr key={c.id} className="border-b border-[#F7F7F5] last:border-0 hover:bg-[#FBFBFA]">
+                  <tr key={c.id} className="border-b border-[#F7F7F5] last:border-0 hover:bg-[var(--ecom-surface-sunken)]">
                     <td className="px-4 py-2.5 text-[13px] font-medium text-[#191919]">{name}</td>
                     <td className="px-4 py-2.5 text-[12px] text-[#5A5A58]">{c.email ?? "—"}</td>
                     <td className="px-4 py-2.5 text-[12px] tabular-nums text-right text-[#191919]">{formatNumber(c.orders_count)}</td>

@@ -22,9 +22,9 @@ export default function SourcesDonut({ data }: Props) {
   const total = chartData.reduce((s, d) => s + d.value, 0);
 
   return (
-    <div className="bg-white border border-[#E6E6E4] rounded-xl p-5">
-      <h3 className="text-[14px] font-bold text-[#191919] mb-1">Sources de trafic</h3>
-      <p className="text-[11px] text-[#8A8A88] mb-4">CA par canal — attribution unifiée</p>
+    <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
+      <h3 className="text-[14px] font-bold text-[var(--ecom-navy)] mb-1">Sources de trafic</h3>
+      <p className="text-[11px] text-[var(--ecom-muted)] mb-4">CA par canal — attribution unifiée</p>
       {chartData.length === 0 ? (
         <p className="text-[12px] text-[#8A8A88] py-8 text-center">Aucune commande sur la période</p>
       ) : (

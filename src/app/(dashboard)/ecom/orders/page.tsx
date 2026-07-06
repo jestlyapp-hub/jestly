@@ -46,7 +46,7 @@ const STATUS_CLS: Record<string, string> = {
   amber: "bg-amber-50 text-amber-700 border-amber-200",
   blue: "bg-sky-50 text-sky-700 border-sky-200",
   rose: "bg-rose-50 text-rose-700 border-rose-200",
-  gray: "bg-[#F7F7F5] text-[#5A5A58] border-[#E5E3F0]",
+  gray: "bg-[#F7F7F5] text-[#5A5A58] border-[var(--ecom-card-border)]",
 };
 
 const PILL_BASE = "px-2.5 py-1 text-[11px] font-medium rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]";
@@ -127,7 +127,7 @@ export default function EcomOrdersPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[20px] font-bold text-[#1a1535]">Commandes</h1>
+          <h1 className="text-[20px] font-bold text-[var(--ecom-navy)]">Commandes</h1>
           <p className="text-[12px] text-[#8A8A88]">
             Paiement, envoi et attribution au même endroit — la traçabilité réelle en face de ton hypothèse
           </p>
@@ -135,10 +135,10 @@ export default function EcomOrdersPage() {
         <ExportCsvButton filename={`commandes-${from}-${to}.csv`} rows={exportRows} />
       </div>
 
-      <div className="flex items-start gap-2 bg-[#F7F7F5] border border-[#E5E3F0] rounded-lg px-4 py-2.5 text-[11px] text-[#5A5A58]">
+      <div className="flex items-start gap-2 bg-[#F7F7F5] border border-[var(--ecom-card-border)] rounded-lg px-4 py-2.5 text-[11px] text-[#5A5A58]">
         <Info size={13} className="shrink-0 mt-[1px] text-[#8A8A88]" />
         <span>
-          L&apos;attribution manuelle est une <span className="font-semibold text-[#1a1535]">hypothèse</span>, pas une mesure.
+          L&apos;attribution manuelle est une <span className="font-semibold text-[var(--ecom-navy)]">hypothèse</span>, pas une mesure.
           Le ROAS mesuré reste la référence.
         </span>
       </div>
@@ -161,29 +161,29 @@ export default function EcomOrdersPage() {
               <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#8A8A88]" />
               <input type="search" value={search} onChange={(e) => setSearch(e.target.value)}
                 placeholder="N°, email, produit…"
-                className="pl-8 pr-3 py-1.5 text-[12px] bg-white border border-[#E5E3F0] rounded-md focus:outline-none focus:border-[#7C3AED] text-[#1a1535] w-56" />
+                className="pl-8 pr-3 py-1.5 text-[12px] bg-white border border-[var(--ecom-card-border)] rounded-md focus:outline-none focus:border-[#7C3AED] text-[var(--ecom-navy)] w-56" />
             </div>
             <span className="text-[12px] font-medium text-[#5A5A58]">Canal :</span>
-            <div className="inline-flex items-center bg-[#F7F7F5] border border-[#E5E3F0] rounded-md p-0.5">
+            <div className="inline-flex items-center bg-[#F7F7F5] border border-[var(--ecom-card-border)] rounded-md p-0.5">
               {CHANNEL_FILTERS.map((f) => (
                 <button key={f.value} onClick={() => setChannelFilter(f.value)}
-                  className={`${PILL_BASE} ${channelFilter === f.value ? "bg-white text-[#1a1535] shadow-sm" : "text-[#5A5A58] hover:text-[#1a1535]"}`}>
+                  className={`${PILL_BASE} ${channelFilter === f.value ? "bg-white text-[var(--ecom-navy)] shadow-sm" : "text-[#5A5A58] hover:text-[var(--ecom-navy)]"}`}>
                   {f.label}
                 </button>
               ))}
             </div>
             <span className="text-[12px] font-medium text-[#5A5A58]">Traçabilité :</span>
-            <div className="inline-flex items-center bg-[#F7F7F5] border border-[#E5E3F0] rounded-md p-0.5">
+            <div className="inline-flex items-center bg-[#F7F7F5] border border-[var(--ecom-card-border)] rounded-md p-0.5">
               {TRACKING_FILTERS.map((f) => (
                 <button key={f.value} onClick={() => setTrackingFilter(f.value)}
-                  className={`${PILL_BASE} ${trackingFilter === f.value ? "bg-white text-[#1a1535] shadow-sm" : "text-[#5A5A58] hover:text-[#1a1535]"}`}>
+                  className={`${PILL_BASE} ${trackingFilter === f.value ? "bg-white text-[var(--ecom-navy)] shadow-sm" : "text-[#5A5A58] hover:text-[var(--ecom-navy)]"}`}>
                   {f.label}
                 </button>
               ))}
             </div>
             <button onClick={() => setToQualifyOnly(!toQualifyOnly)}
               title="Commandes sans attribution manuelle — ce qu'il te reste à qualifier"
-              className={`${PILL_BASE} border ${toQualifyOnly ? "bg-[#EDE9FE] border-[#C4B5FD] text-[#7C3AED]" : "bg-white border-[#E5E3F0] text-[#5A5A58] hover:text-[#1a1535]"}`}>
+              className={`${PILL_BASE} border ${toQualifyOnly ? "bg-[#EDE9FE] border-[#C4B5FD] text-[#7C3AED]" : "bg-white border-[var(--ecom-card-border)] text-[#5A5A58] hover:text-[var(--ecom-navy)]"}`}>
               À qualifier{toQualifyCount > 0 && ` (${toQualifyCount})`}
             </button>
             <span className="ml-auto text-[11px] text-[#8A8A88] tabular-nums">
@@ -191,11 +191,11 @@ export default function EcomOrdersPage() {
             </span>
           </div>
 
-          <div className="bg-white border border-[#E5E3F0] rounded-xl overflow-hidden">
+          <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-[12px]">
                 <thead>
-                  <tr className="border-b border-[#E5E3F0] bg-[#FBFBFA] text-left text-[11px] text-[#5A5A58]">
+                  <tr className="border-b border-[var(--ecom-card-border)] bg-[var(--ecom-surface-sunken)] text-left text-[11px] text-[#5A5A58]">
                     <Th onClick={() => onSort("date")}>Commande{arrow("date")}</Th>
                     <Th onClick={() => onSort("amount")} right>Montant{arrow("amount")}</Th>
                     <th className="px-3 py-2.5 font-medium">Client</th>
@@ -226,7 +226,7 @@ export default function EcomOrdersPage() {
 
 function Th({ children, onClick, right = false }: { children: React.ReactNode; onClick: () => void; right?: boolean }) {
   return (
-    <th className={`px-3 py-2.5 font-medium cursor-pointer select-none hover:text-[#1a1535] whitespace-nowrap ${right ? "text-right" : ""}`} onClick={onClick}>
+    <th className={`px-3 py-2.5 font-medium cursor-pointer select-none hover:text-[var(--ecom-navy)] whitespace-nowrap ${right ? "text-right" : ""}`} onClick={onClick}>
       {children}
     </th>
   );
@@ -234,9 +234,9 @@ function Th({ children, onClick, right = false }: { children: React.ReactNode; o
 
 function ChannelCard({ stats: c }: { stats: ChannelStats }) {
   return (
-    <div className="bg-white border border-[#E5E3F0] rounded-xl p-4">
+    <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-4">
       <div className="flex items-center justify-between gap-2 mb-2">
-        <span className="text-[12px] font-bold text-[#1a1535]">{CHANNEL_LABELS[c.channel]}</span>
+        <span className="text-[12px] font-bold text-[var(--ecom-navy)]">{CHANNEL_LABELS[c.channel]}</span>
         {c.sample_small && (
           <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-semibold"
             title="Moins de 5 ventes sur la période : le ROAS de ce canal n'est pas significatif">
@@ -246,13 +246,13 @@ function ChannelCard({ stats: c }: { stats: ChannelStats }) {
       </div>
       {c.spend_cents == null ? (
         <p className="text-[11px] text-[#8A8A88]">
-          <span className="font-semibold text-[#1a1535]">Dépense non renseignée</span> — ROAS non calculable.
+          <span className="font-semibold text-[var(--ecom-navy)]">Dépense non renseignée</span> — ROAS non calculable.
         </p>
       ) : (
         <div className="flex items-baseline gap-4 flex-wrap">
           <div title="Données captées par Shopify uniquement — la référence">
             <div className="text-[10px] text-[#8A8A88]">Mesuré Shopify</div>
-            <div className="text-[18px] font-bold text-[#1a1535] tabular-nums">{formatRoas(c.roas_measured)}</div>
+            <div className="text-[18px] font-bold text-[var(--ecom-navy)] tabular-nums">{formatRoas(c.roas_measured)}</div>
           </div>
           <div title="Mesuré + sources récupérées par le pixel Jestly sur les commandes fantômes">
             <div className="text-[10px] text-[#8A8A88]">Avec pixel Jestly</div>
@@ -280,14 +280,14 @@ function OrderRow({ order: o, onSaved }: { order: AttributionOrderRow; onSaved: 
   const fin = formatFinancialStatus(o.financial_status);
   const ful = formatFulfillmentStatus(o.fulfillment_status);
   return (
-    <tr className="border-b border-[#EFEFEF] hover:bg-[#FBFBFA] align-top">
+    <tr className="border-b border-[#EFEFEF] hover:bg-[var(--ecom-surface-sunken)] align-top">
       <td className="px-3 py-2.5 whitespace-nowrap">
-        <Link href={`/ecom/orders/${o.order_id}` as never} className="font-medium text-[#1a1535] hover:text-[#7C3AED]">
+        <Link href={`/ecom/orders/${o.order_id}` as never} className="font-medium text-[var(--ecom-navy)] hover:text-[#7C3AED]">
           {o.name ?? "—"}
         </Link>
         <div className="text-[10px] text-[#8A8A88]">{formatDateFr(o.created_at.slice(0, 10), "d MMM yyyy")}</div>
       </td>
-      <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-[#1a1535]">{formatCurrency(o.total_cents)}</td>
+      <td className="px-3 py-2.5 text-right tabular-nums font-semibold text-[var(--ecom-navy)]">{formatCurrency(o.total_cents)}</td>
       <td className="px-3 py-2.5 text-[#5A5A58] truncate max-w-[160px]">{o.email ?? "—"}</td>
       <td className="px-3 py-2.5 whitespace-nowrap">
         <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium border ${STATUS_CLS[fin.color] ?? STATUS_CLS.gray}`}>

@@ -19,16 +19,16 @@ export default function Funnel({ data }: Props) {
   const convRate = data.sessions > 0 ? (data.purchase / data.sessions) * 100 : null;
 
   return (
-    <div className="bg-white border border-[#E6E6E4] rounded-xl p-5">
+    <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
       <div className="flex items-baseline justify-between mb-1">
-        <h3 className="text-[14px] font-bold text-[#191919]">Funnel conversion</h3>
+        <h3 className="text-[14px] font-bold text-[var(--ecom-navy)]">Funnel conversion</h3>
         {convRate != null && (
-          <span className="text-[11px] text-[#5A5A58]">
-            Sessions → Achat <span className="font-bold text-[#7C3AED] tabular-nums">{convRate.toFixed(2)} %</span>
+          <span className="text-[11px] text-[var(--ecom-muted)]">
+            Sessions → Achat <span className="font-bold text-[var(--ecom-brand-violet)] ecom-tnum">{convRate.toFixed(2)} %</span>
           </span>
         )}
       </div>
-      <p className="text-[11px] text-[#8A8A88] mb-4">Sessions pixel first-party · achats Shopify</p>
+      <p className="text-[11px] text-[var(--ecom-muted)] mb-4">Sessions pixel first-party · achats Shopify</p>
       <div className="space-y-2">
         {steps.map((s) => {
           if (s.value == null) {
