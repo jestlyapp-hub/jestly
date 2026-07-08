@@ -49,7 +49,7 @@ const COLS: Col[] = [
   { id: "clicks", label: "Clics", default: false, value: (r) => r.ads?.clicks ?? null, render: (r) => r.ads ? formatNumberFr(r.ads.clicks) : "—" },
   { id: "impressions", label: "Impressions", default: false, value: (r) => r.ads?.impressions ?? null, render: (r) => r.ads ? formatNumberFr(r.ads.impressions) : "—" },
   { id: "roas_declared", label: "ROAS déclaré", tooltip: "Valeur de conversion Google ÷ dépense — le chiffre de Google, son modèle d'attribution", default: true, value: (r) => r.roas_declared, render: (r) => formatRoas(r.roas_declared) },
-  { id: "roas_crossed", label: "ROAS croisé", tooltip: "CA Shopify attribué Google (mesuré + pixel) ÷ dépense — le chiffre de vérité", default: true, value: (r) => r.roas_crossed, render: (r) => formatRoas(r.roas_crossed) },
+  { id: "roas_crossed", label: "ROAS croisé", tooltip: "CA Shopify attribué Google (résolution unifiée : mesuré + pixel + tes attributions manuelles) ÷ dépense — le chiffre de vérité", default: true, value: (r) => r.roas_crossed, render: (r) => formatRoas(r.roas_crossed) },
   { id: "cpa", label: "CPA", tooltip: "Dépense ÷ ventes attribuées Google (croisé)", default: false, value: (r) => r.cpa_cents, render: (r) => r.cpa_cents != null ? formatCurrency(r.cpa_cents) : "—" },
   { id: "cpc", label: "Coût / clic", default: false, value: (r) => r.cpc_cents, render: (r) => r.cpc_cents != null ? formatCurrency(r.cpc_cents) : "—" },
   { id: "aov", label: "AOV produit", default: false, value: (r) => r.aov_cents, render: (r) => r.aov_cents != null ? formatCurrency(r.aov_cents) : "—" },
@@ -269,7 +269,7 @@ export default function ProductAnalyticsPage() {
       </div>
       )}
       <p className="text-[11px] text-[#8A8A88]">
-        ROAS croisé = CA Shopify attribué Google (mesuré + pixel) ÷ dépense produit · ROAS déclaré = chiffre de Google.
+        ROAS croisé = CA Shopify attribué Google (mesuré + pixel + attributions manuelles) ÷ dépense produit · ROAS déclaré = chiffre de Google.
         <span className="font-medium text-[#5A5A58]"> Le CA de cette vue somme les lignes d&apos;articles, hors frais de port et taxes</span> —
         il est donc légèrement inférieur au CA TTC de la Vue d&apos;ensemble : c&apos;est voulu, la granularité produit se juge hors port.
         Granularité produit : les item_id du flux Shopping (variantes) sont agrégés au produit.

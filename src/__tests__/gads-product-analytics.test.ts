@@ -11,11 +11,12 @@ const INDEX = buildProductIndex([
 const order = (productId: string, price: number, opts: {
   channel?: "google_ads" | "seo" | null; isNew?: boolean;
   pixel?: "google_ads" | null; day?: string;
+  manual?: "google_ads" | "seo" | "pinterest" | "other" | "ghost" | null;
 } = {}) => ({
   created_at: `${opts.day ?? "2026-07-02"}T10:00:00Z`,
   is_new_customer: opts.isNew ?? false,
   measured_channel: opts.channel ?? null,
-  manual: null,
+  manual: opts.manual ? { channel: opts.manual, confidence: "assumed" as const } : null,
   pixel: opts.pixel ? { resolved_source: opts.pixel, match_method: "cart_attribute" as const, confidence: 0.95 } : null,
   line_items: [{ product_id: productId, title: "x", quantity: 1, price, total_discount: 0 }],
 });
@@ -45,6 +46,51 @@ describe("computeProductAnalytics — croisement ventes × Ads par produit", () 
     expect(p1.roas_crossed).toBe(2);      // 119,80 € / 59,90 €
     expect(p1.roas_declared).toBe(1);     // 59,90 € déclaré / 59,90 €
     expect(p1.cpa_cents).toBe(2995);      // 59,90 € / 2 ventes Google
+  });
+
+  it("cas Stockholm : vente fantôme attribuée Google à la main → croisé non nul, pas de faux badge", () => {
+    // 1 vente 69 €, ghost (aucune mesure), attribuée Google Ads à la main,
+    // dépense produit 66,74 €. Avant le fix : croisé 0.00× + « dépense sans conversion ».
+    const res = computeProductAnalytics({
+      orders: [order("p1", 69, { channel: null, manual: "google_ads" })],
+      itemRows: [item("40000000000001", 6674, 0)], // dépense 66,74 €, 0 conversion Google déclarée
+      index: INDEX,
+      costs: [],
+      range: RANGE,
+      channelFilter: "all",
+    });
+    const p1 = res.rows.find((r) => r.product_id === "p1")!;
+    expect(p1.google_orders).toBe(1);
+    expect(p1.google_revenue_cents).toBe(6900);
+    expect(p1.roas_crossed).toBeCloseTo(1.03, 2);   // 69 € / 66,74 €
+    expect(p1.wasted_spend).toBe(false);            // plus de faux badge
+    expect(res.wasted_spend_cents).toBe(0);
+  });
+
+  it("la même vente sous le filtre Google Ads est bien retenue (résolution manuelle)", () => {
+    const res = computeProductAnalytics({
+      orders: [order("p1", 69, { channel: null, manual: "google_ads" })],
+      itemRows: [],
+      index: INDEX,
+      costs: [],
+      range: RANGE,
+      channelFilter: "google_ads",
+    });
+    expect(res.rows.find((r) => r.product_id === "p1")?.orders_count).toBe(1);
+  });
+
+  it("un « ghost » manuel explicite ne compte PAS dans le croisé Google", () => {
+    const res = computeProductAnalytics({
+      orders: [order("p1", 69, { channel: null, manual: "ghost" })],
+      itemRows: [item("40000000000001", 6674, 0)],
+      index: INDEX,
+      costs: [],
+      range: RANGE,
+      channelFilter: "all",
+    });
+    const p1 = res.rows.find((r) => r.product_id === "p1")!;
+    expect(p1.google_orders).toBe(0);
+    expect(p1.wasted_spend).toBe(true); // vraie dépense sans aucune vente résolue
   });
 
   it("dépense > 0 et 0 conversion → wasted_spend, remonté en tête, total en encart", () => {
