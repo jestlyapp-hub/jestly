@@ -5,16 +5,19 @@
  *
  * Deux ROAS produit, jamais fondus :
  *  - « déclaré » : conversion_value API ÷ coût (chiffre de Google)
- *  - « croisé » : CA Shopify attribué Google (mesuré + pixel) ÷ coût
+ *  - « croisé » : CA Shopify attribué Google via la résolution unifiée
+ *    (mesuré > pixel > MANUEL) ÷ coût. La couche manuelle est incluse : une
+ *    vente fantôme qualifiée à la main à Google compte dans le croisé.
  * Les item_id non mappables restent visibles en « Produit inconnu ».
- * Produits à dépense > 0 et 0 conversion = candidats à l'exclusion du flux.
+ * Le badge « dépense sans conversion » n'apparaît que si AUCUNE vente n'est
+ * attribuée au canal, toutes résolutions confondues (mesuré + pixel + manuel).
  */
 import { createAdminClient } from "@/lib/supabase/admin";
 import { computeRoas } from "@/lib/ads/roas-engine";
 import { parisDay } from "@/lib/paris-time";
 import type { DateRange } from "@/lib/ads/types";
 import { resolveUnitCost, type ProductCostRow } from "@/lib/costs/engine";
-import { deriveMeasuredChannel, resolveEffectiveChannel, type Channel } from "./channels";
+import { deriveMeasuredChannel, resolveUnifiedChannel, type Channel } from "./channels";
 import { loadOrdersAndManual, SMALL_SAMPLE_THRESHOLD, type PixelResolution, type DbOrderRow } from "./attribution-aggregator";
 import type { GadsProductDailyRow } from "./api-sync";
 import { buildProductIndex, mapItemToProduct, type ProductIndex } from "./product-mapping";
@@ -115,10 +118,17 @@ export function computeProductAnalytics(input: {
   // ── Côté ventes ────────────────────────────────────────────────
   const coveredUnits = new Map<string, number>();
   for (const o of orders) {
-    const effective = resolveEffectiveChannel(o.measured_channel, o.manual);
-    if (channelFilter !== "all" && effective !== channelFilter) continue;
-    const isGoogle = o.measured_channel === "google_ads" ||
-      (o.measured_channel == null && o.pixel?.resolved_source === "google_ads");
+    // Canal résolu = même vérité unifiée que partout : natif > pixel > MANUEL.
+    // Sans cette couche manuelle, une vente fantôme attribuée à la main à Google
+    // n'entrait pas dans le CA croisé (ROAS croisé 0.00×) ni dans les ventes du
+    // canal (faux badge « dépense sans conversion »). Cas Stockholm/Honfleur.
+    const resolved = resolveUnifiedChannel({
+      measured: o.measured_channel,
+      pixel: o.pixel,
+      manual: o.manual,
+    });
+    if (channelFilter !== "all" && resolved !== channelFilter) continue;
+    const isGoogle = resolved === "google_ads";
     const day = parisDay(o.created_at);
 
     for (const li of o.line_items ?? []) {
