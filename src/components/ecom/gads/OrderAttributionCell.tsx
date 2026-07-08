@@ -63,7 +63,7 @@ export default function OrderAttributionCell({ order, onSaved }: Props) {
       if (channel === "ghost") {
         toast.info("Commande laissée non attribuée — hors des stats par canal.");
       } else {
-        toast.success(`Attribué à ${CHANNEL_LABELS[channel]} — pris en compte dans les stats (ROAS avec overrides).`);
+        toast.success(`Attribué à ${CHANNEL_LABELS[channel]} — compté dans le ROAS Jestly (statut « Résolu Jestly »).`);
       }
     } catch (e) {
       setError((e as Error).message);

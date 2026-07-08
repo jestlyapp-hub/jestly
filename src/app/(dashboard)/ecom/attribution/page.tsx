@@ -13,12 +13,13 @@ import { Info } from "lucide-react";
 import { useApi } from "@/lib/hooks/use-api";
 import { formatCurrency, formatRoas } from "@/lib/ads/formatters";
 import type { AttributionBoard, BoardOrderRow, ResolvedSource, SourceOrigin } from "@/lib/gads/attribution-board";
-import { CHANNEL_LABELS, type Channel } from "@/lib/gads/channels";
+import { CHANNEL_LABELS, resolveDisplayStatus, type Channel } from "@/lib/gads/channels";
+import TrackingStatusBadge from "@/components/ecom/TrackingStatusBadge";
 import { PPS_ANSWER_LABELS, type PpsAnswer } from "@/lib/pixel/pps";
 import ManualOverridesPanel from "@/components/ecom/gads/ManualOverridesPanel";
 import { useAnalyticsRange } from "@/components/ecom/gads/AnalyticsPeriodFilter";
 import { CardSkeleton, TableSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
-import { TRACKING_LABELS, formatDateFr } from "@/components/ecom/gads/format";
+import { formatDateFr } from "@/components/ecom/gads/format";
 
 type Model = "first" | "last";
 type Filter = "all" | "google_ads" | "seo" | "pinterest" | "direct" | "other" | "ghost";
@@ -252,7 +253,7 @@ export default function AttributionBoardPage() {
               <tr className="border-b border-[var(--ecom-card-border)] bg-[var(--ecom-surface-sunken)] text-left text-[11px] text-[#5A5A58]">
                 <th className="px-4 py-2.5 font-medium">Commande</th>
                 <th className="px-4 py-2.5 font-medium text-right">Montant</th>
-                <th className="px-4 py-2.5 font-medium">Traçabilité réelle</th>
+                <th className="px-4 py-2.5 font-medium">Statut</th>
                 <th className="px-4 py-2.5 font-medium">Source retenue ({model === "first" ? "first" : "last"}-click)</th>
                 <th className="px-4 py-2.5 font-medium text-right">Confiance</th>
               </tr>
@@ -261,7 +262,11 @@ export default function AttributionBoardPage() {
               {visibleOrders.map((o) => {
                 const r = resolvedOf(o);
                 const origin = ORIGIN_META[r.origin];
-                const tracking = TRACKING_LABELS[o.tracking_status ?? "unknown"];
+                const hasResolution = r.origin === "pixel" || r.origin === "manual" || r.origin === "survey";
+                const displayStatus = resolveDisplayStatus(o.tracking_status, hasResolution);
+                const statusTitle = displayStatus === "resolved_jestly"
+                  ? `Parcours non capté par Shopify — résolue via ${origin.label} et comptée dans ${channelLabel(r.channel)}. Traçabilité en base : ${o.tracking_status}.`
+                  : undefined;
                 return (
                   <tr key={o.order_id} className="border-b border-[#EFEFEF] hover:bg-[var(--ecom-surface-sunken)]">
                     <td className="px-4 py-2.5 whitespace-nowrap">
@@ -270,10 +275,7 @@ export default function AttributionBoardPage() {
                     </td>
                     <td className="px-4 py-2.5 text-right tabular-nums font-semibold text-[var(--ecom-navy)]">{formatCurrency(o.total_cents)}</td>
                     <td className="px-4 py-2.5 whitespace-nowrap">
-                      <span className="inline-flex items-center gap-1.5 text-[#5A5A58]" title={tracking.description}>
-                        <span className={`inline-block w-1.5 h-1.5 rounded-full ${tracking.dot}`} />
-                        {tracking.label.replace(/s$/, "")}
-                      </span>
+                      <TrackingStatusBadge status={displayStatus} title={statusTitle} />
                     </td>
                     <td className="px-4 py-2.5">
                       <span className="font-medium text-[var(--ecom-navy)]">{channelLabel(r.channel)}</span>

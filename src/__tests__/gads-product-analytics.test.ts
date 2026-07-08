@@ -48,12 +48,12 @@ describe("computeProductAnalytics — croisement ventes × Ads par produit", () 
     expect(p1.cpa_cents).toBe(2995);      // 59,90 € / 2 ventes Google
   });
 
-  it("cas Stockholm : vente fantôme attribuée Google à la main → croisé non nul, pas de faux badge", () => {
+  it("cas Stockholm : vente fantôme attribuée Google à la main → ROAS Jestly non nul, pas de faux badge", () => {
     // 1 vente 69 €, ghost (aucune mesure), attribuée Google Ads à la main,
-    // dépense produit 66,74 €. Avant le fix : croisé 0.00× + « dépense sans conversion ».
+    // dépense produit 84,01 €. Avant le fix : ROAS Jestly 0.00× + « dépense sans conversion ».
     const res = computeProductAnalytics({
       orders: [order("p1", 69, { channel: null, manual: "google_ads" })],
-      itemRows: [item("40000000000001", 6674, 0)], // dépense 66,74 €, 0 conversion Google déclarée
+      itemRows: [item("40000000000001", 8401, 0)], // dépense 84,01 €, 0 conversion Google déclarée
       index: INDEX,
       costs: [],
       range: RANGE,
@@ -62,7 +62,7 @@ describe("computeProductAnalytics — croisement ventes × Ads par produit", () 
     const p1 = res.rows.find((r) => r.product_id === "p1")!;
     expect(p1.google_orders).toBe(1);
     expect(p1.google_revenue_cents).toBe(6900);
-    expect(p1.roas_crossed).toBeCloseTo(1.03, 2);   // 69 € / 66,74 €
+    expect(p1.roas_crossed).toBeCloseTo(0.82, 2);   // 69 € / 84,01 €
     expect(p1.wasted_spend).toBe(false);            // plus de faux badge
     expect(res.wasted_spend_cents).toBe(0);
   });

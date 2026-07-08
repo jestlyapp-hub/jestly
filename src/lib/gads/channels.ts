@@ -123,6 +123,63 @@ export function resolveUnifiedChannel(input: {
   return "unattributed";
 }
 
+// ── Statut d'affichage de traçabilité (dérivé, jamais persisté) ──────
+//
+// `tracking_status` en base reste la vérité technique Shopify (tracked / ghost /
+// unmatched), JAMAIS réécrit. Mais l'AFFICHAGE combine cette vérité avec
+// l'existence d'une résolution (pixel / manuel / survey) : une commande fantôme
+// qui a reçu une résolution n'est plus « Fantôme » rouge — elle devient
+// « Résolu Jestly » violet, car elle compte désormais dans les stats du canal.
+// Ce statut est CALCULÉ à l'affichage, jamais écrit comme « tracked ».
+export type DisplayTrackingStatus = "tracked" | "resolved_jestly" | "ghost" | "unmatched" | "unknown";
+
+/**
+ * Statut d'affichage d'une commande :
+ *  - tracked          → mesurée par Shopify (vert)
+ *  - resolved_jestly  → ghost/unmatched MAIS résolue (pixel/manuel/survey) → violet
+ *  - ghost / unmatched → non résolue, vraiment dans l'ombre (rouge / ambre)
+ */
+export function resolveDisplayStatus(
+  trackingStatus: string | null | undefined,
+  hasResolution: boolean,
+): DisplayTrackingStatus {
+  if (trackingStatus === "tracked") return "tracked";
+  const base: DisplayTrackingStatus =
+    trackingStatus === "ghost" ? "ghost" : trackingStatus === "unmatched" ? "unmatched" : "unknown";
+  // Une commande non mesurée mais résolue par Jestly sort de l'ombre.
+  if (hasResolution && (base === "ghost" || base === "unmatched")) return "resolved_jestly";
+  return base;
+}
+
+/** Libellé + pastille + description, constants dans toute l'app. */
+export const DISPLAY_STATUS_META: Record<DisplayTrackingStatus, { label: string; dot: string; description: string }> = {
+  tracked: {
+    label: "Trackée",
+    dot: "bg-emerald-500",
+    description: "Parcours mesuré par Shopify (utm, referrer ou gclid capté).",
+  },
+  resolved_jestly: {
+    label: "Résolu Jestly",
+    dot: "bg-[#7C3AED]",
+    description: "Parcours non capté par Shopify, mais cette vente est attribuée à un canal via Jestly (pixel, ton attribution manuelle ou survey). Elle compte dans tes stats de ce canal.",
+  },
+  ghost: {
+    label: "Fantôme",
+    dot: "bg-rose-500",
+    description: "Parcours vide (momentsCount = 0) et aucune résolution — vraiment dans l'ombre.",
+  },
+  unmatched: {
+    label: "Non rattachée",
+    dot: "bg-amber-500",
+    description: "Parcours présent mais aucun signal exploitable ni résolution.",
+  },
+  unknown: {
+    label: "Inconnue",
+    dot: "bg-[#B4B4B2]",
+    description: "Parcours pas encore disponible (commande à resynchroniser).",
+  },
+};
+
 /** Libellé + classes de chip + couleur de pastille, constants dans toute l'app. */
 export const DISPLAY_CHANNEL_META: Record<DisplayChannel, { label: string; chip: string; dot: string }> = {
   google_ads:   { label: "Google Ads",  chip: "bg-[#EEF2FF] text-[#4338CA] border-[#C7D2FE]",       dot: "#6366F1" },

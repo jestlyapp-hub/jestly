@@ -14,13 +14,23 @@ import { useApi } from "@/lib/hooks/use-api";
 import { formatCurrency, formatRoas } from "@/lib/ads/formatters";
 import { formatFinancialStatus, formatFulfillmentStatus } from "@/lib/shopify/formatters";
 import type { AttributionOrderRow, ChannelStats } from "@/lib/gads/attribution-aggregator";
-import { CHANNEL_LABELS, CONFIDENCE_LABELS, type Channel, type DisplayChannel } from "@/lib/gads/channels";
+import { CHANNEL_LABELS, CONFIDENCE_LABELS, resolveDisplayStatus, resolveUnifiedChannel, type Channel, type DisplayChannel } from "@/lib/gads/channels";
 import ChannelChip from "@/components/ecom/ChannelChip";
+import TrackingStatusBadge from "@/components/ecom/TrackingStatusBadge";
 import OrderAttributionCell from "@/components/ecom/gads/OrderAttributionCell";
 import ExportCsvButton from "@/components/ecom/gads/ExportCsvButton";
 import { useAnalyticsRange } from "@/components/ecom/gads/AnalyticsPeriodFilter";
 import { KpiGridSkeleton, TableSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
-import { TRACKING_LABELS, formatDateFr } from "@/components/ecom/gads/format";
+import { formatDateFr } from "@/components/ecom/gads/format";
+
+/** Canal résolu (mesuré > pixel > manuel) d'une commande — même vérité que le Dashboard. */
+function unifiedChannelOf(o: AttributionOrderRow): DisplayChannel {
+  return resolveUnifiedChannel({ measured: o.measured_channel, pixel: o.pixel, manual: o.manual });
+}
+/** Une commande non mesurée mais résolue par Jestly (pixel ou manuel à un canal). */
+function hasJestlyResolution(o: AttributionOrderRow): boolean {
+  return o.pixel != null || (o.manual != null && o.manual.channel !== "ghost");
+}
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 
 type ChannelFilter = Exclude<Channel, "ghost"> | "all";
@@ -78,7 +88,7 @@ export default function EcomOrdersPage() {
         o.products.some((p) => p.toLowerCase().includes(q)),
       );
     }
-    if (channelFilter !== "all") list = list.filter((o) => o.effective_channel === channelFilter);
+    if (channelFilter !== "all") list = list.filter((o) => unifiedChannelOf(o) === channelFilter);
     if (trackingFilter !== "all") list = list.filter((o) => o.tracking_status === trackingFilter);
     if (toQualifyOnly) list = list.filter((o) => o.manual == null);
 
@@ -103,18 +113,18 @@ export default function EcomOrdersPage() {
   const visibleChannels = channelFilter === "all" ? channels : channels.filter((c) => c.channel === channelFilter);
   const toQualifyCount = orders.filter((o) => o.manual == null && o.tracking_status !== "tracked").length;
 
-  // Effet cumulé des attributions manuelles : ventes que Gabriel a qualifiées et
-  // qui, grâce à ça, comptent désormais dans un canal (canal posé ≠ mesuré).
-  const manualEffect = useMemo(() => {
-    let qualified = 0;
-    let reattributedCents = 0;
+  // Effet cumulé : ventes non mesurées que Jestly a sorties de l'ombre (pixel ou
+  // attribution manuelle) — elles comptent désormais dans un canal.
+  const jestlyEffect = useMemo(() => {
+    let resolved = 0;
+    let attributedCents = 0;
     for (const o of orders) {
-      if (o.manual && o.manual.channel !== "ghost" && o.measured_channel !== o.manual.channel) {
-        qualified += 1;
-        reattributedCents += o.total_cents;
+      if (o.tracking_status !== "tracked" && hasJestlyResolution(o)) {
+        resolved += 1;
+        attributedCents += o.total_cents;
       }
     }
-    return { qualified, reattributedCents };
+    return { resolved, attributedCents };
   }, [orders]);
 
   const exportRows = visibleOrders.map((o) => ({
@@ -158,13 +168,13 @@ export default function EcomOrdersPage() {
             Le ROAS mesuré reste la référence.
           </span>
         </div>
-        {manualEffect.qualified > 0 && (
+        {jestlyEffect.resolved > 0 && (
           <div className="flex items-center gap-2 bg-[#EDE9FE] border border-[#DDD6FE] rounded-lg px-4 py-2.5 text-[11px] text-[#5A5A58]"
-            title="Ton travail de qualification, cumulé sur la période : ces ventes comptent désormais dans un canal qu'aucune mesure n'avait capté.">
-            <span className="tabular-nums font-semibold text-[#7C3AED]">{manualEffect.qualified}</span>
-            <span>vente{manualEffect.qualified > 1 ? "s" : ""} qualifiée{manualEffect.qualified > 1 ? "s" : ""} à la main ·</span>
-            <span className="tabular-nums font-semibold text-[#7C3AED]">{formatCurrency(manualEffect.reattributedCents)}</span>
-            <span>réattribués</span>
+            title="Ventes non mesurées par Shopify que Jestly a résolues (pixel ou ton attribution manuelle) : elles comptent désormais dans un canal et dans le ROAS Jestly.">
+            <span className="tabular-nums font-semibold text-[#7C3AED]">{jestlyEffect.resolved}</span>
+            <span>vente{jestlyEffect.resolved > 1 ? "s" : ""} résolue{jestlyEffect.resolved > 1 ? "s" : ""} via Jestly ·</span>
+            <span className="tabular-nums font-semibold text-[#7C3AED]">{formatCurrency(jestlyEffect.attributedCents)}</span>
+            <span>attribués</span>
           </div>
         )}
       </div>
@@ -302,26 +312,24 @@ function ChannelCard({ stats: c }: { stats: ChannelStats }) {
 }
 
 /** Origine de la vérité retenue (mesuré > pixel > manuel), pour le badge résolution. */
-function resolvedOrigin(o: AttributionOrderRow): { channel: DisplayChannel; origin: "native" | "manual" | "unattributed"; label: string } {
-  if (o.manual && o.manual.channel !== "ghost") {
-    return { channel: o.manual.channel as DisplayChannel, origin: "manual", label: "Manuel" };
-  }
-  if (o.effective_channel) {
-    return { channel: o.effective_channel as DisplayChannel, origin: "native", label: "Mesuré" };
-  }
-  return { channel: "unattributed", origin: "unattributed", label: "" };
+function resolvedOrigin(o: AttributionOrderRow): { channel: DisplayChannel; origin: "native" | "pixel" | "manual" | "unattributed"; label: string } {
+  const channel = unifiedChannelOf(o);
+  if (o.measured_channel) return { channel, origin: "native", label: "Mesuré" };
+  if (o.pixel && channel !== "unattributed") return { channel, origin: "pixel", label: "Pixel" };
+  if (o.manual && o.manual.channel !== "ghost") return { channel, origin: "manual", label: "Manuel" };
+  return { channel, origin: "unattributed", label: "" };
 }
 
 function OrderRow({ order: o, onSaved }: { order: AttributionOrderRow; onSaved: () => void }) {
-  const tracking = TRACKING_LABELS[o.tracking_status ?? "unknown"];
   const fin = formatFinancialStatus(o.financial_status);
   const ful = formatFulfillmentStatus(o.fulfillment_status);
   const resolved = resolvedOrigin(o);
   const attributedManually = resolved.origin === "manual";
-  // Tooltip Fantôme contextuel : la traçabilité décrit la captation, pas l'exclusion.
-  const trackingTitle = o.tracking_status === "ghost" && attributedManually
-    ? `Parcours non capté par Shopify — mais cette vente est comptée dans ${CHANNEL_LABELS[o.manual!.channel]} (ton attribution manuelle). La traçabilité décrit la captation, pas l'exclusion.`
-    : tracking.description;
+  const displayStatus = resolveDisplayStatus(o.tracking_status, hasJestlyResolution(o));
+  // Tooltip « Résolu Jestly » : d'où vient la résolution + rappel d'honnêteté.
+  const statusTitle = displayStatus === "resolved_jestly"
+    ? `Parcours non capté par Shopify — cette vente est comptée dans ${CHANNEL_LABELS[resolved.channel as Channel] ?? resolved.channel} via ${attributedManually ? "ton attribution manuelle" : "le pixel Jestly"}. La traçabilité décrit la captation, pas l'exclusion.`
+    : undefined;
   return (
     <tr className="border-b border-[#EFEFEF] hover:bg-[var(--ecom-surface-sunken)] align-top">
       <td className="px-3 py-2.5 whitespace-nowrap">
@@ -341,10 +349,7 @@ function OrderRow({ order: o, onSaved }: { order: AttributionOrderRow; onSaved: 
         </span>
       </td>
       <td className="px-3 py-2.5 whitespace-nowrap">
-        <span className="inline-flex items-center gap-1.5 cursor-help" title={trackingTitle}>
-          <span className={`inline-block w-1.5 h-1.5 rounded-full ${tracking.dot}`} />
-          <span className="text-[#5A5A58]">{tracking.label.replace(/s$/, "")}</span>
-        </span>
+        <TrackingStatusBadge status={displayStatus} title={statusTitle} />
       </td>
       <td className="px-3 py-2.5 whitespace-nowrap text-[#5A5A58]">
         <div>{o.measured_channel ? CHANNEL_LABELS[o.measured_channel] : "—"}</div>
@@ -365,7 +370,7 @@ function OrderRow({ order: o, onSaved }: { order: AttributionOrderRow; onSaved: 
           <span className="text-[10px] text-[#8A8A88]">Retenu :</span>
           <ChannelChip channel={resolved.channel} />
           {resolved.label && (
-            <span className={`text-[10px] font-medium ${attributedManually ? "text-[#7C3AED]" : "text-emerald-700"}`}>
+            <span className={`text-[10px] font-medium ${resolved.origin === "manual" ? "text-[#7C3AED]" : resolved.origin === "pixel" ? "text-sky-700" : "text-emerald-700"}`}>
               {resolved.label}
               {attributedManually && o.manual?.confidence && <> · {CONFIDENCE_LABELS[o.manual.confidence].toLowerCase()}</>}
             </span>
