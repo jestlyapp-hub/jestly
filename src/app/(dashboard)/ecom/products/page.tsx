@@ -4,7 +4,7 @@ import { usePageTitle } from "@/lib/hooks/use-page-title";
 /**
  * Analytics — Product Analytics (Partie A3).
  * Ventes, CA, COGS, marge, dépense Google Ads par produit (item_id mappé),
- * double ROAS (déclaré vs croisé), CPA/CPC, sparkline CA.
+ * double ROAS (ROAS Google vs ROAS Jestly), CPA/CPC, sparkline CA.
  * Les produits à dépense > 0 et 0 conversion remontent en premier :
  * candidats à l'exclusion du flux Shopping.
  * Granularité produit (le mapping agrège les variantes — variante à venir).
@@ -48,9 +48,9 @@ const COLS: Col[] = [
   { id: "spend", label: "Dépense Ads", default: true, value: (r) => r.ads?.spend_cents ?? null, render: (r) => r.ads ? formatCurrency(r.ads.spend_cents) : "non disponible" },
   { id: "clicks", label: "Clics", default: false, value: (r) => r.ads?.clicks ?? null, render: (r) => r.ads ? formatNumberFr(r.ads.clicks) : "—" },
   { id: "impressions", label: "Impressions", default: false, value: (r) => r.ads?.impressions ?? null, render: (r) => r.ads ? formatNumberFr(r.ads.impressions) : "—" },
-  { id: "roas_declared", label: "ROAS déclaré", tooltip: "Valeur de conversion Google ÷ dépense — le chiffre de Google, son modèle d'attribution", default: true, value: (r) => r.roas_declared, render: (r) => formatRoas(r.roas_declared) },
-  { id: "roas_crossed", label: "ROAS croisé", tooltip: "CA Shopify attribué Google (résolution unifiée : mesuré + pixel + tes attributions manuelles) ÷ dépense — le chiffre de vérité", default: true, value: (r) => r.roas_crossed, render: (r) => formatRoas(r.roas_crossed) },
-  { id: "cpa", label: "CPA", tooltip: "Dépense ÷ ventes attribuées Google (croisé)", default: false, value: (r) => r.cpa_cents, render: (r) => r.cpa_cents != null ? formatCurrency(r.cpa_cents) : "—" },
+  { id: "roas_declared", label: "ROAS Google", tooltip: "Ce que Google s'attribue : valeur de conversion Google ÷ dépense. Surestime souvent et rate les ventes non trackées par Google.", default: true, value: (r) => r.roas_declared, render: (r) => formatRoas(r.roas_declared) },
+  { id: "roas_crossed", label: "ROAS Jestly", tooltip: "La vérité selon ton système : ventes Shopify réelles attribuées à ce canal (mesuré + pixel + tes attributions manuelles) ÷ dépense. C'est ton chiffre de pilotage.", default: true, value: (r) => r.roas_crossed, render: (r) => formatRoas(r.roas_crossed) },
+  { id: "cpa", label: "CPA", tooltip: "Dépense ÷ ventes attribuées Google (résolution Jestly)", default: false, value: (r) => r.cpa_cents, render: (r) => r.cpa_cents != null ? formatCurrency(r.cpa_cents) : "—" },
   { id: "cpc", label: "Coût / clic", default: false, value: (r) => r.cpc_cents, render: (r) => r.cpc_cents != null ? formatCurrency(r.cpc_cents) : "—" },
   { id: "aov", label: "AOV produit", default: false, value: (r) => r.aov_cents, render: (r) => r.aov_cents != null ? formatCurrency(r.aov_cents) : "—" },
   { id: "share", label: "% CA total", default: true, value: (r) => r.revenue_share, render: (r) => r.revenue_share != null ? `${(r.revenue_share * 100).toFixed(1)} %` : "—" },
@@ -135,8 +135,8 @@ export default function ProductAnalyticsPage() {
           depense_ads_eur: r.ads ? (r.ads.spend_cents / 100).toFixed(2).replace(".", ",") : "",
           clics: r.ads?.clicks ?? "",
           impressions: r.ads?.impressions ?? "",
-          roas_declare: r.roas_declared ?? "",
-          roas_croise: r.roas_crossed ?? "",
+          roas_google: r.roas_declared ?? "",
+          roas_jestly: r.roas_crossed ?? "",
           depense_sans_conversion: r.wasted_spend ? "oui" : "",
         }))} />
       </div>
@@ -269,7 +269,7 @@ export default function ProductAnalyticsPage() {
       </div>
       )}
       <p className="text-[11px] text-[#8A8A88]">
-        ROAS croisé = CA Shopify attribué Google (mesuré + pixel + attributions manuelles) ÷ dépense produit · ROAS déclaré = chiffre de Google.
+        <span className="font-medium text-[#5A5A58]">ROAS Jestly</span> = CA Shopify attribué au canal (mesuré + pixel + tes attributions manuelles) ÷ dépense produit — ton chiffre de pilotage · <span className="font-medium text-[#5A5A58]">ROAS Google</span> = ce que Google s&apos;attribue.
         <span className="font-medium text-[#5A5A58]"> Le CA de cette vue somme les lignes d&apos;articles, hors frais de port et taxes</span> —
         il est donc légèrement inférieur au CA TTC de la Vue d&apos;ensemble : c&apos;est voulu, la granularité produit se juge hors port.
         Granularité produit : les item_id du flux Shopping (variantes) sont agrégés au produit.

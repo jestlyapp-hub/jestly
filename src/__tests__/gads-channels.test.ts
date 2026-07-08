@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveMeasuredChannel, resolveEffectiveChannel, resolveUnifiedChannel } from "@/lib/gads/channels";
+import { deriveMeasuredChannel, resolveEffectiveChannel, resolveUnifiedChannel, resolveDisplayStatus } from "@/lib/gads/channels";
 
 describe("deriveMeasuredChannel — canal mesuré depuis les données captées", () => {
   it("ghost ou unmatched → null (source inconnue, jamais devinée)", () => {
@@ -90,5 +90,27 @@ describe("resolveUnifiedChannel — un seul canal affichable (Dashboard = vérit
   it("rien de résolu → non attribué (fantôme rendu explicite, jamais « Direct »)", () => {
     expect(resolveUnifiedChannel({ measured: null })).toBe("unattributed");
     expect(resolveUnifiedChannel({ measured: null, manual: { channel: "ghost" } })).toBe("unattributed");
+  });
+});
+
+describe("resolveDisplayStatus — statut d'affichage dérivé (jamais persisté)", () => {
+  it("tracked → « tracked » quelle que soit la résolution", () => {
+    expect(resolveDisplayStatus("tracked", false)).toBe("tracked");
+    expect(resolveDisplayStatus("tracked", true)).toBe("tracked");
+  });
+
+  it("ghost/unmatched AVEC résolution → « resolved_jestly » (violet)", () => {
+    expect(resolveDisplayStatus("ghost", true)).toBe("resolved_jestly");
+    expect(resolveDisplayStatus("unmatched", true)).toBe("resolved_jestly");
+  });
+
+  it("ghost/unmatched SANS résolution → reste « ghost » / « unmatched » (rouge/ambre)", () => {
+    expect(resolveDisplayStatus("ghost", false)).toBe("ghost");
+    expect(resolveDisplayStatus("unmatched", false)).toBe("unmatched");
+  });
+
+  it("statut inconnu/nul → « unknown », jamais faussement résolu", () => {
+    expect(resolveDisplayStatus(null, true)).toBe("unknown");
+    expect(resolveDisplayStatus(undefined, false)).toBe("unknown");
   });
 });

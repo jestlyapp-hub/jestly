@@ -8,8 +8,8 @@ import { useApi } from "@/lib/hooks/use-api";
 import { formatCurrency, formatDate, formatFinancialStatus, formatFulfillmentStatus } from "@/lib/shopify/formatters";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import ChannelChip from "@/components/ecom/ChannelChip";
-import { CHANNEL_LABELS, CONFIDENCE_LABELS, type Channel, type DisplayChannel, type ManualConfidence, type PixelResolvedSource } from "@/lib/gads/channels";
-import { TRACKING_LABELS } from "@/components/ecom/gads/format";
+import TrackingStatusBadge from "@/components/ecom/TrackingStatusBadge";
+import { CHANNEL_LABELS, CONFIDENCE_LABELS, resolveDisplayStatus, type Channel, type DisplayChannel, type ManualConfidence, type PixelResolvedSource } from "@/lib/gads/channels";
 
 interface OrderAttribution {
   channel: DisplayChannel;
@@ -188,22 +188,23 @@ function AttributionCard({
   a: OrderAttribution;
   rawUtm: { source: string | null; medium: string | null; campaign: string | null };
 }) {
-  const tracking = TRACKING_LABELS[a.tracking_status ?? "unknown"];
   const origin = ORIGIN_META[a.origin];
-  const isGhost = a.tracking_status === "ghost";
+  const isGhost = a.tracking_status === "ghost" || a.tracking_status === "unmatched";
   const attributedManually = a.origin === "manual";
+  const hasResolution = a.origin === "pixel" || a.origin === "manual";
+  const displayStatus = resolveDisplayStatus(a.tracking_status, hasResolution);
+  const statusTitle = displayStatus === "resolved_jestly"
+    ? `Parcours non capté par Shopify — cette vente est comptée dans ${CHANNEL_LABELS[a.channel as Channel] ?? a.channel} via ${attributedManually ? "ton attribution manuelle" : "le pixel Jestly"}. La traçabilité en base reste « ${a.tracking_status} ».`
+    : undefined;
   return (
     <div className="bg-white border border-[#E6E6E4] rounded-xl p-5">
       <h3 className="text-[13px] font-bold text-[#191919] mb-3">Attribution</h3>
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-        {/* Dimension A — traçabilité technique (factuelle, grise) */}
+        {/* Dimension A — statut d'affichage (dérivé : Trackée / Résolu Jestly / Fantôme) */}
         <div>
-          <div className="text-[10px] text-[#8A8A88] mb-1">Traçabilité</div>
-          <span className="inline-flex items-center gap-1.5 text-[12px] text-[#5A5A58]" title={tracking.description}>
-            <span className={`inline-block w-1.5 h-1.5 rounded-full ${tracking.dot}`} />
-            {tracking.label.replace(/s$/, "")}
-          </span>
+          <div className="text-[10px] text-[#8A8A88] mb-1">Statut</div>
+          <TrackingStatusBadge status={displayStatus} title={statusTitle} className="text-[12px]" />
         </div>
 
         {/* Dimension B — canal retenu (résolution, coloré par origine) */}
@@ -221,13 +222,15 @@ function AttributionCard({
         </div>
       </div>
 
-      {/* Le fantôme n'est PAS une exclusion : la vente compte dans le canal attribué. */}
+      {/* Le fantôme n'est PAS une exclusion : la vente compte dans le canal résolu. */}
       {isGhost && (
         <p className="text-[11px] text-[#8A8A88] mt-3 leading-relaxed">
           Parcours non capté par Shopify —{" "}
           {attributedManually
             ? <>mais cette vente est bien comptée dans <span className="text-[#7C3AED] font-medium">{CHANNEL_LABELS[a.manual!.channel]}</span> (ton attribution manuelle). La traçabilité décrit la captation, pas l&apos;exclusion.</>
-            : <>tu peux lui attribuer un canal depuis la vue Commandes ; elle sera alors comptée dans les stats sans changer sa traçabilité.</>}
+            : a.origin === "pixel"
+              ? <>mais cette vente est résolue par le pixel Jestly et comptée dans <span className="text-sky-700 font-medium">{a.channel === "direct" ? "Direct" : CHANNEL_LABELS[a.channel as Channel] ?? a.channel}</span>.</>
+              : <>tu peux lui attribuer un canal depuis la vue Commandes ; elle sera alors comptée dans les stats sans changer sa traçabilité.</>}
         </p>
       )}
 
