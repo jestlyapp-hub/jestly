@@ -31,7 +31,8 @@ const stats = (over: Partial<BlendedStats>): BlendedStats => ({
 const quality = (over: Partial<DataQuality> = {}): DataQuality => ({
   tracked: 8, ghost: 1, unmatched: 1, unknown: 0, pixel_recovered: 0,
   survey_recovered: 0, survey_recovered_revenue_cents: 0,
-  attributable_revenue_share: 0.9,
+  manual_recovered: 0, manual_recovered_revenue_cents: 0,
+  attributable_revenue_share: 0.9, manual_share_of_attributable: null,
   ...over,
 });
 
@@ -78,6 +79,18 @@ describe("buildInsights — règles automatiques priorisées par impact", () => 
     expect(withGhost.some((i) => i.id === "ghost_share")).toBe(true);
     const healthy = buildInsights({ current: stats({}), previous: stats({}), quality: quality() });
     expect(healthy.some((i) => i.id === "ghost_share")).toBe(false);
+  });
+
+  it("les qualifications manuelles comptent dans les commandes déjà sorties de l'ombre", () => {
+    const out = buildInsights({
+      current: stats({}),
+      previous: stats({}),
+      quality: quality({ attributable_revenue_share: 0.5, manual_recovered: 3, pixel_recovered: 1 }),
+    });
+    const ghost = out.find((i) => i.id === "ghost_share")!;
+    // 1 pixel + 0 survey + 3 manuelles = 4 commandes récupérées, signalées dans le message.
+    expect(ghost.message).toContain("4");
+    expect(ghost.message).toContain("manuelles");
   });
 
   it("maximum 5 insights, triés par impact décroissant", () => {

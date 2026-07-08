@@ -5,8 +5,27 @@ import { use } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useApi } from "@/lib/hooks/use-api";
-import { formatCurrency, formatDate, formatFinancialStatus, formatFulfillmentStatus, formatSource } from "@/lib/shopify/formatters";
+import { formatCurrency, formatDate, formatFinancialStatus, formatFulfillmentStatus } from "@/lib/shopify/formatters";
 import { ArrowLeft, ExternalLink } from "lucide-react";
+import ChannelChip from "@/components/ecom/ChannelChip";
+import { CHANNEL_LABELS, CONFIDENCE_LABELS, type Channel, type DisplayChannel, type ManualConfidence, type PixelResolvedSource } from "@/lib/gads/channels";
+import { TRACKING_LABELS } from "@/components/ecom/gads/format";
+
+interface OrderAttribution {
+  channel: DisplayChannel;
+  origin: "native" | "pixel" | "manual" | "unattributed";
+  tracking_status: "tracked" | "ghost" | "unmatched" | null;
+  measured_channel: Exclude<Channel, "ghost"> | null;
+  pixel: { resolved_source: PixelResolvedSource; match_method: string; confidence: number } | null;
+  manual: { channel: Channel; confidence: ManualConfidence | null; note: string | null } | null;
+}
+
+const ORIGIN_META: Record<OrderAttribution["origin"], { label: string; cls: string }> = {
+  native: { label: "Shopify natif", cls: "bg-emerald-50 border-emerald-200 text-emerald-700" },
+  pixel: { label: "Pixel Jestly", cls: "bg-sky-50 border-sky-200 text-sky-700" },
+  manual: { label: "Manuel", cls: "bg-[#EDE9FE] border-[#DDD6FE] text-[#7C3AED]" },
+  unattributed: { label: "Non résolu", cls: "bg-amber-50 border-amber-200 text-amber-700" },
+};
 
 interface OrderDetail {
   id: string;
@@ -29,6 +48,7 @@ interface OrderDetail {
   utm_source: string | null;
   utm_medium: string | null;
   utm_campaign: string | null;
+  attribution?: OrderAttribution;
 }
 
 const COLOR_CLASSES: Record<string, string> = {
@@ -107,17 +127,9 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             </div>
           </div>
 
-          {/* Attribution */}
-          {(o.utm_source || o.source_name) && (
-            <div className="bg-white border border-[#E6E6E4] rounded-xl p-5">
-              <h3 className="text-[13px] font-bold text-[#191919] mb-3">Attribution</h3>
-              <dl className="grid grid-cols-2 gap-y-1.5 text-[12px]">
-                <Item label="Source" value={formatSource(o.utm_source ?? o.source_name)} />
-                {o.utm_medium && <Item label="Medium" value={o.utm_medium} />}
-                {o.utm_campaign && <Item label="Campagne" value={o.utm_campaign} />}
-              </dl>
-            </div>
-          )}
+          {/* Attribution — deux dimensions distinctes, jamais fusionnées :
+              la traçabilité technique (fait Shopify) ET le canal retenu (résolution). */}
+          {o.attribution && <AttributionCard a={o.attribution} rawUtm={{ source: o.utm_source, medium: o.utm_medium, campaign: o.utm_campaign }} />}
         </div>
 
         <aside className="space-y-4">
@@ -166,5 +178,73 @@ function Item({ label, value }: { label: string; value: string }) {
       <dt className="text-[#8A8A88]">{label}</dt>
       <dd className="text-[#191919] font-medium text-right">{value}</dd>
     </>
+  );
+}
+
+function AttributionCard({
+  a,
+  rawUtm,
+}: {
+  a: OrderAttribution;
+  rawUtm: { source: string | null; medium: string | null; campaign: string | null };
+}) {
+  const tracking = TRACKING_LABELS[a.tracking_status ?? "unknown"];
+  const origin = ORIGIN_META[a.origin];
+  const isGhost = a.tracking_status === "ghost";
+  const attributedManually = a.origin === "manual";
+  return (
+    <div className="bg-white border border-[#E6E6E4] rounded-xl p-5">
+      <h3 className="text-[13px] font-bold text-[#191919] mb-3">Attribution</h3>
+
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        {/* Dimension A — traçabilité technique (factuelle, grise) */}
+        <div>
+          <div className="text-[10px] text-[#8A8A88] mb-1">Traçabilité</div>
+          <span className="inline-flex items-center gap-1.5 text-[12px] text-[#5A5A58]" title={tracking.description}>
+            <span className={`inline-block w-1.5 h-1.5 rounded-full ${tracking.dot}`} />
+            {tracking.label.replace(/s$/, "")}
+          </span>
+        </div>
+
+        {/* Dimension B — canal retenu (résolution, coloré par origine) */}
+        <div>
+          <div className="text-[10px] text-[#8A8A88] mb-1">Canal retenu</div>
+          <div className="flex items-center gap-1.5">
+            <ChannelChip channel={a.channel} />
+            <span className={`inline-flex px-1.5 py-0.5 rounded border text-[10px] font-semibold ${origin.cls}`}>
+              {origin.label}
+            </span>
+            {attributedManually && a.manual?.confidence && (
+              <span className="text-[10px] text-[#8A8A88]">· {CONFIDENCE_LABELS[a.manual.confidence].toLowerCase()}</span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Le fantôme n'est PAS une exclusion : la vente compte dans le canal attribué. */}
+      {isGhost && (
+        <p className="text-[11px] text-[#8A8A88] mt-3 leading-relaxed">
+          Parcours non capté par Shopify —{" "}
+          {attributedManually
+            ? <>mais cette vente est bien comptée dans <span className="text-[#7C3AED] font-medium">{CHANNEL_LABELS[a.manual!.channel]}</span> (ton attribution manuelle). La traçabilité décrit la captation, pas l&apos;exclusion.</>
+            : <>tu peux lui attribuer un canal depuis la vue Commandes ; elle sera alors comptée dans les stats sans changer sa traçabilité.</>}
+        </p>
+      )}
+
+      {/* Détail technique brut (secondaire) — utile mais jamais utilisé comme canal. */}
+      {(rawUtm.source || rawUtm.medium || rawUtm.campaign || a.pixel) && (
+        <dl className="grid grid-cols-2 gap-y-1.5 text-[12px] mt-3 pt-3 border-t border-[#EFEFEF]">
+          {rawUtm.source && <Item label="utm_source" value={rawUtm.source} />}
+          {rawUtm.medium && <Item label="utm_medium" value={rawUtm.medium} />}
+          {rawUtm.campaign && <Item label="utm_campaign" value={rawUtm.campaign} />}
+          {a.pixel && (
+            <Item
+              label="Pixel Jestly"
+              value={`${a.pixel.resolved_source === "direct" ? "Direct" : CHANNEL_LABELS[a.pixel.resolved_source as Channel] ?? a.pixel.resolved_source} · ${Math.round(a.pixel.confidence * 100)} %`}
+            />
+          )}
+        </dl>
+      )}
+    </div>
   );
 }

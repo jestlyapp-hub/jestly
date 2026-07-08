@@ -91,11 +91,11 @@ export function buildInsights(input: {
   const totalOrders = quality.tracked + quality.ghost + quality.unmatched + quality.unknown;
   if (totalOrders > 0 && quality.attributable_revenue_share != null && quality.attributable_revenue_share < 0.8) {
     const shadowCents = Math.round(c.revenue_cents * (1 - quality.attributable_revenue_share));
-    const recovered = quality.pixel_recovered + quality.survey_recovered;
+    const recovered = quality.pixel_recovered + quality.survey_recovered + quality.manual_recovered;
     insights.push({
       id: "ghost_share",
       severity: "warning",
-      message: `${Math.round((1 - quality.attributable_revenue_share) * 100)} % de ton CA n'est pas attribuable sur la période${recovered > 0 ? ` — pixel et survey ont déjà récupéré ${recovered} commande${recovered > 1 ? "s" : ""}` : ""}.`,
+      message: `${Math.round((1 - quality.attributable_revenue_share) * 100)} % de ton CA n'est pas attribuable sur la période${recovered > 0 ? ` — pixel, survey et tes qualifications manuelles en ont déjà sorti ${recovered} de l'ombre` : ""}.`,
       impact_cents: shadowCents,
       href: "/ecom/attribution",
     });
