@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AlertTriangle, Check, Loader2, RotateCcw } from "lucide-react";
 import { apiFetch } from "@/lib/hooks/use-api";
+import { toast } from "@/lib/hooks/use-toast";
 import { useAnalyticsInvalidation } from "@/lib/hooks/use-analytics-invalidation";
 import { CHANNEL_LABELS, CONFIDENCE_LABELS, type Channel, type ManualConfidence } from "@/lib/gads/channels";
 import ChannelChip from "@/components/ecom/ChannelChip";
@@ -58,6 +59,12 @@ export default function OrderAttributionCell({ order, onSaved }: Props) {
       });
       onSaved();
       await invalidateAnalytics();
+      // Feedback immédiat : Gabriel voit que son attribution est bien prise en compte.
+      if (channel === "ghost") {
+        toast.info("Commande laissée non attribuée — hors des stats par canal.");
+      } else {
+        toast.success(`Attribué à ${CHANNEL_LABELS[channel]} — pris en compte dans les stats (ROAS avec overrides).`);
+      }
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -74,6 +81,11 @@ export default function OrderAttributionCell({ order, onSaved }: Props) {
       setConfidence("");
       onSaved();
       await invalidateAnalytics();
+      toast.info(
+        order.measured_channel
+          ? `Attribution manuelle retirée — retour à la mesure Shopify (${CHANNEL_LABELS[order.measured_channel]}).`
+          : "Attribution manuelle retirée — la commande repasse non attribuée.",
+      );
     } catch (e) {
       setError((e as Error).message);
     } finally {

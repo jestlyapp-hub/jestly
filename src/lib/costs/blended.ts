@@ -32,8 +32,16 @@ export interface DataQuality {
   pixel_recovered: number;
   survey_recovered: number;
   survey_recovered_revenue_cents: number;
-  /** Part du CA attribuable (mesuré + pixel + survey) sur le CA total (0-1). */
+  /** Commandes sorties de la zone d'ombre par une attribution MANUELLE de Gabriel. */
+  manual_recovered: number;
+  manual_recovered_revenue_cents: number;
+  /** Part du CA attribuable (mesuré + pixel + manuel + survey) sur le CA total (0-1). */
   attributable_revenue_share: number | null;
+  /**
+   * Part du CA attribuable qui ne l'est QUE par hypothèse manuelle (0-1) —
+   * la sous-distinction honnête : « attribuable, dont X % au jugé ».
+   */
+  manual_share_of_attributable: number | null;
 }
 
 export interface ComparePoint {
@@ -61,6 +69,73 @@ interface DbOrder {
   created_at: string;
   tracking_status: string | null;
   line_items: Array<{ product_id?: string | null; quantity?: number | null }> | null;
+}
+
+/**
+ * Qualité de donnée + part attribuable — cœur PUR (testable sans DB).
+ *
+ * Deux dimensions, jamais fusionnées : la traçabilité technique (buckets par
+ * `tracking_status`, fait Shopify) reste factuelle ; la part ATTRIBUABLE inclut
+ * désormais l'attribution manuelle de Gabriel (hiérarchie §2 : natif > pixel >
+ * manuel > survey). Une commande fantôme qualifiée à la main sort donc de la
+ * zone d'ombre — tout en gardant son bucket « ghost ». La sous-distinction
+ * `manual_share_of_attributable` reste honnête : « attribuable, dont X % au jugé ».
+ */
+export interface QualityOrderLike {
+  id: string;
+  shopify_order_id: string;
+  tracking_status: string | null;
+  total_cents: number;
+}
+
+export function computeDataQuality(input: {
+  orders: QualityOrderLike[];
+  /** Commandes résolues par le pixel (order_id). */
+  pixelOrderIds: Set<string>;
+  /** Commandes portant une attribution manuelle à un CANAL (channel ≠ ghost). */
+  manualChannelOrderIds: Set<string>;
+  /** Commandes avec une réponse survey (shopify_order_id). */
+  surveyShopifyIds: Set<string>;
+  /** CA total de la période (cents) — dénominateur de la part attribuable. */
+  totalRevenueCents: number;
+}): DataQuality {
+  const { orders, pixelOrderIds, manualChannelOrderIds, surveyShopifyIds, totalRevenueCents } = input;
+  const quality: DataQuality = {
+    tracked: 0, ghost: 0, unmatched: 0, unknown: 0, pixel_recovered: 0,
+    survey_recovered: 0, survey_recovered_revenue_cents: 0,
+    manual_recovered: 0, manual_recovered_revenue_cents: 0,
+    attributable_revenue_share: null, manual_share_of_attributable: null,
+  };
+  let attributableRevenue = 0;
+  let manualAttributableRevenue = 0;
+  for (const o of orders) {
+    const bucket = (o.tracking_status ?? "unknown") as keyof Pick<DataQuality, "tracked" | "ghost" | "unmatched" | "unknown">;
+    quality[bucket in quality ? bucket : "unknown"] += 1;
+    const notTracked = o.tracking_status !== "tracked";
+    const pixelResolved = notTracked && pixelOrderIds.has(o.id);
+    // Chaque couche ne « récupère » que ce que les couches supérieures ignorent.
+    const manualResolved = notTracked && !pixelResolved && manualChannelOrderIds.has(o.id);
+    const surveyResolved = notTracked && !pixelResolved && !manualResolved && surveyShopifyIds.has(o.shopify_order_id);
+    const attributable = !notTracked || pixelResolved || manualResolved || surveyResolved;
+    if (attributable) attributableRevenue += o.total_cents;
+    if (pixelResolved) quality.pixel_recovered += 1;
+    if (manualResolved) {
+      quality.manual_recovered += 1;
+      quality.manual_recovered_revenue_cents += o.total_cents;
+      manualAttributableRevenue += o.total_cents;
+    }
+    if (surveyResolved) {
+      quality.survey_recovered += 1;
+      quality.survey_recovered_revenue_cents += o.total_cents;
+    }
+  }
+  quality.attributable_revenue_share = totalRevenueCents > 0
+    ? Math.round((attributableRevenue / totalRevenueCents) * 1000) / 1000
+    : null;
+  quality.manual_share_of_attributable = attributableRevenue > 0
+    ? Math.round((manualAttributableRevenue / attributableRevenue) * 1000) / 1000
+    : null;
+  return quality;
 }
 
 
@@ -186,16 +261,13 @@ export async function getBlendedBoard(
   const previous = stats(previousOrders, prev);
 
   // ── Qualité de donnée (bandeau 1C) ─────────────────────────────
-  const quality: DataQuality = {
-    tracked: 0, ghost: 0, unmatched: 0, unknown: 0, pixel_recovered: 0,
-    survey_recovered: 0, survey_recovered_revenue_cents: 0,
-    attributable_revenue_share: null,
-  };
-  let attributableRevenue = 0;
   const pixelByOrder = new Set<string>();
   const surveyByShopifyId = new Set<string>();
+  // Commandes portant une attribution manuelle À UN CANAL (le « ghost » manuel
+  // explicite ne résout rien : Gabriel a choisi de laisser non attribué).
+  const manualByOrder = new Set<string>();
   if (currentOrders.length > 0) {
-    const [{ data: pixelRows }, { data: ppsRows }] = await Promise.all([
+    const [{ data: pixelRows }, { data: ppsRows }, { data: manualRows }] = await Promise.all([
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (supabase.from("pixel_order_attribution") as any)
         .select("order_id")
@@ -204,27 +276,30 @@ export async function getBlendedBoard(
       (supabase.from("pps_responses") as any)
         .select("shopify_order_id")
         .in("shopify_order_id", currentOrders.map((o) => o.shopify_order_id)),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (supabase.from("order_manual_attribution") as any)
+        .select("order_id, channel")
+        .eq("user_id", userId)
+        .in("order_id", currentOrders.map((o) => o.id)),
     ]);
     for (const p of (pixelRows ?? []) as Array<{ order_id: string }>) pixelByOrder.add(p.order_id);
     for (const r of (ppsRows ?? []) as Array<{ shopify_order_id: string }>) surveyByShopifyId.add(r.shopify_order_id);
-  }
-  for (const o of currentOrders) {
-    const bucket = (o.tracking_status ?? "unknown") as keyof Pick<DataQuality, "tracked" | "ghost" | "unmatched" | "unknown">;
-    quality[bucket in quality ? bucket : "unknown"] += 1;
-    const pixelResolved = pixelByOrder.has(o.id);
-    // Le survey ne « récupère » que ce que ni Shopify ni le pixel n'ont résolu.
-    const surveyResolved = !pixelResolved && o.tracking_status !== "tracked" && surveyByShopifyId.has(o.shopify_order_id);
-    const attributable = o.tracking_status === "tracked" || pixelResolved || surveyResolved;
-    if (attributable) attributableRevenue += o.total_cents;
-    if (o.tracking_status !== "tracked" && pixelResolved) quality.pixel_recovered += 1;
-    if (surveyResolved) {
-      quality.survey_recovered += 1;
-      quality.survey_recovered_revenue_cents += o.total_cents;
+    for (const m of (manualRows ?? []) as Array<{ order_id: string; channel: string }>) {
+      if (m.channel !== "ghost") manualByOrder.add(m.order_id);
     }
   }
-  quality.attributable_revenue_share = current.revenue_cents > 0
-    ? Math.round((attributableRevenue / current.revenue_cents) * 1000) / 1000
-    : null;
+  const quality = computeDataQuality({
+    orders: currentOrders.map((o) => ({
+      id: o.id,
+      shopify_order_id: o.shopify_order_id,
+      tracking_status: o.tracking_status,
+      total_cents: o.total_cents,
+    })),
+    pixelOrderIds: pixelByOrder,
+    manualChannelOrderIds: manualByOrder,
+    surveyShopifyIds: surveyByShopifyId,
+    totalRevenueCents: current.revenue_cents,
+  });
 
   // ── Timeline : Revenue / Spend / Net Profit par jour + MER glissant 7 j ──
   const revenueByDay = new Map<string, { revenue: number; orders: number; cogs: number }>();

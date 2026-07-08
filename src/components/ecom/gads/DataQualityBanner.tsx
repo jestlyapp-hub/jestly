@@ -19,6 +19,13 @@ export default function DataQualityBanner({ quality }: { quality: DataQuality })
       <Chip dot="bg-amber-500" label="non rattachées" value={quality.unmatched} />
       {quality.unknown > 0 && <Chip dot="bg-[#B4B4B2]" label="inconnues" value={quality.unknown} />}
       {quality.pixel_recovered > 0 && <Chip dot="bg-sky-500" label="récupérées pixel" value={quality.pixel_recovered} />}
+      {quality.manual_recovered > 0 && (
+        <span className="inline-flex items-center gap-1.5 text-[#5A5A58]" title="Commandes fantômes que tu as qualifiées manuellement — désormais comptées dans les stats par canal (hypothèse)">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#7C3AED]" />
+          <span className="tabular-nums font-medium text-[#1a1535]">{quality.manual_recovered}</span>
+          <span className="text-[#8A8A88]">qualifiées à la main</span>
+        </span>
+      )}
       {quality.survey_recovered > 0 && (
         <span className="inline-flex items-center gap-1.5 text-[#5A5A58]" title="Commandes fantômes dont le client a déclaré la source (survey post-achat)">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400" />
@@ -32,6 +39,14 @@ export default function DataQualityBanner({ quality }: { quality: DataQuality })
             {Math.round(quality.attributable_revenue_share * 100)} %
           </span>{" "}
           du CA attribuable
+          {quality.manual_share_of_attributable != null && quality.manual_share_of_attributable > 0 && (
+            <span className="text-[#8A8A88]" title="Part du CA attribuable qui ne l'est que par ton hypothèse manuelle, pas par une mesure">
+              {" "}(dont{" "}
+              <span className="tabular-nums text-[#7C3AED] font-medium">
+                {Math.round(quality.manual_share_of_attributable * 100)} %
+              </span>{" "}au jugé)
+            </span>
+          )}
         </span>
       )}
       <Link href="/ecom/gads/attribution" className="ml-auto text-[11px] text-[#7C3AED] hover:underline">
