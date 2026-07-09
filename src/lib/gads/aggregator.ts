@@ -52,7 +52,10 @@ export interface GadsTimelinePoint {
   date: string;
   cost_cents: number;
   clicks: number;
+  impressions: number;
   conversions: number;
+  /** Valeur de conversion déclarée par Google (pour le ROAS Google du jour). */
+  conversion_value_cents: number;
   shopify_revenue_cents: number;
   shopify_orders: number;
   /** ROAS du jour isolé — INDICATIF uniquement, jamais décisionnel. */
@@ -269,12 +272,14 @@ export async function getGadsTimeline(userId: string, range: DateRange): Promise
     loadAllGadsDates(supabase, userId),
   ]);
 
-  const gadsByDay = new Map<string, { cost: number; clicks: number; conversions: number }>();
+  const gadsByDay = new Map<string, { cost: number; clicks: number; impressions: number; conversions: number; convValue: number }>();
   for (const g of gads) {
-    const cur = gadsByDay.get(g.date) ?? { cost: 0, clicks: 0, conversions: 0 };
+    const cur = gadsByDay.get(g.date) ?? { cost: 0, clicks: 0, impressions: 0, conversions: 0, convValue: 0 };
     cur.cost += g.cost_cents;
     cur.clicks += g.clicks;
+    cur.impressions += g.impressions;
     cur.conversions += g.conversions;
+    cur.convValue += g.conversion_value_cents;
     gadsByDay.set(g.date, cur);
   }
 
@@ -297,14 +302,16 @@ export async function getGadsTimeline(userId: string, range: DateRange): Promise
   const to = new Date(`${range.to}T00:00:00Z`).getTime();
   for (let t = from; t <= to; t += 24 * 3600 * 1000) {
     const day = new Date(t).toISOString().slice(0, 10);
-    const g = gadsByDay.get(day) ?? { cost: 0, clicks: 0, conversions: 0 };
+    const g = gadsByDay.get(day) ?? { cost: 0, clicks: 0, impressions: 0, conversions: 0, convValue: 0 };
     const r = revenueByDay.get(day) ?? { revenue: 0, orders: 0 };
     const inCoveredRange = coveredFrom != null && coveredTo != null && day >= coveredFrom && day <= coveredTo;
     points.push({
       date: day,
       cost_cents: g.cost,
       clicks: g.clicks,
+      impressions: g.impressions,
       conversions: Math.round(g.conversions * 100) / 100,
+      conversion_value_cents: g.convValue,
       shopify_revenue_cents: r.revenue,
       shopify_orders: r.orders,
       day_roas: computeRoas(r.revenue, g.cost),

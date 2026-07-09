@@ -7,6 +7,7 @@ import { LayoutDashboard, ShoppingCart, Package, Users, Crosshair, Megaphone, Se
 import { formatRelativeDate } from "@/lib/shopify/formatters";
 import AccountMemoryBanner from "@/components/ecom/AccountMemoryBanner";
 import EcomGlobalBar from "@/components/ecom/EcomGlobalBar";
+import { EcomPrefsProvider } from "@/components/ecom/EcomPrefsProvider";
 
 interface Props {
   integration: {
@@ -37,6 +38,7 @@ export default function EcomShell({ integration, children }: Props) {
     href === "/ecom" ? pathname === href : pathname?.startsWith(href);
 
   return (
+    <EcomPrefsProvider>
     <div>
       {/* Subnav */}
       <div className="border-b border-[var(--ecom-card-border)] bg-[var(--ecom-surface-1)] sticky top-0 z-30 shadow-[var(--ecom-shadow-sm)]">
@@ -80,5 +82,6 @@ export default function EcomShell({ integration, children }: Props) {
         </div>
       </div>
     </div>
+    </EcomPrefsProvider>
   );
 }
