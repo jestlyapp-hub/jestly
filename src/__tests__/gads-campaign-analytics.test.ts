@@ -50,9 +50,11 @@ describe("computeCampaignAnalytics — ROAS Jestly croisé au grain campagne", (
     expect(c1.profitable).toBe(false); // 0,70 < seuil 1,15
     expect(c1.spend_by_day).toEqual([6000, 4000]);
 
-    // Couverture d'attribution honnête : 3000 € non rattachables restent à part.
-    expect(a.attribution_coverage.google_revenue_cents).toBe(10000); // 5000 + 3000 + 2000
-    expect(a.attribution_coverage.matched_to_campaign_cents).toBe(7000);
+    // Couverture au grain COMMANDE (les overrides bulk alimentent le CA campagne
+    // mais ne comptent pas dans la couverture des commandes Google Ads).
+    expect(a.attribution_coverage.google_revenue_cents).toBe(8000);        // 5000 + 3000 (commandes)
+    expect(a.attribution_coverage.matched_to_campaign_cents).toBe(5000);   // seule la commande 1 matchée
+    expect(a.attribution_coverage.matched_measured_cents).toBe(5000);
     expect(a.attribution_coverage.unmatched_cents).toBe(3000);
   });
 
@@ -79,6 +81,59 @@ describe("computeCampaignAnalytics — ROAS Jestly croisé au grain campagne", (
     expect(a.totals.roas_google_blended).toBe(0.25); // 3000 / 12000
     const c2 = a.rows.find((r) => r.campaign_id === "2")!;
     expect(c2.current_budget_cents).toBe(500);
+  });
+});
+
+describe("computeCampaignAnalytics — rattachement MANUEL à une campagne", () => {
+  it("une commande Google Ads sans utm rattachée à la main alimente le CA/ROAS de la campagne (marqué manuel)", () => {
+    const orders: CampaignOrderInput[] = [
+      // Google Ads mesuré mais SANS utm_campaign → rattachée manuellement à la campagne "1"
+      { created_at: "2026-07-01T10:00:00Z", total_cents: 6000, measured_channel: "google_ads", manual: null, pixel: null, utm_campaign: null, manual_campaign_id: "1" },
+    ];
+    const a = computeCampaignAnalytics({ campaigns: CAMPAIGNS, daily: DAILY, orders, manualOverrides: [], range: RANGE, be_roas: 1.15, today: TODAY });
+    const c1 = a.rows.find((r) => r.campaign_id === "1")!;
+    expect(c1.jestly_revenue_cents).toBe(6000);
+    expect(c1.jestly_manual_revenue_cents).toBe(6000);   // compté comme manuel
+    expect(c1.jestly_measured_revenue_cents).toBe(0);    // pas mesuré
+    expect(c1.roas_jestly).toBe(0.6);                    // 6000 / 10000
+    expect(c1.roas_jestly_measured).toBe(0);             // 0 mesuré / 10000 dépense
+    // Couverture : la part manuelle est distinguée du mesuré, jamais fondue.
+    expect(a.attribution_coverage.matched_manual_cents).toBe(6000);
+    expect(a.attribution_coverage.matched_measured_cents).toBe(0);
+  });
+
+  it("le mesuré (utm) est prioritaire sur le rattachement manuel", () => {
+    const orders: CampaignOrderInput[] = [
+      // utm pointe la campagne 1, mais un rattachement manuel pointe la 2 → le mesuré gagne
+      { created_at: "2026-07-01T10:00:00Z", total_cents: 5000, measured_channel: "google_ads", manual: null, pixel: null, utm_campaign: "winner products", manual_campaign_id: "2" },
+    ];
+    const a = computeCampaignAnalytics({ campaigns: CAMPAIGNS, daily: DAILY, orders, manualOverrides: [], range: RANGE, be_roas: null, today: TODAY });
+    expect(a.rows.find((r) => r.campaign_id === "1")!.jestly_measured_revenue_cents).toBe(5000);
+    expect(a.rows.find((r) => r.campaign_id === "2")!.jestly_revenue_cents).toBe(0);
+  });
+
+  it("cohérence : le CA rattaché aux campagnes ne dépasse jamais le CA canal Google Ads", () => {
+    const orders: CampaignOrderInput[] = [
+      { created_at: "2026-07-01T10:00:00Z", total_cents: 5000, measured_channel: "google_ads", manual: null, pixel: null, utm_campaign: "winner products", manual_campaign_id: null },
+      { created_at: "2026-07-01T11:00:00Z", total_cents: 6000, measured_channel: "google_ads", manual: null, pixel: null, utm_campaign: null, manual_campaign_id: "2" },
+      { created_at: "2026-07-01T12:00:00Z", total_cents: 3000, measured_channel: "google_ads", manual: null, pixel: null, utm_campaign: null, manual_campaign_id: null }, // reste au niveau canal
+    ];
+    const a = computeCampaignAnalytics({ campaigns: CAMPAIGNS, daily: DAILY, orders, manualOverrides: [], range: RANGE, be_roas: null, today: TODAY });
+    const cov = a.attribution_coverage;
+    expect(cov.matched_to_campaign_cents).toBeLessThanOrEqual(cov.google_revenue_cents);
+    expect(cov.matched_to_campaign_cents).toBe(11000);   // 5000 mesuré + 6000 manuel
+    expect(cov.google_revenue_cents).toBe(14000);        // + 3000 non rattaché
+    expect(cov.unmatched_cents).toBe(3000);
+    expect(cov.matched_measured_cents + cov.matched_manual_cents).toBe(cov.matched_to_campaign_cents);
+  });
+
+  it("un manual_campaign_id inconnu (campagne d'un autre user / supprimée) est ignoré, la vente reste au niveau canal", () => {
+    const orders: CampaignOrderInput[] = [
+      { created_at: "2026-07-01T10:00:00Z", total_cents: 4000, measured_channel: "google_ads", manual: null, pixel: null, utm_campaign: null, manual_campaign_id: "999-inexistant" },
+    ];
+    const a = computeCampaignAnalytics({ campaigns: CAMPAIGNS, daily: DAILY, orders, manualOverrides: [], range: RANGE, be_roas: null, today: TODAY });
+    expect(a.rows.every((r) => r.jestly_revenue_cents === 0)).toBe(true);
+    expect(a.attribution_coverage.unmatched_cents).toBe(4000);
   });
 });
 

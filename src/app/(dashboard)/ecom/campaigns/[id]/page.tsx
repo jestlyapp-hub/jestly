@@ -7,9 +7,9 @@
  * Remonte en tête les candidats à exclure (dépense sans conversion) et à
  * réactiver (vendaient bien, ne diffusent plus).
  */
-import { use } from "react";
+import { use, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, AlertTriangle, RefreshCcw } from "lucide-react";
+import { ArrowLeft, AlertTriangle, RefreshCcw, Link2 } from "lucide-react";
 import { useApi } from "@/lib/hooks/use-api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
 import { formatCurrency, formatNumberFr, formatRoas, formatPercent } from "@/lib/ads/formatters";
@@ -19,12 +19,14 @@ import { KpiCard } from "@/components/ecom/premium/KpiCard";
 import { CampaignStatusChip, ProfitabilityDot, channelTypeLabel } from "@/components/ecom/campaigns/campaign-ui";
 import CampaignDetailChart from "@/components/ecom/campaigns/CampaignDetailChart";
 import BudgetTimeline from "@/components/ecom/campaigns/BudgetTimeline";
+import AttachSalesPanel from "@/components/ecom/campaigns/AttachSalesPanel";
 import type { CampaignDetail, CampaignProductRowOut } from "@/lib/gads/campaign-detail";
 
 export default function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { from, to } = useAnalyticsRange();
   usePageTitle("Détail campagne");
+  const [attachOpen, setAttachOpen] = useState(false);
 
   const api = useApi<CampaignDetail>(`/api/ecom/campaigns/${id}?from=${from}&to=${to}`);
   const d = api.data;
@@ -57,12 +59,19 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
                   {d.bidding_strategy ? ` · enchères ${biddingLabel(d.bidding_strategy)}` : ""}
                 </p>
               </div>
-              <div className="text-right">
-                <div className="text-[11px] text-[#8A8A88] uppercase tracking-wide">Budget quotidien actuel</div>
-                <div className="text-[22px] font-bold text-[var(--ecom-navy)] tabular-nums">
-                  {d.current_budget_cents != null ? formatCurrency(d.current_budget_cents) : "—"}
+              <div className="flex flex-col items-end gap-2">
+                <button onClick={() => setAttachOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold bg-[#7C3AED] text-white hover:bg-[#6D28D9]"
+                  title="Affecter des ventes Google Ads sans campagne à celle-ci — alimente son ROAS Jestly">
+                  <Link2 size={13} /> Rattacher des ventes
+                </button>
+                <div className="text-right">
+                  <div className="text-[11px] text-[#8A8A88] uppercase tracking-wide">Budget quotidien actuel</div>
+                  <div className="text-[22px] font-bold text-[var(--ecom-navy)] tabular-nums">
+                    {d.current_budget_cents != null ? formatCurrency(d.current_budget_cents) : "—"}
+                  </div>
+                  <BudgetTimeline history={d.budget_history} since={d.budget_archive_since} />
                 </div>
-                <BudgetTimeline history={d.budget_history} since={d.budget_archive_since} />
               </div>
             </div>
           </div>
@@ -101,6 +110,17 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
               rows={d.products_inactive}
               inactive
               emptyLabel=""
+            />
+          )}
+
+          {attachOpen && (
+            <AttachSalesPanel
+              campaignId={d.campaign_id}
+              campaignName={d.name}
+              from={from}
+              to={to}
+              onClose={() => setAttachOpen(false)}
+              onAttached={() => void api.mutate()}
             />
           )}
         </>

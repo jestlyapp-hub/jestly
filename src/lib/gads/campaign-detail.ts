@@ -271,7 +271,11 @@ export async function getCampaignDetail(userId: string, campaignId: string, rang
       manual: m ? { channel: m.channel } : null,
     });
     if (resolved !== "google_ads") continue;
-    if (resolveCampaignId(o.utm_campaign) !== campaignId) continue;
+    // Résolution CAMPAGNE : utm_campaign mesuré prioritaire, sinon rattachement
+    // manuel à une campagne (couche campagne, même règle que la liste).
+    const measuredCid = resolveCampaignId(o.utm_campaign);
+    const manualCid = m?.campaign_id && idSet.has(m.campaign_id) ? m.campaign_id : null;
+    if ((measuredCid ?? manualCid) !== campaignId) continue;
     matched.push(o);
     const day = parisDay(o.created_at);
     revenueByDay.set(day, (revenueByDay.get(day) ?? 0) + Math.round((o.total_price ?? 0) * 100));

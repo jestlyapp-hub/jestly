@@ -13,9 +13,25 @@ const Body = z.object({
   channel: z.enum(["google_ads", "seo", "pinterest", "other", "ghost"]),
   confidence: z.enum(["sure", "assumed", "guessed"]).nullable().optional(),
   note: z.string().trim().max(500).nullable().optional(),
+  // Couche campagne (optionnelle) : rattacher la commande à une campagne Google
+  // Ads précise. Null = aucun rattachement campagne (reste au niveau canal).
+  campaign_id: z.string().trim().min(1).nullable().optional(),
 }).refine((b) => b.channel === "ghost" || b.confidence != null, {
   message: "Le niveau de confiance (sûr / supposé / deviné) est obligatoire quand un canal est choisi",
+}).refine((b) => b.campaign_id == null || b.channel === "google_ads", {
+  message: "Une campagne ne peut être rattachée qu'à une commande Google Ads",
 });
+
+/** La campagne appartient-elle bien à cet utilisateur ? (isolation multi-tenant) */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function campaignBelongsToUser(supabase: any, campaignId: string, userId: string): Promise<boolean> {
+  const { data } = await supabase.from("gads_campaigns")
+    .select("campaign_id")
+    .eq("user_id", userId)
+    .eq("campaign_id", campaignId)
+    .maybeSingle();
+  return data != null;
+}
 
 /** La commande appartient-elle bien à cet utilisateur ? */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,6 +67,12 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ orderId: st
     return NextResponse.json({ error: "Commande introuvable" }, { status: 404 });
   }
 
+  // GARDE-FOU MULTI-TENANT : on ne rattache qu'à une campagne de l'utilisateur.
+  const campaignId = parsed.data.campaign_id ?? null;
+  if (campaignId && !(await campaignBelongsToUser(supabase, campaignId, auth.user.id))) {
+    return NextResponse.json({ error: "Campagne introuvable" }, { status: 404 });
+  }
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("order_manual_attribution") as any)
     .upsert({
@@ -59,6 +81,8 @@ export async function PUT(req: NextRequest, ctx: { params: Promise<{ orderId: st
       channel: parsed.data.channel,
       confidence: parsed.data.channel === "ghost" ? null : parsed.data.confidence,
       note: parsed.data.note ?? null,
+      // Rattachement campagne cohérent : seulement si le canal est Google Ads.
+      campaign_id: parsed.data.channel === "google_ads" ? campaignId : null,
       attributed_at: new Date().toISOString(),
       attributed_by: auth.user.email ?? auth.user.id,
     }, { onConflict: "order_id" })
