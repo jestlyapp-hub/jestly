@@ -71,6 +71,10 @@ export default function EcomDashboardPage() {
     `/api/ecom/gads/products?from=${from}&to=${to}&channel=all`,
   );
   const shopApi = useApi<ShopWidgetsData>(`/api/ecom/dashboard?from=${from}&to=${to}`);
+  // Seul le propriétaire des credentials Google Ads globaux voit « Actualiser
+  // depuis l'API » (garde-fou multi-tenant : la route refuse déjà côté serveur).
+  const meApi = useApi<{ is_gads_owner?: boolean }>("/api/auth/me");
+  const isGadsOwner = meApi.data?.is_gads_owner === true;
 
   const board = api.data;
   const cur = board?.current;
@@ -110,7 +114,7 @@ export default function EcomDashboardPage() {
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
           <CompareControl />
-          <ApiSyncButton onSynced={onImported} />
+          {isGadsOwner && <ApiSyncButton onSynced={onImported} />}
           <ImportCsvButton onImported={onImported} variant="secondary" />
         </div>
       </div>

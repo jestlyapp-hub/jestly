@@ -17,7 +17,7 @@ import { normalizeCampaignName } from "@/lib/ads/utm-parser";
 import { parisDay, todayParis } from "@/lib/paris-time";
 import type { DateRange } from "@/lib/ads/types";
 import { resolveUnifiedChannel, deriveMeasuredChannel } from "./channels";
-import { loadOrdersAndManual, SMALL_SAMPLE_THRESHOLD, type DbOrderRow } from "./attribution-aggregator";
+import { loadOrdersAndManual, resolveActiveShopifyIntegrationId, SMALL_SAMPLE_THRESHOLD, type DbOrderRow } from "./attribution-aggregator";
 import { buildProductIndex, mapItemToProduct, type ProductIndex } from "./product-mapping";
 import {
   deriveCampaignStatus, type CampaignMeta, type DisplayCampaignStatus,
@@ -203,6 +203,10 @@ export async function getCampaignDetail(userId: string, campaignId: string, rang
   const supabase = createAdminClient();
   const { getBlendedBoard } = await import("@/lib/costs/blended");
 
+  // GARDE-FOU MULTI-TENANT : shopify_products via service_role → scoper par
+  // l'intégration de l'utilisateur, jamais le catalogue global.
+  const integrationId = await resolveActiveShopifyIntegrationId(userId);
+
   const [{ orders, manualByOrder, pixelByOrder }, allCampaigns, dailyRows, productRows, budgetRows, products, board] = await Promise.all([
     loadOrdersAndManual(userId, range),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -229,9 +233,12 @@ export async function getCampaignDetail(userId: string, campaignId: string, rang
       .order("observed_at", { ascending: true })
       .then(({ data }: { data: BudgetPoint[] | null }) => data ?? []),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("shopify_products") as any)
-      .select("shopify_product_id, title, featured_image_url, price_min, variants")
-      .then(({ data }: { data: Parameters<typeof buildProductIndex>[0] | null }) => data ?? []),
+    integrationId
+      ? (supabase.from("shopify_products") as any)
+          .select("shopify_product_id, title, featured_image_url, price_min, variants")
+          .eq("integration_id", integrationId)
+          .then(({ data }: { data: Parameters<typeof buildProductIndex>[0] | null }) => data ?? [])
+      : Promise.resolve([]),
     getBlendedBoard(userId, range).catch(() => null),
   ]);
 

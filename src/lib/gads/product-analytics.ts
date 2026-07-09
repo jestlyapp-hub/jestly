@@ -18,7 +18,7 @@ import { parisDay } from "@/lib/paris-time";
 import type { DateRange } from "@/lib/ads/types";
 import { resolveUnitCost, type ProductCostRow } from "@/lib/costs/engine";
 import { deriveMeasuredChannel, resolveUnifiedChannel, type Channel } from "./channels";
-import { loadOrdersAndManual, SMALL_SAMPLE_THRESHOLD, type PixelResolution, type DbOrderRow } from "./attribution-aggregator";
+import { loadOrdersAndManual, resolveActiveShopifyIntegrationId, SMALL_SAMPLE_THRESHOLD, type PixelResolution, type DbOrderRow } from "./attribution-aggregator";
 import type { GadsProductDailyRow } from "./api-sync";
 import { buildProductIndex, mapItemToProduct, type ProductIndex } from "./product-mapping";
 
@@ -226,6 +226,11 @@ export async function getProductAnalytics(
 ): Promise<ProductAnalytics> {
   const supabase = createAdminClient();
 
+  // GARDE-FOU MULTI-TENANT : le service_role bypasse le RLS, donc shopify_products
+  // et shopify_orders DOIVENT être filtrés par l'intégration de l'utilisateur.
+  // Sans intégration, aucune donnée boutique (jamais le catalogue d'autrui).
+  const integrationId = await resolveActiveShopifyIntegrationId(userId);
+
   const [{ orders, manualByOrder, pixelByOrder }, itemRows, products, costs, firstOrders] = await Promise.all([
     loadOrdersAndManual(userId, range),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -236,20 +241,26 @@ export async function getProductAnalytics(
       .lte("date", range.to)
       .then(({ data }: { data: GadsProductDailyRow[] | null }) => data ?? []),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("shopify_products") as any)
-      .select("shopify_product_id, title, featured_image_url, price_min, variants")
-      .then(({ data }: { data: Parameters<typeof buildProductIndex>[0] | null }) => data ?? []),
+    integrationId
+      ? (supabase.from("shopify_products") as any)
+          .select("shopify_product_id, title, featured_image_url, price_min, variants")
+          .eq("integration_id", integrationId)
+          .then(({ data }: { data: Parameters<typeof buildProductIndex>[0] | null }) => data ?? [])
+      : Promise.resolve([]),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("ecom_product_costs") as any)
       .select("shopify_product_id, unit_cost_cents, effective_from")
       .eq("user_id", userId)
       .then(({ data }: { data: ProductCostRow[] | null }) => data ?? []),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("shopify_orders") as any)
-      .select("customer_id, created_at")
-      .is("cancelled_at", null)
-      .not("customer_id", "is", null)
-      .then(({ data }: { data: Array<{ customer_id: string; created_at: string }> | null }) => data ?? []),
+    integrationId
+      ? (supabase.from("shopify_orders") as any)
+          .select("customer_id, created_at")
+          .eq("integration_id", integrationId)
+          .is("cancelled_at", null)
+          .not("customer_id", "is", null)
+          .then(({ data }: { data: Array<{ customer_id: string; created_at: string }> | null }) => data ?? [])
+      : Promise.resolve([]),
   ]);
 
   const firstOrderAt = new Map<string, string>();
