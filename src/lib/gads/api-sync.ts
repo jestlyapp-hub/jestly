@@ -187,6 +187,23 @@ export async function syncFromGoogleAdsApi(userId: string, daysBack = 30): Promi
     `api:google-ads:${to}`,
   );
 
+  // Grain campagne (onglet Campagnes) : réutilise `results` (campagne×jour, déjà
+  // pullé) pour gads_campaign_daily, puis pulle métadonnées+budget et
+  // produits×campagne. Jamais bloquant : chaque étape catch et pousse un warning.
+  try {
+    const { syncCampaigns } = await import("./campaign-sync");
+    const campaignRecap = await syncCampaigns(userId, from, to, results, cfg);
+    recap.campaigns = {
+      campaigns_upserted: campaignRecap.campaigns_upserted,
+      campaign_daily_rows: campaignRecap.campaign_daily_rows,
+      budget_changes: campaignRecap.budget_changes,
+      campaign_product_rows: campaignRecap.campaign_product_rows,
+    };
+    recap.warnings.push(...campaignRecap.warnings);
+  } catch (e) {
+    recap.warnings.push(`Sync campagnes non effectuée : ${(e as Error).message.slice(0, 200)}`);
+  }
+
   // Dépense par produit (shopping_performance_view) — même sync, jamais
   // bloquant pour le grain campagne : en cas d'échec, la vue Produits
   // affichera « non disponible », pas des zéros inventés.

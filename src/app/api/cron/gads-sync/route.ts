@@ -61,6 +61,7 @@ export async function GET(req: NextRequest) {
       rows_updated: recap.rows_updated,
       range: recap.range,
       missing_dates: recap.missing_dates,
+      campaigns: recap.campaigns ?? null,
       synced_at: new Date().toISOString(),
     });
   } catch (e) {
