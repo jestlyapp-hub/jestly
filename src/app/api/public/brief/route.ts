@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /** Normalize V1 fields (id-based) → V2 (key-based) */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,7 +31,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "product_id est requis" }, { status: 400 });
   }
 
-  const supabase = await createClient();
+  // GARDE-FOU MULTI-TENANT : service_role avec filtrage EXPLICITE par id/
+  // product_id — on ne lit QUE le brief précis de la page produit publique,
+  // jamais l'ensemble. Remplace l'ancienne policy anon `USING (true)` (qui
+  // permettait d'énumérer tous les briefs de tous les comptes, migration 105).
+  const supabase = createAdminClient();
 
   // If block specifies a direct brief_template_id, use that
   if (explicitTemplateId) {
