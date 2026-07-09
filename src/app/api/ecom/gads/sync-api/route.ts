@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { syncFromGoogleAdsApi, isGoogleAdsApiConfigured } from "@/lib/gads/api-sync";
-import { GoogleAdsApiError } from "@/lib/gads/google-ads-client";
+import { GoogleAdsApiError, isGoogleAdsOwner } from "@/lib/gads/google-ads-client";
 
 export const maxDuration = 60;
 
@@ -9,10 +9,22 @@ export const maxDuration = 60;
  * POST /api/ecom/gads/sync-api — pull manuel de l'API Google Ads (lecture
  * seule, GAQL) vers gads_daily. Fenêtre glissante 30 jours, la source fait foi.
  * Body optionnel : { days?: number } (1-90).
+ *
+ * GARDE-FOU MULTI-TENANT : les credentials Google Ads sont globaux (mono-compte).
+ * Seul le propriétaire désigné (GOOGLE_ADS_USER_ID) peut déclencher ce pull —
+ * sinon un autre utilisateur ingérerait les données Google Ads du propriétaire
+ * dans SON propre compte (fuite d'isolation confirmée en prod).
  */
 export async function POST(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
+
+  if (!isGoogleAdsOwner(auth.user.id)) {
+    return NextResponse.json(
+      { error: "La synchronisation depuis l'API Google Ads est réservée au compte propriétaire de la connexion Google Ads. Importe un fichier CSV pour tes propres données." },
+      { status: 403 },
+    );
+  }
 
   if (!isGoogleAdsApiConfigured()) {
     return NextResponse.json(

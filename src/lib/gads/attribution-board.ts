@@ -137,6 +137,13 @@ export async function getAttributionBoard(userId: string, range: DateRange): Pro
   const { orders, manualByOrder, pixelByOrder } = await loadOrdersAndManual(userId, range);
   const orderIds = (orders as DbOrderRow[]).map((o) => o.id);
 
+  // GARDE-FOU MULTI-TENANT : pps_responses (service_role) est scopée aux
+  // boutiques pixel de l'utilisateur — sinon on chargerait les réponses survey
+  // de tous les tenants en mémoire avant de les re-filtrer.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: shopRows } = await (supabase.from("pixel_shops") as any).select("id").eq("user_id", userId);
+  const pixelShopIds = ((shopRows ?? []) as Array<{ id: string }>).map((r) => r.id);
+
   // Pixel, survey, dépense et IDs Shopify en parallèle (une seule vague).
   const [pixelRows, ppsRows, gadsSpendRows, shopifyIdRows] = await Promise.all([
     orderIds.length > 0
@@ -146,10 +153,11 @@ export async function getAttributionBoard(userId: string, range: DateRange): Pro
           .in("order_id", orderIds)
           .then(({ data }: { data: PixelRowWithSession[] | null }) => data ?? [])
       : Promise.resolve([] as PixelRowWithSession[]),
-    orderIds.length > 0
+    orderIds.length > 0 && pixelShopIds.length > 0
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ? (supabase.from("pps_responses") as any)
           .select("shopify_order_id, answer")
+          .in("shop_id", pixelShopIds)
           .then(({ data }: { data: Array<{ shopify_order_id: string; answer: PpsAnswer }> | null }) => data ?? [])
       : Promise.resolve([]),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

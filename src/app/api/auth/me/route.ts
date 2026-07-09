@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/admin";
+import { isGoogleAdsOwner } from "@/lib/gads/google-ads-client";
 import { normalizeStorageUrl } from "@/lib/storage-utils";
 
 export async function GET() {
@@ -26,6 +27,9 @@ export async function GET() {
       plan: profile?.plan || "free",
       subdomain: profile?.subdomain || null,
       is_admin: isAdmin(user),
+      // Propriétaire des credentials Google Ads globaux : seul lui voit le bouton
+      // « Actualiser depuis l'API » (garde-fou multi-tenant).
+      is_gads_owner: isGoogleAdsOwner(user.id),
     });
   } catch (err) {
     console.error("[/api/auth/me] error:", err instanceof Error ? err.message : err);

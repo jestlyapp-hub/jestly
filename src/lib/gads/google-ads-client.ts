@@ -46,6 +46,24 @@ export function getGoogleAdsConfig(): GoogleAdsConfig | null {
   };
 }
 
+/**
+ * user_id désigné propriétaire des credentials Google Ads globaux (env, mono-
+ * compte). GARDE-FOU MULTI-TENANT : les identifiants Google Ads sont partagés au
+ * niveau serveur (une seule connexion, LHM). Seul CE user a le droit de pull/
+ * stocker ces données — sinon n'importe quel utilisateur aspirerait les données
+ * d'un autre dans son propre compte via « Actualiser depuis l'API ». null si non
+ * configuré (fail closed : la sync API manuelle est alors refusée à tous).
+ */
+export function getGoogleAdsOwnerUserId(): string | null {
+  return process.env.GOOGLE_ADS_USER_ID ?? null;
+}
+
+/** true si `userId` est le propriétaire désigné des credentials Google Ads. */
+export function isGoogleAdsOwner(userId: string): boolean {
+  const owner = getGoogleAdsOwnerUserId();
+  return owner != null && owner === userId;
+}
+
 export class GoogleAdsApiError extends Error {
   constructor(message: string, public status?: number) {
     super(message);

@@ -26,7 +26,7 @@ export async function GET() {
   const since30d = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
   const since24h = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
 
-  const [syncState, gadsLast, gadsMaxDate, gadsProductLast, shops, recentOrders, matches, ppsCount] = await Promise.all([
+  const [syncState, gadsLast, gadsMaxDate, gadsProductLast, shops, recentOrders] = await Promise.all([
     integ
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ? (supabase.from("shopify_sync_state") as any)
@@ -73,17 +73,28 @@ export async function GET() {
           .gte("created_at", since30d)
           .then(({ data }: { data: Array<{ shopify_order_id: string; created_at: string; note_attributes: Array<{ key?: string; value?: string | null }> | null }> | null }) => data ?? [])
       : Promise.resolve([]),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("pixel_order_attribution") as any)
-      .select("match_method")
-      .gte("matched_at", since30d)
-      .then(({ data }: { data: Array<{ match_method: string }> | null }) => data ?? []),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("pps_responses") as any)
-      .select("id")
-      .gte("answered_at", since30d)
-      .then(({ data }: { data: Array<{ id: string }> | null }) => (data ?? []).length),
   ]);
+
+  // GARDE-FOU MULTI-TENANT : pixel_order_attribution et pps_responses (service_role,
+  // RLS bypassée) DOIVENT être scopées aux boutiques pixel de l'utilisateur —
+  // sinon les compteurs matching/survey agrègent TOUS les tenants. shop_id ∈ ses shops.
+  const shopIds = (shops as Array<{ id: string }>).map((s) => s.id);
+  const [matches, ppsCount] = shopIds.length === 0
+    ? [[] as Array<{ match_method: string }>, 0]
+    : await Promise.all([
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase.from("pixel_order_attribution") as any)
+          .select("match_method")
+          .in("shop_id", shopIds)
+          .gte("matched_at", since30d)
+          .then(({ data }: { data: Array<{ match_method: string }> | null }) => data ?? []),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase.from("pps_responses") as any)
+          .select("id")
+          .in("shop_id", shopIds)
+          .gte("answered_at", since30d)
+          .then(({ data }: { data: Array<{ id: string }> | null }) => (data ?? []).length),
+      ]);
 
   // Sessions pixel des dernières 24 h + première session (par boutique)
   const shopHealth = await Promise.all(

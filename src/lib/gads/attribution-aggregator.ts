@@ -233,6 +233,25 @@ interface DbPixelRow {
   confidence: number;
 }
 
+/**
+ * Résout l'intégration Shopify active de l'utilisateur. GARDE-FOU MULTI-TENANT :
+ * toute lecture service_role (qui bypasse le RLS) DOIT être scopée par cet
+ * integration_id — jamais lire shopify_products/shopify_orders sans ce filtre,
+ * sous peine d'exposer le catalogue et les commandes des autres boutiques.
+ * Renvoie null si l'utilisateur n'a pas d'intégration active.
+ */
+export async function resolveActiveShopifyIntegrationId(userId: string): Promise<string | null> {
+  const supabase = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: integ } = await (supabase.from("integrations") as any)
+    .select("id")
+    .eq("user_id", userId)
+    .eq("provider", "shopify")
+    .eq("status", "active")
+    .maybeSingle();
+  return integ?.id ?? null;
+}
+
 export async function loadOrdersAndManual(userId: string, range: DateRange): Promise<{
   orders: DbOrderRow[];
   manualByOrder: Map<string, DbManualRow>;
