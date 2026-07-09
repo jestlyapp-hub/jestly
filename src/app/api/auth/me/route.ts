@@ -20,6 +20,7 @@ export async function GET() {
       .single();
 
     return NextResponse.json({
+      id: user.id,
       email: user.email,
       full_name: profile?.full_name || null,
       business_name: profile?.business_name || null,

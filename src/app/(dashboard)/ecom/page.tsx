@@ -11,9 +11,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronUp, Lightbulb, Target, Wallet } from "lucide-react";
+import { ChevronDown, ChevronUp, Target, Wallet, AlertTriangle } from "lucide-react";
 import { useApi } from "@/lib/hooks/use-api";
-import { formatCurrency, formatNumberFr, formatRoas } from "@/lib/ads/formatters";
+import { formatCurrency, formatRoas } from "@/lib/ads/formatters";
 import type { BlendedBoard } from "@/lib/costs/blended";
 import type { EcomSettings } from "@/lib/ads/types";
 import type { ProductAnalyticsRow } from "@/lib/gads/product-analytics";
@@ -27,7 +27,7 @@ import ImportCsvButton, { type ImportRecap } from "@/components/ecom/gads/Import
 import ApiSyncButton from "@/components/ecom/gads/ApiSyncButton";
 import ImportRecapBanner from "@/components/ecom/gads/ImportRecapBanner";
 import MissingDatesBanner from "@/components/ecom/gads/MissingDatesBanner";
-import BlendedChart from "@/components/ecom/gads/BlendedChart";
+import DashboardChart from "@/components/ecom/dashboard/DashboardChart";
 import DailyDetailTable from "@/components/ecom/gads/DailyDetailTable";
 import { useAnalyticsRange } from "@/components/ecom/gads/AnalyticsPeriodFilter";
 import { KpiGridSkeleton, CardSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
@@ -38,8 +38,12 @@ import RecentOrdersTable from "@/components/ecom/RecentOrdersTable";
 import GeographyList from "@/components/ecom/GeographyList";
 import AlertsPanel from "@/components/ecom/AlertsPanel";
 import { VerdictHero } from "@/components/ecom/premium/VerdictHero";
-import { InsightCard } from "@/components/ecom/premium/InsightCard";
-import { Sparkline } from "@/components/ecom/premium/Sparkline";
+import ConfigurableKpiGrid from "@/components/ecom/dashboard/ConfigurableKpiGrid";
+import MetricSelector from "@/components/ecom/dashboard/MetricSelector";
+import InsightsDrawer from "@/components/ecom/dashboard/InsightsDrawer";
+import { useEcomPref } from "@/components/ecom/EcomPrefsProvider";
+import { DEFAULT_KPI_IDS } from "@/lib/gads/metric-catalog";
+import type { MetricValue } from "@/lib/gads/dashboard-metrics";
 
 interface ShopWidgetsData {
   top_products: { id: string; title: string; image_url: string | null; units: number; revenue: number }[];
@@ -76,14 +80,16 @@ export default function EcomDashboardPage() {
   const meApi = useApi<{ is_gads_owner?: boolean }>("/api/auth/me");
   const isGadsOwner = meApi.data?.is_gads_owner === true;
 
+  // Métriques configurables (KPI cards) — carte de données + sélection persistée.
+  const metricsApi = useApi<{ metrics: Record<string, MetricValue> }>(`/api/ecom/dashboard/metrics?from=${from}&to=${to}`);
+  const [kpiIds, setKpiIds] = useEcomPref<string[]>("dashboard_kpis", DEFAULT_KPI_IDS);
+
   const board = api.data;
   const cur = board?.current;
 
   // La période de comparaison n'est une baseline exploitable que si elle a une
   // activité réelle. Sinon on masque les deltas (« +804 % » sur ~0 est absurde).
   const canCompare = board ? baselineComparable(board.previous) : true;
-  const cmpDelta = (a: number | null | undefined, b: number | null | undefined): number | null =>
-    canCompare ? delta(a, b) : null;
 
   const periodDays = Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86_400_000) + 1;
   const periodLabel = periodDays > 0 && periodDays <= 366 ? `${periodDays} derniers jours` : "période sélectionnée";
@@ -113,6 +119,7 @@ export default function EcomDashboardPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
+          <MetricSelector label="Métriques" selected={kpiIds} onChange={setKpiIds} onReset={() => setKpiIds(DEFAULT_KPI_IDS)} />
           <CompareControl />
           {isGadsOwner && <ApiSyncButton onSynced={onImported} />}
           <ImportCsvButton onImported={onImported} variant="secondary" />
@@ -154,7 +161,21 @@ export default function EcomDashboardPage() {
             beRoasLabel={cur.be_roas != null ? formatRoas(cur.be_roas) : null}
             calibrateHref="/ecom/settings?tab=couts"
           />
-          {insights.length > 0 && <InsightsBlock insights={insights} />}
+          <InsightsDrawer insights={insights} />
+
+          {/* Couverture COGS basse : le Net Profit est optimiste — levier n°1 de vérité. */}
+          {cur.costs_configured && cur.cogs.total_units > 0 && cur.cogs.coverage < 0.8 && (
+            <div className="flex flex-wrap items-center gap-3 bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-[12px] text-amber-900">
+              <AlertTriangle size={15} className="text-amber-600 shrink-0" />
+              <span>
+                <span className="font-semibold">Couverture COGS à {Math.round(cur.cogs.coverage * 100)} %</span> — ton Net Profit est optimiste :
+                {" "}{cur.cogs.covered_units}/{cur.cogs.total_units} unités vendues ont un coût renseigné. Complète-les pour débloquer la vérité des chiffres.
+              </span>
+              <Link href="/ecom/settings?tab=couts" className="ml-auto px-3 py-1.5 rounded-md text-[12px] font-medium bg-amber-600 text-white hover:bg-amber-700">
+                Réglages coûts →
+              </Link>
+            </div>
+          )}
 
           {!canCompare && (
             <div className="flex items-center gap-2 bg-[var(--ecom-surface-sunken)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-sm)] px-4 py-2.5 text-[var(--ecom-fs-label)] text-[var(--ecom-muted)]">
@@ -164,70 +185,11 @@ export default function EcomDashboardPage() {
             </div>
           )}
 
-          <p className="ecom-label pt-1">Acquisition</p>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-            <Kpi label="Revenue" value={formatCurrency(cur.revenue_cents)}
-              delta={cmpDelta(cur.revenue_cents, board.previous.revenue_cents)} goodWhenUp
-              spark={board.timeline.map((p) => p.revenue_cents)}
-              hint={`${formatNumberFr(cur.orders_count)} commandes`} />
-            <Kpi label="Blended Ad Spend" value={formatCurrency(cur.spend_cents)}
-              delta={cmpDelta(cur.spend_cents, board.previous.spend_cents)}
-              spark={board.timeline.map((p) => p.spend_cents)}
-              hint="Google Ads (CSV/API)" />
-            <Kpi label="MER" value={formatRoas(cur.mer)}
-              delta={cmpDelta(cur.mer, board.previous.mer)} goodWhenUp
-              tooltip="MER = SUM(Revenue Shopify) ÷ SUM(Blended Ad Spend) sur la période"
-              hint="Revenue ÷ dépense — insensible aux ventes fantômes" />
-            <Kpi label="AOV" value={cur.aov_cents != null ? formatCurrency(cur.aov_cents) : "—"}
-              delta={cmpDelta(cur.aov_cents, board.previous.aov_cents)} goodWhenUp
-              tooltip="AOV = Revenue ÷ nombre de commandes"
-              hint="Panier moyen" />
-            <Kpi label="NC-ROAS" value={formatRoas(cur.nc_roas)}
-              delta={cmpDelta(cur.nc_roas, board.previous.nc_roas)} goodWhenUp
-              tooltip="NC-ROAS = CA des nouveaux clients (1re commande du customer_id) ÷ dépense"
-              hint={`CA nouveaux clients ${formatCurrency(cur.nc_revenue_cents)}`} />
-            <Kpi label="NCPA" value={cur.ncpa_cents != null ? formatCurrency(cur.ncpa_cents) : "—"}
-              delta={cmpDelta(cur.ncpa_cents, board.previous.ncpa_cents)}
-              tooltip="NCPA = dépense ÷ nombre de nouveaux clients"
-              hint={`${cur.new_customers} nouveau${cur.new_customers > 1 ? "x" : ""} client${cur.new_customers > 1 ? "s" : ""}`} />
-          </div>
-
-          <p className="ecom-label pt-1">Rentabilité</p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Kpi label="BE-ROAS" highlight
-              tooltip="BE-ROAS = AOV ÷ (AOV − coût variable moyen par commande). Coût variable = COGS + expédition + frais de paiement + emballage."
-              value={!cur.costs_configured ? "non renseigné" : !cur.be_roas_reachable ? "∅" : formatRoas(cur.be_roas)}
-              hint={!cur.costs_configured
-                ? "Renseigne tes coûts"
-                : !cur.be_roas_reachable
-                  ? "Marge unitaire ≤ 0 : aucun ROAS ne rentabilise"
-                  : `Coût variable moyen ${cur.variable_cost_per_order_cents != null ? formatCurrency(cur.variable_cost_per_order_cents) : "—"} / commande`}
-              cta={!cur.costs_configured ? "/ecom/settings?tab=couts" : undefined} />
-            <Kpi label="Net Profit" highlight
-              tooltip="Net Profit = Revenue − COGS − dépense Ads − expédition − frais de paiement − emballage − dépenses récurrentes (prorata)"
-              value={cur.net_profit_cents != null ? formatCurrency(cur.net_profit_cents) : "non renseigné"}
-              spark={cur.costs_configured ? board.timeline.map((p) => p.net_profit_cents ?? 0) : undefined}
-              delta={cmpDelta(cur.net_profit_cents, board.previous.net_profit_cents)} goodWhenUp
-              tone={cur.net_profit_cents != null ? (cur.net_profit_cents >= 0 ? "positive" : "negative") : undefined}
-              hint={cur.net_profit_cents != null
-                ? `dont ${formatCurrency(cur.expenses_prorated_cents)} de dépenses récurrentes`
-                : "Renseigne tes coûts"}
-              cta={cur.net_profit_cents == null ? "/ecom/settings?tab=couts" : undefined} />
-            <Kpi label="Net Margin"
-              value={cur.net_margin != null ? `${(cur.net_margin * 100).toFixed(1)} %` : "non renseigné"}
-              delta={cmpDelta(cur.net_margin, board.previous.net_margin)} goodWhenUp
-              tooltip="Net Margin = Net Profit ÷ Revenue"
-              hint="Net Profit ÷ Revenue" />
-            <Kpi label="Couverture COGS"
-              value={cur.cogs.total_units > 0 ? `${Math.round(cur.cogs.coverage * 100)} %` : "—"}
-              hint={`${cur.cogs.covered_units}/${cur.cogs.total_units} unités avec coût renseigné`}
-              cta={cur.cogs.coverage < 1 && cur.cogs.total_units > 0 ? "/ecom/settings?tab=couts" : undefined} />
-          </div>
+          <ConfigurableKpiGrid metrics={metricsApi.data?.metrics ?? {}} selectedIds={kpiIds} />
 
           <GoalGauges />
 
-          <BlendedChart points={board.timeline} costsConfigured={cur.costs_configured}
-            compare={compareOn ? board.previous_timeline : null} />
+          <DashboardChart points={board.timeline} costsConfigured={cur.costs_configured} />
 
           {/* Vue journalière repliable (ex-Détail temporel) */}
           <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)]">
@@ -373,76 +335,3 @@ function Gauge({ label, g }: { label: string; g: NonNullable<ReturnType<typeof c
   );
 }
 
-// ── Insights automatiques (carte blanche A) ──────────────────────
-const INSIGHT_NATURE: Record<Insight["severity"], "loss" | "data" | "opportunity"> = {
-  critical: "loss",
-  warning: "data",
-  info: "opportunity",
-};
-
-function InsightsBlock({ insights }: { insights: Insight[] }) {
-  return (
-    <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
-      <div className="flex items-center gap-2 mb-3">
-        <Lightbulb size={14} className="text-[var(--ecom-brand-violet)]" />
-        <h3 className="text-[var(--ecom-fs-label)] font-bold text-[var(--ecom-navy)]">À regarder</h3>
-        <span className="text-[var(--ecom-fs-caption)] text-[var(--ecom-muted)]">règles automatiques sur ta donnée réelle, priorisées par impact</span>
-      </div>
-      <div className="grid gap-2">
-        {insights.map((i) => (
-          <InsightCard
-            key={i.id}
-            nature={INSIGHT_NATURE[i.severity]}
-            message={i.message}
-            impact={i.impact_cents > 0 ? formatCurrency(i.impact_cents) : undefined}
-            href={i.href}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function delta(cur: number | null | undefined, prev: number | null | undefined): number | null {
-  if (cur == null || prev == null || prev === 0) return null;
-  return Math.round(((cur - prev) / Math.abs(prev)) * 1000) / 10;
-}
-
-function Kpi({ label, value, hint, delta: d, goodWhenUp = false, highlight = false, tone, cta, spark, tooltip }: {
-  label: string; value: string; hint?: string; delta?: number | null;
-  goodWhenUp?: boolean; highlight?: boolean; tone?: "positive" | "negative"; cta?: string; spark?: number[]; tooltip?: string;
-}) {
-  const unset = value === "non renseigné";
-  const deltaColor = d == null || !goodWhenUp
-    ? "text-[var(--ecom-muted)]"
-    : (d >= 0 ? "text-[var(--ecom-pos)]" : "text-[var(--ecom-neg)]");
-  const valueColor = tone === "positive" ? "text-[var(--ecom-pos)]" : tone === "negative" ? "text-[var(--ecom-neg)]" : "text-[var(--ecom-navy)]";
-  return (
-    <div
-      className={`bg-[var(--ecom-surface-1)] rounded-[var(--ecom-r-md)] p-4 border shadow-[var(--ecom-shadow-sm)] transition-[transform,box-shadow,border-color] duration-[var(--ecom-t-fast)] ease-[var(--ecom-ease-out)] hover:-translate-y-0.5 hover:shadow-[var(--ecom-shadow-md)] hover:border-[var(--ecom-violet-mid)] ${highlight ? "border-2 border-[var(--ecom-brand-violet)]" : "border-[var(--ecom-card-border)]"}`}
-      title={tooltip}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <span className={`ecom-label ${tooltip ? "underline decoration-dotted decoration-[var(--ecom-violet-mid)] underline-offset-2 cursor-help" : ""}`}>{label}</span>
-        {d != null && (
-          <span className={`inline-flex items-center gap-0.5 text-[var(--ecom-fs-caption)] font-semibold ecom-tnum ${deltaColor}`}>
-            {d >= 0 ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
-            {d > 0 ? "+" : ""}{d} %
-          </span>
-        )}
-      </div>
-      {unset ? (
-        <div className="mt-1.5 text-[var(--ecom-fs-label)] italic text-[var(--ecom-muted)]">non renseigné</div>
-      ) : (
-        <div className={`text-[var(--ecom-fs-kpi)] font-bold mt-1 ecom-tnum tracking-[var(--ecom-tracking-tight)] leading-none ${valueColor}`}>
-          {value}
-        </div>
-      )}
-      {spark && spark.length > 1 && spark.some((v) => v !== 0) && <Sparkline values={spark} className="h-6 w-full mt-2" />}
-      {hint && <p className="text-[var(--ecom-fs-caption)] text-[var(--ecom-muted)] mt-1.5">{hint}</p>}
-      {cta && (
-        <Link href={cta as never} className="text-[var(--ecom-fs-caption)] font-medium text-[var(--ecom-brand-violet)] hover:underline mt-1 inline-block">Renseigner →</Link>
-      )}
-    </div>
-  );
-}
