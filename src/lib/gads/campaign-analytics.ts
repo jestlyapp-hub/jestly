@@ -76,12 +76,17 @@ export interface CampaignRow {
   google_conversions: number;
   google_conversion_value_cents: number;
   roas_google: number | null;
-  // ── Jestly (résolution unifiée + manuel campagne) ──
+  // ── Jestly (résolution unifiée + rattachement campagne) ──
   jestly_orders: number;
+  /** CA total attribué à la campagne = mesuré (utm) + rattachements manuels + overrides. */
   jestly_revenue_cents: number;
-  /** Part du CA Jestly issue de la couche manuelle (overrides campagne). */
+  /** CA rattaché AUTOMATIQUEMENT (utm_campaign mesuré) — jamais fondu avec le manuel. */
+  jestly_measured_revenue_cents: number;
+  /** CA rattaché À LA MAIN (rattachement campagne par commande + overrides campagne). */
   jestly_manual_revenue_cents: number;
   roas_jestly: number | null;
+  /** ROAS Jestly « mesuré seul » (utm), sans les rattachements manuels. */
+  roas_jestly_measured: number | null;
   cpa_cents: number | null;
   // ── Rentabilité ──
   profitable: boolean | null;
@@ -103,10 +108,14 @@ export interface CampaignAnalytics {
     roas_jestly_blended: number | null;
     roas_google_blended: number | null;
   };
-  /** Honnêteté sur le rattachement commande → campagne. */
+  /** Honnêteté sur le rattachement commande → campagne (au grain commande). */
   attribution_coverage: {
     google_revenue_cents: number;
     matched_to_campaign_cents: number;
+    /** Dont rattaché automatiquement (utm_campaign mesuré). */
+    matched_measured_cents: number;
+    /** Dont rattaché à la main (rattachement campagne par commande). */
+    matched_manual_cents: number;
     unmatched_cents: number;
   };
 }
@@ -119,6 +128,8 @@ export interface CampaignOrderInput {
   manual: { channel: Channel } | null;
   pixel: PixelResolution | null;
   utm_campaign: string | null;
+  /** Rattachement manuel à une campagne (id Google) — couche campagne. */
+  manual_campaign_id?: string | null;
 }
 
 /** Statut d'affichage : REMOVED ou fin passée → terminée ; sinon actif/pausé. */
@@ -142,8 +153,8 @@ function emptyRow(meta: CampaignMeta, today: string, dayCount: number): Campaign
     bidding_strategy: meta.bidding_strategy,
     spend_cents: 0, clicks: 0, impressions: 0, ctr: null, avg_cpc_cents: null,
     google_conversions: 0, google_conversion_value_cents: 0, roas_google: null,
-    jestly_orders: 0, jestly_revenue_cents: 0, jestly_manual_revenue_cents: 0,
-    roas_jestly: null, cpa_cents: null, profitable: null, sample_small: true,
+    jestly_orders: 0, jestly_revenue_cents: 0, jestly_measured_revenue_cents: 0, jestly_manual_revenue_cents: 0,
+    roas_jestly: null, roas_jestly_measured: null, cpa_cents: null, profitable: null, sample_small: true,
     has_activity: false, spend_by_day: new Array(dayCount).fill(0),
   };
 }
@@ -202,32 +213,45 @@ export function computeCampaignAnalytics(input: {
     return byNormName.get(normalizeCampaignName(raw)) ?? null;
   };
 
-  // ── CA Jestly par campagne (résolution unifiée : natif > pixel > manuel) ──
-  let googleRevenue = 0, matchedRevenue = 0;
+  // ── CA Jestly par campagne : résolution CAMPAGNE (parallèle à la résolution
+  // de canal). Hiérarchie : 1) utm_campaign mesuré → 2) rattachement manuel à
+  // une campagne (couche ajoutée) → sinon la vente reste au niveau canal.
+  // On ne rattache une campagne QUE pour les commandes résolues Google Ads.
+  let googleRevenue = 0, matchedRevenue = 0, measuredMatched = 0, manualMatched = 0;
   for (const o of orders) {
     const resolved = resolveUnifiedChannel({ measured: o.measured_channel, pixel: o.pixel, manual: o.manual });
     if (resolved !== "google_ads") continue;
     googleRevenue += o.total_cents;
-    const cid = resolveCampaignId(o.utm_campaign);
-    if (cid && rows.has(cid)) {
-      const row = rows.get(cid)!;
-      row.jestly_orders += 1;
-      row.jestly_revenue_cents += o.total_cents;
-      matchedRevenue += o.total_cents;
+
+    const measuredCid = resolveCampaignId(o.utm_campaign);
+    const manualCid = o.manual_campaign_id && idSet.has(o.manual_campaign_id) ? o.manual_campaign_id : null;
+    const cid = measuredCid ?? manualCid; // mesuré prioritaire, manuel en secours
+    if (!cid || !rows.has(cid)) continue;
+
+    const row = rows.get(cid)!;
+    row.jestly_orders += 1;
+    row.jestly_revenue_cents += o.total_cents;
+    matchedRevenue += o.total_cents;
+    if (measuredCid) {
+      row.jestly_measured_revenue_cents += o.total_cents;
+      measuredMatched += o.total_cents;
+    } else {
+      row.jestly_manual_revenue_cents += o.total_cents;
+      manualMatched += o.total_cents;
     }
   }
 
-  // ── Couche manuelle campagne (gads_manual_overrides.campaign_name) ──
+  // ── Couche manuelle « bulk » (gads_manual_overrides.campaign_name) ──
   // CA crédité à la main à Google Ads, éventuellement tagué d'une campagne.
+  // Non compté dans la couverture au grain commande (c'est un ajout de CA hors
+  // commande), mais compté dans le CA/ROAS de la campagne comme manuel.
   for (const ov of manualOverrides) {
     const cid = resolveCampaignId(ov.campaign_name);
-    googleRevenue += ov.revenue_cents;
     if (cid && rows.has(cid)) {
       const row = rows.get(cid)!;
       row.jestly_orders += ov.orders_count;
       row.jestly_revenue_cents += ov.revenue_cents;
       row.jestly_manual_revenue_cents += ov.revenue_cents;
-      matchedRevenue += ov.revenue_cents;
     }
   }
 
@@ -237,6 +261,7 @@ export function computeCampaignAnalytics(input: {
     row.avg_cpc_cents = row.clicks > 0 ? Math.round(row.spend_cents / row.clicks) : null;
     row.roas_google = computeRoas(row.google_conversion_value_cents, row.spend_cents);
     row.roas_jestly = computeRoas(row.jestly_revenue_cents, row.spend_cents);
+    row.roas_jestly_measured = computeRoas(row.jestly_measured_revenue_cents, row.spend_cents);
     row.cpa_cents = row.jestly_orders > 0 && row.spend_cents > 0 ? Math.round(row.spend_cents / row.jestly_orders) : null;
     row.sample_small = row.jestly_orders < SMALL_SAMPLE_THRESHOLD;
     row.has_activity = row.spend_cents > 0 || row.impressions > 0;
@@ -274,6 +299,8 @@ export function computeCampaignAnalytics(input: {
     attribution_coverage: {
       google_revenue_cents: googleRevenue,
       matched_to_campaign_cents: matchedRevenue,
+      matched_measured_cents: measuredMatched,
+      matched_manual_cents: manualMatched,
       unmatched_cents: Math.max(0, googleRevenue - matchedRevenue),
     },
   };
@@ -343,7 +370,12 @@ export function computeCampaignInsights(a: CampaignAnalytics, limit = 6): Campai
 }
 
 // ── Chargement DB ────────────────────────────────────────────────
-function toOrderInput(o: DbOrderRow, manual: { channel: Channel } | null, pixel: PixelResolution | null): CampaignOrderInput {
+function toOrderInput(
+  o: DbOrderRow,
+  manual: { channel: Channel } | null,
+  pixel: PixelResolution | null,
+  manualCampaignId: string | null,
+): CampaignOrderInput {
   return {
     created_at: o.created_at,
     total_cents: Math.round((o.total_price ?? 0) * 100),
@@ -351,6 +383,7 @@ function toOrderInput(o: DbOrderRow, manual: { channel: Channel } | null, pixel:
     manual,
     pixel,
     utm_campaign: o.utm_campaign,
+    manual_campaign_id: manualCampaignId,
   };
 }
 
@@ -384,7 +417,7 @@ export async function getCampaignAnalytics(userId: string, range: DateRange): Pr
 
   const orderInputs: CampaignOrderInput[] = (orders as DbOrderRow[]).map((o) => {
     const m = manualByOrder.get(o.id);
-    return toOrderInput(o, m ? { channel: m.channel } : null, pixelByOrder.get(o.id) ?? null);
+    return toOrderInput(o, m ? { channel: m.channel } : null, pixelByOrder.get(o.id) ?? null, m?.campaign_id ?? null);
   });
 
   return computeCampaignAnalytics({
@@ -396,4 +429,72 @@ export async function getCampaignAnalytics(userId: string, range: DateRange): Pr
     be_roas: board?.current?.be_roas ?? null,
     today: todayParis(),
   });
+}
+
+// ── Commandes Google Ads rattachables (sans campagne) ────────────
+export interface AttachableOrder {
+  order_id: string;
+  name: string | null;
+  created_at: string;
+  total_cents: number;
+  products: string[];
+  /** Origine de la résolution canal Google Ads : mesuré / pixel / manuel. */
+  origin: "measured" | "pixel" | "manual";
+}
+
+/**
+ * Commandes résolues Google Ads (mesuré > pixel > manuel) qui ne sont rattachées
+ * à AUCUNE campagne (ni utm_campaign exploitable, ni rattachement manuel) — les
+ * candidates du panneau « Rattacher des ventes » du détail campagne.
+ * Scopée par user_id (isolation) via loadOrdersAndManual.
+ */
+export async function getUnattributedGoogleOrders(userId: string, range: DateRange): Promise<AttachableOrder[]> {
+  const supabase = createAdminClient();
+  const [{ orders, manualByOrder, pixelByOrder }, campaigns] = await Promise.all([
+    loadOrdersAndManual(userId, range),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (supabase.from("gads_campaigns") as any)
+      .select("campaign_id, name")
+      .eq("user_id", userId)
+      .then(({ data }: { data: Array<{ campaign_id: string; name: string }> | null }) => data ?? []),
+  ]);
+
+  const idSet = new Set((campaigns as Array<{ campaign_id: string }>).map((c) => c.campaign_id));
+  const byNormName = new Map<string, string>();
+  for (const c of campaigns as Array<{ campaign_id: string; name: string }>) {
+    const norm = normalizeCampaignName(c.name);
+    if (!byNormName.has(norm)) byNormName.set(norm, c.campaign_id);
+  }
+  const resolveCid = (utm: string | null): string | null => {
+    if (!utm) return null;
+    const raw = utm.trim();
+    if (idSet.has(raw)) return raw;
+    return byNormName.get(normalizeCampaignName(raw)) ?? null;
+  };
+
+  const out: AttachableOrder[] = [];
+  for (const o of orders as DbOrderRow[]) {
+    const m = manualByOrder.get(o.id);
+    const pixel = pixelByOrder.get(o.id) ?? null;
+    const measured = deriveMeasuredChannel(o);
+    const resolved = resolveUnifiedChannel({ measured, pixel, manual: m ? { channel: m.channel } : null });
+    if (resolved !== "google_ads") continue;
+    // Déjà rattachée à une campagne (mesurée ou manuelle) → pas candidate.
+    if (resolveCid(o.utm_campaign)) continue;
+    if (m?.campaign_id && idSet.has(m.campaign_id)) continue;
+
+    const origin: AttachableOrder["origin"] = measured === "google_ads"
+      ? "measured"
+      : pixel?.resolved_source === "google_ads" ? "pixel" : "manual";
+    out.push({
+      order_id: o.id,
+      name: o.name,
+      created_at: o.created_at,
+      total_cents: Math.round((o.total_price ?? 0) * 100),
+      products: (o.line_items ?? []).map((li) => li.title?.trim() || "(produit sans titre)").slice(0, 4),
+      origin,
+    });
+  }
+  // Les plus récentes d'abord (les plus faciles à qualifier de mémoire).
+  return out.sort((a, b) => b.created_at.localeCompare(a.created_at));
 }

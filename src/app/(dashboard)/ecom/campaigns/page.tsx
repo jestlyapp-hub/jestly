@@ -195,8 +195,10 @@ export default function CampaignsPage() {
           <Info size={13} className="text-[#8A8A88] shrink-0 mt-0.5" />
           <span>
             <span className="font-semibold text-[var(--ecom-navy)]">Rattachement à une campagne : {coveragePct}%</span> du CA Google Ads résolu
-            ({formatCurrency(cov.matched_to_campaign_cents)} sur {formatCurrency(cov.google_revenue_cents)}).
-            Le reste provient de clics auto-taggés (gclid) sans <code className="text-[10px]">utm_campaign</code> exploitable : il est compté au niveau du canal, jamais réparti au hasard entre campagnes. Le <span className="font-medium">ROAS Google</span> reste, lui, disponible pour chaque campagne.
+            ({formatCurrency(cov.matched_to_campaign_cents)} sur {formatCurrency(cov.google_revenue_cents)}
+            {cov.matched_manual_cents > 0 && <> · dont {formatCurrency(cov.matched_manual_cents)} rattaché à la main</>}).
+            Le reste ({formatCurrency(cov.unmatched_cents)}) provient de clics auto-taggés (gclid) sans <code className="text-[10px]">utm_campaign</code> exploitable : il reste au niveau du canal, jamais réparti au hasard.
+            Ouvre une campagne → <span className="font-medium text-[var(--ecom-brand-violet)]">« Rattacher des ventes »</span> pour l&apos;affecter à la main et faire monter son ROAS Jestly.
           </span>
         </div>
       )}

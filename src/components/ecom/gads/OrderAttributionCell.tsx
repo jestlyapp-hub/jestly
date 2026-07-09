@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Check, Loader2, RotateCcw } from "lucide-react";
+import { AlertTriangle, Check, Loader2, RotateCcw, Megaphone } from "lucide-react";
 import { apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
 import { useAnalyticsInvalidation } from "@/lib/hooks/use-analytics-invalidation";
@@ -149,6 +149,14 @@ export default function OrderAttributionCell({ order, onSaved }: Props) {
           </button>
         )}
       </div>
+      {/* Badge de rattachement à une campagne (couche campagne, honnêteté « manuel »).
+          Le rattachement se pose depuis le détail campagne → « Rattacher des ventes ». */}
+      {order.manual?.campaign_id && (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#EEF2FF] text-[#4338CA] border border-[#C7D2FE] text-[10px] font-medium"
+          title="Vente rattachée à la main à une campagne Google Ads (résolution Jestly manuelle)">
+          <Megaphone size={9} /> {order.manual.campaign_name ?? "campagne"} · manuel
+        </span>
+      )}
       {isGhostGuess && (
         <p className="text-[10px] text-amber-700 flex items-start gap-1">
           <AlertTriangle size={10} className="shrink-0 mt-[1px]" />

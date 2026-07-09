@@ -36,7 +36,7 @@ export interface AttributionOrderRow {
   fulfillment_status: string | null;
   tracking_status: "tracked" | "ghost" | "unmatched" | null;
   measured_channel: Exclude<Channel, "ghost"> | null;
-  manual: { channel: Channel; confidence: ManualConfidence | null; note: string | null } | null;
+  manual: { channel: Channel; confidence: ManualConfidence | null; note: string | null; campaign_id: string | null; campaign_name?: string | null } | null;
   /** Source récupérée par le pixel Jestly — toujours distincte du natif Shopify. */
   pixel: PixelResolution | null;
   effective_channel: Exclude<Channel, "ghost"> | null;
@@ -223,6 +223,8 @@ interface DbManualRow {
   channel: Channel;
   confidence: ManualConfidence | null;
   note: string | null;
+  /** Rattachement manuel à une campagne Google Ads précise (couche campagne). */
+  campaign_id: string | null;
 }
 
 
@@ -284,7 +286,7 @@ export async function loadOrdersAndManual(userId: string, range: DateRange): Pro
     const orderIds = orders.map((o) => o.id);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: manual, error: manualError } = await (supabase.from("order_manual_attribution") as any)
-      .select("order_id, channel, confidence, note")
+      .select("order_id, channel, confidence, note, campaign_id")
       .eq("user_id", userId)
       .in("order_id", orderIds);
     if (manualError) throw new Error(`Lecture order_manual_attribution échouée : ${manualError.message}`);
@@ -326,7 +328,7 @@ function toAttributionRow(
 ): AttributionOrderRow {
   const measured = deriveMeasuredChannel(o);
   const manualObj = manual
-    ? { channel: manual.channel, confidence: manual.confidence, note: manual.note }
+    ? { channel: manual.channel, confidence: manual.confidence, note: manual.note, campaign_id: manual.campaign_id }
     : null;
   return {
     order_id: o.id,
@@ -356,6 +358,25 @@ export async function getOrdersAttribution(userId: string, range: DateRange): Pr
   ]);
 
   const rows = orders.map((o) => toAttributionRow(o, manualByOrder.get(o.id), pixelByOrder.get(o.id)));
+
+  // Résout le NOM de la campagne rattachée à la main (pour le badge « campagne ·
+  // manuel »). Scopé par user_id (isolation) — une seule requête.
+  const attachedIds = [...new Set(rows.map((r) => r.manual?.campaign_id).filter((v): v is string => v != null))];
+  if (attachedIds.length > 0) {
+    const supabase = createAdminClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: camps } = await (supabase.from("gads_campaigns") as any)
+      .select("campaign_id, name")
+      .eq("user_id", userId)
+      .in("campaign_id", attachedIds);
+    const nameById = new Map<string, string>(
+      ((camps ?? []) as Array<{ campaign_id: string; name: string }>).map((c) => [c.campaign_id, c.name]),
+    );
+    for (const r of rows) {
+      if (r.manual?.campaign_id) r.manual.campaign_name = nameById.get(r.manual.campaign_id) ?? null;
+    }
+  }
+
   const channels = computeChannelStats(
     rows.map((r) => ({
       total_cents: r.total_cents,
