@@ -3,7 +3,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingCart, Package, Users, Crosshair, Settings } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Users, Crosshair, Megaphone, Settings } from "lucide-react";
 import { formatRelativeDate } from "@/lib/shopify/formatters";
 import AccountMemoryBanner from "@/components/ecom/AccountMemoryBanner";
 import EcomGlobalBar from "@/components/ecom/EcomGlobalBar";
@@ -25,6 +25,7 @@ const NAV: { href: string; label: string; icon: typeof LayoutDashboard }[] = [
   { href: "/ecom", label: "Dashboard", icon: LayoutDashboard },
   { href: "/ecom/orders", label: "Commandes", icon: ShoppingCart },
   { href: "/ecom/products", label: "Produits", icon: Package },
+  { href: "/ecom/campaigns", label: "Campagnes", icon: Megaphone },
   { href: "/ecom/attribution", label: "Attribution", icon: Crosshair },
   { href: "/ecom/customers", label: "Clients", icon: Users },
   { href: "/ecom/settings", label: "Réglages", icon: Settings },

@@ -95,12 +95,15 @@ export interface GaqlCampaignDailyRow {
 /**
  * Exécute une requête GAQL (endpoint search, paginé via nextPageToken).
  * LECTURE SEULE — cet appel ne peut rien modifier sur le compte Ads.
+ *
+ * Générique sur la forme de ligne : le grain campagne/jour est le défaut, mais
+ * les requêtes campagnes/produits (onglet Campagnes) passent leur propre type.
  */
-export async function searchGaql(cfg: GoogleAdsConfig, query: string): Promise<GaqlCampaignDailyRow[]> {
+export async function searchGaql<T = GaqlCampaignDailyRow>(cfg: GoogleAdsConfig, query: string): Promise<T[]> {
   const accessToken = await mintAccessToken(cfg);
   const url = `https://googleads.googleapis.com/${cfg.apiVersion}/customers/${cfg.customerId}/googleAds:search`;
 
-  const rows: GaqlCampaignDailyRow[] = [];
+  const rows: T[] = [];
   let pageToken: string | undefined;
   do {
     const res = await fetch(url, {
@@ -123,7 +126,7 @@ export async function searchGaql(cfg: GoogleAdsConfig, query: string): Promise<G
       throw new GoogleAdsApiError(`Requête Google Ads échouée (${res.status})${hint} ${body.slice(0, 300)}`, res.status);
     }
 
-    const json = (await res.json()) as { results?: GaqlCampaignDailyRow[]; nextPageToken?: string };
+    const json = (await res.json()) as { results?: T[]; nextPageToken?: string };
     rows.push(...(json.results ?? []));
     pageToken = json.nextPageToken;
   } while (pageToken);
