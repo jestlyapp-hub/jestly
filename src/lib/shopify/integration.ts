@@ -42,21 +42,47 @@ export interface DecryptedShopifyIntegration {
   status: string;
 }
 
-/** Charge l'intégration Shopify active d'un user et décrypte le secret. */
+/**
+ * Charge une intégration Shopify active d'un user et décrypte le secret.
+ *
+ * Multi-boutiques : si `integrationId` est fourni (et appartient au user), on
+ * charge CETTE boutique ; sinon on renvoie la boutique PRINCIPALE (la plus
+ * ancienne). Ne lève jamais d'erreur quand l'utilisateur a plusieurs boutiques
+ * actives (l'ancien `.maybeSingle()` cassait dès la 2e).
+ */
 export async function getActiveShopifyIntegration(
   userId: string,
+  integrationId?: string | null,
 ): Promise<DecryptedShopifyIntegration | null> {
   const supabase = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data, error } = await (supabase.from("integrations") as any)
+  let query = (supabase.from("integrations") as any)
+    .select("*")
+    .eq("user_id", userId)
+    .eq("provider", "shopify")
+    .eq("status", "active");
+  if (integrationId) query = query.eq("id", integrationId);
+  // Boutique principale (la plus ancienne) par défaut ; jamais d'erreur sur >1.
+  const { data, error } = await query.order("created_at", { ascending: true }).limit(1);
+
+  const row = (data ?? [])[0];
+  if (error || !row) return null;
+  return decryptIntegration(row as IntegrationRowV2);
+}
+
+/** Toutes les intégrations Shopify actives d'un user, décryptées (principale d'abord). */
+export async function listActiveShopifyIntegrations(
+  userId: string,
+): Promise<DecryptedShopifyIntegration[]> {
+  const supabase = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase.from("integrations") as any)
     .select("*")
     .eq("user_id", userId)
     .eq("provider", "shopify")
     .eq("status", "active")
-    .maybeSingle();
-
-  if (error || !data) return null;
-  return decryptIntegration(data as IntegrationRowV2);
+    .order("created_at", { ascending: true });
+  return ((data ?? []) as IntegrationRowV2[]).map(decryptIntegration);
 }
 
 export function decryptIntegration(row: IntegrationRowV2): DecryptedShopifyIntegration {

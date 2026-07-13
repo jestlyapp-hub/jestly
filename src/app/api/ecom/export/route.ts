@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { resolveShopifyIntegration, requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 
 export async function GET(req: NextRequest) {
   const auth = await getAuthUser();
@@ -15,15 +16,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "type invalide" }, { status: 400 });
   }
 
-  // Récupérer l'intégration active
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: integration } = await (supabase.from("integrations") as any)
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("provider", "shopify")
-    .eq("status", "active")
-    .maybeSingle();
-  if (!integration) return NextResponse.json({ error: "Aucune intégration" }, { status: 404 });
+  // Récupérer la boutique ciblée (sélecteur) ou la principale par défaut.
+  const resolved = await resolveShopifyIntegration(supabase, user.id, requestedIntegrationId(req));
+  if (!resolved) return NextResponse.json({ error: "Aucune intégration" }, { status: 404 });
+  const integration = resolved.integration;
 
   let csv = "";
   let filename = "";

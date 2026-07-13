@@ -14,13 +14,15 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Store, CheckCircle2, AlertCircle, Loader2, ArrowRight, ArrowLeft,
-  ExternalLink, ShieldCheck, ChevronDown, ChevronRight,
+  ExternalLink, ShieldCheck, ChevronDown, ChevronRight, X,
 } from "lucide-react";
 import { apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
 
 interface Props {
   onConnected: () => void;
+  /** Si fourni, affiche une croix de fermeture (ex. ajout d'une 2e boutique). */
+  onClose?: () => void;
 }
 
 type Step = "intro" | "domain" | "creds" | "tested" | "connecting";
@@ -45,7 +47,7 @@ interface TestedShop {
   myshopifyDomain?: string;
 }
 
-export default function SetupModalV2({ onConnected }: Props) {
+export default function SetupModalV2({ onConnected, onClose }: Props) {
   const [step, setStep] = useState<Step>("intro");
   const [shopDomain, setShopDomain] = useState("");
   const [clientId, setClientId] = useState("");
@@ -105,8 +107,17 @@ export default function SetupModalV2({ onConnected }: Props) {
         initial={{ opacity: 0, y: 20, scale: 0.98 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-        className="w-full max-w-xl bg-white border border-[#E6E6E4] rounded-2xl shadow-xl p-8"
+        className="relative w-full max-w-xl bg-white border border-[#E6E6E4] rounded-2xl shadow-xl p-8"
       >
+        {onClose && (
+          <button
+            onClick={onClose}
+            aria-label="Fermer"
+            className="absolute top-4 right-4 w-8 h-8 rounded-lg flex items-center justify-center text-[#8A8A88] hover:bg-[#F7F7F5] hover:text-[#191919] transition-colors"
+          >
+            <X size={18} />
+          </button>
+        )}
         {/* Progress dots */}
         <div className="flex items-center gap-1.5 mb-6">
           {[0, 1, 2, 3].map((i) => (

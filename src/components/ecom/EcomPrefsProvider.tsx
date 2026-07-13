@@ -11,10 +11,12 @@
  * user courant. Si le compte change dans le même navigateur, les prefs de
  * l'autre compte ne sont jamais réutilisées (reset au défaut).
  */
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { SWRConfig } from "swr";
 import { useApi } from "@/lib/hooks/use-api";
 import { parisDaysAgo, todayParis } from "@/lib/paris-time";
+import { EcomShopContext, ECOM_SWR_USE } from "./ecom-shop-context";
 
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_LABEL = "30 derniers jours";
@@ -23,6 +25,16 @@ export interface EcomRange {
   from: string;
   to: string;
   label: string;
+}
+
+/** Boutique Shopify du user (vue légère pour le sélecteur). */
+export interface EcomShopLite {
+  id: string;
+  shop_domain: string;
+  status: string;
+  last_sync_at: string | null;
+  metadata: { shop_name?: string; currency?: string } & Record<string, unknown>;
+  sync_state?: { initial_sync_completed: boolean; initial_sync_progress: Record<string, unknown> };
 }
 
 function defaultRange(): EcomRange {
@@ -36,11 +48,20 @@ interface Ctx {
   /** Lecture/écriture d'une préférence persistée, namespacée par user. */
   getPref: <T>(key: string, fallback: T) => T;
   setPref: <T>(key: string, value: T) => void;
+  /** Boutiques du user (principale d'abord). */
+  shops: EcomShopLite[];
+  /** id de la boutique sélectionnée (null si aucune). */
+  selectedShopId: string | null;
+  /** Boutique sélectionnée résolue (ou null). */
+  selectedShop: EcomShopLite | null;
+  /** Change la boutique active (persistée par user). */
+  setSelectedShopId: (id: string) => void;
 }
 
 const EcomPrefsContext = createContext<Ctx | null>(null);
 
 const RANGE_KEY = "jestly_ecom_range";
+const SHOP_KEY = "jestly_ecom_shop";
 const prefStorageKey = (key: string) => `jestly_ecom_pref__${key}`;
 
 /** Lit une valeur estampillée { u, v } ; renvoie fallback si autre compte/absent. */
@@ -64,7 +85,13 @@ function writeStamped<T>(storageKey: string, userKey: string, value: T): void {
   }
 }
 
-export function EcomPrefsProvider({ children }: { children: React.ReactNode }) {
+export function EcomPrefsProvider({
+  children,
+  shops = [],
+}: {
+  children: React.ReactNode;
+  shops?: EcomShopLite[];
+}) {
   const sp = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -120,9 +147,52 @@ export function EcomPrefsProvider({ children }: { children: React.ReactNode }) {
     writeStamped(prefStorageKey(key), userKey, value);
   }, [userKey]);
 
+  // ── Boutique sélectionnée (multi-boutiques) ────────────────────────
+  // Défaut : la boutique principale (shops[0]). La préférence persistée n'est
+  // appliquée qu'une fois le user résolu (isolation) ET si elle pointe encore
+  // vers une boutique existante (sinon on retombe sur la principale).
+  const primaryId = shops[0]?.id ?? null;
+  const [selectedShopId, setSelectedShopIdState] = useState<string | null>(primaryId);
+  const shopHydratedFor = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (userKey === "anon") return;
+    if (shopHydratedFor.current !== userKey) {
+      shopHydratedFor.current = userKey;
+      const stored = readStamped<string | null>(prefStorageKey(SHOP_KEY), userKey, null);
+      if (stored && shops.some((s) => s.id === stored)) {
+        setSelectedShopIdState(stored);
+        return;
+      }
+    }
+    // Garde-fou : si la sélection courante n'existe plus (boutique déconnectée),
+    // retomber sur la principale.
+    setSelectedShopIdState((cur) => (cur && shops.some((s) => s.id === cur) ? cur : primaryId));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userKey, primaryId, shops.length]);
+
+  const setSelectedShopId = useCallback((id: string) => {
+    setSelectedShopIdState(id);
+    if (userKey !== "anon") writeStamped(prefStorageKey(SHOP_KEY), userKey, id);
+  }, [userKey]);
+
+  const selectedShop = useMemo(
+    () => shops.find((s) => s.id === selectedShopId) ?? null,
+    [shops, selectedShopId],
+  );
+
+  const ctx: Ctx = {
+    range, setRange, userKey, getPref, setPref,
+    shops, selectedShopId, selectedShop, setSelectedShopId,
+  };
+
   return (
-    <EcomPrefsContext.Provider value={{ range, setRange, userKey, getPref, setPref }}>
-      {children}
+    <EcomPrefsContext.Provider value={ctx}>
+      <EcomShopContext.Provider value={selectedShopId}>
+        <SWRConfig value={{ use: ECOM_SWR_USE }}>
+          {children}
+        </SWRConfig>
+      </EcomShopContext.Provider>
     </EcomPrefsContext.Provider>
   );
 }
@@ -138,6 +208,10 @@ export function useEcomPrefs(): Ctx {
       userKey: "anon",
       getPref: <T,>(_k: string, f: T) => f,
       setPref: () => {},
+      shops: [],
+      selectedShopId: null,
+      selectedShop: null,
+      setSelectedShopId: () => {},
     };
   }
   return ctx;

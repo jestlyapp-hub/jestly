@@ -116,21 +116,23 @@ export async function matchPixelAttributionForUser(userId: string): Promise<Pixe
   const shopIds = ((shops ?? []) as Array<{ id: string }>).map((s) => s.id);
   if (shopIds.length === 0) return result;
 
+  // Multi-boutiques : matcher sur les commandes de TOUTES les boutiques actives
+  // du user (le sid pixel est global). Ne casse pas avec 2 boutiques.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: integ } = await (supabase.from("integrations") as any)
+  const { data: integs } = await (supabase.from("integrations") as any)
     .select("id")
     .eq("user_id", userId)
     .eq("provider", "shopify")
-    .eq("status", "active")
-    .maybeSingle();
-  if (!integ) return result;
+    .eq("status", "active");
+  const integrationIds = ((integs ?? []) as Array<{ id: string }>).map((i) => i.id);
+  if (integrationIds.length === 0) return result;
 
   // Commandes des 90 derniers jours pas encore résolues par le pixel.
   const since = new Date(Date.now() - 90 * 24 * 3600 * 1000).toISOString();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: orderRows } = await (supabase.from("shopify_orders") as any)
     .select("id, shopify_order_id, created_at, tracking_status, note_attributes")
-    .eq("integration_id", integ.id)
+    .in("integration_id", integrationIds)
     .is("cancelled_at", null)
     .gte("created_at", since);
   const orders = (orderRows ?? []) as OrderRow[];

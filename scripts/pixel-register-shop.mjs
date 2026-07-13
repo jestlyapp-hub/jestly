@@ -3,8 +3,14 @@
  * Enregistre une boutique dans pixel_shops et imprime son pixel_id + le
  * snippet à coller dans le thème Shopify.
  *
- * Usage : node scripts/pixel-register-shop.mjs <domaine> [label]
+ * Usage : node scripts/pixel-register-shop.mjs <domaine> [label] [--user <user_id>]
  * Ex.   : node scripts/pixel-register-shop.mjs lhorlogemurale.fr "L'Horloge Murale"
+ *         node scripts/pixel-register-shop.mjs mignou.fr "Mignou" --user b13177ae-...
+ *
+ * Le propriétaire est résolu ainsi :
+ *   1. --user <id> (ou env PIXEL_SHOP_USER_ID) si fourni ;
+ *   2. sinon, l'UNIQUE utilisateur Shopify actif (échoue si plusieurs — cas
+ *      multi-tenant : préciser --user).
  */
 import fs from "node:fs";
 import path from "node:path";
@@ -20,10 +26,17 @@ for (const line of fs.readFileSync(path.join(__dirname, "..", ".env.local"), "ut
   if (!process.env[k]) process.env[k] = v;
 }
 
-const domain = (process.argv[2] ?? "").toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-const label = process.argv[3] ?? domain;
+const args = process.argv.slice(2);
+const userFlagIdx = args.indexOf("--user");
+let explicitUserId = process.env.PIXEL_SHOP_USER_ID ?? null;
+if (userFlagIdx >= 0) {
+  explicitUserId = args[userFlagIdx + 1] ?? null;
+  args.splice(userFlagIdx, 2);
+}
+const domain = (args[0] ?? "").toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+const label = args[1] ?? domain;
 if (!domain) {
-  console.error("Usage : node scripts/pixel-register-shop.mjs <domaine> [label]");
+  console.error("Usage : node scripts/pixel-register-shop.mjs <domaine> [label] [--user <user_id>]");
   process.exit(1);
 }
 
@@ -35,12 +48,15 @@ const sql = postgres({
 });
 
 try {
-  const users = await sql`SELECT DISTINCT user_id FROM public.integrations WHERE provider = 'shopify' AND status = 'active'`;
-  if (users.length !== 1) {
-    console.error(`✗ ${users.length} utilisateurs Shopify actifs — impossible de résoudre le propriétaire`);
-    process.exit(1);
+  let userId = explicitUserId;
+  if (!userId) {
+    const users = await sql`SELECT DISTINCT user_id FROM public.integrations WHERE provider = 'shopify' AND status = 'active'`;
+    if (users.length !== 1) {
+      console.error(`✗ ${users.length} utilisateurs Shopify actifs — précise le propriétaire avec --user <user_id> (ou env PIXEL_SHOP_USER_ID)`);
+      process.exit(1);
+    }
+    userId = users[0].user_id;
   }
-  const userId = users[0].user_id;
 
   const [shop] = await sql`
     INSERT INTO public.pixel_shops (user_id, shop_domain, label)

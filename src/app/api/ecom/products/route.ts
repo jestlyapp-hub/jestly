@@ -1,15 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { resolveShopifyIntegration, requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 
 export async function GET(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
   const { user, supabase } = auth;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: integration } = await (supabase.from("integrations") as any)
-    .select("id").eq("user_id", user.id).eq("provider", "shopify").eq("status", "active").maybeSingle();
-  if (!integration) return NextResponse.json({ error: "Aucune intégration" }, { status: 404 });
+  const resolved = await resolveShopifyIntegration(supabase, user.id, requestedIntegrationId(req));
+  if (!resolved) return NextResponse.json({ error: "Aucune intégration" }, { status: 404 });
+  const integration = resolved.integration;
 
   const url = new URL(req.url);
   const search = url.searchParams.get("search");

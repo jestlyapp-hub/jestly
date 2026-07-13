@@ -186,6 +186,7 @@ export default function IntegrationsTab() {
           : undefined}
         actions={shopifyConnected ? [
           { label: "Resync", onClick: handleResyncShopify, variant: "secondary", loading: syncingShopify },
+          { label: "Ajouter une boutique", onClick: () => router.push("/ecom/settings?tab=integrations&add_shop=1"), variant: "secondary" },
           { label: "Déconnecter", onClick: handleDisconnectShopify, variant: "danger" },
         ] : [
           { label: "Connecter Shopify →", onClick: () => router.push("/ecom"), variant: "primary" },

@@ -82,8 +82,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error?.message ?? "Échec persistance" }, { status: 500 });
   }
 
-  // 3. Initial sync fire-and-forget
-  fireAndForgetInitialSync(auth.user.id, shop_domain).catch((e) => {
+  // 3. Initial sync fire-and-forget — résolu par integration_id (multi-boutiques :
+  // ne PAS passer par getActiveShopifyIntegration sans id, sinon la 2e boutique
+  // ne démarrerait jamais sa sync initiale quand une 1re est déjà active).
+  fireAndForgetInitialSync(auth.user.id, integration.id).catch((e) => {
     console.error("[ecom/connect] initial sync failed:", e);
   });
 
@@ -94,10 +96,10 @@ export async function POST(req: NextRequest) {
   });
 }
 
-async function fireAndForgetInitialSync(userId: string, shopDomain: string) {
+async function fireAndForgetInitialSync(userId: string, integrationId: string) {
   const { getActiveShopifyIntegration } = await import("@/lib/shopify/integration");
-  const integration = await getActiveShopifyIntegration(userId);
-  if (!integration || integration.shop_domain !== shopDomain) return;
+  const integration = await getActiveShopifyIntegration(userId, integrationId);
+  if (!integration) return;
   await initialFullSync({
     id: integration.id,
     user_id: integration.user_id,

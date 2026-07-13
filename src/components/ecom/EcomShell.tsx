@@ -3,19 +3,14 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ShoppingCart, Package, Users, Crosshair, Megaphone, Settings } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Package, Users, Crosshair, Megaphone, Settings, Loader2 } from "lucide-react";
 import { formatRelativeDate } from "@/lib/shopify/formatters";
 import AccountMemoryBanner from "@/components/ecom/AccountMemoryBanner";
 import EcomGlobalBar from "@/components/ecom/EcomGlobalBar";
-import { EcomPrefsProvider } from "@/components/ecom/EcomPrefsProvider";
+import { EcomPrefsProvider, useEcomPrefs, type EcomShopLite } from "@/components/ecom/EcomPrefsProvider";
 
 interface Props {
-  integration: {
-    id: string;
-    shop_domain: string;
-    last_sync_at: string | null;
-    metadata: { shop_name?: string; currency?: string };
-  };
+  shops: EcomShopLite[];
   children: React.ReactNode;
 }
 
@@ -32,13 +27,13 @@ const NAV: { href: string; label: string; icon: typeof LayoutDashboard }[] = [
   { href: "/ecom/settings", label: "Réglages", icon: Settings },
 ];
 
-export default function EcomShell({ integration, children }: Props) {
+export default function EcomShell({ shops, children }: Props) {
   const pathname = usePathname();
   const isActive = (href: string) =>
     href === "/ecom" ? pathname === href : pathname?.startsWith(href);
 
   return (
-    <EcomPrefsProvider>
+    <EcomPrefsProvider shops={shops}>
     <div>
       {/* Subnav */}
       <div className="border-b border-[var(--ecom-card-border)] bg-[var(--ecom-surface-1)] sticky top-0 z-30 shadow-[var(--ecom-shadow-sm)]">
@@ -63,18 +58,14 @@ export default function EcomShell({ integration, children }: Props) {
               );
             })}
           </nav>
-          <div className="text-[11px] text-[var(--ecom-muted)] hidden md:block">
-            <span className="font-semibold text-[var(--ecom-navy)]">{integration.metadata?.shop_name ?? integration.shop_domain}</span>
-            {integration.last_sync_at && (
-              <span className="ml-2">· MAJ {formatRelativeDate(integration.last_sync_at)}</span>
-            )}
-          </div>
+          <ShopHeaderInfo />
         </div>
       </div>
 
       <div className="bg-[var(--ecom-surface-0)] min-h-[calc(100vh-48px)]">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-5">
           <AccountMemoryBanner />
+          <ShopSyncBanner />
           <Suspense fallback={null}>
             <EcomGlobalBar />
           </Suspense>
@@ -83,5 +74,37 @@ export default function EcomShell({ integration, children }: Props) {
       </div>
     </div>
     </EcomPrefsProvider>
+  );
+}
+
+/** Nom de la boutique sélectionnée + fraîcheur de sa dernière sync. */
+function ShopHeaderInfo() {
+  const { selectedShop } = useEcomPrefs();
+  if (!selectedShop) return null;
+  return (
+    <div className="text-[11px] text-[var(--ecom-muted)] hidden md:block">
+      <span className="font-semibold text-[var(--ecom-navy)]">
+        {selectedShop.metadata?.shop_name ?? selectedShop.shop_domain}
+      </span>
+      {selectedShop.last_sync_at && (
+        <span className="ml-2">· MAJ {formatRelativeDate(selectedShop.last_sync_at)}</span>
+      )}
+    </div>
+  );
+}
+
+/** Bannière quand la boutique sélectionnée termine encore sa sync initiale. */
+function ShopSyncBanner() {
+  const { selectedShop } = useEcomPrefs();
+  if (!selectedShop || selectedShop.sync_state?.initial_sync_completed !== false) return null;
+  const name = selectedShop.metadata?.shop_name ?? selectedShop.shop_domain;
+  return (
+    <div className="flex items-center gap-2 bg-[var(--ecom-violet-light)] border border-[var(--ecom-violet-mid)] rounded-[var(--ecom-r-md)] px-4 py-2.5 mb-4 text-[12px] text-[var(--ecom-brand-violet)]">
+      <Loader2 size={14} className="animate-spin" />
+      <span>
+        <span className="font-semibold">Synchronisation initiale de {name} en cours</span>
+        {" "}— ses commandes et produits apparaîtront dans quelques instants.
+      </span>
+    </div>
   );
 }

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getBlendedBoard } from "@/lib/costs/blended";
+import { resolveShopifyIntegration, requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 import { parseRange } from "../../ads/_helpers";
 
 /**
@@ -22,7 +24,15 @@ export async function GET(req: NextRequest) {
     : undefined;
 
   try {
-    const board = await getBlendedBoard(auth.user.id, range, compare);
+    // Boutique ciblée (sélecteur) ou principale. La dépense Google Ads n'est
+    // imputée qu'à la boutique principale (propriétaire du compte Ads) : une
+    // boutique secondaire sans Ads (ex. Mignou) affiche revenue sans dépense.
+    const supabase = createAdminClient();
+    const resolved = await resolveShopifyIntegration(supabase, auth.user.id, requestedIntegrationId(url));
+    const board = await getBlendedBoard(auth.user.id, range, compare, {
+      integrationId: resolved?.integration.id ?? null,
+      includeAdsSpend: resolved?.isPrimary ?? true,
+    });
     return NextResponse.json({ ...board, computed_at: new Date().toISOString() });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
