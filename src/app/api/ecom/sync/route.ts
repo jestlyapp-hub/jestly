@@ -18,11 +18,15 @@ import { deltaSync } from "@/lib/shopify/sync";
 export const maxDuration = 60;
 
 // ── Manuel (user-triggered) ──────────────────────────────────────
-export async function POST() {
+export async function POST(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
 
-  const integration = await getActiveShopifyIntegration(auth.user.id);
+  // Multi-boutiques : resync de la boutique ciblée (body.integration_id) ou de
+  // la principale par défaut.
+  const body = await req.json().catch(() => null);
+  const integrationId = body && typeof body.integration_id === "string" ? body.integration_id : null;
+  const integration = await getActiveShopifyIntegration(auth.user.id, integrationId);
   if (!integration) {
     return NextResponse.json({ error: "Aucune intégration Shopify active" }, { status: 404 });
   }

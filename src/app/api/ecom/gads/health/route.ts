@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveShopifyIntegration, requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 import { extractJestlySid } from "@/lib/pixel/matcher";
 
 /**
@@ -9,19 +10,17 @@ import { extractJestlySid } from "@/lib/pixel/matcher";
  * sessions pixel 24 h, commandes étiquetées par le cart attribute, matching,
  * taux de réponse survey.
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
   const userId = auth.user.id;
   const supabase = createAdminClient();
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: integ } = await (supabase.from("integrations") as any)
-    .select("id, last_sync_at")
-    .eq("user_id", userId)
-    .eq("provider", "shopify")
-    .eq("status", "active")
-    .maybeSingle();
+  // Boutique ciblée par le sélecteur (sinon principale). Scope les états de
+  // sync Shopify + les commandes à cette boutique ; le pixel/survey reste
+  // affiché par boutique pixel (toutes boutiques du user).
+  const resolved = await resolveShopifyIntegration(supabase, userId, requestedIntegrationId(req));
+  const integ = resolved?.integration ?? null;
 
   const since30d = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
   const since24h = new Date(Date.now() - 24 * 3600 * 1000).toISOString();

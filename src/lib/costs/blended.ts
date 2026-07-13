@@ -3,6 +3,7 @@
  * Toute la logique de calcul vit dans engine.ts (pur, testé).
  */
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveShopifyIntegrationId } from "@/lib/shopify/resolve-integration";
 import { getEcomSettings } from "@/lib/ads/roas-engine";
 import { computeRollingRoas } from "@/lib/ads/aggregator";
 import type { DateRange } from "@/lib/ads/types";
@@ -149,24 +150,35 @@ function previousRange(range: DateRange): DateRange {
   };
 }
 
+export interface BlendedBoardOptions {
+  /** Boutique ciblée (sélecteur). Défaut : la boutique principale du user. */
+  integrationId?: string | null;
+  /**
+   * Inclure la dépense Google Ads (gads_daily, au niveau user) dans le board.
+   * La dépense Ads n'est pas rattachée à une boutique précise : on ne l'impute
+   * qu'à la boutique propriétaire du compte Google Ads (la principale). Pour une
+   * boutique SANS Google Ads (ex. Mignou), `false` → dépense 0, MER/BE-ROAS
+   * calculés sans Ads (honnête plutôt que d'imputer la dépense LHM à Mignou).
+   * Défaut : true (rétro-compatible mono-boutique).
+   */
+  includeAdsSpend?: boolean;
+}
+
 export async function getBlendedBoard(
   userId: string,
   range: DateRange,
   compareRange?: DateRange,
+  options?: BlendedBoardOptions,
 ): Promise<BlendedBoard> {
   const supabase = createAdminClient();
+  const includeAdsSpend = options?.includeAdsSpend ?? true;
   const prev = compareRange ?? previousRange(range);
   // Bornes de chargement couvrant les deux périodes (comparaison libre incluse).
   const loadFrom = prev.from < range.from ? prev.from : range.from;
   const loadTo = prev.to > range.to ? prev.to : range.to;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: integ } = await (supabase.from("integrations") as any)
-    .select("id")
-    .eq("user_id", userId)
-    .eq("provider", "shopify")
-    .eq("status", "active")
-    .maybeSingle();
+  const integId = await resolveShopifyIntegrationId(supabase, userId, options?.integrationId);
+  const integ = integId ? { id: integId } : null;
 
   const [ordersBothPeriods, firstOrders, gadsRows, allGadsDates, costRows, expenseRows, settings] = await Promise.all([
     // Commandes des deux périodes en une requête (période précédente incluse)
@@ -190,18 +202,23 @@ export async function getBlendedBoard(
           .not("customer_id", "is", null)
           .then(({ data }: { data: Array<{ customer_id: string; created_at: string }> | null }) => data ?? [])
       : Promise.resolve([]),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("gads_daily") as any)
-      .select("date, cost_cents")
-      .eq("user_id", userId)
-      .gte("date", loadFrom)
-      .lte("date", loadTo)
-      .then(({ data }: { data: Array<{ date: string; cost_cents: number }> | null }) => data ?? []),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("gads_daily") as any)
-      .select("date")
-      .eq("user_id", userId)
-      .then(({ data }: { data: Array<{ date: string }> | null }) => [...new Set((data ?? []).map((r) => r.date))]),
+    // Dépense Google Ads (user-level) — court-circuitée pour une boutique sans Ads.
+    !includeAdsSpend
+      ? Promise.resolve([] as Array<{ date: string; cost_cents: number }>)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      : (supabase.from("gads_daily") as any)
+          .select("date, cost_cents")
+          .eq("user_id", userId)
+          .gte("date", loadFrom)
+          .lte("date", loadTo)
+          .then(({ data }: { data: Array<{ date: string; cost_cents: number }> | null }) => data ?? []),
+    !includeAdsSpend
+      ? Promise.resolve([] as string[])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      : (supabase.from("gads_daily") as any)
+          .select("date")
+          .eq("user_id", userId)
+          .then(({ data }: { data: Array<{ date: string }> | null }) => [...new Set((data ?? []).map((r) => r.date))]),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("ecom_product_costs") as any)
       .select("shopify_product_id, unit_cost_cents, effective_from")

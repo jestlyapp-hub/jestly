@@ -10,6 +10,7 @@
  * les autres canaux sont marqués « dépense non renseignée » (spend null).
  */
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveShopifyIntegrationId } from "@/lib/shopify/resolve-integration";
 import { computeRoas } from "@/lib/ads/roas-engine";
 import type { DateRange } from "@/lib/ads/types";
 import { filterRealOrders } from "@/lib/shopify/test-orders-filter";
@@ -242,16 +243,13 @@ interface DbPixelRow {
  * sous peine d'exposer le catalogue et les commandes des autres boutiques.
  * Renvoie null si l'utilisateur n'a pas d'intégration active.
  */
-export async function resolveActiveShopifyIntegrationId(userId: string): Promise<string | null> {
+export async function resolveActiveShopifyIntegrationId(
+  userId: string,
+  integrationId?: string | null,
+): Promise<string | null> {
   const supabase = createAdminClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: integ } = await (supabase.from("integrations") as any)
-    .select("id")
-    .eq("user_id", userId)
-    .eq("provider", "shopify")
-    .eq("status", "active")
-    .maybeSingle();
-  return integ?.id ?? null;
+  // Multi-boutiques : boutique demandée si fournie, sinon principale (jamais d'erreur sur >1).
+  return resolveShopifyIntegrationId(supabase, userId, integrationId);
 }
 
 export async function loadOrdersAndManual(userId: string, range: DateRange): Promise<{
@@ -260,19 +258,13 @@ export async function loadOrdersAndManual(userId: string, range: DateRange): Pro
   pixelByOrder: Map<string, PixelResolution>;
 }> {
   const supabase = createAdminClient();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: integ } = await (supabase.from("integrations") as any)
-    .select("id")
-    .eq("user_id", userId)
-    .eq("provider", "shopify")
-    .eq("status", "active")
-    .maybeSingle();
-  if (!integ) return { orders: [], manualByOrder: new Map(), pixelByOrder: new Map() };
+  const integId = await resolveShopifyIntegrationId(supabase, userId);
+  if (!integId) return { orders: [], manualByOrder: new Map(), pixelByOrder: new Map() };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("shopify_orders") as any)
     .select("id, name, total_price, customer_id, email, financial_status, fulfillment_status, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site, line_items")
-    .eq("integration_id", integ.id)
+    .eq("integration_id", integId)
     .is("cancelled_at", null)
     .gte("created_at", parisDayStartUtcIso(range.from))
     .lt("created_at", parisNextDayStartUtcIso(range.to))

@@ -49,14 +49,33 @@ const m = (value: number | null, previous: number | null, opts?: { series?: numb
   available: opts?.available ?? value != null,
 });
 
-export async function getDashboardMetrics(userId: string, range: DateRange): Promise<DashboardMetrics> {
+export interface DashboardMetricsOptions {
+  /** Boutique ciblée (sélecteur). Défaut : la boutique principale. */
+  integrationId?: string | null;
+  /**
+   * Inclure les métriques Google Ads (dépense, ROAS Google, clics…). Une
+   * boutique sans compte Google Ads (ex. Mignou) → false : les métriques Ads
+   * sont marquées indisponibles plutôt que d'afficher les chiffres LHM.
+   */
+  includeAds?: boolean;
+}
+
+export async function getDashboardMetrics(
+  userId: string,
+  range: DateRange,
+  options?: DashboardMetricsOptions,
+): Promise<DashboardMetrics> {
   const prev = previousRangeOf(range);
+  const includeAds = options?.includeAds ?? true;
+  // Boutique sans Google Ads → overview neutre (seuls clicks/impressions/spend/
+  // conversions/reported_roas sont lus ci-dessous). Double-cast assumé.
+  const emptyOv = { clicks: 0, impressions: 0, spend_cents: 0, conversions: 0, reported_roas: null } as unknown as Awaited<ReturnType<typeof getGadsOverview>>;
 
   const [board, ov, ovPrev, attribution] = await Promise.all([
-    getBlendedBoard(userId, range),
-    getGadsOverview(userId, range),
-    getGadsOverview(userId, prev),
-    getOrdersAttribution(userId, range).catch(() => null),
+    getBlendedBoard(userId, range, undefined, { integrationId: options?.integrationId, includeAdsSpend: includeAds }),
+    includeAds ? getGadsOverview(userId, range) : Promise.resolve(emptyOv),
+    includeAds ? getGadsOverview(userId, prev) : Promise.resolve(emptyOv),
+    includeAds ? getOrdersAttribution(userId, range).catch(() => null) : Promise.resolve(null),
   ]);
 
   const c = board.current;

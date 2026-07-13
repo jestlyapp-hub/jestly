@@ -4,6 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
+import { resolveShopifyIntegration, requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 import { filterRealOrders, isTestOrder } from "@/lib/shopify/test-orders-filter";
 import {
   deriveMeasuredChannel,
@@ -56,14 +57,9 @@ export async function GET(req: NextRequest) {
   const to = url.searchParams.get("to") ?? new Date().toISOString().slice(0, 10);
   const compare = url.searchParams.get("compare") === "1";
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: integration } = await (supabase.from("integrations") as any)
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("provider", "shopify")
-    .eq("status", "active")
-    .maybeSingle();
-  if (!integration) return NextResponse.json({ error: "Aucune intégration" }, { status: 404 });
+  const resolved = await resolveShopifyIntegration(supabase, user.id, requestedIntegrationId(req));
+  if (!resolved) return NextResponse.json({ error: "Aucune intégration" }, { status: 404 });
+  const integration = resolved.integration;
 
   const current = await buildPeriod(supabase, integration.id, from, to);
 

@@ -1,42 +1,51 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useApi } from "@/lib/hooks/use-api";
 import SetupModalV2 from "@/components/ecom/SetupModalV2";
 import EcomShell from "@/components/ecom/EcomShell";
 import EcomInitialSyncProgress from "@/components/ecom/EcomInitialSyncProgress";
 import { useAccountMemory } from "@/lib/hooks/use-account-memory";
+import type { EcomShopLite } from "@/components/ecom/EcomPrefsProvider";
 import { AlertTriangle, LogOut } from "lucide-react";
+
+interface ShopSyncState {
+  initial_sync_completed: boolean;
+  initial_sync_progress: Record<string, { synced: number; completed?: boolean }>;
+}
 
 interface SyncStateResponse {
   connected: boolean;
-  integration?: {
-    id: string;
-    shop_domain: string;
-    status: string;
-    last_sync_at: string | null;
-    last_error: string | null;
-    metadata: { shop_name?: string; currency?: string; timezone?: string };
-  };
-  sync_state?: {
-    initial_sync_completed: boolean;
-    initial_sync_progress: Record<string, { synced: number; completed?: boolean }>;
-  };
+  integration?: EcomShopLite;
+  sync_state?: ShopSyncState;
+  integrations?: EcomShopLite[];
 }
 
 export default function EcomLayout({ children }: { children: React.ReactNode }) {
   const { data, loading, mutate } = useApi<SyncStateResponse>("/api/integrations/shopify/sync-state");
   const memory = useAccountMemory();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const addingShop = searchParams.get("add_shop") === "1";
   const [pollInterval, setPollInterval] = useState<number | null>(null);
 
-  // Poll toutes les 2s pendant initial sync
+  // Poll toutes les 2s tant qu'une boutique n'a pas fini sa sync initiale
+  // (première boutique OU boutique fraîchement ajoutée).
+  const anySyncing = Boolean(
+    data?.connected && (data.integrations ?? []).some((i) => i.sync_state?.initial_sync_completed === false),
+  );
   useEffect(() => {
-    if (data?.connected && data.sync_state && !data.sync_state.initial_sync_completed) {
-      setPollInterval(2000);
-    } else {
-      setPollInterval(null);
-    }
-  }, [data]);
+    setPollInterval(anySyncing ? 2000 : null);
+  }, [anySyncing]);
+
+  const closeAddShop = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("add_shop");
+    const qs = params.toString();
+    router.replace((qs ? `${pathname}?${qs}` : pathname) as Parameters<typeof router.replace>[0]);
+  };
 
   useEffect(() => {
     if (pollInterval == null) return;
@@ -92,9 +101,26 @@ export default function EcomLayout({ children }: { children: React.ReactNode }) 
     return <SetupModalV2 onConnected={() => mutate()} />;
   }
 
-  if (data.sync_state && !data.sync_state.initial_sync_completed) {
-    return <EcomInitialSyncProgress progress={data.sync_state.initial_sync_progress} />;
+  const integrations = data.integrations ?? (data.integration ? [data.integration] : []);
+
+  // Première mise en route : tant que la boutique PRINCIPALE n'a pas terminé sa
+  // sync initiale, le module est inutilisable → écran de progression plein.
+  // Une boutique SECONDAIRE fraîchement ajoutée ne bloque pas : le shell reste
+  // affiché et une bannière par-boutique signale sa sync en cours.
+  const primary = integrations[0];
+  if (primary && primary.sync_state && !primary.sync_state.initial_sync_completed) {
+    return <EcomInitialSyncProgress progress={primary.sync_state.initial_sync_progress as Record<string, { synced: number; completed?: boolean }>} />;
   }
 
-  return <EcomShell integration={data.integration!}>{children}</EcomShell>;
+  return (
+    <EcomShell shops={integrations}>
+      {children}
+      {addingShop && (
+        <SetupModalV2
+          onConnected={() => { void mutate(); closeAddShop(); }}
+          onClose={closeAddShop}
+        />
+      )}
+    </EcomShell>
+  );
 }

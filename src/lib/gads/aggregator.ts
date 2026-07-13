@@ -15,6 +15,7 @@ import { computeRoas, getEcomSettings } from "@/lib/ads/roas-engine";
 import { computeRollingRoas, determinePeriodStatus } from "@/lib/ads/aggregator";
 import type { AggregatedProfitStatus, DateRange } from "@/lib/ads/types";
 import { filterRealOrders } from "@/lib/shopify/test-orders-filter";
+import { resolveShopifyIntegrationId } from "@/lib/shopify/resolve-integration";
 import { findMissingDates } from "./importer";
 import { deriveMeasuredChannel } from "./channels";
 import { parisDay, parisDayStartUtcIso, parisNextDayStartUtcIso } from "@/lib/paris-time";
@@ -145,17 +146,13 @@ async function loadGadsDaily(supabase: any, userId: string, range: DateRange): P
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function loadShopifyOrders(supabase: any, userId: string, range: DateRange): Promise<ShopifyOrderRow[]> {
-  const { data: integ } = await supabase.from("integrations")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("provider", "shopify")
-    .eq("status", "active")
-    .maybeSingle();
-  if (!integ) return [];
+  // Multi-boutiques : boutique principale par défaut (jamais d'erreur sur >1).
+  const integId = await resolveShopifyIntegrationId(supabase, userId);
+  if (!integId) return [];
 
   const { data, error } = await supabase.from("shopify_orders")
     .select("id, name, total_price, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site")
-    .eq("integration_id", integ.id)
+    .eq("integration_id", integId)
     .is("cancelled_at", null)
     .gte("created_at", parisDayStartUtcIso(range.from))
     .lt("created_at", parisNextDayStartUtcIso(range.to));
