@@ -387,32 +387,34 @@ function toOrderInput(
   };
 }
 
-export async function getCampaignAnalytics(userId: string, range: DateRange): Promise<CampaignAnalytics> {
+export async function getCampaignAnalytics(userId: string, range: DateRange, requestedIntegrationId?: string | null): Promise<CampaignAnalytics> {
   const supabase = createAdminClient();
   const { getBlendedBoard } = await import("@/lib/costs/blended");
+  const { resolveShopifyIntegrationId } = await import("@/lib/shopify/resolve-integration");
+  const integId = (await resolveShopifyIntegrationId(supabase, userId, requestedIntegrationId)) ?? "";
 
   const [{ orders, manualByOrder, pixelByOrder }, campaigns, daily, overrides, board] = await Promise.all([
-    loadOrdersAndManual(userId, range),
+    loadOrdersAndManual(userId, range, integId),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("gads_campaigns") as any)
       .select("campaign_id, name, status, channel_type, start_date, end_date, current_budget_cents, bidding_strategy, last_seen_at")
-      .eq("user_id", userId)
+      .eq("integration_id", integId)
       .then(({ data }: { data: CampaignMeta[] | null }) => data ?? []),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("gads_campaign_daily") as any)
       .select("campaign_id, date, cost_cents, clicks, impressions, conversions, conversion_value_cents")
-      .eq("user_id", userId)
+      .eq("integration_id", integId)
       .gte("date", range.from)
       .lte("date", range.to)
       .then(({ data }: { data: CampaignDailyMetric[] | null }) => data ?? []),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("gads_manual_overrides") as any)
       .select("campaign_name, revenue_cents, orders_count")
-      .eq("user_id", userId)
+      .eq("integration_id", integId)
       .gte("date", range.from)
       .lte("date", range.to)
       .then(({ data }: { data: ManualOverrideRow[] | null }) => data ?? []),
-    getBlendedBoard(userId, range).catch(() => null),
+    getBlendedBoard(userId, range, undefined, { integrationId: integId || null }).catch(() => null),
   ]);
 
   const orderInputs: CampaignOrderInput[] = (orders as DbOrderRow[]).map((o) => {
@@ -448,14 +450,16 @@ export interface AttachableOrder {
  * candidates du panneau « Rattacher des ventes » du détail campagne.
  * Scopée par user_id (isolation) via loadOrdersAndManual.
  */
-export async function getUnattributedGoogleOrders(userId: string, range: DateRange): Promise<AttachableOrder[]> {
+export async function getUnattributedGoogleOrders(userId: string, range: DateRange, requestedIntegrationId?: string | null): Promise<AttachableOrder[]> {
   const supabase = createAdminClient();
+  const { resolveShopifyIntegrationId } = await import("@/lib/shopify/resolve-integration");
+  const integId = (await resolveShopifyIntegrationId(supabase, userId, requestedIntegrationId)) ?? "";
   const [{ orders, manualByOrder, pixelByOrder }, campaigns] = await Promise.all([
-    loadOrdersAndManual(userId, range),
+    loadOrdersAndManual(userId, range, integId),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("gads_campaigns") as any)
       .select("campaign_id, name")
-      .eq("user_id", userId)
+      .eq("integration_id", integId)
       .then(({ data }: { data: Array<{ campaign_id: string; name: string }> | null }) => data ?? []),
   ]);
 

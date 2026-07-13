@@ -12,7 +12,8 @@
  */
 import type { GadsCsvRow } from "./csv-parser";
 import { importGadsRows, type GadsImportRecap } from "./importer";
-import { getGoogleAdsConfig, searchGaql, GoogleAdsApiError, type GaqlCampaignDailyRow } from "./google-ads-client";
+import { getGoogleAdsBaseConfig, buildAccountConfig, searchGaql, GoogleAdsApiError, type GaqlCampaignDailyRow } from "./google-ads-client";
+import { listActiveGadsAccounts, getGadsAccountForIntegration, type GadsAccount } from "./accounts";
 
 /** Requête reporting produit (lecture seule) : item × jour sur [from, to]. */
 export function buildProductDailyQuery(fromIso: string, toIso: string): string {
@@ -156,21 +157,26 @@ export function mapProductGaqlResults(results: GaqlProductRow[]): { rows: GadsPr
   return { rows: [...byKey.values()], warnings };
 }
 
+/** true si les credentials OAuth partagés (MCC) sont configurés. */
 export function isGoogleAdsApiConfigured(): boolean {
-  return getGoogleAdsConfig() != null;
+  return getGoogleAdsBaseConfig() != null;
 }
 
 /**
- * Pull l'API Google Ads et upsert dans gads_daily pour un user.
+ * Pull l'API Google Ads pour UNE boutique (un compte gads_accounts) et upsert
+ * dans les tables gads_* scopées par integration_id.
  * @param daysBack fenêtre glissante re-pullée (défaut 30, max 90).
  */
-export async function syncFromGoogleAdsApi(userId: string, daysBack = 30): Promise<GadsImportRecap> {
-  const cfg = getGoogleAdsConfig();
-  if (!cfg) {
+export async function syncGadsAccount(account: GadsAccount, daysBack = 30): Promise<GadsImportRecap> {
+  const base = getGoogleAdsBaseConfig();
+  if (!base) {
     throw new GoogleAdsApiError(
       "API Google Ads non configurée : variables GOOGLE_ADS_* manquantes (voir .env.example). L'import CSV reste disponible.",
     );
   }
+  const cfg = buildAccountConfig(base, account);
+  const userId = account.user_id;
+  const integrationId = account.integration_id;
 
   const days = Math.min(Math.max(daysBack, 1), 90);
   const to = new Date().toISOString().slice(0, 10);
@@ -183,6 +189,7 @@ export async function syncFromGoogleAdsApi(userId: string, daysBack = 30): Promi
   // la détection de trous (importGadsRows → missing_dates) alerte comme pour le CSV.
   const recap = await importGadsRows(
     userId,
+    integrationId,
     { rows, skipped_totals: 0, warnings },
     `api:google-ads:${to}`,
   );
@@ -192,7 +199,7 @@ export async function syncFromGoogleAdsApi(userId: string, daysBack = 30): Promi
   // produits×campagne. Jamais bloquant : chaque étape catch et pousse un warning.
   try {
     const { syncCampaigns } = await import("./campaign-sync");
-    const campaignRecap = await syncCampaigns(userId, from, to, results, cfg);
+    const campaignRecap = await syncCampaigns(userId, integrationId, from, to, results, cfg);
     recap.campaigns = {
       campaigns_upserted: campaignRecap.campaigns_upserted,
       campaign_daily_rows: campaignRecap.campaign_daily_rows,
@@ -210,7 +217,7 @@ export async function syncFromGoogleAdsApi(userId: string, daysBack = 30): Promi
   try {
     const productResults = await searchGaql(cfg, buildProductDailyQuery(from, to));
     const mapped = mapProductGaqlResults(productResults);
-    recap.product_rows = await upsertProductDaily(userId, mapped.rows);
+    recap.product_rows = await upsertProductDaily(userId, integrationId, mapped.rows);
     recap.warnings.push(...mapped.warnings);
   } catch (e) {
     recap.warnings.push(
@@ -221,18 +228,53 @@ export async function syncFromGoogleAdsApi(userId: string, daysBack = 30): Promi
   return recap;
 }
 
-/** Upsert des lignes produit — la source la plus récente fait foi. */
-async function upsertProductDaily(userId: string, rows: GadsProductDailyRow[]): Promise<number> {
+/**
+ * Sync API d'une boutique désignée par integration_id (résout le compte gads).
+ * Renvoie null si la boutique n'a pas de compte Google Ads connecté.
+ */
+export async function syncFromGoogleAdsApi(
+  userId: string,
+  integrationId: string,
+  daysBack = 30,
+): Promise<GadsImportRecap | null> {
+  const account = await getGadsAccountForIntegration(userId, integrationId);
+  if (!account) return null;
+  return syncGadsAccount(account, daysBack);
+}
+
+/** Sync de TOUS les comptes Google Ads actifs (cron). Récap par compte. */
+export async function syncAllGadsAccounts(daysBack = 30): Promise<Array<{
+  integration_id: string;
+  customer_id: string;
+  ok: boolean;
+  recap?: GadsImportRecap;
+  error?: string;
+}>> {
+  const accounts = await listActiveGadsAccounts();
+  const out: Array<{ integration_id: string; customer_id: string; ok: boolean; recap?: GadsImportRecap; error?: string }> = [];
+  for (const account of accounts) {
+    try {
+      const recap = await syncGadsAccount(account, daysBack);
+      out.push({ integration_id: account.integration_id, customer_id: account.customer_id, ok: true, recap });
+    } catch (e) {
+      out.push({ integration_id: account.integration_id, customer_id: account.customer_id, ok: false, error: (e as Error).message });
+    }
+  }
+  return out;
+}
+
+/** Upsert des lignes produit (par boutique) — la source la plus récente fait foi. */
+async function upsertProductDaily(userId: string, integrationId: string, rows: GadsProductDailyRow[]): Promise<number> {
   if (rows.length === 0) return 0;
   const { createAdminClient } = await import("@/lib/supabase/admin");
   const supabase = createAdminClient();
   const importedAt = new Date().toISOString();
-  const payload = rows.map((r) => ({ user_id: userId, ...r, imported_at: importedAt }));
+  const payload = rows.map((r) => ({ user_id: userId, integration_id: integrationId, ...r, imported_at: importedAt }));
   const CHUNK = 500;
   for (let i = 0; i < payload.length; i += CHUNK) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase.from("gads_product_daily") as any)
-      .upsert(payload.slice(i, i + CHUNK), { onConflict: "user_id,item_id,date" });
+      .upsert(payload.slice(i, i + CHUNK), { onConflict: "user_id,integration_id,item_id,date" });
     if (error) throw new Error(`Upsert gads_product_daily échoué : ${error.message}`);
   }
   return payload.length;

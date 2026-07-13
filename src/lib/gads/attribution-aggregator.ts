@@ -252,13 +252,13 @@ export async function resolveActiveShopifyIntegrationId(
   return resolveShopifyIntegrationId(supabase, userId, integrationId);
 }
 
-export async function loadOrdersAndManual(userId: string, range: DateRange): Promise<{
+export async function loadOrdersAndManual(userId: string, range: DateRange, integrationId?: string | null): Promise<{
   orders: DbOrderRow[];
   manualByOrder: Map<string, DbManualRow>;
   pixelByOrder: Map<string, PixelResolution>;
 }> {
   const supabase = createAdminClient();
-  const integId = await resolveShopifyIntegrationId(supabase, userId);
+  const integId = await resolveShopifyIntegrationId(supabase, userId, integrationId);
   if (!integId) return { orders: [], manualByOrder: new Map(), pixelByOrder: new Map() };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -301,12 +301,12 @@ export async function loadOrdersAndManual(userId: string, range: DateRange): Pro
   return { orders, manualByOrder, pixelByOrder };
 }
 
-async function loadGadsSpend(userId: string, range: DateRange): Promise<number> {
+async function loadGadsSpend(integrationId: string, range: DateRange): Promise<number> {
   const supabase = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("gads_daily") as any)
     .select("cost_cents")
-    .eq("user_id", userId)
+    .eq("integration_id", integrationId)
     .gte("date", range.from)
     .lte("date", range.to);
   if (error) throw new Error(`Lecture gads_daily échouée : ${error.message}`);
@@ -340,26 +340,28 @@ function toAttributionRow(
 }
 
 /** Vue Commandes : lignes + stats par canal (triple ROAS). */
-export async function getOrdersAttribution(userId: string, range: DateRange): Promise<{
+export async function getOrdersAttribution(userId: string, range: DateRange, integrationId?: string | null): Promise<{
   orders: AttributionOrderRow[];
   channels: ChannelStats[];
 }> {
+  const supabase0 = createAdminClient();
+  const integId = (await resolveShopifyIntegrationId(supabase0, userId, integrationId)) ?? "";
   const [{ orders, manualByOrder, pixelByOrder }, gadsSpend] = await Promise.all([
-    loadOrdersAndManual(userId, range),
-    loadGadsSpend(userId, range),
+    loadOrdersAndManual(userId, range, integId),
+    loadGadsSpend(integId, range),
   ]);
 
   const rows = orders.map((o) => toAttributionRow(o, manualByOrder.get(o.id), pixelByOrder.get(o.id)));
 
   // Résout le NOM de la campagne rattachée à la main (pour le badge « campagne ·
-  // manuel »). Scopé par user_id (isolation) — une seule requête.
+  // manuel »). Scopé par boutique (integration_id) — une seule requête.
   const attachedIds = [...new Set(rows.map((r) => r.manual?.campaign_id).filter((v): v is string => v != null))];
   if (attachedIds.length > 0) {
     const supabase = createAdminClient();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data: camps } = await (supabase.from("gads_campaigns") as any)
       .select("campaign_id, name")
-      .eq("user_id", userId)
+      .eq("integration_id", integId)
       .in("campaign_id", attachedIds);
     const nameById = new Map<string, string>(
       ((camps ?? []) as Array<{ campaign_id: string; name: string }>).map((c) => [c.campaign_id, c.name]),

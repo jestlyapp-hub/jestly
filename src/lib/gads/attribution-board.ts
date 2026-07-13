@@ -132,10 +132,13 @@ interface PixelRowWithSession {
   resolved_source: PixelResolvedSource;
 }
 
-export async function getAttributionBoard(userId: string, range: DateRange): Promise<AttributionBoard> {
+export async function getAttributionBoard(userId: string, range: DateRange, integrationId?: string | null): Promise<AttributionBoard> {
   const supabase = createAdminClient();
-  const { orders, manualByOrder, pixelByOrder } = await loadOrdersAndManual(userId, range);
+  const { orders, manualByOrder, pixelByOrder } = await loadOrdersAndManual(userId, range, integrationId);
   const orderIds = (orders as DbOrderRow[]).map((o) => o.id);
+  // Boutique ciblée résolue une fois pour scoper la dépense gads_daily.
+  const { resolveShopifyIntegrationId } = await import("@/lib/shopify/resolve-integration");
+  const integId = (await resolveShopifyIntegrationId(supabase, userId, integrationId)) ?? "";
 
   // GARDE-FOU MULTI-TENANT : pps_responses (service_role) est scopée aux
   // boutiques pixel de l'utilisateur — sinon on chargerait les réponses survey
@@ -160,10 +163,11 @@ export async function getAttributionBoard(userId: string, range: DateRange): Pro
           .in("shop_id", pixelShopIds)
           .then(({ data }: { data: Array<{ shopify_order_id: string; answer: PpsAnswer }> | null }) => data ?? [])
       : Promise.resolve([]),
+    // Dépense de la BOUTIQUE (gads_daily.integration_id).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("gads_daily") as any)
       .select("cost_cents")
-      .eq("user_id", userId)
+      .eq("integration_id", integId)
       .gte("date", range.from)
       .lte("date", range.to)
       .then(({ data }: { data: Array<{ cost_cents: number }> | null }) => data ?? []),

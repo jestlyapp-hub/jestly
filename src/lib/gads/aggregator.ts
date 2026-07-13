@@ -134,10 +134,10 @@ interface ManualOverrideRow {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function loadGadsDaily(supabase: any, userId: string, range: DateRange): Promise<GadsDailyRow[]> {
+async function loadGadsDaily(supabase: any, integrationId: string, range: DateRange): Promise<GadsDailyRow[]> {
   const { data, error } = await supabase.from("gads_daily")
     .select("campaign_name, date, cost_cents, clicks, impressions, conversions, conversion_value_cents")
-    .eq("user_id", userId)
+    .eq("integration_id", integrationId)
     .gte("date", range.from)
     .lte("date", range.to);
   if (error) throw new Error(`Lecture gads_daily échouée : ${error.message}`);
@@ -145,14 +145,10 @@ async function loadGadsDaily(supabase: any, userId: string, range: DateRange): P
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function loadShopifyOrders(supabase: any, userId: string, range: DateRange): Promise<ShopifyOrderRow[]> {
-  // Multi-boutiques : boutique principale par défaut (jamais d'erreur sur >1).
-  const integId = await resolveShopifyIntegrationId(supabase, userId);
-  if (!integId) return [];
-
+async function loadShopifyOrders(supabase: any, integrationId: string, range: DateRange): Promise<ShopifyOrderRow[]> {
   const { data, error } = await supabase.from("shopify_orders")
     .select("id, name, total_price, created_at, tracking_status, utm_source, utm_medium, utm_campaign, referring_site, landing_site")
-    .eq("integration_id", integId)
+    .eq("integration_id", integrationId)
     .is("cancelled_at", null)
     .gte("created_at", parisDayStartUtcIso(range.from))
     .lt("created_at", parisNextDayStartUtcIso(range.to));
@@ -162,10 +158,10 @@ async function loadShopifyOrders(supabase: any, userId: string, range: DateRange
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function loadManualOverrides(supabase: any, userId: string, range: DateRange): Promise<ManualOverrideRow[]> {
+async function loadManualOverrides(supabase: any, integrationId: string, range: DateRange): Promise<ManualOverrideRow[]> {
   const { data, error } = await supabase.from("gads_manual_overrides")
     .select("id, date, campaign_name, revenue_cents, orders_count, note")
-    .eq("user_id", userId)
+    .eq("integration_id", integrationId)
     .gte("date", range.from)
     .lte("date", range.to);
   if (error) throw new Error(`Lecture gads_manual_overrides échouée : ${error.message}`);
@@ -173,8 +169,8 @@ async function loadManualOverrides(supabase: any, userId: string, range: DateRan
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function loadAllGadsDates(supabase: any, userId: string): Promise<string[]> {
-  const { data } = await supabase.from("gads_daily").select("date").eq("user_id", userId);
+async function loadAllGadsDates(supabase: any, integrationId: string): Promise<string[]> {
+  const { data } = await supabase.from("gads_daily").select("date").eq("integration_id", integrationId);
   return [...new Set(((data ?? []) as Array<{ date: string }>).map((r) => r.date))];
 }
 
@@ -201,13 +197,19 @@ function bucketOf(status: TrackingBucket | null): TrackingBucket {
 }
 
 // ── Vue 1 : Pilotage ─────────────────────────────────────────────
-export async function getGadsOverview(userId: string, range: DateRange): Promise<GadsOverview> {
+export async function getGadsOverview(
+  userId: string,
+  range: DateRange,
+  integrationId?: string | null,
+): Promise<GadsOverview> {
   const supabase = createAdminClient();
+  // Boutique ciblée (sélecteur) ou principale. "" si aucune → lectures vides.
+  const integId = integrationId ?? (await resolveShopifyIntegrationId(supabase, userId)) ?? "";
   const [gads, orders, manual, allDates, settings] = await Promise.all([
-    loadGadsDaily(supabase, userId, range),
-    loadShopifyOrders(supabase, userId, range),
-    loadManualOverrides(supabase, userId, range),
-    loadAllGadsDates(supabase, userId),
+    loadGadsDaily(supabase, integId, range),
+    loadShopifyOrders(supabase, integId, range),
+    loadManualOverrides(supabase, integId, range),
+    loadAllGadsDates(supabase, integId),
     getEcomSettings(userId),
   ]);
 
@@ -261,12 +263,17 @@ export async function getGadsOverview(userId: string, range: DateRange): Promise
 }
 
 // ── Vue 2 : Détail temporel ──────────────────────────────────────
-export async function getGadsTimeline(userId: string, range: DateRange): Promise<GadsTimelinePoint[]> {
+export async function getGadsTimeline(
+  userId: string,
+  range: DateRange,
+  integrationId?: string | null,
+): Promise<GadsTimelinePoint[]> {
   const supabase = createAdminClient();
+  const integId = integrationId ?? (await resolveShopifyIntegrationId(supabase, userId)) ?? "";
   const [gads, orders, allDates] = await Promise.all([
-    loadGadsDaily(supabase, userId, range),
-    loadShopifyOrders(supabase, userId, range),
-    loadAllGadsDates(supabase, userId),
+    loadGadsDaily(supabase, integId, range),
+    loadShopifyOrders(supabase, integId, range),
+    loadAllGadsDates(supabase, integId),
   ]);
 
   const gadsByDay = new Map<string, { cost: number; clicks: number; impressions: number; conversions: number; convValue: number }>();
@@ -325,12 +332,17 @@ export async function getGadsTimeline(userId: string, range: DateRange): Promise
 }
 
 // ── Vue 3 : Attribution / qualité de la donnée ───────────────────
-export async function getGadsAttribution(userId: string, range: DateRange): Promise<GadsAttribution> {
+export async function getGadsAttribution(
+  userId: string,
+  range: DateRange,
+  integrationId?: string | null,
+): Promise<GadsAttribution> {
   const supabase = createAdminClient();
+  const integId = integrationId ?? (await resolveShopifyIntegrationId(supabase, userId)) ?? "";
   const [gads, orders, manual] = await Promise.all([
-    loadGadsDaily(supabase, userId, range),
-    loadShopifyOrders(supabase, userId, range),
-    loadManualOverrides(supabase, userId, range),
+    loadGadsDaily(supabase, integId, range),
+    loadShopifyOrders(supabase, integId, range),
+    loadManualOverrides(supabase, integId, range),
   ]);
 
   // Sources récupérées par le pixel first-party (jamais fondues dans le natif).

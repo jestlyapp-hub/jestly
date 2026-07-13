@@ -239,6 +239,7 @@ export interface CampaignSyncRecap {
  */
 export async function syncCampaigns(
   userId: string,
+  integrationId: string,
   fromIso: string,
   toIso: string,
   campaignDailyResults: GaqlCampaignDailyRow[],
@@ -259,7 +260,7 @@ export async function syncCampaigns(
   // 1. gads_campaign_daily (réutilise les résultats déjà en main).
   try {
     const dailyRows = mapCampaignDailyById(campaignDailyResults);
-    recap.campaign_daily_rows = await upsertCampaignDaily(supabase, userId, dailyRows);
+    recap.campaign_daily_rows = await upsertCampaignDaily(supabase, userId, integrationId, dailyRows);
   } catch (e) {
     recap.warnings.push(`gads_campaign_daily non actualisée : ${(e as Error).message.slice(0, 200)}`);
   }
@@ -268,11 +269,11 @@ export async function syncCampaigns(
   try {
     const metaResults = await searchGaql<GaqlCampaignMetaRow>(config, buildCampaignsMetaQuery());
     const metas = mapCampaignsMeta(metaResults);
-    recap.campaigns_upserted = await upsertCampaigns(supabase, userId, metas);
+    recap.campaigns_upserted = await upsertCampaigns(supabase, userId, integrationId, metas);
 
-    const lastBudgets = await loadLastBudgets(supabase, userId);
+    const lastBudgets = await loadLastBudgets(supabase, userId, integrationId);
     const changes = budgetChangesToArchive(metas, lastBudgets);
-    recap.budget_changes = await appendBudgetHistory(supabase, userId, changes);
+    recap.budget_changes = await appendBudgetHistory(supabase, userId, integrationId, changes);
   } catch (e) {
     recap.warnings.push(`Métadonnées / budget campagnes non actualisés : ${(e as Error).message.slice(0, 200)}`);
   }
@@ -281,7 +282,7 @@ export async function syncCampaigns(
   try {
     const prodResults = await searchGaql<GaqlCampaignProductRow>(config, buildCampaignProductQuery(fromIso, toIso));
     const { rows, warnings } = mapCampaignProducts(prodResults);
-    recap.campaign_product_rows = await upsertCampaignProducts(supabase, userId, rows);
+    recap.campaign_product_rows = await upsertCampaignProducts(supabase, userId, integrationId, rows);
     if (warnings.length > 0) recap.warnings.push(`${warnings.length} lignes produit×campagne ignorées.`);
   } catch (e) {
     recap.warnings.push(`Produits par campagne non actualisés : ${(e as Error).message.slice(0, 200)}`);
@@ -294,50 +295,51 @@ export async function syncCampaigns(
 const CHUNK = 500;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function upsertCampaigns(supabase: any, userId: string, metas: CampaignMetaRow[]): Promise<number> {
+async function upsertCampaigns(supabase: any, userId: string, integrationId: string, metas: CampaignMetaRow[]): Promise<number> {
   if (metas.length === 0) return 0;
   const now = new Date().toISOString();
-  const payload = metas.map((m) => ({ user_id: userId, ...m, last_seen_at: now }));
+  const payload = metas.map((m) => ({ user_id: userId, integration_id: integrationId, ...m, last_seen_at: now }));
   for (let i = 0; i < payload.length; i += CHUNK) {
     const { error } = await supabase.from("gads_campaigns")
-      .upsert(payload.slice(i, i + CHUNK), { onConflict: "user_id,campaign_id" });
+      .upsert(payload.slice(i, i + CHUNK), { onConflict: "user_id,integration_id,campaign_id" });
     if (error) throw new Error(`Upsert gads_campaigns échoué : ${error.message}`);
   }
   return payload.length;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function upsertCampaignDaily(supabase: any, userId: string, rows: CampaignDailyRow[]): Promise<number> {
+async function upsertCampaignDaily(supabase: any, userId: string, integrationId: string, rows: CampaignDailyRow[]): Promise<number> {
   if (rows.length === 0) return 0;
   const importedAt = new Date().toISOString();
-  const payload = rows.map((r) => ({ user_id: userId, ...r, imported_at: importedAt }));
+  const payload = rows.map((r) => ({ user_id: userId, integration_id: integrationId, ...r, imported_at: importedAt }));
   for (let i = 0; i < payload.length; i += CHUNK) {
     const { error } = await supabase.from("gads_campaign_daily")
-      .upsert(payload.slice(i, i + CHUNK), { onConflict: "user_id,campaign_id,date" });
+      .upsert(payload.slice(i, i + CHUNK), { onConflict: "user_id,integration_id,campaign_id,date" });
     if (error) throw new Error(`Upsert gads_campaign_daily échoué : ${error.message}`);
   }
   return payload.length;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function upsertCampaignProducts(supabase: any, userId: string, rows: CampaignProductRow[]): Promise<number> {
+async function upsertCampaignProducts(supabase: any, userId: string, integrationId: string, rows: CampaignProductRow[]): Promise<number> {
   if (rows.length === 0) return 0;
   const importedAt = new Date().toISOString();
-  const payload = rows.map((r) => ({ user_id: userId, ...r, status_in_feed: "active", imported_at: importedAt }));
+  const payload = rows.map((r) => ({ user_id: userId, integration_id: integrationId, ...r, status_in_feed: "active", imported_at: importedAt }));
   for (let i = 0; i < payload.length; i += CHUNK) {
     const { error } = await supabase.from("gads_campaign_products")
-      .upsert(payload.slice(i, i + CHUNK), { onConflict: "user_id,campaign_id,item_id,date" });
+      .upsert(payload.slice(i, i + CHUNK), { onConflict: "user_id,integration_id,campaign_id,item_id,date" });
     if (error) throw new Error(`Upsert gads_campaign_products échoué : ${error.message}`);
   }
   return payload.length;
 }
 
-/** Dernier budget archivé par campagne (pour ne rejouer que les changements). */
+/** Dernier budget archivé par campagne (BOUTIQUE) pour ne rejouer que les changements. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function loadLastBudgets(supabase: any, userId: string): Promise<Map<string, number>> {
+async function loadLastBudgets(supabase: any, userId: string, integrationId: string): Promise<Map<string, number>> {
   const { data, error } = await supabase.from("gads_budget_history")
     .select("campaign_id, budget_cents, observed_at")
     .eq("user_id", userId)
+    .eq("integration_id", integrationId)
     .order("observed_at", { ascending: false });
   if (error) throw new Error(`Lecture gads_budget_history échouée : ${error.message}`);
   const map = new Map<string, number>();
@@ -348,10 +350,10 @@ async function loadLastBudgets(supabase: any, userId: string): Promise<Map<strin
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function appendBudgetHistory(supabase: any, userId: string, changes: Array<{ campaign_id: string; budget_cents: number }>): Promise<number> {
+async function appendBudgetHistory(supabase: any, userId: string, integrationId: string, changes: Array<{ campaign_id: string; budget_cents: number }>): Promise<number> {
   if (changes.length === 0) return 0;
   const observedAt = new Date().toISOString();
-  const payload = changes.map((c) => ({ user_id: userId, ...c, observed_at: observedAt }));
+  const payload = changes.map((c) => ({ user_id: userId, integration_id: integrationId, ...c, observed_at: observedAt }));
   const { error } = await supabase.from("gads_budget_history").insert(payload);
   if (error) throw new Error(`Archive gads_budget_history échouée : ${error.message}`);
   return payload.length;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { getCampaignAnalytics } from "@/lib/gads/campaign-analytics";
+import { requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 import { parseRange } from "../../ads/_helpers";
 
 /**
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const analytics = await getCampaignAnalytics(auth.user.id, range);
+    const analytics = await getCampaignAnalytics(auth.user.id, range, requestedIntegrationId(url));
     const wanted = new Set(ids.slice(0, 4));
     const rows = analytics.rows.filter((r) => wanted.has(r.campaign_id));
     return NextResponse.json({ range, be_roas: analytics.be_roas, days: analytics.days, rows });

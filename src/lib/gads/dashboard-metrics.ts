@@ -52,12 +52,6 @@ const m = (value: number | null, previous: number | null, opts?: { series?: numb
 export interface DashboardMetricsOptions {
   /** Boutique ciblée (sélecteur). Défaut : la boutique principale. */
   integrationId?: string | null;
-  /**
-   * Inclure les métriques Google Ads (dépense, ROAS Google, clics…). Une
-   * boutique sans compte Google Ads (ex. Mignou) → false : les métriques Ads
-   * sont marquées indisponibles plutôt que d'afficher les chiffres LHM.
-   */
-  includeAds?: boolean;
 }
 
 export async function getDashboardMetrics(
@@ -66,16 +60,16 @@ export async function getDashboardMetrics(
   options?: DashboardMetricsOptions,
 ): Promise<DashboardMetrics> {
   const prev = previousRangeOf(range);
-  const includeAds = options?.includeAds ?? true;
-  // Boutique sans Google Ads → overview neutre (seuls clicks/impressions/spend/
-  // conversions/reported_roas sont lus ci-dessous). Double-cast assumé.
-  const emptyOv = { clicks: 0, impressions: 0, spend_cents: 0, conversions: 0, reported_roas: null } as unknown as Awaited<ReturnType<typeof getGadsOverview>>;
+  const integrationId = options?.integrationId ?? null;
 
+  // Tout est scopé à la BOUTIQUE (integration_id) : une boutique sans compte
+  // Google Ads n'a aucune ligne gads → métriques Ads à 0/indisponibles,
+  // jamais les chiffres d'une autre boutique.
   const [board, ov, ovPrev, attribution] = await Promise.all([
-    getBlendedBoard(userId, range, undefined, { integrationId: options?.integrationId, includeAdsSpend: includeAds }),
-    includeAds ? getGadsOverview(userId, range) : Promise.resolve(emptyOv),
-    includeAds ? getGadsOverview(userId, prev) : Promise.resolve(emptyOv),
-    includeAds ? getOrdersAttribution(userId, range).catch(() => null) : Promise.resolve(null),
+    getBlendedBoard(userId, range, undefined, { integrationId }),
+    getGadsOverview(userId, range, integrationId),
+    getGadsOverview(userId, prev, integrationId),
+    getOrdersAttribution(userId, range, integrationId).catch(() => null),
   ]);
 
   const c = board.current;

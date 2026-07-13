@@ -199,37 +199,38 @@ export function computeCampaignTimeline(
 }
 
 // ── Chargement DB ────────────────────────────────────────────────
-export async function getCampaignDetail(userId: string, campaignId: string, range: DateRange): Promise<CampaignDetail | null> {
+export async function getCampaignDetail(userId: string, campaignId: string, range: DateRange, requestedIntegrationId?: string | null): Promise<CampaignDetail | null> {
   const supabase = createAdminClient();
   const { getBlendedBoard } = await import("@/lib/costs/blended");
 
-  // GARDE-FOU MULTI-TENANT : shopify_products via service_role → scoper par
-  // l'intégration de l'utilisateur, jamais le catalogue global.
-  const integrationId = await resolveActiveShopifyIntegrationId(userId);
+  // GARDE-FOU MULTI-TENANT + multi-boutiques : scoper par l'intégration ciblée
+  // (sélecteur) ou la principale. Toutes les tables gads/shopify filtrées dessus.
+  const integrationId = await resolveActiveShopifyIntegrationId(userId, requestedIntegrationId);
+  const integId = integrationId ?? "";
 
   const [{ orders, manualByOrder, pixelByOrder }, allCampaigns, dailyRows, productRows, budgetRows, products, board] = await Promise.all([
-    loadOrdersAndManual(userId, range),
+    loadOrdersAndManual(userId, range, integId),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("gads_campaigns") as any)
       .select("campaign_id, name, status, channel_type, start_date, end_date, current_budget_cents, bidding_strategy, last_seen_at")
-      .eq("user_id", userId)
+      .eq("integration_id", integId)
       .then(({ data }: { data: CampaignMeta[] | null }) => data ?? []),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("gads_campaign_daily") as any)
       .select("date, cost_cents, clicks, impressions, conversions, conversion_value_cents")
-      .eq("user_id", userId).eq("campaign_id", campaignId)
+      .eq("integration_id", integId).eq("campaign_id", campaignId)
       .gte("date", range.from).lte("date", range.to)
       .then(({ data }: { data: Array<{ date: string; cost_cents: number; clicks: number; impressions: number; conversions: number; conversion_value_cents: number }> | null }) => data ?? []),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("gads_campaign_products") as any)
       .select("item_id, product_title, cost_cents, clicks, impressions, conversions, conversion_value_cents")
-      .eq("user_id", userId).eq("campaign_id", campaignId)
+      .eq("integration_id", integId).eq("campaign_id", campaignId)
       .gte("date", range.from).lte("date", range.to)
       .then(({ data }: { data: Array<{ item_id: string; product_title: string | null; cost_cents: number; clicks: number; impressions: number; conversions: number; conversion_value_cents: number }> | null }) => data ?? []),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("gads_budget_history") as any)
       .select("budget_cents, observed_at")
-      .eq("user_id", userId).eq("campaign_id", campaignId)
+      .eq("integration_id", integId).eq("campaign_id", campaignId)
       .order("observed_at", { ascending: true })
       .then(({ data }: { data: BudgetPoint[] | null }) => data ?? []),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -239,7 +240,7 @@ export async function getCampaignDetail(userId: string, campaignId: string, rang
           .eq("integration_id", integrationId)
           .then(({ data }: { data: Parameters<typeof buildProductIndex>[0] | null }) => data ?? [])
       : Promise.resolve([]),
-    getBlendedBoard(userId, range).catch(() => null),
+    getBlendedBoard(userId, range, undefined, { integrationId: integId || null }).catch(() => null),
   ]);
 
   const metas = allCampaigns as CampaignMeta[];

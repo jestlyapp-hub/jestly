@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { getCampaignDetail } from "@/lib/gads/campaign-detail";
+import { requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 import { parseRange } from "../../ads/_helpers";
 
 /**
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ id: string 
   const range = parseRange(url.searchParams.get("range"), url.searchParams.get("from"), url.searchParams.get("to"));
 
   try {
-    const detail = await getCampaignDetail(auth.user.id, id, range);
+    const detail = await getCampaignDetail(auth.user.id, id, range, requestedIntegrationId(url));
     if (!detail) {
       return NextResponse.json({ error: "Campagne introuvable" }, { status: 404 });
     }

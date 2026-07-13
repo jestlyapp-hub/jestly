@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { getProductAnalytics, type ChannelFilter } from "@/lib/gads/product-analytics";
+import { requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 import { parseRange } from "../../ads/_helpers";
 
 const VALID_FILTERS = new Set(["all", "google_ads", "seo", "pinterest", "other"]);
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
   const channel = (VALID_FILTERS.has(channelParam) ? channelParam : "all") as ChannelFilter;
 
   try {
-    const analytics = await getProductAnalytics(auth.user.id, range, channel);
+    const analytics = await getProductAnalytics(auth.user.id, range, channel, requestedIntegrationId(url));
     return NextResponse.json({ range, channel, ...analytics, computed_at: new Date().toISOString() });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });

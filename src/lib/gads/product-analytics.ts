@@ -223,23 +223,27 @@ export async function getProductAnalytics(
   userId: string,
   range: DateRange,
   channelFilter: ChannelFilter = "all",
+  requestedIntegrationId?: string | null,
 ): Promise<ProductAnalytics> {
   const supabase = createAdminClient();
 
   // GARDE-FOU MULTI-TENANT : le service_role bypasse le RLS, donc shopify_products
   // et shopify_orders DOIVENT être filtrés par l'intégration de l'utilisateur.
-  // Sans intégration, aucune donnée boutique (jamais le catalogue d'autrui).
-  const integrationId = await resolveActiveShopifyIntegrationId(userId);
+  // Boutique ciblée (sélecteur) ou principale. Sans intégration → aucune donnée.
+  const integrationId = await resolveActiveShopifyIntegrationId(userId, requestedIntegrationId);
 
   const [{ orders, manualByOrder, pixelByOrder }, itemRows, products, costs, firstOrders] = await Promise.all([
-    loadOrdersAndManual(userId, range),
+    loadOrdersAndManual(userId, range, integrationId),
+    // gads_product_daily scopé à la boutique (dépense produit de SON compte Ads).
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("gads_product_daily") as any)
-      .select("item_id, date, cost_cents, clicks, impressions, conversions, conversion_value_cents")
-      .eq("user_id", userId)
-      .gte("date", range.from)
-      .lte("date", range.to)
-      .then(({ data }: { data: GadsProductDailyRow[] | null }) => data ?? []),
+    integrationId
+      ? (supabase.from("gads_product_daily") as any)
+          .select("item_id, date, cost_cents, clicks, impressions, conversions, conversion_value_cents")
+          .eq("integration_id", integrationId)
+          .gte("date", range.from)
+          .lte("date", range.to)
+          .then(({ data }: { data: GadsProductDailyRow[] | null }) => data ?? [])
+      : Promise.resolve([] as GadsProductDailyRow[]),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     integrationId
       ? (supabase.from("shopify_products") as any)

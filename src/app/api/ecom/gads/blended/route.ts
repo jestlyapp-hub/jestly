@@ -24,14 +24,13 @@ export async function GET(req: NextRequest) {
     : undefined;
 
   try {
-    // Boutique ciblée (sélecteur) ou principale. La dépense Google Ads n'est
-    // imputée qu'à la boutique principale (propriétaire du compte Ads) : une
-    // boutique secondaire sans Ads (ex. Mignou) affiche revenue sans dépense.
+    // Boutique ciblée (sélecteur) ou principale. La dépense Google Ads est
+    // scopée à la boutique (gads_daily.integration_id) : chaque boutique voit
+    // SA dépense (son customer_id), jamais celle d'une autre.
     const supabase = createAdminClient();
     const resolved = await resolveShopifyIntegration(supabase, auth.user.id, requestedIntegrationId(url));
     const board = await getBlendedBoard(auth.user.id, range, compare, {
       integrationId: resolved?.integration.id ?? null,
-      includeAdsSpend: resolved?.isPrimary ?? true,
     });
     return NextResponse.json({ ...board, computed_at: new Date().toISOString() });
   } catch (e) {

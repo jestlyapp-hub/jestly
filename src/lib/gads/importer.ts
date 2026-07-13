@@ -65,23 +65,25 @@ export function findMissingDates(dates: string[]): string[] {
   return missing;
 }
 
-/** Toutes les dates distinctes présentes dans gads_daily pour un user. */
-export async function getGadsDates(userId: string): Promise<string[]> {
+/** Dates distinctes présentes dans gads_daily pour une BOUTIQUE. */
+export async function getGadsDates(userId: string, integrationId: string): Promise<string[]> {
   const supabase = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data } = await (supabase.from("gads_daily") as any)
     .select("date")
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .eq("integration_id", integrationId);
   return [...new Set(((data ?? []) as Array<{ date: string }>).map((r) => r.date))];
 }
 
-/** Trous de données Ads : jours sans aucune ligne dans la plage min→max. */
-export async function getMissingDates(userId: string): Promise<string[]> {
-  return findMissingDates(await getGadsDates(userId));
+/** Trous de données Ads (par boutique) : jours sans ligne dans la plage min→max. */
+export async function getMissingDates(userId: string, integrationId: string): Promise<string[]> {
+  return findMissingDates(await getGadsDates(userId, integrationId));
 }
 
 export async function importGadsRows(
   userId: string,
+  integrationId: string,
   parsed: GadsCsvParseResult,
   sourceFile: string,
 ): Promise<GadsImportRecap> {
@@ -98,7 +100,7 @@ export async function importGadsRows(
       campaigns_count: 0,
       skipped_totals: parsed.skipped_totals,
       warnings: parsed.warnings,
-      missing_dates: await getMissingDates(userId),
+      missing_dates: await getMissingDates(userId, integrationId),
     };
   }
 
@@ -106,11 +108,12 @@ export async function importGadsRows(
   const from = dates.reduce((a, b) => (a < b ? a : b));
   const to = dates.reduce((a, b) => (a > b ? a : b));
 
-  // Existant sur la plage du CSV → distinction ajouts vs écrasements.
+  // Existant sur la plage du CSV (BOUTIQUE) → distinction ajouts vs écrasements.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: existing, error: readError } = await (supabase.from("gads_daily") as any)
     .select("campaign_name, date")
     .eq("user_id", userId)
+    .eq("integration_id", integrationId)
     .gte("date", from)
     .lte("date", to);
   if (readError) throw new Error(`Lecture gads_daily échouée : ${readError.message}`);
@@ -123,6 +126,7 @@ export async function importGadsRows(
   const importedAt = new Date().toISOString();
   const payload = rows.map((r) => ({
     user_id: userId,
+    integration_id: integrationId,
     campaign_name: r.campaign_name,
     date: r.date,
     cost_cents: r.cost_cents,
@@ -134,12 +138,12 @@ export async function importGadsRows(
     source_file: sourceFile,
   }));
 
-  // UPSERT par lots — le CSV fait foi, onConflict écrase l'existant.
+  // UPSERT par lots — le CSV fait foi, onConflict écrase l'existant (par boutique).
   const CHUNK = 500;
   for (let i = 0; i < payload.length; i += CHUNK) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await (supabase.from("gads_daily") as any)
-      .upsert(payload.slice(i, i + CHUNK), { onConflict: "user_id,campaign_name,date" });
+      .upsert(payload.slice(i, i + CHUNK), { onConflict: "user_id,integration_id,campaign_name,date" });
     if (error) throw new Error(`Upsert gads_daily échoué : ${error.message}`);
   }
 
@@ -152,6 +156,6 @@ export async function importGadsRows(
     campaigns_count: new Set(rows.map((r) => r.campaign_name)).size,
     skipped_totals: parsed.skipped_totals,
     warnings: parsed.warnings,
-    missing_dates: await getMissingDates(userId),
+    missing_dates: await getMissingDates(userId, integrationId),
   };
 }

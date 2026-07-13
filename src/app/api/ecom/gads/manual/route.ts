@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { resolveShopifyIntegration, requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 import { z } from "zod";
 import { parseRange } from "../../ads/_helpers";
 
@@ -26,11 +27,13 @@ export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const range = parseRange(url.searchParams.get("range"), url.searchParams.get("from"), url.searchParams.get("to"));
 
+  const resolved = await resolveShopifyIntegration(auth.supabase, auth.user.id, requestedIntegrationId(url));
   const supabase = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("gads_manual_overrides") as any)
     .select("id, date, campaign_name, revenue_cents, orders_count, is_manual, note, created_at, updated_at")
     .eq("user_id", auth.user.id)
+    .eq("integration_id", resolved?.integration.id ?? "")
     .gte("date", range.from)
     .lte("date", range.to)
     .order("date", { ascending: false });
@@ -51,11 +54,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const resolved = await resolveShopifyIntegration(auth.supabase, auth.user.id, requestedIntegrationId(req));
+  if (!resolved) return NextResponse.json({ error: "Aucune boutique pour rattacher l'override." }, { status: 404 });
+
   const supabase = createAdminClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data, error } = await (supabase.from("gads_manual_overrides") as any)
     .insert({
       user_id: auth.user.id,
+      integration_id: resolved.integration.id,
       date: parsed.data.date,
       revenue_cents: parsed.data.revenue_cents,
       orders_count: parsed.data.orders_count,
