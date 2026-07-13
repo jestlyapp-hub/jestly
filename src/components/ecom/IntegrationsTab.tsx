@@ -6,6 +6,7 @@ import { useApi, apiFetch } from "@/lib/hooks/use-api";
 import { toast } from "@/lib/hooks/use-toast";
 import IntegrationCard from "./IntegrationCard";
 import PixelShopsCard from "./gads/PixelShopsCard";
+import GadsAccountsCard from "./gads/GadsAccountsCard";
 import SelectAdAccountModal from "./SelectAdAccountModal";
 import SyncProgressBar, { type SyncCounts } from "./SyncProgressBar";
 import { formatRelativeDate } from "@/lib/shopify/formatters";
@@ -232,14 +233,8 @@ export default function IntegrationsTab() {
         </div>
       )}
 
-      {/* Google Ads — API branchée (refonte : dépense campagnes + produits) */}
-      <IntegrationCard
-        icon="🔵"
-        name="Google Ads"
-        description="API reporting branchée (lecture seule) : dépense par campagne et par produit, toutes les 6 h. Import CSV disponible en secours depuis le Dashboard."
-        status="connected"
-        metaLine="Sync automatique via GitHub Actions · fenêtre glissante 30 jours"
-      />
+      {/* Google Ads — un compte par boutique (multi-comptes, même MCC) */}
+      <GadsAccountsCard />
 
       {/* Pixel first-party par boutique (snippets copiables) */}
       <PixelShopsCard />

@@ -153,15 +153,6 @@ function previousRange(range: DateRange): DateRange {
 export interface BlendedBoardOptions {
   /** Boutique ciblée (sélecteur). Défaut : la boutique principale du user. */
   integrationId?: string | null;
-  /**
-   * Inclure la dépense Google Ads (gads_daily, au niveau user) dans le board.
-   * La dépense Ads n'est pas rattachée à une boutique précise : on ne l'impute
-   * qu'à la boutique propriétaire du compte Google Ads (la principale). Pour une
-   * boutique SANS Google Ads (ex. Mignou), `false` → dépense 0, MER/BE-ROAS
-   * calculés sans Ads (honnête plutôt que d'imputer la dépense LHM à Mignou).
-   * Défaut : true (rétro-compatible mono-boutique).
-   */
-  includeAdsSpend?: boolean;
 }
 
 export async function getBlendedBoard(
@@ -171,7 +162,6 @@ export async function getBlendedBoard(
   options?: BlendedBoardOptions,
 ): Promise<BlendedBoard> {
   const supabase = createAdminClient();
-  const includeAdsSpend = options?.includeAdsSpend ?? true;
   const prev = compareRange ?? previousRange(range);
   // Bornes de chargement couvrant les deux périodes (comparaison libre incluse).
   const loadFrom = prev.from < range.from ? prev.from : range.from;
@@ -202,23 +192,25 @@ export async function getBlendedBoard(
           .not("customer_id", "is", null)
           .then(({ data }: { data: Array<{ customer_id: string; created_at: string }> | null }) => data ?? [])
       : Promise.resolve([]),
-    // Dépense Google Ads (user-level) — court-circuitée pour une boutique sans Ads.
-    !includeAdsSpend
-      ? Promise.resolve([] as Array<{ date: string; cost_cents: number }>)
+    // Dépense Google Ads de la BOUTIQUE (gads_daily scopé par integration_id) :
+    // une boutique sans compte Ads n'a aucune ligne → dépense 0, jamais imputée
+    // depuis une autre boutique.
+    integ
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      : (supabase.from("gads_daily") as any)
+      ? (supabase.from("gads_daily") as any)
           .select("date, cost_cents")
-          .eq("user_id", userId)
+          .eq("integration_id", integ.id)
           .gte("date", loadFrom)
           .lte("date", loadTo)
-          .then(({ data }: { data: Array<{ date: string; cost_cents: number }> | null }) => data ?? []),
-    !includeAdsSpend
-      ? Promise.resolve([] as string[])
+          .then(({ data }: { data: Array<{ date: string; cost_cents: number }> | null }) => data ?? [])
+      : Promise.resolve([] as Array<{ date: string; cost_cents: number }>),
+    integ
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      : (supabase.from("gads_daily") as any)
+      ? (supabase.from("gads_daily") as any)
           .select("date")
-          .eq("user_id", userId)
-          .then(({ data }: { data: Array<{ date: string }> | null }) => [...new Set((data ?? []).map((r) => r.date))]),
+          .eq("integration_id", integ.id)
+          .then(({ data }: { data: Array<{ date: string }> | null }) => [...new Set((data ?? []).map((r) => r.date))])
+      : Promise.resolve([] as string[]),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("ecom_product_costs") as any)
       .select("shopify_product_id, unit_cost_cents, effective_from")

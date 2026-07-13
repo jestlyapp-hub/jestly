@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
-import { syncFromGoogleAdsApi, isGoogleAdsApiConfigured } from "@/lib/gads/api-sync";
+import { syncGadsAccount, isGoogleAdsApiConfigured } from "@/lib/gads/api-sync";
 import { GoogleAdsApiError, isGoogleAdsOwner } from "@/lib/gads/google-ads-client";
+import { listGadsAccountsForUser, getGadsAccountForIntegration } from "@/lib/gads/accounts";
+import type { GadsImportRecap } from "@/lib/gads/importer";
 
 export const maxDuration = 60;
 
@@ -33,12 +35,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const body = await req.json().catch(() => ({})) as { days?: number };
+  const body = await req.json().catch(() => ({})) as { days?: number; integration_id?: string };
   const days = typeof body.days === "number" ? body.days : 30;
 
   try {
-    const recap = await syncFromGoogleAdsApi(auth.user.id, days);
-    return NextResponse.json({ ok: true, source: "google_ads_api", recap });
+    // Boutique ciblée si fournie ; sinon TOUS les comptes du propriétaire.
+    const accounts = body.integration_id
+      ? [await getGadsAccountForIntegration(auth.user.id, body.integration_id)].filter((a) => a != null)
+      : await listGadsAccountsForUser(auth.user.id);
+
+    if (accounts.length === 0) {
+      return NextResponse.json(
+        { error: "Aucun compte Google Ads connecté pour cette boutique. Connecte-le dans Réglages → Intégrations." },
+        { status: 404 },
+      );
+    }
+
+    const recaps: Array<{ integration_id: string; customer_id: string; recap: GadsImportRecap }> = [];
+    for (const account of accounts) {
+      const recap = await syncGadsAccount(account!, days);
+      recaps.push({ integration_id: account!.integration_id, customer_id: account!.customer_id, recap });
+    }
+    // Rétro-compat : `recap` = premier compte ; `recaps` = détail par compte.
+    return NextResponse.json({ ok: true, source: "google_ads_api", recap: recaps[0]?.recap, recaps });
   } catch (e) {
     const status = e instanceof GoogleAdsApiError && e.status === 401 ? 502 : 500;
     return NextResponse.json({ error: (e as Error).message }, { status });

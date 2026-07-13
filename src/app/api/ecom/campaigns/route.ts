@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { getCampaignAnalytics, computeCampaignInsights } from "@/lib/gads/campaign-analytics";
+import { requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 import { parseRange } from "../ads/_helpers";
 
 /**
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
   const range = parseRange(url.searchParams.get("range"), url.searchParams.get("from"), url.searchParams.get("to"));
 
   try {
-    const analytics = await getCampaignAnalytics(auth.user.id, range);
+    const analytics = await getCampaignAnalytics(auth.user.id, range, requestedIntegrationId(url));
     const insights = computeCampaignInsights(analytics);
     return NextResponse.json({ range, ...analytics, insights, computed_at: new Date().toISOString() });
   } catch (e) {

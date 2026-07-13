@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { parseGadsCsv } from "@/lib/gads/csv-parser";
 import { importGadsRows } from "@/lib/gads/importer";
+import { resolveShopifyIntegration, requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 
 /**
  * POST /api/ecom/gads/import
@@ -47,8 +48,14 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // Import rattaché à la boutique sélectionnée (sinon principale).
+  const resolved = await resolveShopifyIntegration(auth.supabase, auth.user.id, requestedIntegrationId(req));
+  if (!resolved) {
+    return NextResponse.json({ error: "Aucune boutique pour rattacher l'import." }, { status: 404 });
+  }
+
   try {
-    const recap = await importGadsRows(auth.user.id, parsed, filename);
+    const recap = await importGadsRows(auth.user.id, resolved.integration.id, parsed, filename);
     return NextResponse.json({ ok: true, recap });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });

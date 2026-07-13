@@ -24,15 +24,28 @@ export interface GoogleAdsConfig {
   apiVersion: string;
 }
 
-/** Config depuis l'env — null si l'une des 6 clés requises manque. */
-export function getGoogleAdsConfig(): GoogleAdsConfig | null {
+/**
+ * Credentials OAuth PARTAGÉS (même MCC) — SANS customer_id. Multi-comptes : le
+ * customer_id vient désormais de gads_accounts (un par boutique), pas de l'env.
+ * null si l'une des 5 clés requises manque.
+ */
+export interface GoogleAdsBaseConfig {
+  developerToken: string;
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+  /** MCC par défaut (chiffres). Surchargeable par compte. */
+  loginCustomerId: string;
+  apiVersion: string;
+}
+
+export function getGoogleAdsBaseConfig(): GoogleAdsBaseConfig | null {
   const developerToken = process.env.GOOGLE_ADS_DEVELOPER_TOKEN;
   const clientId = process.env.GOOGLE_ADS_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_ADS_CLIENT_SECRET;
   const refreshToken = process.env.GOOGLE_ADS_REFRESH_TOKEN;
   const loginCustomerId = process.env.GOOGLE_ADS_LOGIN_CUSTOMER_ID?.replace(/-/g, "");
-  const customerId = process.env.GOOGLE_ADS_CUSTOMER_ID?.replace(/-/g, "");
-  if (!developerToken || !clientId || !clientSecret || !refreshToken || !loginCustomerId || !customerId) {
+  if (!developerToken || !clientId || !clientSecret || !refreshToken || !loginCustomerId) {
     return null;
   }
   return {
@@ -41,9 +54,31 @@ export function getGoogleAdsConfig(): GoogleAdsConfig | null {
     clientSecret,
     refreshToken,
     loginCustomerId,
-    customerId,
     apiVersion: process.env.GOOGLE_ADS_API_VERSION ?? "v23",
   };
+}
+
+/** Combine les creds partagés + le compte d'une boutique → config complète. */
+export function buildAccountConfig(
+  base: GoogleAdsBaseConfig,
+  account: { customer_id: string; login_customer_id?: string | null },
+): GoogleAdsConfig {
+  return {
+    ...base,
+    customerId: account.customer_id.replace(/-/g, ""),
+    loginCustomerId: account.login_customer_id?.replace(/-/g, "") || base.loginCustomerId,
+  };
+}
+
+/**
+ * Config depuis l'env (rétro-compat mono-compte : LHM). null si une clé manque.
+ * Le customer_id vient de GOOGLE_ADS_CUSTOMER_ID (LHM historique).
+ */
+export function getGoogleAdsConfig(): GoogleAdsConfig | null {
+  const base = getGoogleAdsBaseConfig();
+  const customerId = process.env.GOOGLE_ADS_CUSTOMER_ID?.replace(/-/g, "");
+  if (!base || !customerId) return null;
+  return { ...base, customerId };
 }
 
 /**

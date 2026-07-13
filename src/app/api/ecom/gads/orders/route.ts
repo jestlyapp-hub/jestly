@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/api-auth";
 import { getOrdersAttribution } from "@/lib/gads/attribution-aggregator";
+import { requestedIntegrationId } from "@/lib/shopify/resolve-integration";
 import { parseRange } from "../../ads/_helpers";
 
 /**
@@ -16,7 +17,7 @@ export async function GET(req: NextRequest) {
   const range = parseRange(url.searchParams.get("range"), url.searchParams.get("from"), url.searchParams.get("to"));
 
   try {
-    const result = await getOrdersAttribution(auth.user.id, range);
+    const result = await getOrdersAttribution(auth.user.id, range, requestedIntegrationId(url));
     return NextResponse.json({ range, ...result, computed_at: new Date().toISOString() });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });

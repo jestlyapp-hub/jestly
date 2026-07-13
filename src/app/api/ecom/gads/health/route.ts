@@ -35,30 +35,37 @@ export async function GET(req: NextRequest) {
           .then(({ data }: { data: { last_orders_sync_at: string | null } | null }) => data)
       : Promise.resolve(null),
     // Fraîcheur = MAX(imported_at) : quand la dernière écriture a-t-elle eu lieu.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("gads_daily") as any)
-      .select("imported_at")
-      .eq("user_id", userId)
-      .order("imported_at", { ascending: false })
-      .limit(1)
-      .then(({ data }: { data: Array<{ imported_at: string }> | null }) => data?.[0] ?? null),
+    // Scopé à la boutique (gads_daily.integration_id).
+    integ
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? (supabase.from("gads_daily") as any)
+          .select("imported_at")
+          .eq("integration_id", integ.id)
+          .order("imported_at", { ascending: false })
+          .limit(1)
+          .then(({ data }: { data: Array<{ imported_at: string }> | null }) => data?.[0] ?? null)
+      : Promise.resolve(null),
     // Couverture = MAX(date) : jusqu'à quel jour les données remontent. Requête
     // distincte car tout le batch de 30 j partage le même imported_at — trier par
     // imported_at renvoie une ligne au date arbitraire, pas la plus récente.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("gads_daily") as any)
-      .select("date")
-      .eq("user_id", userId)
-      .order("date", { ascending: false })
-      .limit(1)
-      .then(({ data }: { data: Array<{ date: string }> | null }) => data?.[0]?.date ?? null),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (supabase.from("gads_product_daily") as any)
-      .select("imported_at")
-      .eq("user_id", userId)
-      .order("imported_at", { ascending: false })
-      .limit(1)
-      .then(({ data }: { data: Array<{ imported_at: string }> | null }) => data?.[0] ?? null),
+    integ
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? (supabase.from("gads_daily") as any)
+          .select("date")
+          .eq("integration_id", integ.id)
+          .order("date", { ascending: false })
+          .limit(1)
+          .then(({ data }: { data: Array<{ date: string }> | null }) => data?.[0]?.date ?? null)
+      : Promise.resolve(null),
+    integ
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? (supabase.from("gads_product_daily") as any)
+          .select("imported_at")
+          .eq("integration_id", integ.id)
+          .order("imported_at", { ascending: false })
+          .limit(1)
+          .then(({ data }: { data: Array<{ imported_at: string }> | null }) => data?.[0] ?? null)
+      : Promise.resolve(null),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (supabase.from("pixel_shops") as any)
       .select("id, shop_domain, label, is_active")

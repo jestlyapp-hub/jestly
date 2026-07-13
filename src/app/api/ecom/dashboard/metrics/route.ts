@@ -21,7 +21,6 @@ export async function GET(req: NextRequest) {
     const resolved = await resolveShopifyIntegration(supabase, auth.user.id, requestedIntegrationId(url));
     const data = await getDashboardMetrics(auth.user.id, range, {
       integrationId: resolved?.integration.id ?? null,
-      includeAds: resolved?.isPrimary ?? true,
     });
     return NextResponse.json({ range, ...data, computed_at: new Date().toISOString() });
   } catch (e) {
