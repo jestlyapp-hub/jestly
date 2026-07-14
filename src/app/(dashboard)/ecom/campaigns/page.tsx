@@ -60,6 +60,12 @@ const RENT_FILTERS: { value: RentabilityFilter; label: string }[] = [
   { value: "profitable", label: "Rentables" },
   { value: "loss", label: "En perte" },
 ];
+type Preset = "all" | "potential" | "cut";
+const PRESET_FILTERS: { value: Preset; label: string }[] = [
+  { value: "all", label: "Priorité : toutes" },
+  { value: "potential", label: "À fort potentiel" },
+  { value: "cut", label: "À couper" },
+];
 
 const STORAGE_KEY = "ecom_campaigns_columns";
 
@@ -68,6 +74,7 @@ export default function CampaignsPage() {
   const { from, to } = useAnalyticsRange();
   const [status, setStatus] = useState<CampaignStatusFilter>("all");
   const [rent, setRent] = useState<RentabilityFilter>("all");
+  const [preset, setPreset] = useState<Preset>("all");
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<string>("__default");
   const [sortDesc, setSortDesc] = useState(true);
@@ -102,7 +109,18 @@ export default function CampaignsPage() {
       const q = search.trim().toLowerCase();
       list = list.filter((r) => r.name.toLowerCase().includes(q));
     }
-    if (sortBy !== "__default") {
+    // Presets de priorité (surchargent le tri manuel) :
+    //  - fort potentiel : rentables, triées par ROAS Jestly décroissant (les
+    //    meilleures candidates à plus de budget) ;
+    //  - à couper : en perte avec dépense, triées par dépense décroissante (le
+    //    gaspillage le plus lourd d'abord).
+    if (preset === "potential") {
+      list = list.filter((r) => r.profitable === true);
+      list = [...list].sort((a, b) => (b.roas_jestly ?? -1) - (a.roas_jestly ?? -1));
+    } else if (preset === "cut") {
+      list = list.filter((r) => r.profitable === false && r.spend_cents > 0);
+      list = [...list].sort((a, b) => b.spend_cents - a.spend_cents);
+    } else if (sortBy !== "__default") {
       const col = COLS.find((c) => c.id === sortBy);
       if (col) {
         list = [...list].sort((a, b) => {
@@ -115,7 +133,7 @@ export default function CampaignsPage() {
       }
     }
     return list;
-  }, [data?.rows, status, rent, search, sortBy, sortDesc]);
+  }, [data?.rows, status, rent, preset, search, sortBy, sortDesc]);
 
   // Totaux de la sélection filtrée (recalculés côté client — cohérents avec les filtres).
   const totals = useMemo(() => {
@@ -207,6 +225,7 @@ export default function CampaignsPage() {
       <div className="flex flex-wrap items-center gap-2">
         <Segmented value={status} onChange={setStatus} options={STATUS_FILTERS} />
         <Segmented value={rent} onChange={setRent} options={RENT_FILTERS} />
+        <Segmented value={preset} onChange={setPreset} options={PRESET_FILTERS} />
         <input type="search" value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Rechercher une campagne…"
           className="px-2.5 py-1.5 text-[12px] bg-white border border-[var(--ecom-card-border)] rounded-md focus:outline-none focus:border-[#7C3AED] text-[var(--ecom-navy)] w-56" />
         <div className="ml-auto flex items-center gap-2">
@@ -253,7 +272,7 @@ export default function CampaignsPage() {
                       {c.label}{sortBy === c.id && <span className="text-[#7C3AED]"> {sortDesc ? "↓" : "↑"}</span>}
                     </th>
                   ))}
-                  <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap">Rentabilité</th>
+                  <th className="px-3 py-2.5 font-medium text-right whitespace-nowrap" title="Verdict de rentabilité de la campagne : ROAS Jestly vs seuil de rentabilité (BE-ROAS)">Verdict</th>
                 </tr>
               </thead>
               <tbody>
@@ -323,7 +342,7 @@ export default function CampaignsPage() {
       </p>
 
       {compareOpen && (
-        <CompareDrawer rows={selectedRows} beRoas={data?.be_roas ?? null} onClose={() => setCompareOpen(false)} />
+        <CompareDrawer rows={selectedRows} days={data?.days ?? []} beRoas={data?.be_roas ?? null} onClose={() => setCompareOpen(false)} />
       )}
     </div>
   );
