@@ -21,6 +21,9 @@ import { EcomShopContext, ECOM_SWR_USE } from "./ecom-shop-context";
 const DAY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DEFAULT_LABEL = "30 derniers jours";
 
+/** Sentinel du mode agrégé « Toutes les boutiques » (vue portefeuille). */
+export const ALL_SHOPS = "__all__";
+
 export interface EcomRange {
   from: string;
   to: string;
@@ -50,12 +53,14 @@ interface Ctx {
   setPref: <T>(key: string, value: T) => void;
   /** Boutiques du user (principale d'abord). */
   shops: EcomShopLite[];
-  /** id de la boutique sélectionnée (null si aucune). */
+  /** id de la boutique sélectionnée, ou ALL_SHOPS (mode agrégé), null si aucune. */
   selectedShopId: string | null;
-  /** Boutique sélectionnée résolue (ou null). */
+  /** Boutique sélectionnée résolue (null en mode agrégé ou si aucune). */
   selectedShop: EcomShopLite | null;
-  /** Change la boutique active (persistée par user). */
+  /** Change la boutique active (persistée par user). Accepte ALL_SHOPS. */
   setSelectedShopId: (id: string) => void;
+  /** true = mode « Toutes les boutiques » (vue portefeuille sur le Dashboard). */
+  isAllShops: boolean;
 }
 
 const EcomPrefsContext = createContext<Ctx | null>(null);
@@ -155,19 +160,23 @@ export function EcomPrefsProvider({
   const [selectedShopId, setSelectedShopIdState] = useState<string | null>(primaryId);
   const shopHydratedFor = useRef<string | null>(null);
 
+  const isValidSelection = (id: string | null) =>
+    id === ALL_SHOPS || (id != null && shops.some((s) => s.id === id));
+
   useEffect(() => {
     if (userKey === "anon") return;
     if (shopHydratedFor.current !== userKey) {
       shopHydratedFor.current = userKey;
       const stored = readStamped<string | null>(prefStorageKey(SHOP_KEY), userKey, null);
-      if (stored && shops.some((s) => s.id === stored)) {
-        setSelectedShopIdState(stored);
-        return;
-      }
+      // ALL_SHOPS n'est valide qu'avec au moins 2 boutiques.
+      if (stored === ALL_SHOPS && shops.length > 1) { setSelectedShopIdState(ALL_SHOPS); return; }
+      if (stored && shops.some((s) => s.id === stored)) { setSelectedShopIdState(stored); return; }
     }
     // Garde-fou : si la sélection courante n'existe plus (boutique déconnectée),
-    // retomber sur la principale.
-    setSelectedShopIdState((cur) => (cur && shops.some((s) => s.id === cur) ? cur : primaryId));
+    // retomber sur la principale. ALL_SHOPS conservé tant que >1 boutique.
+    setSelectedShopIdState((cur) =>
+      cur === ALL_SHOPS ? (shops.length > 1 ? ALL_SHOPS : primaryId) : (isValidSelection(cur) ? cur : primaryId),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userKey, primaryId, shops.length]);
 
@@ -176,19 +185,24 @@ export function EcomPrefsProvider({
     if (userKey !== "anon") writeStamped(prefStorageKey(SHOP_KEY), userKey, id);
   }, [userKey]);
 
+  const isAllShops = selectedShopId === ALL_SHOPS;
   const selectedShop = useMemo(
-    () => shops.find((s) => s.id === selectedShopId) ?? null,
-    [shops, selectedShopId],
+    () => (isAllShops ? null : shops.find((s) => s.id === selectedShopId) ?? null),
+    [shops, selectedShopId, isAllShops],
   );
+  // id RÉEL propagé à l'injection SWR : en mode agrégé, les pages non-portefeuille
+  // (produits, commandes…) restent scopées sur la boutique principale — jamais
+  // « toutes » par défaut (le portefeuille fetch chaque boutique explicitement).
+  const effectiveShopId = isAllShops ? primaryId : selectedShopId;
 
   const ctx: Ctx = {
     range, setRange, userKey, getPref, setPref,
-    shops, selectedShopId, selectedShop, setSelectedShopId,
+    shops, selectedShopId, selectedShop, setSelectedShopId, isAllShops,
   };
 
   return (
     <EcomPrefsContext.Provider value={ctx}>
-      <EcomShopContext.Provider value={selectedShopId}>
+      <EcomShopContext.Provider value={effectiveShopId}>
         <SWRConfig value={{ use: ECOM_SWR_USE }}>
           {children}
         </SWRConfig>
@@ -212,6 +226,7 @@ export function useEcomPrefs(): Ctx {
       selectedShopId: null,
       selectedShop: null,
       setSelectedShopId: () => {},
+      isAllShops: false,
     };
   }
   return ctx;
