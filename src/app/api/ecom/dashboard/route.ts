@@ -162,7 +162,8 @@ export async function GET(req: NextRequest) {
   // first-party (période) ; Achat = commandes réelles Shopify (période). Le
   // pixel MVP ne capte pas encore Ajout panier / Checkout → « non suivi »
   // (null) plutôt que des zéros qui font croire à un site mort.
-  const pixelSessions = await countPixelSessions(supabase, user.id, from, to);
+  const pixelShopIds = await pixelShopIdsForIntegration(supabase, user.id, integration);
+  const pixelSessions = await countPixelSessions(supabase, pixelShopIds, from, to);
   const funnel = {
     sessions: pixelSessions,
     cart: null as number | null,
@@ -267,20 +268,38 @@ async function loadAttributionSignals(
   return { pixelByOrder, manualByOrder };
 }
 
-/** Sessions pixel first-party sur la période (toutes boutiques du user). */
-async function countPixelSessions(
+/**
+ * pixel_shop(s) rattaché(s) à UNE boutique Shopify. Isolation multi-boutiques :
+ * pixel_shops ne porte pas d'integration_id ; le lien fiable est le NOM
+ * (pixel_shops.label == integration.metadata.shop_name — « L'Horloge Murale »,
+ * « Mignou »). Les domaines diffèrent (public vs myshopify) donc on matche par
+ * nom. Aucun nom → aucun pixel_shop rattaché (0), jamais le total cross-boutique.
+ */
+async function pixelShopIdsForIntegration(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   userId: string,
+  integration: { metadata: Record<string, unknown> },
+): Promise<string[]> {
+  const shopName = String(integration.metadata?.shop_name ?? "").trim().toLowerCase();
+  if (!shopName) return [];
+  const { data: shops } = await (supabase.from("pixel_shops") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
+    .select("id, label")
+    .eq("user_id", userId);
+  return ((shops ?? []) as Array<{ id: string; label: string | null }>)
+    .filter((s) => (s.label ?? "").trim().toLowerCase() === shopName)
+    .map((s) => s.id);
+}
+
+/** Sessions pixel first-party sur la période, pour les pixel_shops donnés. */
+async function countPixelSessions(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  shopIds: string[],
   from: string,
   to: string,
 ): Promise<number> {
-  const { data: shops } = await (supabase.from("pixel_shops") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
-    .select("id")
-    .eq("user_id", userId);
-  const shopIds = ((shops ?? []) as Array<{ id: string }>).map((s) => s.id);
   if (shopIds.length === 0) return 0;
-
   const { count } = await (supabase.from("pixel_sessions") as any) // eslint-disable-line @typescript-eslint/no-explicit-any
     .select("id", { count: "exact", head: true })
     .in("shop_id", shopIds)
