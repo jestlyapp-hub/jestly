@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseItemId, buildProductIndex, mapItemToProduct } from "@/lib/gads/product-mapping";
+import { parseItemId, buildProductIndex, mapItemToProduct, readableItemLabel } from "@/lib/gads/product-mapping";
 import { mapProductGaqlResults } from "@/lib/gads/api-sync";
 
 describe("parseItemId — formats multiples du flux Shopping", () => {
@@ -45,6 +45,55 @@ describe("mapItemToProduct — croisement avec le catalogue", () => {
   it("item inconnu → null (affiché « Produit inconnu », jamais ignoré)", () => {
     expect(mapItemToProduct("99999999999999", index)).toBeNull();
     expect(mapItemToProduct("sku-abc", index)).toBeNull();
+  });
+});
+
+describe("mapItemToProduct — flux où item_id = SKU (Mignou)", () => {
+  // Catalogue Mignou : SKU au format fournisseur (14:...#...;5:...). Google renvoie
+  // l'item_id en minuscules ; les SKU Shopify ont une casse mixte.
+  const index = buildProductIndex([
+    {
+      shopify_product_id: "16338326520153",
+      title: "Meuble cache litière - Gus",
+      variants: [{ id: "58208468238681", sku: "14:29#white;200007763:201336342" }],
+    },
+    {
+      shopify_product_id: "16339501384025",
+      title: "Tapis attrape-litière",
+      variants: [
+        { id: "58216813691225", sku: "14:105010371#Black;5:880#30x30cm" },
+        { id: "58216813723993", sku: "14:105010371#Black;5:100014132#40x50cm" },
+      ],
+    },
+  ]);
+
+  it("mappe l'item_id sur le SKU de variante, insensible à la casse", () => {
+    expect(mapItemToProduct("14:29#white;200007763:201336342", index)?.title).toBe("Meuble cache litière - Gus");
+    // Google minuscule vs SKU « Black »
+    expect(mapItemToProduct("14:105010371#black;5:880#30x30cm", index)?.title).toBe("Tapis attrape-litière");
+    expect(mapItemToProduct("14:105010371#BLACK;5:100014132#40x50cm", index)?.title).toBe("Tapis attrape-litière");
+  });
+
+  it("SKU absent du catalogue → null (jamais deviné)", () => {
+    expect(mapItemToProduct("14:999#unknown", index)).toBeNull();
+  });
+
+  it("NON-RÉGRESSION : un flux numérique (LHM) reste mappé par variante malgré l'index SKU", () => {
+    const lhm = buildProductIndex([
+      { shopify_product_id: "8123456789", title: "Horloge Lisbonne", variants: [{ id: "55568161407316", sku: "LISBOA-01" }] },
+    ]);
+    expect(mapItemToProduct("55568161407316", lhm)?.title).toBe("Horloge Lisbonne"); // par variante numérique
+    expect(mapItemToProduct("lisboa-01", lhm)?.title).toBe("Horloge Lisbonne"); // SKU aussi disponible
+  });
+});
+
+describe("readableItemLabel — repli lisible d'un item_id non mappé", () => {
+  it("extrait les attributs humains après #", () => {
+    expect(readableItemLabel("14:29#a gray")).toBe("a gray");
+    expect(readableItemLabel("14:193#green;5:100014064#s 41×31×17cm")).toBe("green · s 41×31×17cm");
+  });
+  it("sans attribut lisible → item_id brut", () => {
+    expect(readableItemLabel("14:175;200007763:201336342;5:4182")).toBe("14:175;200007763:201336342;5:4182");
   });
 });
 
