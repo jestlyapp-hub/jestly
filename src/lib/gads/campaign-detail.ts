@@ -19,7 +19,7 @@ import type { DateRange } from "@/lib/ads/types";
 import { computeBlendedStats, computeOrdersCogs, resolveUnitCost, type ProductCostRow } from "@/lib/costs/engine";
 import { resolveUnifiedChannel, deriveMeasuredChannel } from "./channels";
 import { loadOrdersAndManual, resolveActiveShopifyIntegrationId, SMALL_SAMPLE_THRESHOLD, type DbOrderRow } from "./attribution-aggregator";
-import { buildProductIndex, mapItemToProduct, type ProductIndex } from "./product-mapping";
+import { buildProductIndex, mapItemToProduct, readableItemLabel, type ProductIndex } from "./product-mapping";
 import {
   deriveCampaignStatus, type CampaignMeta, type DisplayCampaignStatus,
 } from "./campaign-analytics";
@@ -182,7 +182,7 @@ export function computeCampaignProducts(input: {
     const title = ref?.title
       ?? s?.title
       ?? a?.google_title
-      ?? (unknown ? `Produit inconnu (${key.slice("unknown:".length)})` : "(produit sans titre)");
+      ?? (unknown ? `Produit non identifié — ${readableItemLabel(key.slice("unknown:".length))}` : "(produit sans titre)");
     const hasDelivery = (a?.spend_cents ?? 0) > 0 || (a?.impressions ?? 0) > 0;
     const jestlyOrders = s?.orders ?? 0;
     const jestlyRevenue = s?.revenue_cents ?? 0;

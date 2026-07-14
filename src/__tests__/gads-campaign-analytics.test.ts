@@ -209,7 +209,7 @@ describe("computeCampaignProducts — diffusés vs sans diffusion, candidats", (
       index,
     });
     expect(active[0].unknown_item).toBe(true);
-    expect(active[0].title).toContain("Produit inconnu");
+    expect(active[0].title).toContain("Produit non identifié");
   });
 });
 

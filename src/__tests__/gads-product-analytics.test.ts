@@ -119,7 +119,7 @@ describe("computeProductAnalytics — croisement ventes × Ads par produit", () 
       channelFilter: "all",
     });
     const unknown = res.rows.find((r) => r.unknown_item)!;
-    expect(unknown.title).toBe("Produit inconnu (sku-mystere)");
+    expect(unknown.title).toBe("Produit non identifié — sku-mystere");
     expect(unknown.ads?.spend_cents).toBe(1200);
   });
 

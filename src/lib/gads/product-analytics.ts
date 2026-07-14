@@ -20,7 +20,7 @@ import { resolveUnitCost, type ProductCostRow } from "@/lib/costs/engine";
 import { deriveMeasuredChannel, resolveUnifiedChannel, type Channel } from "./channels";
 import { loadOrdersAndManual, resolveActiveShopifyIntegrationId, SMALL_SAMPLE_THRESHOLD, type PixelResolution, type DbOrderRow } from "./attribution-aggregator";
 import type { GadsProductDailyRow } from "./api-sync";
-import { buildProductIndex, mapItemToProduct, type ProductIndex } from "./product-mapping";
+import { buildProductIndex, mapItemToProduct, readableItemLabel, type ProductIndex } from "./product-mapping";
 
 export type ChannelFilter = Exclude<Channel, "ghost"> | "all";
 
@@ -168,8 +168,10 @@ export function computeProductAnalytics(input: {
     const ref = mapItemToProduct(r.item_id, index);
     const key = ref ? ref.shopify_product_id : `unknown:${r.item_id}`;
     if (!ref) {
+      // Repli honnête : label humain extrait de l'item_id (attributs après #)
+      // plutôt qu'un id brut. Reste marqué « non identifié » (unknown_item).
       getRow(key, {
-        title: `Produit inconnu (${r.item_id})`,
+        title: `Produit non identifié — ${readableItemLabel(r.item_id)}`,
         unknown_item: true,
       });
     } else {
