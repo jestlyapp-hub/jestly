@@ -27,6 +27,52 @@ const Body = z.object({
   login_customer_id: z.string().transform((s) => s.replace(/-/g, "")).pipe(z.string().regex(/^\d{10}$/)).nullish(),
 });
 
+type ValidationOk = { descriptiveName: string | null; currency: string | null; effectiveLoginCustomerId: string | null };
+type ValidationErr = { error: string };
+
+/**
+ * Valide un compte Google Ads par une requête reporting triviale, en résolvant
+ * le bon chemin d'accès. Ordre des tentatives :
+ *  1. le login demandé (ou le MCC par défaut) — cas d'un sous-compte du MCC ;
+ *  2. sur refus de PERMISSION (403 : le compte n'est pas sous ce MCC), repli en
+ *     ACCÈS DIRECT (login-customer-id = le compte), valable si l'OAuth y a un
+ *     accès direct (compte hors MCC mais partagé au même utilisateur Google).
+ * Renvoie le login_customer_id EFFECTIF (null = MCC par défaut, sinon la valeur
+ * qui a fonctionné) pour que la sync emprunte exactement le même chemin.
+ */
+async function validateGadsAccount(
+  base: NonNullable<ReturnType<typeof getGoogleAdsBaseConfig>>,
+  customerId: string,
+  requestedLogin: string | null,
+): Promise<ValidationOk | ValidationErr> {
+  const candidates: (string | null)[] = [requestedLogin];
+  const firstEffective = requestedLogin ?? base.loginCustomerId;
+  if (firstEffective !== customerId) candidates.push(customerId); // repli accès direct
+  let lastErr: unknown = null;
+  for (const login of candidates) {
+    try {
+      const cfg = buildAccountConfig(base, { customer_id: customerId, login_customer_id: login });
+      const rows = await searchGaql<{ customer?: { descriptiveName?: string; currencyCode?: string } }>(
+        cfg,
+        "SELECT customer.descriptive_name, customer.currency_code FROM customer LIMIT 1",
+      );
+      return {
+        descriptiveName: rows[0]?.customer?.descriptiveName ?? null,
+        currency: rows[0]?.customer?.currencyCode ?? null,
+        effectiveLoginCustomerId: login,
+      };
+    } catch (e) {
+      lastErr = e;
+      // On ne tente le repli en accès direct que sur un refus de permission.
+      if (!(e instanceof GoogleAdsApiError) || e.status !== 403) break;
+    }
+  }
+  const msg = lastErr instanceof GoogleAdsApiError
+    ? `Google Ads a refusé ce compte (${lastErr.status ?? "?"}) : vérifie que ${customerId} est accessible par ton compte Google — soit comme sous-compte de ton MCC, soit en accès direct. ${lastErr.message.slice(0, 160)}`
+    : (lastErr as Error)?.message ?? "Validation du compte échouée.";
+  return { error: msg };
+}
+
 export async function GET() {
   const auth = await getAuthUser();
   if (auth.error) return auth.error;
@@ -65,23 +111,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Boutique introuvable." }, { status: 404 });
   }
 
-  // Valide le customer_id : une requête reporting triviale doit passer sous le MCC.
-  const cfg = buildAccountConfig(base, { customer_id, login_customer_id });
-  let descriptiveName: string | null = null;
-  let currency: string | null = null;
-  try {
-    const rows = await searchGaql<{ customer?: { descriptiveName?: string; currencyCode?: string } }>(
-      cfg,
-      "SELECT customer.descriptive_name, customer.currency_code FROM customer LIMIT 1",
-    );
-    descriptiveName = rows[0]?.customer?.descriptiveName ?? null;
-    currency = rows[0]?.customer?.currencyCode ?? null;
-  } catch (e) {
-    const msg = e instanceof GoogleAdsApiError
-      ? `Google Ads a refusé ce compte (${e.status ?? "?"}) : vérifie que ${customer_id} est bien un sous-compte de ton MCC. ${e.message.slice(0, 160)}`
-      : (e as Error).message;
-    return NextResponse.json({ error: msg }, { status: 422 });
+  // Valide le compte. On tente d'abord via le MCC (ou le login demandé) ; si
+  // Google refuse pour permission (403 : le compte n'est PAS sous ce MCC) alors
+  // que l'OAuth y a un accès DIRECT, on réessaie en accès direct
+  // (login-customer-id = le compte lui-même). Le login_customer_id EFFECTIF —
+  // celui qui a fonctionné — est stocké et réutilisé tel quel par la sync.
+  const validation = await validateGadsAccount(base, customer_id, login_customer_id ?? null);
+  if ("error" in validation) {
+    return NextResponse.json({ error: validation.error }, { status: 422 });
   }
+  const { descriptiveName, currency, effectiveLoginCustomerId } = validation;
 
   // Upsert du compte (une boutique = un compte).
   const supabase = createAdminClient();
@@ -92,7 +131,7 @@ export async function POST(req: NextRequest) {
         user_id: auth.user.id,
         integration_id,
         customer_id,
-        login_customer_id: login_customer_id ?? null,
+        login_customer_id: effectiveLoginCustomerId,
         currency,
         is_active: true,
       },
@@ -108,7 +147,7 @@ export async function POST(req: NextRequest) {
       const { syncGadsAccount } = await import("@/lib/gads/api-sync");
       await syncGadsAccount({
         id: data.id, user_id: auth.user.id, integration_id, customer_id,
-        login_customer_id: login_customer_id ?? null, currency, is_active: true,
+        login_customer_id: effectiveLoginCustomerId, currency, is_active: true,
       }, 30);
     } catch (e) {
       console.error("[gads/accounts] sync initiale échouée:", (e as Error).message);
