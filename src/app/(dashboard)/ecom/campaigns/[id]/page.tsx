@@ -1,35 +1,78 @@
 "use client";
 
 /**
- * Détail d'une campagne Google Ads. En-tête (statut, période, budget + archive
- * Jestly), KPIs période, graphe dépense/CA/ROAS glissant, et produits de la
- * campagne (diffusés vs sans diffusion) avec VRAIS noms + images Shopify.
- * Remonte en tête les candidats à exclure (dépense sans conversion) et à
- * réactiver (vendaient bien, ne diffusent plus).
+ * Détail d'une campagne Google Ads — mini-dashboard scopé campagne, aussi riche
+ * que le Dashboard boutique. Verdict CAMPAGNE mis en avant (vs contexte boutique
+ * discret), graphe unifié (même moteur que le Dashboard) avec markers de budget,
+ * KPIs configurables persistés, analyses actionnables (score, tendance,
+ * recommandation de budget, simulateur, comparaison boutique), tiroir d'insights,
+ * et produits de la campagne (diffusés vs sans diffusion) avec marge.
  */
-import { use, useState } from "react";
+import { use, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, AlertTriangle, RefreshCcw, Link2 } from "lucide-react";
+import { ArrowLeft, AlertTriangle, RefreshCcw } from "lucide-react";
 import { useApi } from "@/lib/hooks/use-api";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
-import { formatCurrency, formatNumberFr, formatRoas, formatPercent } from "@/lib/ads/formatters";
+import { formatCurrency, formatNumberFr, formatRoas } from "@/lib/ads/formatters";
 import { useAnalyticsRange } from "@/components/ecom/gads/AnalyticsPeriodFilter";
+import { useEcomPref } from "@/components/ecom/EcomPrefsProvider";
 import { TableSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
-import { KpiCard } from "@/components/ecom/premium/KpiCard";
-import { CampaignStatusChip, ProfitabilityDot, channelTypeLabel } from "@/components/ecom/campaigns/campaign-ui";
-import CampaignDetailChart from "@/components/ecom/campaigns/CampaignDetailChart";
-import BudgetTimeline from "@/components/ecom/campaigns/BudgetTimeline";
+import ConfigurableKpiGrid from "@/components/ecom/dashboard/ConfigurableKpiGrid";
+import MetricSelector from "@/components/ecom/dashboard/MetricSelector";
+import InsightsDrawer from "@/components/ecom/dashboard/InsightsDrawer";
+import PremiumChart, { type ChartSeries, type ChartPoint, type ChartMarker } from "@/components/ecom/dashboard/PremiumChart";
+import CampaignVerdictHero from "@/components/ecom/campaigns/CampaignVerdictHero";
+import { CampaignScoreBadge, CampaignTrendBadge, BudgetRecommendationCard, ShopComparison } from "@/components/ecom/campaigns/CampaignAnalysis";
+import BudgetSimulator from "@/components/ecom/campaigns/BudgetSimulator";
 import AttachSalesPanel from "@/components/ecom/campaigns/AttachSalesPanel";
+import { CAMPAIGN_METRIC_CATALOG, DEFAULT_CAMPAIGN_KPI_IDS, CAMPAIGN_HIGHLIGHT_IDS } from "@/lib/gads/campaign-metric-catalog";
 import type { CampaignDetail, CampaignProductRowOut } from "@/lib/gads/campaign-detail";
+
+const CHART_COLORS = { spend: "#C4B5FD", ca: "#7C3AED", profit: "#0F9D6B", roas: "#1a1535" };
 
 export default function CampaignDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const { from, to } = useAnalyticsRange();
   usePageTitle("Détail campagne");
   const [attachOpen, setAttachOpen] = useState(false);
+  const [kpiIds, setKpiIds] = useEcomPref<string[]>("campaign_kpis", DEFAULT_CAMPAIGN_KPI_IDS);
 
   const api = useApi<CampaignDetail>(`/api/ecom/campaigns/${id}?from=${from}&to=${to}`);
   const d = api.data;
+
+  const chartData: ChartPoint[] = useMemo(() => (d?.timeline ?? []).map((p) => ({
+    date: p.date,
+    spend: p.spend_cents,
+    ca: p.jestly_revenue_cents,
+    profit: p.net_profit_cents,
+    roas: p.rolling_roas,
+  })), [d?.timeline]);
+
+  // Markers : changements de budget archivés (gads_budget_history) superposés à
+  // la courbe — « le jour où tu es passé à X €/j ».
+  const markers: ChartMarker[] = useMemo(() => {
+    const hist = d?.budget_history ?? [];
+    const days = new Set((d?.timeline ?? []).map((p) => p.date));
+    const out: ChartMarker[] = [];
+    let prev: number | null = null;
+    const byDate = new Map<string, string>();
+    for (const h of hist) {
+      const date = h.observed_at.slice(0, 10);
+      if (prev == null || h.budget_cents !== prev) {
+        if (days.has(date)) byDate.set(date, formatCurrency(h.budget_cents));
+        prev = h.budget_cents;
+      }
+    }
+    for (const [date, label] of byDate) out.push({ date, label });
+    return out;
+  }, [d?.budget_history, d?.timeline]);
+
+  const series: ChartSeries[] = [
+    { key: "spend", label: "Dépense", color: CHART_COLORS.spend, kind: "bar", axis: "left", unit: "currency", defaultOn: true },
+    { key: "ca", label: "CA attribué", color: CHART_COLORS.ca, kind: "area", axis: "left", unit: "currency", defaultOn: true, gradient: true },
+    { key: "profit", label: "Profit net", color: CHART_COLORS.profit, kind: "area", axis: "left", unit: "currency", defaultOn: !!d?.costs_configured, disabled: !d?.costs_configured, disabledHint: "Renseigne tes coûts pour le profit net", gradient: true },
+    { key: "roas", label: "ROAS Jestly 7 j", color: CHART_COLORS.roas, kind: "line", axis: "right", unit: "ratio_x", defaultOn: false },
+  ];
 
   const backHref = `/ecom/campaigns?from=${from}&to=${to}`;
 
@@ -44,74 +87,55 @@ export default function CampaignDetailPage({ params }: { params: Promise<{ id: s
 
       {d && (
         <>
-          {/* En-tête */}
-          <div className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-5">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <CampaignStatusChip status={d.status_display} />
-                  <span className="text-[11px] text-[#8A8A88]">{channelTypeLabel(d.channel_type)}</span>
-                </div>
-                <h1 className="text-[20px] font-bold text-[var(--ecom-navy)]">{d.name}</h1>
-                <p className="text-[12px] text-[#8A8A88] mt-0.5">
-                  {d.start_date ? `Depuis le ${frDate(d.start_date)}` : "Date de début inconnue"}
-                  {d.end_date ? ` · terminée le ${frDate(d.end_date)}` : ""}
-                  {d.bidding_strategy ? ` · enchères ${biddingLabel(d.bidding_strategy)}` : ""}
-                </p>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <button onClick={() => setAttachOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[12px] font-semibold bg-[#7C3AED] text-white hover:bg-[#6D28D9]"
-                  title="Affecter des ventes Google Ads sans campagne à celle-ci — alimente son ROAS Jestly">
-                  <Link2 size={13} /> Rattacher des ventes
-                </button>
-                <div className="text-right">
-                  <div className="text-[11px] text-[#8A8A88] uppercase tracking-wide">Budget quotidien actuel</div>
-                  <div className="text-[22px] font-bold text-[var(--ecom-navy)] tabular-nums">
-                    {d.current_budget_cents != null ? formatCurrency(d.current_budget_cents) : "—"}
-                  </div>
-                  <BudgetTimeline history={d.budget_history} since={d.budget_archive_since} />
-                </div>
-              </div>
+          <CampaignVerdictHero d={d} onAttach={() => setAttachOpen(true)} />
+
+          {d.insights.length > 0 && <InsightsDrawer insights={d.insights} storageKey="campaign_insights_open" />}
+
+          {/* KPIs configurables */}
+          <div className="flex items-center justify-between gap-3">
+            <p className="ecom-label">Indicateurs de la campagne</p>
+            <MetricSelector label="Métriques" selected={kpiIds} onChange={setKpiIds} onReset={() => setKpiIds(DEFAULT_CAMPAIGN_KPI_IDS)} catalog={CAMPAIGN_METRIC_CATALOG} />
+          </div>
+          <ConfigurableKpiGrid metrics={d.metrics} selectedIds={kpiIds} catalog={CAMPAIGN_METRIC_CATALOG} highlightIds={CAMPAIGN_HIGHLIGHT_IDS} />
+
+          {/* Graphe unifié */}
+          <div id="graphe">
+            <PremiumChart
+              data={chartData}
+              series={series}
+              markers={markers}
+              title="Dépense, CA attribué et profit net dans le temps"
+              subtitle={`Évolution journalière · ROAS Jestly lissé sur 7 j${!d.costs_configured ? " · profit net masqué tant que les coûts ne sont pas renseignés" : ""}${markers.length > 0 ? " · repères = changements de budget" : ""}`}
+            />
+          </div>
+
+          {/* Analyses actionnables */}
+          <section id="analyse" className="space-y-3">
+            <p className="ecom-label">Analyse &amp; leviers</p>
+            <ShopComparison campaignRoas={d.roas_jestly} shopRoas={d.shop_roas_jestly} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <CampaignScoreBadge score={d.score} />
+              <CampaignTrendBadge trend={d.trend} />
             </div>
-          </div>
-
-          {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <KpiCard label="Dépense" value={formatCurrency(d.spend_cents)} />
-            <KpiCard label="CA Shopify attribué" value={d.jestly_revenue_cents > 0 ? formatCurrency(d.jestly_revenue_cents) : "—"}
-              hint={`${formatNumberFr(d.jestly_orders)} vente${d.jestly_orders > 1 ? "s" : ""}`} />
-            <KpiCard label="ROAS Jestly" value={formatRoas(d.roas_jestly)} highlight
-              tooltip="CA Shopify réel attribué à cette campagne ÷ dépense" />
-            <KpiCard label="ROAS Google" value={formatRoas(d.roas_google)}
-              tooltip="Valeur de conversion déclarée par Google ÷ dépense" />
-            <KpiCard label="CPA" value={d.cpa_cents != null ? formatCurrency(d.cpa_cents) : "—"} />
-            <KpiCard label="Conversions Google" value={formatNumberFr(Math.round(d.google_conversions))}
-              hint={d.ctr != null ? `CTR ${formatPercent(d.ctr)}` : undefined} />
-          </div>
-
-          <div className="flex items-center gap-3 text-[12px]">
-            <ProfitabilityDot profitable={d.profitable} small={d.sample_small} />
-            {d.be_roas != null && <span className="text-[#8A8A88]">Seuil de rentabilité (BE-ROAS) : <span className="font-semibold text-[var(--ecom-navy)]">{formatRoas(d.be_roas)}</span></span>}
-            {d.sample_small && d.jestly_orders > 0 && (
-              <span className="inline-flex px-1.5 py-0.5 rounded bg-[#F7F7F5] border border-[var(--ecom-card-border)] text-[#8A8A88] text-[10px] font-medium">échantillon faible (&lt; 5 ventes)</span>
-            )}
-          </div>
-
-          {/* Graphe */}
-          <CampaignDetailChart points={d.timeline} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <BudgetRecommendationCard recommendation={d.budget_recommendation} />
+              <BudgetSimulator currentBudgetCents={d.current_budget_cents} roasJestly={d.roas_jestly} />
+            </div>
+          </section>
 
           {/* Produits */}
-          <ProductSection title="Produits diffusés" rows={d.products_active} emptyLabel="Aucun produit diffusé par cette campagne sur la période." />
-          {d.products_inactive.length > 0 && (
-            <ProductSection
-              title="Produits sans diffusion récente"
-              subtitle="Ces produits ne diffusent plus dans la campagne sur la période (exclus, en pause ou sans budget). Ceux qui vendaient sont des candidats à réactiver."
-              rows={d.products_inactive}
-              inactive
-              emptyLabel=""
-            />
-          )}
+          <div id="produits" className="space-y-5">
+            <ProductSection title="Produits diffusés" rows={d.products_active} emptyLabel="Aucun produit diffusé par cette campagne sur la période." />
+            {d.products_inactive.length > 0 && (
+              <ProductSection
+                title="Produits sans diffusion récente"
+                subtitle="Ces produits ne diffusent plus dans la campagne sur la période (exclus, en pause ou sans budget). Ceux qui vendaient sont des candidats à réactiver."
+                rows={d.products_inactive}
+                inactive
+                emptyLabel=""
+              />
+            )}
+          </div>
 
           {attachOpen && (
             <AttachSalesPanel
@@ -148,6 +172,7 @@ function ProductSection({ title, subtitle, rows, inactive = false, emptyLabel }:
               <th className="px-3 py-2 font-medium text-right">Conv. Google</th>
               <th className="px-3 py-2 font-medium text-right">CA attribué</th>
               <th className="px-3 py-2 font-medium text-right">ROAS Jestly</th>
+              <th className="px-3 py-2 font-medium text-right" title="CA attribué − COGS (si coût produit renseigné)">Marge</th>
             </tr>
           </thead>
           <tbody>
@@ -183,32 +208,18 @@ function ProductSection({ title, subtitle, rows, inactive = false, emptyLabel }:
                 <td className="px-3 py-2.5 text-right tabular-nums text-[var(--ecom-navy)]">{formatNumberFr(Math.round(r.google_conversions))}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums text-[var(--ecom-navy)]">{r.jestly_revenue_cents > 0 ? formatCurrency(r.jestly_revenue_cents) : "—"}</td>
                 <td className="px-3 py-2.5 text-right tabular-nums text-[var(--ecom-navy)]">{formatRoas(r.roas_jestly)}</td>
+                <td className={`px-3 py-2.5 text-right tabular-nums ${r.margin_cents == null ? "text-[#B4B4B2]" : r.margin_cents >= 0 ? "text-emerald-700" : "text-rose-700"}`}
+                  title={r.margin_cents == null ? "Coût produit non renseigné — marge non disponible" : undefined}>
+                  {r.margin_cents == null ? "—" : formatCurrency(r.margin_cents)}
+                </td>
               </tr>
             ))}
             {rows.length === 0 && emptyLabel && (
-              <tr><td colSpan={6} className="px-3 py-8 text-center text-[#8A8A88]">{emptyLabel}</td></tr>
+              <tr><td colSpan={7} className="px-3 py-8 text-center text-[#8A8A88]">{emptyLabel}</td></tr>
             )}
           </tbody>
         </table>
       </div>
     </div>
   );
-}
-
-function frDate(iso: string): string {
-  try {
-    return new Date(`${iso}T00:00:00`).toLocaleDateString("fr-FR", { day: "numeric", month: "short", year: "numeric" });
-  } catch { return iso; }
-}
-
-function biddingLabel(s: string): string {
-  switch (s) {
-    case "TARGET_SPEND": return "maximiser les clics";
-    case "MAXIMIZE_CONVERSIONS": return "maximiser les conversions";
-    case "MAXIMIZE_CONVERSION_VALUE": return "maximiser la valeur";
-    case "TARGET_ROAS": return "ROAS cible";
-    case "TARGET_CPA": return "CPA cible";
-    case "MANUAL_CPC": return "CPC manuel";
-    default: return s.toLowerCase().replace(/_/g, " ");
-  }
 }

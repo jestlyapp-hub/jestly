@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Wallet } from "lucide-react";
 import { StatusBadge } from "./StatusBadge";
+import { RatioGauge } from "./RatioGauge";
 
 /**
  * VerdictHero — l'élément signature du Dashboard : la rentabilité mise en scène
@@ -31,21 +31,6 @@ interface Props {
   calibrateHref: string;
 }
 
-// ── Géométrie du demi-cadran ──────────────────────────────────────
-const CX = 130, CY = 128, R = 104, STROKE = 16;
-const DOMAIN_MAX = 2; // ratio borné [0..2], point mort au centre (1,0)
-
-const polar = (value: number) => {
-  const v = Math.max(0, Math.min(DOMAIN_MAX, value));
-  const theta = (180 - (v / DOMAIN_MAX) * 180) * (Math.PI / 180);
-  return { x: CX + R * Math.cos(theta), y: CY - R * Math.sin(theta) };
-};
-
-const arcPath = (from: number, to: number): string => {
-  const a = polar(from), b = polar(to);
-  return `M ${a.x.toFixed(2)} ${a.y.toFixed(2)} A ${R} ${R} 0 0 1 ${b.x.toFixed(2)} ${b.y.toFixed(2)}`;
-};
-
 export function VerdictHero({
   periodLabel,
   costsConfigured,
@@ -64,14 +49,6 @@ export function VerdictHero({
   const hasGauge = !noVerdict && costsConfigured && mer != null && beRoas != null && beRoas > 0;
   const ratio = hasGauge ? mer! / beRoas! : 0;
   const gap = hasGauge ? ratio - 1 : 0; // écart au point mort, en « ×seuil »
-
-  // Balayage de l'aiguille : monté après le premier rendu pour déclencher la transition.
-  const [swept, setSwept] = useState(false);
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setSwept(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-  const needleDeg = swept ? (Math.max(0, Math.min(DOMAIN_MAX, ratio)) - 1) * 90 : -90;
 
   const heroValue = noVerdict ? "—" : (costsConfigured && netProfitLabel != null ? netProfitLabel : (merLabel ?? "—"));
   const heroTone = noVerdict
@@ -143,67 +120,14 @@ export function VerdictHero({
 
         {/* ── Instrument (demi-cadran d'aiguille) ── */}
         <div className="shrink-0 mx-auto md:mx-0">
-          <svg viewBox="0 0 260 152" className="w-[260px] h-[152px]" role="img"
-            aria-label={hasGauge ? `Ratio MER sur seuil : ${ratio.toFixed(2)}` : "Cadran en attente de calibrage"}>
-            {/* Zones de fond */}
-            {hasGauge ? (
-              <>
-                <path d={arcPath(0, 1)} fill="none" strokeWidth={STROKE} strokeLinecap="round"
-                  stroke="color-mix(in srgb, var(--ecom-neg) 26%, white)" className="ecom-gauge-arc" style={{ animationDelay: "60ms" }} />
-                <path d={arcPath(1, DOMAIN_MAX)} fill="none" strokeWidth={STROKE} strokeLinecap="round"
-                  stroke="color-mix(in srgb, var(--ecom-pos) 30%, white)" className="ecom-gauge-arc" style={{ animationDelay: "160ms" }} />
-                {/* Tick point mort (1,0) */}
-                <TickAt value={1} color="var(--ecom-navy)" />
-                {/* Aiguille */}
-                <g
-                  className="ecom-gauge-needle"
-                  style={{
-                    transform: `rotate(${needleDeg}deg)`,
-                    transformOrigin: `${CX}px ${CY}px`,
-                    transition: "transform var(--ecom-t-hero) var(--ecom-ease-out)",
-                  }}
-                >
-                  <line x1={CX} y1={CY} x2={CX} y2={CY - (R - 8)} strokeWidth="3" strokeLinecap="round"
-                    stroke={profitable ? "var(--ecom-pos)" : "var(--ecom-neg)"} />
-                </g>
-                <circle cx={CX} cy={CY} r="6" fill="var(--ecom-surface-1)" stroke={profitable ? "var(--ecom-pos)" : "var(--ecom-neg)"} strokeWidth="3" />
-                {/* Lecture du ratio sous le moyeu */}
-                <text x={CX} y={CY + 26} textAnchor="middle"
-                  className="ecom-tnum" fontSize="20" fontWeight="700"
-                  fill={profitable ? "var(--ecom-pos)" : "var(--ecom-neg)"}>
-                  {ratio.toFixed(2)}×
-                </text>
-                <text x={CX} y={CY + 40} textAnchor="middle" fontSize="9" letterSpacing="0.06em"
-                  fill="var(--ecom-muted)" style={{ textTransform: "uppercase" }}>
-                  MER / SEUIL
-                </text>
-              </>
-            ) : (
-              <>
-                {/* En attente de calibrage : arc pointillé grisé */}
-                <path d={arcPath(0, DOMAIN_MAX)} fill="none" strokeWidth={STROKE} strokeLinecap="round"
-                  stroke="var(--ecom-card-border)" strokeDasharray="2 8" />
-                <circle cx={CX} cy={CY} r="6" fill="var(--ecom-surface-1)" stroke="var(--ecom-card-border-strong)" strokeWidth="3" />
-                <text x={CX} y={CY + 28} textAnchor="middle" fontSize="10" letterSpacing="0.06em"
-                  fill="var(--ecom-muted)" style={{ textTransform: "uppercase" }}>
-                  En attente
-                </text>
-              </>
-            )}
-          </svg>
+          <RatioGauge
+            ratio={hasGauge ? ratio : null}
+            positive={profitable}
+            sublabel="MER / SEUIL"
+            ariaLabel={hasGauge ? `Ratio MER sur seuil : ${ratio.toFixed(2)}` : "Cadran en attente de calibrage"}
+          />
         </div>
       </div>
     </section>
-  );
-}
-
-/** Petit tick radial à une valeur du cadran (point mort). */
-function TickAt({ value, color }: { value: number; color: string }) {
-  const outer = polar(value);
-  const vt = Math.max(0, Math.min(DOMAIN_MAX, value));
-  const theta = (180 - (vt / DOMAIN_MAX) * 180) * (Math.PI / 180);
-  const inner = { x: CX + (R - STROKE) * Math.cos(theta), y: CY - (R - STROKE) * Math.sin(theta) };
-  return (
-    <line x1={inner.x} y1={inner.y} x2={outer.x} y2={outer.y} stroke={color} strokeWidth="2.5" strokeLinecap="round" />
   );
 }

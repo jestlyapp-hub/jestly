@@ -5,10 +5,12 @@
  * répondre d'un coup d'œil à « laquelle mérite plus de budget ? ». SUM/SUM,
  * couleurs constantes, DA Jestly. Aucune donnée inventée : « — » quand absent.
  */
+import { useMemo } from "react";
 import { X } from "lucide-react";
 import { formatCurrency, formatRoas, formatNumberFr } from "@/lib/ads/formatters";
 import type { CampaignRow } from "@/lib/gads/campaign-analytics";
 import { CampaignStatusChip } from "./campaign-ui";
+import PremiumChart, { type ChartSeries, type ChartPoint } from "@/components/ecom/dashboard/PremiumChart";
 
 const PALETTE = ["#7C3AED", "#EC4899", "#0EA5E9", "#F59E0B"];
 
@@ -30,7 +32,19 @@ const METRICS: Metric[] = [
   { key: "orders", label: "Ventes attribuées", value: (r) => r.jestly_orders, format: (v) => v != null ? formatNumberFr(v) : "—", higherBetter: true },
 ];
 
-export default function CompareDrawer({ rows, beRoas, onClose }: { rows: CampaignRow[]; beRoas: number | null; onClose: () => void }) {
+export default function CompareDrawer({ rows, days, beRoas, onClose }: { rows: CampaignRow[]; days: string[]; beRoas: number | null; onClose: () => void }) {
+  // Graphe unifié superposé : dépense de chaque campagne dans le temps (donnée
+  // déjà présente via spend_by_day, aligné sur `days` — aucun appel réseau).
+  const chartData: ChartPoint[] = useMemo(() => days.map((date, i) => {
+    const point: ChartPoint = { date };
+    rows.forEach((r, idx) => { point[`c${idx}`] = r.spend_by_day[i] ?? 0; });
+    return point;
+  }), [days, rows]);
+  const chartSeries: ChartSeries[] = rows.map((r, idx) => ({
+    key: `c${idx}`, label: r.name.length > 22 ? r.name.slice(0, 21) + "…" : r.name,
+    color: PALETTE[idx], kind: "line", axis: "left", unit: "currency", defaultOn: true,
+  }));
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end" role="dialog" aria-modal="true">
       <div className="absolute inset-0 bg-black/30" onClick={onClose} />
@@ -54,6 +68,17 @@ export default function CompareDrawer({ rows, beRoas, onClose }: { rows: Campaig
 
           {beRoas != null && (
             <p className="text-[11px] text-[#8A8A88]">Seuil de rentabilité (BE-ROAS) : <span className="font-semibold text-[var(--ecom-navy)]">{formatRoas(beRoas)}</span> — au-dessus = rentable.</p>
+          )}
+
+          {/* Graphe unifié superposé (dépense dans le temps) */}
+          {days.length > 1 && (
+            <PremiumChart
+              data={chartData}
+              series={chartSeries}
+              title="Dépense dans le temps"
+              subtitle="Évolution journalière de la dépense par campagne — repère les montées en budget et leurs effets"
+              height={220}
+            />
           )}
 
           {/* Barres par métrique */}
