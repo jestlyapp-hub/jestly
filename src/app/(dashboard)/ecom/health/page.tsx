@@ -5,11 +5,12 @@
  * « Est-ce que ma machine tourne ? » : état des syncs, sessions pixel 24 h,
  * commandes étiquetées par le cart attribute, matching, taux de réponse survey.
  */
-import { Activity, Radio, Link2, MessageSquare } from "lucide-react";
+import { Activity, Radio, Link2, MessageSquare, Store, Check, X, Package } from "lucide-react";
 import { useApi } from "@/lib/hooks/use-api";
 import { CardSkeleton, ErrorBanner } from "@/components/ecom/gads/LoadState";
 import { formatDateFr } from "@/components/ecom/gads/format";
 import { usePageTitle } from "@/lib/hooks/use-page-title";
+import type { ShopHealthCard } from "@/lib/gads/shops-health";
 
 interface Health {
   syncs: {
@@ -52,6 +53,7 @@ const freshness = (iso: string | null, maxHours: number): string =>
 export default function DataHealthPage() {
   usePageTitle("Santé des données ECOM");
   const api = useApi<Health>("/api/ecom/gads/health");
+  const shopsApi = useApi<{ shops: ShopHealthCard[] }>("/api/ecom/health/shops");
   const h = api.data;
 
   return (
@@ -60,6 +62,11 @@ export default function DataHealthPage() {
         <h1 className="text-[20px] font-bold text-[var(--ecom-navy)]">Santé des données</h1>
         <p className="text-[12px] text-[#8A8A88]">Syncs, pixel, matching et survey — l&apos;état de la machine en un écran</p>
       </div>
+
+      {/* Fiches santé par boutique (une boutique = une carte) */}
+      {shopsApi.data && shopsApi.data.shops.length > 0 && (
+        <ShopHealthGrid shops={shopsApi.data.shops} />
+      )}
 
       {api.error && <ErrorBanner message={api.error} onRetry={() => void api.mutate()} />}
       {!h && !api.error && <><CardSkeleton height="h-32" /><CardSkeleton height="h-32" /></>}
@@ -158,4 +165,68 @@ function Row({ dot, label, value }: { dot: string; label: string; value: string 
       <span className="tabular-nums font-medium text-[var(--ecom-navy)] text-right">{value}</span>
     </li>
   );
+}
+
+// ── Fiches santé par boutique ─────────────────────────────────────
+function ShopHealthGrid({ shops }: { shops: ShopHealthCard[] }) {
+  return (
+    <div>
+      <p className="ecom-label mb-2">Santé par boutique</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        {shops.map((s) => (
+          <div key={s.integration_id} className="bg-[var(--ecom-surface-1)] border border-[var(--ecom-card-border)] rounded-[var(--ecom-r-md)] shadow-[var(--ecom-shadow-sm)] p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <Store size={14} className="text-[var(--ecom-brand-violet)]" />
+              <div className="min-w-0">
+                <h3 className="text-[13px] font-bold text-[var(--ecom-navy)] truncate">{s.name}</h3>
+                <p className="text-[10px] text-[#8A8A88] truncate">{s.shop_domain}</p>
+              </div>
+            </div>
+            <ul className="space-y-1.5 text-[12px]">
+              <Flag ok={s.shopify_last_sync != null} label="Shopify connecté"
+                detail={s.shopify_last_sync ? `sync ${ago(s.shopify_last_sync)}` : undefined} />
+              <Flag ok={s.gads_connected} label="Google Ads" detail={s.gads_connected ? "connecté" : "non connecté"} />
+              <Flag ok={s.pixel_active} label="Pixel" detail={s.pixel_active ? "posé" : "à poser"} />
+              <Flag ok={s.costs_configured} label="Coûts" detail={s.costs_configured ? "renseignés" : "manquants"} />
+              {/* Mapping produits — métrique clé multi-format (§1) */}
+              <li className="flex items-center gap-2 pt-1.5 border-t border-[#EFEFEF] mt-1.5">
+                <Package size={12} className="text-[#8A8A88] shrink-0" />
+                <span className="text-[#5A5A58] flex-1">Mapping produits</span>
+                <span className="tabular-nums font-medium text-right" style={{ color: mapColor(s.mapping.rate) }}>
+                  {s.mapping.rate == null ? "—" : `${Math.round(s.mapping.rate * 100)}%`}
+                  {s.mapping.total_items > 0 && <span className="text-[10px] text-[#8A8A88] font-normal"> ({s.mapping.resolved_items}/{s.mapping.total_items})</span>}
+                </span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-3 shrink-0" />
+                <span className="text-[#5A5A58] flex-1">Couverture COGS</span>
+                <span className="tabular-nums font-medium text-[var(--ecom-navy)] text-right">
+                  {s.cogs_coverage == null ? "—" : `${Math.round(s.cogs_coverage * 100)}%`}
+                </span>
+              </li>
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Flag({ ok, label, detail }: { ok: boolean; label: string; detail?: string }) {
+  return (
+    <li className="flex items-center gap-2">
+      <span className={`inline-flex items-center justify-center w-3.5 h-3.5 rounded-full shrink-0 ${ok ? "bg-emerald-500" : "bg-[#E6E6E4]"}`}>
+        {ok ? <Check size={9} className="text-white" /> : <X size={9} className="text-[#8A8A88]" />}
+      </span>
+      <span className="text-[#5A5A58] flex-1">{label}</span>
+      {detail && <span className={`text-[11px] ${ok ? "text-[var(--ecom-navy)]" : "text-[#8A8A88]"}`}>{detail}</span>}
+    </li>
+  );
+}
+
+function mapColor(rate: number | null): string {
+  if (rate == null) return "#B4B4B2";
+  if (rate >= 0.9) return "var(--ecom-pos)";
+  if (rate >= 0.6) return "var(--ecom-warn)";
+  return "var(--ecom-neg)";
 }
