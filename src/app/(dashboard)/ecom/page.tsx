@@ -41,7 +41,8 @@ import { VerdictHero } from "@/components/ecom/premium/VerdictHero";
 import ConfigurableKpiGrid from "@/components/ecom/dashboard/ConfigurableKpiGrid";
 import MetricSelector from "@/components/ecom/dashboard/MetricSelector";
 import InsightsDrawer from "@/components/ecom/dashboard/InsightsDrawer";
-import { useEcomPref } from "@/components/ecom/EcomPrefsProvider";
+import { useEcomPref, useEcomPrefs } from "@/components/ecom/EcomPrefsProvider";
+import PortfolioView from "@/components/ecom/portfolio/PortfolioView";
 import { DEFAULT_KPI_IDS } from "@/lib/gads/metric-catalog";
 import type { MetricValue } from "@/lib/gads/dashboard-metrics";
 
@@ -61,6 +62,7 @@ interface ShopWidgetsData {
 export default function EcomDashboardPage() {
   usePageTitle("Dashboard ECOM");
   const { from, to } = useAnalyticsRange();
+  const { isAllShops, shops } = useEcomPrefs();
   const sp = useSearchParams();
   const [recap, setRecap] = useState<ImportRecap | null>(null);
   const [showDaily, setShowDaily] = useState(sp.get("view") === "daily");
@@ -108,6 +110,10 @@ export default function EcomDashboardPage() {
     setRecap(r);
     void api.mutate();
   };
+
+  // Mode « Toutes les boutiques » : vue portefeuille agrégée (les hooks ci-dessus
+  // restent scopés à la boutique principale, non affichés ici).
+  if (isAllShops) return <PortfolioView shops={shops} from={from} to={to} />;
 
   return (
     <div className="space-y-4">
