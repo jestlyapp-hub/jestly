@@ -9,7 +9,7 @@
  */
 import { useState } from "react";
 import { SlidersHorizontal, ChevronUp, ChevronDown, X, Plus, RotateCcw } from "lucide-react";
-import { METRIC_BY_ID, METRIC_CATALOG, SECTION_LABELS, SECTION_ORDER, type MetricSection } from "@/lib/gads/metric-catalog";
+import { METRIC_CATALOG, SECTION_LABELS, SECTION_ORDER, type MetricDef, type MetricSection } from "@/lib/gads/metric-catalog";
 
 interface Props {
   label?: string;
@@ -18,12 +18,15 @@ interface Props {
   onReset: () => void;
   /** Restreint le catalogue proposé (ex. colonnes calculables par jour). */
   allowedIds?: string[];
+  /** Catalogue de métriques (défaut = catalogue Dashboard). Le détail campagne passe le sien. */
+  catalog?: MetricDef[];
 }
 
-export default function MetricSelector({ label = "Métriques", selected, onChange, onReset, allowedIds }: Props) {
+export default function MetricSelector({ label = "Métriques", selected, onChange, onReset, allowedIds, catalog: catalogProp = METRIC_CATALOG }: Props) {
   const [open, setOpen] = useState(false);
   const allow = (id: string) => !allowedIds || allowedIds.includes(id);
-  const catalog = METRIC_CATALOG.filter((d) => allow(d.id));
+  const byId: Record<string, MetricDef> = Object.fromEntries(catalogProp.map((d) => [d.id, d]));
+  const catalog = catalogProp.filter((d) => allow(d.id));
 
   const move = (i: number, dir: -1 | 1) => {
     const j = i + dir;
@@ -56,7 +59,7 @@ export default function MetricSelector({ label = "Métriques", selected, onChang
             </div>
             <div className="space-y-1 mb-3">
               {selected.map((id, i) => {
-                const def = METRIC_BY_ID[id];
+                const def = byId[id];
                 if (!def) return null;
                 return (
                   <div key={id} className="flex items-center gap-1.5 bg-[var(--ecom-surface-sunken)] rounded-md px-2 py-1">

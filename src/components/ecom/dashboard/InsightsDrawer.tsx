@@ -20,9 +20,9 @@ const NATURE: Record<Insight["severity"], "loss" | "data" | "opportunity"> = {
   info: "opportunity",
 };
 
-export default function InsightsDrawer({ insights }: { insights: Insight[] }) {
+export default function InsightsDrawer({ insights, storageKey = "insights_open" }: { insights: Insight[]; storageKey?: string }) {
   const reduce = useReducedMotion();
-  const [open, setOpen] = useEcomPref<boolean>("insights_open", false);
+  const [open, setOpen] = useEcomPref<boolean>(storageKey, false);
   if (insights.length === 0) return null;
 
   const sorted = [...insights].sort((a, b) => b.impact_cents - a.impact_cents);

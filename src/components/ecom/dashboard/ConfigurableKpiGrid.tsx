@@ -11,21 +11,34 @@ import { motion, useReducedMotion } from "framer-motion";
 import { KpiCard } from "@/components/ecom/premium/KpiCard";
 import type { MetricValue } from "@/lib/gads/dashboard-metrics";
 import {
-  METRIC_BY_ID, SECTION_LABELS, SECTION_ORDER, formatMetric, metricDelta, type MetricSection,
+  METRIC_CATALOG, SECTION_LABELS, SECTION_ORDER, formatMetric, metricDelta,
+  type MetricDef, type MetricSection,
 } from "@/lib/gads/metric-catalog";
 
-const HIGHLIGHT = new Set(["be_roas", "net_profit"]);
+const DEFAULT_HIGHLIGHT = ["be_roas", "net_profit"];
 const SPARK_COLOR: Record<string, string> = { net_profit: "#0F9D6B" };
 
+/**
+ * Grille KPI configurable. Réutilisée par le Dashboard ET le détail campagne :
+ * `catalog` (défaut = catalogue Dashboard) et `highlightIds` permettent au grain
+ * campagne de passer ses propres métriques sans dupliquer le composant.
+ */
 export default function ConfigurableKpiGrid({
-  metrics, selectedIds,
-}: { metrics: Record<string, MetricValue>; selectedIds: string[] }) {
+  metrics, selectedIds, catalog = METRIC_CATALOG, highlightIds = DEFAULT_HIGHLIGHT,
+}: {
+  metrics: Record<string, MetricValue>;
+  selectedIds: string[];
+  catalog?: MetricDef[];
+  highlightIds?: string[];
+}) {
   const reduce = useReducedMotion();
+  const byId: Record<string, MetricDef> = Object.fromEntries(catalog.map((d) => [d.id, d]));
+  const HIGHLIGHT = new Set(highlightIds);
 
   // Groupe en gardant l'ORDRE utilisateur à l'intérieur de chaque section.
   const grouped: Record<MetricSection, string[]> = { acquisition: [], rentabilite: [], attribution: [] };
   for (const id of selectedIds) {
-    const def = METRIC_BY_ID[id];
+    const def = byId[id];
     if (def) grouped[def.section].push(id);
   }
 
@@ -41,7 +54,7 @@ export default function ConfigurableKpiGrid({
             <p className="ecom-label">{SECTION_LABELS[section]}</p>
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {ids.map((id) => {
-                const def = METRIC_BY_ID[id];
+                const def = byId[id];
                 const mv = metrics[id];
                 const i = cardIndex++;
                 const available = mv?.available ?? false;
